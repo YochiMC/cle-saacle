@@ -29,4 +29,20 @@ class Student extends Model
     {
         return $this->belongsTo(TypeStudent::class);
     }
+
+    public function level(): BelongsTo
+    {
+        return $this->belongsTo(Level::class);
+    }
+
+    public function getAgeAttribute(): int
+    {
+        return now()->diffInYears($this->birthDate);
+    }
+
+    public function getFullNameAttribute(): string
+    {
+        return "{$this->firstName} {$this->lastName}";
+    }
+
 }

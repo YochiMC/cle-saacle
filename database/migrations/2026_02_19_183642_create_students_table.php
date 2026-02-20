@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('semester');
             $table->foreignId('degree_id')->constrained()->onDelete('restrict');
             $table->foreignId('type_student_id')->constrained()->onDelete('restrict');
-            $table->foreingId(level_id)->constrained()->onDelete('restrict');
+            $table->foreingId('level_id')->constrained()->onDelete('restrict');
         });
     }
 
