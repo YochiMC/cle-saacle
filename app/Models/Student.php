@@ -45,4 +45,36 @@ class Student extends Model
         return "{$this->firstName} {$this->lastName}";
     }
 
+    public function scopeSearch($query, $searchTerm): void
+    {
+        if(searchTerm){
+        $query->where(function ($q) use ($searchTerm) {
+            $q->where('firstName', 'like', "%{$searchTerm}%")
+                ->orWhere('lastName', 'like', "%{$searchTerm}%")
+                ->orWhere('numControl', 'like', "%{$searchTerm}%");
+        });
+        }
+    }
+
+    public function scopeFilterByDegree($query, $degreeId): void
+    {
+        if ($degreeId) {
+            $query->where('degree_id', $degreeId);
+        }
+    }
+
+    public function scopeFilterByLevel($query, $levelId): void
+    {
+        if ($levelId) {
+            $query->where('level', $levelId);
+        }
+    }
+
+    public function scopeFilterBySemester($query, $semester): void
+    {
+        if ($semester) {
+            $query->where('semester', $semester);
+        }
+    }
+
 }
