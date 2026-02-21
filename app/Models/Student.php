@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Student extends Model
 {
@@ -35,6 +36,11 @@ class Student extends Model
         return $this->belongsTo(Level::class);
     }
 
+    public function qualifications(): HasMany
+    {
+        return $this->hasMany(Qualification::class);
+    }
+
     public function getAgeAttribute(): int
     {
         return now()->diffInYears($this->birthDate);
@@ -47,7 +53,7 @@ class Student extends Model
 
     public function scopeSearch($query, $searchTerm): void
     {
-        if(searchTerm){
+        if($searchTerm) {
         $query->where(function ($q) use ($searchTerm) {
             $q->where('firstName', 'like', "%{$searchTerm}%")
                 ->orWhere('lastName', 'like', "%{$searchTerm}%")
