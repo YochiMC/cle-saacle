@@ -8,8 +8,8 @@ class Qualification extends Model
 {
     //
     protected $fillable = [
-        'unid1',
-        'unid2',
+        'unit1',
+        'unit2',
         'finalAverage',
         'is_approved',
         'is_left',

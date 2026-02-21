@@ -41,6 +41,11 @@ class Student extends Model
         return $this->hasMany(Qualification::class);
     }
 
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
+    }
+
     public function getAgeAttribute(): int
     {
         return now()->diffInYears($this->birthDate);

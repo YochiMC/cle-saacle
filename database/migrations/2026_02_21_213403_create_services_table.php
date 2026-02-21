@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('qualifications', function (Blueprint $table) {
+        Schema::create('services', function (Blueprint $table) {
             $table->id();
-            $table->integer('unit1');
-            $table->integer('unit2');
-            $table->integer('finalAverage');
-            $table->boolean('is_approved')->default(false);
-            $table->boolean('is_left')->default(false);
+            $table->string('type');
+            $table->decimal('amount', 10, 2)->nullable();
+            $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+            $table->text('description')->nullable();
+            $table->string('referenceNumber')->unique()->nullable();
+            $table->string('receiptURL')->nullable();
             $table->foreignId('student_id')->constrained();
-            $table->foreignId('group_id')->constrained();
             $table->timestamps();
         });
     }
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('qualifications');
+        Schema::dropIfExists('services');
     }
 };
