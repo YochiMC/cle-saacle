@@ -42,6 +42,11 @@ class Teacher extends Model
         return $this->hasMany(Document::class);
     }
 
+    public function groups(): HasMany
+    {
+        return $this->hasMany(Group::class);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
