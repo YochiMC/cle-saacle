@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('levelTecnm')->unique();
             $table->string('levelMCER');
-            $table->int('hours');
+            $table->integer('hours');
         });
     }
 
