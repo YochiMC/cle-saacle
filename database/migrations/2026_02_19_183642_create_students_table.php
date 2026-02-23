@@ -16,12 +16,12 @@ return new class extends Migration
             $table->string('firstName');
             $table->string('lastName');
             $table->string('numControl')->unique();
-            $table->string('gender');
+            $table->char('gender', 1);
             $table->date('birthDate');
-            $table->integer('semester');
+            $table->integer('semester')->min(1)->max(13);
             $table->foreignId('degree_id')->constrained()->onDelete('restrict');
             $table->foreignId('type_student_id')->constrained()->onDelete('restrict');
-            $table->foreingId('level_id')->constrained()->onDelete('restrict');
+            $table->foreignId('level_id')->constrained()->onDelete('restrict');
         });
     }
 
