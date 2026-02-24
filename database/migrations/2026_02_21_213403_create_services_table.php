@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('type');
             $table->decimal('amount', 10, 2)->default(0);
-            $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+            $table->string('status')->default('pending');
             $table->text('description')->nullable();
             $table->string('referenceNumber')->unique()->nullable();
             $table->string('receiptURL')->nullable();
