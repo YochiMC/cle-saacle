@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('levelTecnm')->unique();
             $table->string('levelMCER');
             $table->integer('hours');
+            $table->timestamps();
         });
     }
 
