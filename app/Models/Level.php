@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Level extends Model
 {
     //
+    public $timestamps = false;
+
     protected $fillable = [
         'levelTecnm',
         'levelMCER',
