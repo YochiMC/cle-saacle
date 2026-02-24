@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('type');
             $table->string('file_path');
             $table->string('status')->default('pending');
-            $table->string('comments')->nullable();
+            $table->text('comments')->nullable();
             $table->timestamps();
         });
     }

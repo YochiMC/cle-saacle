@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->date('start');
             $table->date('end');
-            $table->boolean('active')->default(false);
+            $table->boolean('is_active')->default(false);
         });
     }
 
