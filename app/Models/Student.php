@@ -49,7 +49,7 @@ class Student extends Model
 
     public function getAgeAttribute(): int
     {
-        return now()->diffInYears($this->birthDate);
+        return abs((int) (now()->diffInYears($this->birthDate)));
     }
 
     public function getFullNameAttribute(): string
