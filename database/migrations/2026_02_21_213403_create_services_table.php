@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('services', function (Blueprint $table) {
             $table->id();
             $table->string('type');
-            $table->decimal('amount', 10, 2)->nullable();
+            $table->decimal('amount', 10, 2)->default(0);
             $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
             $table->text('description')->nullable();
             $table->string('referenceNumber')->unique()->nullable();
             $table->string('receiptURL')->nullable();
-            $table->foreignId('student_id')->constrained();
+            $table->foreignId('student_id')->constrained()->restrictOnDelete();
             $table->timestamps();
         });
     }

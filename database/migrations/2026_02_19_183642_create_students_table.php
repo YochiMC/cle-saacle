@@ -19,9 +19,9 @@ return new class extends Migration
             $table->char('gender', 1);
             $table->date('birthDate');
             $table->integer('semester')->min(1)->max(13);
-            $table->foreignId('degree_id')->constrained()->onDelete('restrict');
-            $table->foreignId('type_student_id')->constrained()->onDelete('restrict');
-            $table->foreignId('level_id')->constrained()->onDelete('restrict');
+            $table->foreignId('degree_id')->constrained()->restrictOnDelete();
+            $table->foreignId('type_student_id')->constrained()->restrictOnDelete();
+            $table->foreignId('level_id')->constrained()->restrictOnDelete();
         });
     }
 
