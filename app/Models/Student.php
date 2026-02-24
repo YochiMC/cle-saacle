@@ -19,7 +19,7 @@ class Student extends Model
         'semester',
         'degree_id',
         'type_student_id',
-        'level',
+        'level_id',
     ];
 
     public function degree(): BelongsTo
@@ -78,7 +78,7 @@ class Student extends Model
     public function scopeFilterByLevel($query, $levelId): void
     {
         if ($levelId) {
-            $query->where('level', $levelId);
+            $query->where('level_id', $levelId);
         }
     }
 
