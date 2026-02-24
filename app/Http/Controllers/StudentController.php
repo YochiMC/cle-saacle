@@ -24,7 +24,7 @@ class StudentController extends Controller
         $student = Student::create($validate);
     }
 
-    public function getStudents(Request $request): void
+    public function getStudents(): void
     {
         $students = Student::all();
     }
