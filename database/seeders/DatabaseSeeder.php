@@ -22,9 +22,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
             'phone' => '1234567890',
-            'password' => bcrypt('password'),
         ]);
-<<<<<<< HEAD
 
         $this->call([
             TestDataBase::class,
@@ -32,11 +30,5 @@ class DatabaseSeeder extends Seeder
             LevelSeeder::class,
             TypeStudentSeeder::class,
         ]); 
-=======
-        $this->call(DegreeSeeder::class);
-        $this->call(LevelSeeder::class);
-        $this->call(TypeStudentSeeder::class);
-        Student::factory(5)->create();
->>>>>>> main
     }
 }
