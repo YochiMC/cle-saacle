@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Period extends Model
 {
     //
+    public $timestamps = false;
+
     protected $fillable = [
         'name',
         'start',

@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Student extends Model
 {
-
+    use HasFactory;
     protected $fillable = [
         'firstName',
         'lastName',
@@ -18,7 +19,7 @@ class Student extends Model
         'semester',
         'degree_id',
         'type_student_id',
-        'level',
+        'level_id',
     ];
 
     public function degree(): BelongsTo
@@ -48,7 +49,7 @@ class Student extends Model
 
     public function getAgeAttribute(): int
     {
-        return now()->diffInYears($this->birthDate);
+        return abs((int) (now()->diffInYears($this->birthDate)));
     }
 
     public function getFullNameAttribute(): string
@@ -77,7 +78,7 @@ class Student extends Model
     public function scopeFilterByLevel($query, $levelId): void
     {
         if ($levelId) {
-            $query->where('level', $levelId);
+            $query->where('level_id', $levelId);
         }
     }
 

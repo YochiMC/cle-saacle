@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TypeStudent extends Model
 {
+    public $timestamps = false;
+
     protected $fillable = ['name'];
 
     public function students():HasMany

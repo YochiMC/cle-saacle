@@ -22,6 +22,7 @@ return new class extends Migration
             $table->foreignId('degree_id')->constrained()->restrictOnDelete();
             $table->foreignId('type_student_id')->constrained()->restrictOnDelete();
             $table->foreignId('level_id')->constrained()->restrictOnDelete();
+            $table->timestamps();
         });
     }
 

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('type_students', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->timestamps();
         });
     }
 
