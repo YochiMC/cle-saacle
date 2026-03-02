@@ -1,0 +1,8 @@
+http://10.0.7.41/cle-sistema_prototipo/public/
+php artisan make:model Nombre -m 
+php artisan make:seeder NombreSeeder
+php artisan make:factory NombreFactory
+php artisan migrat
+npx shadcn@latest init
+npm install @tanstack/react-table
+npx shadcn@latest add table button dropdown-menu input
