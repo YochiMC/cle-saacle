@@ -16,8 +16,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
@@ -29,6 +27,7 @@ class DatabaseSeeder extends Seeder
             DegreeSeeder::class,
             LevelSeeder::class,
             TypeStudentSeeder::class,
-        ]); 
+        ]);
+        Student::factory(20)->create();
     }
 }

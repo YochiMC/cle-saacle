@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Degree;
+use App\Models\Student;
 use Inertia\Inertia;
 
 class DegreeController extends Controller
@@ -21,8 +22,10 @@ class DegreeController extends Controller
     public function getDegree()
     {
         $degrees = Degree::all();
+        $students = Student::all();
         return Inertia::render('Degrees', [
-            'degrees' => $degrees
+            'degrees' => $degrees,
+            'students' => $students
         ]);
     }
 

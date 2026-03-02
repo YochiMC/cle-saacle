@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\In;
+use Inertia\Inertia;
 
 class StudentController extends Controller
 {
@@ -24,9 +26,12 @@ class StudentController extends Controller
         $student = Student::create($validate);
     }
 
-    public function getStudents(): void
+    public function getStudents()
     {
         $students = Student::all();
+        return Inertia::render('Degrees', [
+            'students' => $students
+        ]);
     }
 
     public function updateStudent(Student $student, Request $request): void
