@@ -27,4 +27,8 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/degrees', [DegreeController::class, 'getDegree'])->name('Degrees');
 
+Route::get('/yochi', function () {
+    return Inertia::render('Yochi');
+})->name('Yochi');
+
 require __DIR__ . '/auth.php';
