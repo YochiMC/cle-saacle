@@ -28,6 +28,6 @@ class DatabaseSeeder extends Seeder
             LevelSeeder::class,
             TypeStudentSeeder::class,
         ]);
-        Student::factory(20)->create();
+        Student::factory(200)->create();
     }
 }
