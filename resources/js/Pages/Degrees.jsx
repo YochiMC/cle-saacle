@@ -1,198 +1,149 @@
-import { useState, useMemo } from 'react';
-import { Head, router } from '@inertiajs/react';
-import { DataTable } from '@/Components/DataTable';
-import { Checkbox } from "@/Components/ui/checkbox";
-import { Button } from "@/Components/ui/button";
-import { Edit, Trash2, Copy, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { Head } from "@inertiajs/react";
+import CardGroup from "@/Components/Charts/CardGroup";
+import { useState } from "react";
+import ModalAlert from "@/Components/UI/ModalAlert";
 
-export default function Degrees({ degrees, students }) {
-    const [vistaActual, setVistaActual] = useState('carreras');
-    const [filasSeleccionadas, setFilasSeleccionadas] = useState([]);
-    const [columnasVisibles, setColumnasVisibles] = useState([]);
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+} from "recharts";
 
-    const currentData = vistaActual === 'carreras' ? (degrees || []) : (students || []);
+export default function Degrees({ 
+    degrees = [], 
+    students = [],
 
-    const columns = useMemo(() => {
-        if (!currentData || currentData.length === 0) return [];
-
-        const keys = Object.keys(currentData[0]);
-
-        const formatLabel = (key) =>
-            key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
-        const SortIcon = ({ column }) => {
-            const sorted = column.getIsSorted();
-            if (sorted === 'asc') return <ArrowUp className="ml-2 h-4 w-4" />;
-            if (sorted === 'desc') return <ArrowDown className="ml-2 h-4 w-4" />;
-            return <ArrowUpDown className="ml-2 h-4 w-4 opacity-40" />;
-        };
-
-        const baseColumns = keys.map(key => ({
-            accessorKey: key,
-            header: ({ column }) => (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    className="hover:bg-white/10 hover:text-white"
-                >
-                    {formatLabel(key)}
-                    <SortIcon column={column} />
-                </Button>
-            ),
-        }));
-
-        return [
-            {
-                id: "select",
-                header: ({ table }) => (
-                    <Checkbox
-                        checked={table.getIsAllPageRowsSelected()}
-                        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                        aria-label="Select all"
-                        className="border-white data-[state=checked]:bg-white data-[state=checked]:text-[#17365D]"
-                    />
-                ),
-                cell: ({ row }) => (
-                    <Checkbox
-                        checked={row.getIsSelected()}
-                        onCheckedChange={(value) => row.toggleSelected(!!value)}
-                        aria-label="Select row"
-                    />
-                ),
-                enableSorting: false,
-                enableHiding: false,
-            },
-            ...baseColumns,
-            {
-                id: "actions",
-                header: "Acciones",
-                enableHiding: false,
-                cell: ({ row }) => {
-                    const item = row.original;
-                    const itemName = item.name || item.nombre || item.id || item.matricula;
-
-                    return (
-                        <div className="flex items-center justify-center gap-2">
-                            <Button
-                                onClick={() => alert(`Vamos a editar: ${itemName}`)}
-                                className="h-8 w-8 bg-orange-500 hover:bg-orange-600 text-white rounded-md p-0"
-                                title="Editar"
-                            >
-                                <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                onClick={() => alert(`Vamos a eliminar: ${itemName}`)}
-                                className="h-8 w-8 bg-red-600 hover:bg-red-700 text-white rounded-md p-0"
-                                title="Eliminar"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    );
-                },
-            },
-        ];
-    }, [currentData]);
-
-    const handleBulkCopy = () => {
-        if (filasSeleccionadas.length === 0) return;
-        const EXCLUDED = ['select', 'actions'];
-        const visibleDataCols = columnasVisibles.filter(id => !EXCLUDED.includes(id));
-        const headerRow = visibleDataCols.join('\t');
-        const dataRows = filasSeleccionadas
-            .map(row => visibleDataCols.map(key => row[key] ?? '').join('\t'))
-            .join('\n');
-        navigator.clipboard.writeText(`${headerRow}\n${dataRows}`);
-        alert('Copiado al portapapeles (solo columnas visibles)');
-    };
-
-    const handleBulkDelete = () => {
-        if (filasSeleccionadas.length === 0) return;
-        if (confirm(`¿Estás seguro de eliminar ${filasSeleccionadas.length} registros?`)) {
-            const ids = filasSeleccionadas.map(row => row.id || row.matricula);
-            router.post('/ruta-eliminar-masiva', { ids, tipo: vistaActual });
+    chartData = [
+        { name: "Sistemas", total: 120, meta: 150 },
+        { name: "Industrial", total: 90, meta: 130 },
+        { name: "Gestión", total: 70, meta: 100 },
+        { name: "Electrónica", total: 60, meta: 80 },
+        { name: "Mecatrónica", total: 110, meta: 140 },
+    ],
+    groups = [
+        {
+            id: 1,
+            title: "Basic 1",
+            instructor: "",
+            Id_Grupo: "Grupo: 1",
+            Periodo: "Ene - 25",
+            Horario: "Lunes y Miércoles 10:00 - 11:30",
+            Modalidad: "Presencial"
+        },
+        {
+            id: 2,
+            title: "Basic 2",
+            instructor: "Profesor: Laura",
+            Id_Grupo: "Grupo: 2",
+            Periodo: "Feb - 25",
+            Horario: "Martes y Jueves 12:00 - 1:30",
+            Modalidad: "En línea"
         }
-    };
+    ]
+}) {
+    // Hook SIEMPRE arriba
+    const [openModal, setOpenModal] = useState(false);
+
+    // Ya no es necesario useState para chartData y radarData si vienen directamente de base de datos
+    // a menos que necesites modificarlos en tiempo real sin recargar la página.
+    // Usaremos directamente las props (chartData) proporcionadas por Inertia.
 
     return (
         <div className="min-h-screen bg-gray-100 py-12">
-            <Head title={vistaActual === 'carreras' ? "Carreras" : "Alumnos"} />
+            <Head title="Carreras" />
 
             <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 className="text-3xl font-extrabold text-[#17365D]">
-                            {vistaActual === 'carreras' ? 'Catálogo de Carreras' : 'Gestión de Alumnos'}
-                        </h2>
-                        <p className="mt-2 text-sm text-gray-600">
-                            Administración general de los registros del sistema.
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 bg-white p-2 rounded-md shadow-sm border border-slate-200">
-                        <label className="text-sm font-medium text-[#17365D] whitespace-nowrap">
-                            Tabla a mostrar:
-                        </label>
-                        <select
-                            className="border border-slate-300 rounded-md px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[#17365D] bg-slate-50 min-w-[150px]"
-                            value={vistaActual}
-                            onChange={(e) => {
-                                setVistaActual(e.target.value);
-                                setFilasSeleccionadas([]);
-                                setColumnasVisibles([]);
-                            }}
-                        >
-                            <option value="carreras">Carreras</option>
-                            <option value="alumnos">Alumnos</option>
-                        </select>
-                    </div>
+                {/* BOTÓN PARA ABRIR MODAL */}
+                <div className="mb-6">
+                    <button
+                        onClick={() => setOpenModal(true)}
+                        className="bg-[#1B396A] text-white px-4 py-2 rounded-lg hover:bg-[#142952] transition"
+                    >
+                        Mostrar Alerta
+                    </button>
                 </div>
 
-                <div className="bg-white overflow-hidden shadow-sm rounded-sm p-6">
-                    {filasSeleccionadas.length > 0 && (
-                        <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between">
-                            <span className="text-sm font-medium text-slate-700">
-                                {filasSeleccionadas.length} fila(s) seleccionada(s)
-                            </span>
-                            <div className="flex gap-2">
-                                <Button
-                                    onClick={handleBulkCopy}
-                                    variant="outline"
-                                    className="bg-white hover:bg-slate-100 text-[#17365D] border-[#17365D]"
-                                    size="sm"
-                                >
-                                    <Copy className="h-4 w-4 mr-2" />
-                                    Copiar a Excel
-                                </Button>
-                                <Button
-                                    onClick={handleBulkDelete}
-                                    className="bg-red-600 hover:bg-red-700 text-white"
-                                    size="sm"
-                                >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Eliminar Seleccionados
-                                </Button>
-                            </div>
-                        </div>
-                    )}
+                {/* ALERTA MODAL */}
+                <ModalAlert
+                    isOpen={openModal}
+                    onClose={() => setOpenModal(false)}
+                    type="error"
+                    title="Error al registrar"
+                    message="No se pudo inscribir al estudiante."
+                />
 
-                    {currentData && currentData.length > 0 ? (
-                        <DataTable
-                            columns={columns}
-                            data={currentData}
-                            onSelectionChange={(datos, columnas) => {
-                                setFilasSeleccionadas(datos);
-                                setColumnasVisibles(columnas);
-                            }}
-                            searchPlaceholder={vistaActual === 'alumnos' ? "Buscar por nombre, apellido o matrícula" : "Buscar en cualquier columna..."}
-                        />
-                    ) : (
-                        <div className="text-center py-10 text-slate-500">
-                            No hay registros almacenados.
-                        </div>
-                    )}
+                {/* GRÁFICA */}
+                <div className="bg-white p-8 rounded-xl shadow-md border border-gray-200">
+                    <h3 className="text-2xl font-bold text-[#1B396A] mb-6">
+                        Estudiantes por Carrera
+                    </h3>
+
+                    <ResponsiveContainer width="100%" height={400}>
+                        <BarChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Bar
+                                dataKey="total"
+                                fill="#1B396A"
+                                radius={[6, 6, 0, 0]}
+                            />
+                            <Bar
+                                dataKey="meta"
+                                fill="#FF9500"
+                                radius={[6, 6, 0, 0]}
+                            />
+                        </BarChart>
+                    </ResponsiveContainer>
                 </div>
+
             </div>
+
+            {/* CARDS */}
+            <div className="p-6 flex flex-wrap gap-6 justify-center">
+                {groups && groups.length > 0 ? (
+                    groups.map((group) => (
+                        <CardGroup
+                            key={group.id}
+                            title={group.title}
+                            instructor={group.instructor}
+                            Id_Grupo={group.Id_Grupo}
+                            Periodo={group.Periodo}
+                            Horario={group.Horario}
+                            Modalidad={group.Modalidad}
+                        />
+                    ))
+                ) : (
+                    <div className="text-gray-500 font-medium py-8">
+                        No hay grupos registrados en este momento.
+                    </div>
+                )}
+                
+            </div>
+            
+<div>
+                {students.map((student) => (
+                    <div key={student.id}>
+                        <p>{student.firstName}</p>
+                        <p>{student.lastName}</p>
+                        <p>{student.numControl}</p>
+                        <p>{student.gender}</p>
+                        <p>{student.birthDate}</p>
+                        <p>{student.semester}</p>
+                        <p>{student.degree_id}</p>
+                        <p>{student.type_student_id}</p>
+                        <p>{student.level_id}</p>
+                    </div>
+                ))}
+            </div>
+            
         </div>
     );
 }
