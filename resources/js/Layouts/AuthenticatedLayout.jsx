@@ -4,9 +4,26 @@ import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import Sidebar from '@/components/Menus/Sidebar'
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+
+    // Definimos los enlaces aquí.
+    // Usamos route().current() (función helper de Ziggy incluida en Breeze) para saber qué enlace está activo.
+    const menuLinks = [
+        {
+            title: '🏠 Panel de Control',
+            url: route('dashboard'),
+            active: route().current('dashboard')
+        },
+        {
+            title: '👤 Perfil',
+            url: route('profile.edit'),
+            active: route().current('profile.edit')
+        },
+        // Agrega aquí más rutas de Laravel según las necesites
+    ];
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
@@ -18,9 +35,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="flex h-16 justify-between">
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
-                                </Link>
+                                <Sidebar links={menuLinks} />
                             </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
