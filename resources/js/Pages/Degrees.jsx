@@ -1,56 +1,53 @@
+import React from "react";
+import { Head } from "@inertiajs/react";
 import ResourceDashboard from "@/Components/ResourceDashboard";
 
-const VIEW_OPTIONS = [
-    { value: "carreras", label: "Carreras" },
-    { value: "alumnos", label: "Alumnos" },
-    { value: "maestros", label: "Maestros" },
-];
-
+/**
+ * Degrees — Vista de gestión de carreras, alumnos y maestros.
+ *
+ * Uso del Modo Docente (Feature Toggle):
+ *  - El switch "Admin / Docente" está integrado en el header del ResourceDashboard.
+ *  - Desde aquí solo declaramos QUÉ columnas son editables y cuáles están restringidas.
+ *
+ * editableColumns   → en Modo Docente se convierten en <input type="number">
+ * restrictedColumns → en Modo Docente desaparecen por completo (ni de la tabla ni del menú)
+ */
 export default function Degrees({ degrees, students, teachers }) {
-    // Función para imprimir (Por ahora usaremos el diálogo de impresión nativo)
-    const handlePrintGeneral = () => {
-        window.print();
-    };
+    const VIEW_OPTIONS = [
+        { value: "carreras", label: "Carreras" },
+        { value: "alumnos", label: "Alumnos" },
+        { value: "maestros", label: "Maestros" },
+    ];
 
     // Función para crear un nuevo registro
     const handleCreateNuevo = () => {
-        // Aquí le decimos a Laravel que nos lleve a la pantalla de creación
-        // Por ejemplo: router.get('/carreras/crear');
         alert("Navegando a la pantalla de creación...");
     };
+
     return (
-        <>
-            {/* ── TUS TABLAS INTACTAS ── */}
-            <ResourceDashboard
-                title="Carreras"
-                dataMap={{
-                    carreras: degrees,
-                    alumnos: students,
-                    maestros: teachers,
-                }}
-                viewOptions={VIEW_OPTIONS}
-                deleteRoute="/carreras/eliminar-masivo"
-                onPrint={handlePrintGeneral}
-                onNew={handleCreateNuevo}
-            />
+        <div className="min-h-screen bg-slate-50 py-12">
+            <Head title="Gestión Académica" />
 
-            <ResourceDashboard
-                title="Alumnos"
-                dataMap={{ alumnos: students }}
-                viewOptions={[{ value: "alumnos", label: "Alumnos" }]}
-                deleteRoute="/alumnos/eliminar-masivo"
-                onPrint={handlePrintGeneral}
-                onNew={handleCreateNuevo}
-            />
-
-            <ResourceDashboard
-                title="Maestros"
-                dataMap={{ maestros: teachers }}
-                viewOptions={[{ value: "maestros", label: "Maestros" }]}
-                deleteRoute="/maestros/eliminar-masivo"
-                onPrint={handlePrintGeneral}
-                onNew={handleCreateNuevo}
-            />
-        </>
+            <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <ResourceDashboard
+                    title="Gestión Académica"
+                    dataMap={{
+                        carreras: degrees,
+                        alumnos: students,
+                        maestros: teachers,
+                    }}
+                    viewOptions={VIEW_OPTIONS}
+                    deleteRoute="/carreras/eliminar-masivo"
+                    onNew={handleCreateNuevo}
+                    // ── MODO DOCENTE: configuración de columnas ───────────────
+                    // editableColumns: se vuelven <input type="number"/> cuando el
+                    // docente activa el toggle. Usa los nombres exactos de tu Eloquent.
+                    editableColumns={["firstName", "lastName"]}
+                    // restrictedColumns: se eliminan COMPLETAMENTE en Modo Docente.
+                    // No aparecen ni como columna ni en el menú "Toggle Columns".
+                    restrictedColumns={["birthDate", "semester", "gender"]}
+                />
+            </div>
+        </div>
     );
 }
