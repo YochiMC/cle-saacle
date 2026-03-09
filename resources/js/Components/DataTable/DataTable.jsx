@@ -39,6 +39,7 @@ export function DataTable({
     onSelectionChange,
     onPrint,
     onNew,
+    isTeacherMode = false,
 }) {
     const [sorting, setSorting] = useState([]);
     const [columnFilters, setColumnFilters] = useState([]);
@@ -80,6 +81,7 @@ export function DataTable({
                 searchPlaceholder={searchPlaceholder}
                 onPrint={onPrint}
                 onNew={onNew}
+                isTeacherMode={isTeacherMode}
             />
 
             <div className="rounded-sm border border-slate-300 bg-white overflow-hidden shadow-sm">

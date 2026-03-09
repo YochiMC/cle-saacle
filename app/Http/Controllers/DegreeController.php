@@ -25,7 +25,7 @@ class DegreeController extends Controller
         $degrees = Degree::all();
         $students = Student::all();
         $teachers = Teacher::all();
-        return Inertia::render('Degrees', [
+        return Inertia::render('Test', [
             'degrees' => $degrees,
             'students' => $students,
             'teachers' => $teachers

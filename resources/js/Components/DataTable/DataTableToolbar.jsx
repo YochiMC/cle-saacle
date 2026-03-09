@@ -55,6 +55,7 @@ export default function DataTableToolbar({
     onGlobalFilterChange,
     searchPlaceholder = 'Buscar en cualquier columna...',
     onNew,
+    isTeacherMode = false,
 }) {
     /*
      * Separación de capas (Clean Architecture):
@@ -90,15 +91,17 @@ export default function DataTableToolbar({
             {/* ── ACCIONES (lado derecho) ───────────────────────────────────── */}
             <div className="ml-auto flex items-center gap-2">
 
-                {/* Alta de nuevo registro — prop `onNew` definida por el padre */}
-                <ThemeButton
-                    theme="institutional"
-                    icon={Plus}
-                    size="sm"
-                    onClick={onNew}
-                >
-                    Registrar Nuevo
-                </ThemeButton>
+                {/* Alta de nuevo registro — solo visible en Modo Administrador */}
+                {!isTeacherMode && (
+                    <ThemeButton
+                        theme="institutional"
+                        icon={Plus}
+                        size="sm"
+                        onClick={onNew}
+                    >
+                        Registrar Nuevo
+                    </ThemeButton>
+                )}
 
                 {/* ── MENÚ DE EXPORTACIÓN ────────────────────────────────────── */}
                 <DropdownMenu>
