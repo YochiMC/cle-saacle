@@ -33,6 +33,9 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                // Solo pasamos los nombres para mantener el JSON ligero
+                'roles' => $request->user()?->getRoleNames() ?? [],
+                'permissions' => $request->user()?->getAllPermissions()->pluck('name') ?? [],
             ],
         ];
     }
