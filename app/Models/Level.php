@@ -11,8 +11,8 @@ class Level extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'levelTecnm',
-        'levelMCER',
+        'level_tecnm',
+        'level_mcer',
         'hours',
     ];
 

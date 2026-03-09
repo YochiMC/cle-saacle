@@ -33,11 +33,8 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "lucide-react": "^0.575.0",
-<<<<<<< HEAD
         "react-to-print": "^3.3.0",
-=======
         "recharts": "^3.7.0",
->>>>>>> 3722664d29f7f9a8d66f3a8ac3e0e68dc368da97
         "tailwind-merge": "^3.5.0",
         "tailwindcss-animate": "^1.0.7",
         "xlsx": "^0.18.5"

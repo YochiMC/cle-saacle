@@ -13,14 +13,15 @@ return new class extends Migration
     {
         Schema::create('qualifications', function (Blueprint $table) {
             $table->id();
-            $table->integer('unit1');
-            $table->integer('unit2');
-            $table->integer('finalAverage');
+            $table->integer('unit_1');
+            $table->integer('unit_2');
+            $table->integer('final_average');
             $table->boolean('is_approved')->default(false);
             $table->boolean('is_left')->default(false);
-            $table->foreignId('student_id')->constrained();
-            $table->foreignId('group_id')->constrained();
+            $table->foreignId('student_id')->constrained()->onDelete('cascade');
+            $table->foreignId('group_id')->constrained()->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

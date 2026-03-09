@@ -14,16 +14,19 @@ return new class extends Migration
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('firstName');
-            $table->string('lastName');
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->char('category', 1);
+            $table->string('level');
             $table->string('rfc')->unique();
             $table->string('curp')->unique();
-            $table->string('bankName');
             $table->string('clabe')->unique();
             $table->integer('ttc_hours');
+            $table->string('bank_name');
             $table->string('grade');
             $table->boolean('is_native')->default(false);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
