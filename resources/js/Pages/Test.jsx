@@ -3,7 +3,7 @@ import { Head } from "@inertiajs/react";
 import ResourceDashboard from "@/Components/ResourceDashboard";
 
 /**
- * Degrees — Vista de gestión de carreras, alumnos y maestros.
+ * Test — Vista de gestión de carreras, alumnos y maestros.
  *
  * Uso del Modo Docente (Feature Toggle):
  *  - El switch "Admin / Docente" está integrado en el header del ResourceDashboard.
@@ -12,7 +12,7 @@ import ResourceDashboard from "@/Components/ResourceDashboard";
  * editableColumns   → en Modo Docente se convierten en <input type="number">
  * restrictedColumns → en Modo Docente desaparecen por completo (ni de la tabla ni del menú)
  */
-export default function Degrees({ degrees, students, teachers }) {
+export default function Test({ degrees, students, teachers }) {
     const VIEW_OPTIONS = [
         { value: "carreras", label: "Carreras" },
         { value: "alumnos", label: "Alumnos" },
