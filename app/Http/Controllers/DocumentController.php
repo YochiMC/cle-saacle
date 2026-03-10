@@ -11,7 +11,7 @@ class DocumentController extends Controller
     public function createDocument(Request $request): void
     {
         $validate = $request->validate([
-            'teacher_id' => 'required|integer|exists:teachers,id',
+            'user_id' => 'required|integer|exists:users,id',
             'type' => 'required|string|max:100',
             'file_path' => 'required|string|max:255',
             'status' => 'required|string|max:100',
@@ -25,7 +25,7 @@ class DocumentController extends Controller
     public function updateDocument(Document $document, Request $request): void
     {
         $validate = $request->validate([
-            'teacher_id' => 'required|integer|exists:teachers,id',
+            'user_id' => 'required|integer|exists:users,id',
             'type' => 'required|string|max:100',
             'file_path' => 'required|string|max:255',
             'status' => 'required|string|max:100',

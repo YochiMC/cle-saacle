@@ -11,8 +11,8 @@ class LevelController extends Controller
     public function createLevel(Request $request): void
     {
         $validate = $request->validate([
-            'levelTecnm' => 'required|string|max:20|unique:levels,levelTecnm',
-            'levelMCER' => 'required|string|max:20',
+            'level_tecnm' => 'required|string|max:20|unique:levels,level_tecnm',
+            'level_mcer' => 'required|string|max:20',
             'hours' => 'required|integer|min:0',
         ]);
         $level = Level::create($validate);
@@ -26,8 +26,8 @@ class LevelController extends Controller
     public function updateLevel(Level $level, Request $request): void
     {
         $validate = $request->validate([
-            'levelTecnm' => 'required|string|max:20|unique:levels,levelTecnm',
-            'levelMCER' => 'required|string|max:20',
+            'level_tecnm' => 'required|string|max:20|unique:levels,level_tecnm',
+            'level_mcer' => 'required|string|max:20',
             'hours' => 'required|integer|min:0',
         ]);
 

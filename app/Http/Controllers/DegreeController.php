@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Degree;
-use App\Models\Student;
-use App\Models\Teacher;
-use Inertia\Inertia;
+
 
 class DegreeController extends Controller
 {
@@ -20,16 +18,9 @@ class DegreeController extends Controller
         $degree = Degree::create($validate);
     }
 
-    public function getDegree()
+    public function getDegree(): void
     {
         $degrees = Degree::all();
-        $students = Student::all();
-        $teachers = Teacher::all();
-        return Inertia::render('Degrees', [
-            'degrees' => $degrees,
-            'students' => $students,
-            'teachers' => $teachers
-        ]);
     }
 
     public function updateDegree(Degree $degree, Request $request): void

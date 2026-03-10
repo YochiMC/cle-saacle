@@ -24,9 +24,9 @@ class KardexController extends Controller
     {
         // 1. Validar los datos de entrada
         $validated = $request->validate([
-            'unit1'        => 'required|numeric|min:0|max:10',
-            'unit2'        => 'required|numeric|min:0|max:10',
-            'finalAverage' => 'required|numeric|min:0|max:10',
+            'unit_1'        => 'required|numeric|min:0|max:100',
+            'unit_2'        => 'required|numeric|min:0|max:100',
+            'final_avarage' => 'required|numeric|min:0|max:100',
             'is_approved'  => 'required|boolean',
             'is_left'      => 'required|boolean',
             'student_id'   => 'required|exists:students,id',
@@ -35,7 +35,6 @@ class KardexController extends Controller
 
         // 2. Crear el registro
         $qualification = Qualification::create($validated);
-
     }
 
     /**
@@ -44,15 +43,14 @@ class KardexController extends Controller
     public function updateQualification(Request $request, Qualification $qualification): void
     {
         $validated = $request->validate([
-            'unit1'        => 'sometimes|numeric|min:0|max:10',
-            'unit2'        => 'sometimes|numeric|min:0|max:10',
-            'finalAverage' => 'sometimes|numeric|min:0|max:10',
+            'unit_1'        => 'sometimes|numeric|min:0|max:100',
+            'unit_2'        => 'sometimes|numeric|min:0|max:100',
+            'final_average' => 'sometimes|numeric|min:0|max:100',
             'is_approved'  => 'sometimes|boolean',
             'is_left'      => 'sometimes|boolean',
         ]);
 
         $qualification->update($validated);
-
     }
 
     /**

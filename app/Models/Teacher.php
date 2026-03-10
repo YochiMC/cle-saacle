@@ -23,7 +23,7 @@ class Teacher extends Model
         'curp',
         'clabe',
         'ttc_hours',
-        'bankName',
+        'bank_name',
         'grade',
         'is_native',
     ];
