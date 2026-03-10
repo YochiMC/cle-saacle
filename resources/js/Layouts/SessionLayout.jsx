@@ -7,12 +7,12 @@ export default function SessionLayout({ children, header }) {
 
     const menuLinks = [
         {
-            title: '🏠 Panel de Control',
+            title: 'Panel de Control',
             url: route('dashboard'),
             active: route().current('dashboard')
         },
         {
-            title: '👤 Perfil',
+            title: 'Perfil',
             url: route('profile.edit'),
             active: route().current('profile.edit')
         },
