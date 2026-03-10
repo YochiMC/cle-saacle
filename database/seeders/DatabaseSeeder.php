@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             DegreeSeeder::class,
             LevelSeeder::class,
             TypeStudentSeeder::class,
+            RoleSeeder::class
         ]);
         Student::factory(200)->create();
     }

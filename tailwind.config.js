@@ -64,6 +64,22 @@ export default {
     				'3': 'hsl(var(--chart-3))',
     				'4': 'hsl(var(--chart-4))',
     				'5': 'hsl(var(--chart-5))'
+    			},
+    			orange: {
+    				DEFAULT: 'hsl(var(--orange))',
+    				foreground: 'hsl(var(--foreground))'
+    			},
+    			customBlue: {
+    				DEFAULT: 'hsl(var(--custom-blue))',
+    				foreground: 'hsl(var(--foreground))'
+    			},
+    			orangeTec: {
+    				DEFAULT: 'hsl(var(--orange-tec))',
+    				foreground: 'hsl(var(--foreground))'
+    			},
+    			blueTec: {
+    				DEFAULT: 'hsl(var(--blue-tec))',
+    				foreground: 'hsl(var(--foreground))'
     			}
     		}
     	}
