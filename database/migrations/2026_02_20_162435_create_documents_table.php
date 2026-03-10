@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('teacher_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('type');
             $table->string('file_path');
             $table->string('status')->default('pending');
             $table->text('comments')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

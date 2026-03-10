@@ -6,17 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Student extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $fillable = [
-        'firstName',
-        'lastName',
-        'numControl',
+        'user_id',
+        'first_name',
+        'last_name',
+        'num_control',
         'gender',
-        'birthDate',
+        'birthdate',
         'semester',
+        'status',
         'degree_id',
         'type_student_id',
         'level_id',
@@ -49,22 +52,22 @@ class Student extends Model
 
     public function getAgeAttribute(): int
     {
-        return abs((int) (now()->diffInYears($this->birthDate)));
+        return abs((int) (now()->diffInYears($this->birthdate)));
     }
 
     public function getFullNameAttribute(): string
     {
-        return "{$this->firstName} {$this->lastName}";
+        return "{$this->first_name} {$this->last_name}";
     }
 
     public function scopeSearch($query, $searchTerm): void
     {
-        if($searchTerm) {
-        $query->where(function ($q) use ($searchTerm) {
-            $q->where('firstName', 'like', "%{$searchTerm}%")
-                ->orWhere('lastName', 'like', "%{$searchTerm}%")
-                ->orWhere('numControl', 'like', "%{$searchTerm}%");
-        });
+        if ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('first_name', 'like', "%{$searchTerm}%")
+                    ->orWhere('last_name', 'like', "%{$searchTerm}%")
+                    ->orWhere('num_control', 'like', "%{$searchTerm}%");
+            });
         }
     }
 
@@ -88,5 +91,4 @@ class Student extends Model
             $query->where('semester', $semester);
         }
     }
-
 }

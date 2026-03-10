@@ -14,7 +14,7 @@ class Period extends Model
         'name',
         'start',
         'end',
-        'active',
+        'is_active',
     ];
 
     public function groups(): HasMany

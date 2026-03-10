@@ -7,20 +7,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Teacher extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
-        'firstName',
-        'lastName',
+        'first_name',
+        'last_name',
+        'category',
+        'level',
         'rfc',
         'curp',
-        'bankName',
         'clabe',
         'ttc_hours',
+        'bankName',
         'grade',
         'is_native',
     ];
@@ -32,7 +35,7 @@ class Teacher extends Model
     protected function fullName(): Attribute
     {
         return Attribute::make(
-            get: fn () => "{$this->firstName} {$this->lastName}",
+            get: fn() => "{$this->first_name} {$this->last_name}",
         );
     }
 

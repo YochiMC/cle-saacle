@@ -19,11 +19,13 @@ return new class extends Migration
             $table->integer('capacity');
             $table->string('schedule');
             $table->string('classroom')->nullable();
-            $table->string('link')->nullable();
-            $table->foreignId('period_id')->constrained();
-            $table->foreignId('teacher_id')->constrained();
-            $table->foreignId('level_id')->constrained();
+            $table->string('meeting_link')->nullable();
+            $table->string('status')->default('active');
+            $table->foreignId('period_id')->constrained()->onDelete('cascade');
+            $table->foreignId('teacher_id')->constrained()->onDelete('cascade');
+            $table->foreignId('level_id')->constrained()->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
