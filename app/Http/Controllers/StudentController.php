@@ -3,56 +3,39 @@
 namespace App\Http\Controllers;
 
 use App\Models\Student;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rules\In;
-use Inertia\Inertia;
+use App\Http\Requests\StoreStudentRequest;
+use App\Http\Requests\UpdateStudentRequest;
+use App\Actions\CreateStudentWithUser;
+use App\Actions\UpdateStudentWithUser;
+use App\Actions\DeleteStudentWithUser;
 
 class StudentController extends Controller
 {
-    //
-    public function createStudent(Request $request): void
-    {
-        $validate = $request->validate([
-            'firstName' => 'required|string|max:255',
-            'lastName' => 'required|string|max:255',
-            'numControl' => 'required|string|max:20|unique:students,numControl',
-            'gender' => 'required|char|in:M,F',
-            'birthDate' => 'required|date',
-            'semester' => 'required|integer|min:0|max:13',
-            'degree_id' => 'required|exists:degrees,id',
-            'type_student_id' => 'required|exists:type_students,id',
-            'level_id' => 'required|exists:levels,id',
-        ]);
-        $student = Student::create($validate);
+    public function createStudent(
+        StoreStudentRequest $request,
+        CreateStudentWithUser $action
+    ) {
+        $action->execute($request->validated());
+
+        return redirect()->back()->with('success', 'Estudiante creado correctamente.');
     }
 
-    public function getStudents()
-    {
-        $students = Student::all();
-        return Inertia::render('Degrees', [
-            'students' => $students
-        ]);
+    public function updateStudent(
+        UpdateStudentRequest $request,
+        Student $student,
+        UpdateStudentWithUser $action
+    ) {
+        $action->execute($student, $request->validated());
+
+        return redirect()->back()->with('success', 'Estudiante actualizado correctamente.');
     }
 
-    public function updateStudent(Student $student, Request $request): void
-    {
-        $validate = $request->validate([
-            'firstName' => 'required|string|max:255',
-            'lastName' => 'required|string|max:255',
-            'numControl' => 'required|string|max:20|unique:students,numControl',
-            'gender' => 'required|char|in:M,F',
-            'birthDate' => 'required|date',
-            'semester' => 'required|integer|min:0|max:13',
-            'degree_id' => 'required|exists:degrees,id',
-            'type_student_id' => 'required|exists:type_students,id',
-            'level_id' => 'required|exists:levels,id',
-        ]);
+    public function deleteStudent(
+        Student $student,
+        DeleteStudentWithUser $action
+    ) {
+        $action->execute($student);
 
-        $student->update($validate);
-    }
-
-    public function deleteStudent(Student $student): void
-    {
-        $student->delete();
+        return redirect()->back()->with('success', 'Estudiante eliminado correctamente.');
     }
 }

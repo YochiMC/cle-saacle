@@ -2,53 +2,40 @@
 
 namespace App\Http\Controllers;
 
-
-use Illuminate\Http\Request;
 use App\Models\Teacher;
+use App\Http\Requests\StoreTeacherRequest;
+use App\Http\Requests\UpdateTeacherRequest;
+use App\Actions\CreateTeacherWithUser;
+use App\Actions\UpdateTeacherWithUser;
+use App\Actions\DeleteTeacherWithUser;
 
 class TeacherController extends Controller
 {
-    public function createTeacher(Request $request): void
-    {
-        $validate = $request->validate([
-            'firstName' => 'required|string|max:100',
-            'lastName' => 'required|string|max:100',
-            'rfc' => 'required|string|max:13|unique:teachers,rfc',
-            'curp' => 'required|string|max:18|unique:teachers,curp',
-            'bankName' => 'required|string|max:255',
-            'clabe' => 'required|string|max:18|unique:teachers,clabe',
-            'ttc_hours' => 'required|integer|min:0',
-            'grade' => 'required|string|max:100',
-            'is_native' => 'required|boolean',
-        ]);
+    public function createTeacher(
+        StoreTeacherRequest $request,
+        CreateTeacherWithUser $action
+    ) {
+        $action->execute($request->validated());
 
-        $teacher = Teacher::create($validate);
+        return redirect()->back()->with('success', 'Docente creado correctamente.');
     }
 
-    public function updateTeacher(Teacher $teacher, Request $request): void
-    {
-        $validate = $request->validate([
-            'firstName' => 'required|string|max:100',
-            'lastName' => 'required|string|max:100',
-            'rfc' => 'required|string|max:13|unique:teachers,rfc',
-            'curp' => 'required|string|max:18|unique:teachers,curp',
-            'bankName' => 'required|string|max:255',
-            'clabe' => 'required|string|max:18|unique:teachers,clabe',
-            'ttc_hours' => 'required|integer|min:0',
-            'grade' => 'required|string|max:100',
-            'is_native' => 'required|boolean',
-        ]);
+    public function updateTeacher(
+        UpdateTeacherRequest $request,
+        Teacher $teacher,
+        UpdateTeacherWithUser $action
+    ) {
+        $action->execute($teacher, $request->validated());
 
-        $teacher->update($validate);
+        return redirect()->back()->with('success', 'Docente actualizado correctamente.');
     }
 
-    public function getTeachers(): void
-    {
-        $teachers = Teacher::all();
-    }
+    public function deleteTeacher(
+        Teacher $teacher,
+        DeleteTeacherWithUser $action
+    ) {
+        $action->execute($teacher);
 
-    public function deleteTeacher(Teacher $teacher): void
-    {
-        $teacher->delete();
+        return redirect()->back()->with('success', 'Docente eliminado correctamente.');
     }
 }
