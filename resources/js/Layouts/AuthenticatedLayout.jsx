@@ -4,44 +4,31 @@ import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import Sidebar from '@/components/Menus/Sidebar'
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
-
-    // Definimos los enlaces aquí.
-    // Usamos route().current() (función helper de Ziggy incluida en Breeze) para saber qué enlace está activo.
-    const menuLinks = [
-        {
-            title: '🏠 Panel de Control',
-            url: route('dashboard'),
-            active: route().current('dashboard')
-        },
-        {
-            title: '👤 Perfil',
-            url: route('profile.edit'),
-            active: route().current('profile.edit')
-        },
-        // Agrega aquí más rutas de Laravel según las necesites
-    ];
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-white">
+        <div className="min-h-screen bg-background">
+            {/* NavBar Azul TEC */}
+            <nav className="border-b border-blueTec/30 bg-blueTec">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
-                                <Sidebar links={menuLinks} />
+                                <Link href="/">
+                                    <ApplicationLogo className="block h-9 w-auto fill-white text-white" />
+                                </Link>
                             </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <NavLink
                                     href={route('dashboard')}
                                     active={route().current('dashboard')}
+                                    className="text-white hover:text-orangeTec"
                                 >
                                     Dashboard
                                 </NavLink>
@@ -55,7 +42,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <span className="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
+                                                className="inline-flex items-center rounded-md border border-blueTec/50 bg-blueTec/80 px-3 py-2 text-sm font-medium leading-4 text-white transition duration-150 ease-in-out hover:bg-blueTec hover:text-orangeTec focus:outline-none"
                                             >
                                                 {user.name}
 
@@ -100,7 +87,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         (previousState) => !previousState,
                                     )
                                 }
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
+                                className="inline-flex items-center justify-center rounded-md p-2 text-white transition duration-150 ease-in-out hover:bg-blueTec/80 hover:text-orangeTec focus:bg-blueTec/80 focus:text-orangeTec focus:outline-none"
                             >
                                 <svg
                                     className="h-6 w-6"
@@ -142,33 +129,38 @@ export default function AuthenticatedLayout({ header, children }) {
                         ' sm:hidden'
                     }
                 >
-                    <div className="space-y-1 pb-3 pt-2">
+                    <div className="space-y-1 bg-blueTec/80 pb-3 pt-2">
                         <ResponsiveNavLink
                             href={route('dashboard')}
                             active={route().current('dashboard')}
+                            className="text-white hover:text-orangeTec"
                         >
                             Dashboard
                         </ResponsiveNavLink>
                     </div>
 
-                    <div className="border-t border-gray-200 pb-1 pt-4">
+                    <div className="border-t border-blueTec/30 bg-blueTec/80 pb-1 pt-4">
                         <div className="px-4">
-                            <div className="text-base font-medium text-gray-800">
+                            <div className="text-base font-medium text-white">
                                 {user.name}
                             </div>
-                            <div className="text-sm font-medium text-gray-500">
+                            <div className="text-sm font-medium text-blueTec/70">
                                 {user.email}
                             </div>
                         </div>
 
                         <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>
+                            <ResponsiveNavLink 
+                                href={route('profile.edit')}
+                                className="text-white hover:text-orangeTec"
+                            >
                                 Profile
                             </ResponsiveNavLink>
                             <ResponsiveNavLink
                                 method="post"
                                 href={route('logout')}
                                 as="button"
+                                className="text-white hover:text-orangeTec"
                             >
                                 Log Out
                             </ResponsiveNavLink>
@@ -185,7 +177,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 </header>
             )}
 
-            <main>{children}</main>
+            <main className="p-6">{children}</main>
         </div>
     );
 }

@@ -12,6 +12,7 @@ import SelectForm from "@/components/Forms/SelectForm";
 import InputForm from '@/components/Forms/InputForm';
 import CheckboxForm from '@/components/Forms/CheckboxForm';
 import ButtonForm from '@/components/Forms/ButtonForm';
+import SessionLayout from '@/Layouts/SessionLayout';
 
 export default function Yochi() {
 
@@ -40,7 +41,13 @@ export default function Yochi() {
     ]
 
     return (
-        <>
+        <SessionLayout
+            header={
+                <h2 className="text-3xl font-bold text-foreground">
+                    Método de Pago
+                </h2>
+            }
+        >
             <div className="w-full max-w-md">
                 <form>
                     <FieldGroup>
@@ -77,6 +84,6 @@ export default function Yochi() {
                     </FieldGroup>
                 </form>
             </div>
-        </>
+        </SessionLayout>
     )
 }

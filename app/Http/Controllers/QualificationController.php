@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 
-class KardexController extends Controller
+class QualificationController extends Controller
 {
     /**
      * Obtener calificaciones de un estudiante.
