@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\AdminViewsController;
 use App\Http\Controllers\DegreeController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -21,6 +21,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');
@@ -29,4 +31,4 @@ Route::get('/yochi', function () {
     return Inertia::render('Yochi');
 })->name('Yochi');
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

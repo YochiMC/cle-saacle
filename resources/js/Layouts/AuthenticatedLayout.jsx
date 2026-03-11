@@ -32,6 +32,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Dashboard
                                 </NavLink>
+                                <NavLink
+                                    href={route('users')}
+                                    active={route().current('users')}
+                                    className="text-white hover:text-orangeTec"
+                                >
+                                    Usuarios
+                                </NavLink>
                             </div>
                         </div>
 
@@ -150,7 +157,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         </div>
 
                         <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink 
+                            <ResponsiveNavLink
                                 href={route('profile.edit')}
                                 className="text-white hover:text-orangeTec"
                             >

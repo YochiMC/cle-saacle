@@ -16,53 +16,53 @@ class LevelSeeder extends Seeder
         //
          $levels = [
             [
-                'levelTecnm' => 'Básico 1',
-                'levelMCER' => 'A1',
+                'level_tecnm' => 'Básico 1',
+                'level_mcer' => 'A1',
                 'hours' => 45
             ],
             [
-                'levelTecnm' => 'Básico 2',
-                'levelMCER' => 'A1',
+                'level_tecnm' => 'Básico 2',
+                'level_mcer' => 'A1',
                 'hours' => 45
             ],
             [
-                'levelTecnm' => 'Básico 3',
-                'levelMCER' => 'A1',
+                'level_tecnm' => 'Básico 3',
+                'level_mcer' => 'A1',
                 'hours' => 45
             ],
             [
-                'levelTecnm' => 'Básico 4',
-                'levelMCER' => 'A2',
+                'level_tecnm' => 'Básico 4',
+                'level_mcer' => 'A2',
                 'hours' => 45
             ],
             [
-                'levelTecnm' => 'Básico 5',
-                'levelMCER' => 'A2',
+                'level_tecnm' => 'Básico 5',
+                'level_mcer' => 'A2',
                 'hours' => 45
             ],
             [
-                'levelTecnm' => 'Intermedio 1',
-                'levelMCER' => 'B1',
+                'level_tecnm' => 'Intermedio 1',
+                'level_mcer' => 'B1',
                 'hours' => 45
             ],
             [
-                'levelTecnm' => 'Intermedio 2',
-                'levelMCER' => 'B1',
+                'level_tecnm' => 'Intermedio 2',
+                'level_mcer' => 'B1',
                 'hours' => 45
             ],
             [
-                'levelTecnm' => 'Intermedio 3',
-                'levelMCER' => 'B1',
+                'level_tecnm' => 'Intermedio 3',
+                'level_mcer' => 'B1',
                 'hours' => 45
             ],
             [
-                'levelTecnm' => 'Intermedio 4',
-                'levelMCER' => 'B1',
+                'level_tecnm' => 'Intermedio 4',
+                'level_mcer' => 'B1',
                 'hours' => 45
             ],
             [
-                'levelTecnm' => 'Intermedio 5',
-                'levelMCER' => 'B1',
+                'level_tecnm' => 'Intermedio 5',
+                'level_mcer' => 'B1',
                 'hours' => 45
             ]
         ];
