@@ -4,8 +4,11 @@ import { useState, useEffect } from 'react';
 import UserModal from "@/Pages/TestYochi/FormModals/UserModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import { Head, usePage } from '@inertiajs/react';
+import { usePermission } from '@/Utils/auth';
 
 export default function Users({ degrees, students, teachers, levels, typeStudents }) {
+
+    const { can, hasRole } = usePermission();
 
     const { flash = {} } = usePage().props;
 
@@ -60,6 +63,14 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
             }
         >
             <Head title="Usuarios" />
+            {hasRole('admin') && (
+                    <button className="px-4 py-2 text-white bg-red-600 rounded">
+                        Eliminar Registro
+                    </button>
+                )}
+                {can('read profiles') && (
+                    <p>ver perfil</p>
+                )}
             <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <ResourceDashboard
                     title="Gestión Académica"
