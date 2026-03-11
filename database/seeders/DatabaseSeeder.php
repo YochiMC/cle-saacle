@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Group;
+use App\Models\Period;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -24,5 +26,7 @@ class DatabaseSeeder extends Seeder
             TestDataBaseSeeder::class
         ]);
         Student::factory(200)->withRole()->create();
+        Period::factory(10)->create();
+        Group::factory(150)->create();
     }
 }

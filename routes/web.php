@@ -23,6 +23,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
+    Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');
@@ -31,4 +32,4 @@ Route::get('/yochi', function () {
     return Inertia::render('Yochi');
 })->name('Yochi');
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

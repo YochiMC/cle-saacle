@@ -14,7 +14,7 @@ class TestDataBaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
+        $yochi = User::create([
             'name' => 'Yochi',
             'email' => 'yochi@correo.com',
             'email_recovery' => 'yochi2@correo.com',
@@ -22,6 +22,16 @@ class TestDataBaseSeeder extends Seeder
             'password' => bcrypt('password'),
         ]);
 
+        $yochi->assignRole('admin');
+
+        $yskm = User::create([
+            'name' => 'YSKM',
+            'email' => 'yskm@correo.com',
+            'email_recovery' => 'email@temp.com',
+            'phone' => '1234567895',
+            'password' => bcrypt('password'),
+        ]);
+        $yskm->assignRole('admin');
         Teacher::factory(10)->withRole()->create();
     }
 }
