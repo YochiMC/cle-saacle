@@ -13,6 +13,7 @@ class Teacher extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $appends = ['full_name'];
     protected $fillable = [
         'user_id',
         'first_name',

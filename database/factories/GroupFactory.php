@@ -34,7 +34,7 @@ class GroupFactory extends Factory
             'classroom' => $this->faker->bothify('Aula ?-##'), // Ej: Aula A-12
             // meeting_link tiene un 30% de probabilidad de tener una URL (para los de línea/híbrido)
             'meeting_link' => $this->faker->optional(0.3)->url(),
-            'status' => $this->faker->randomElement(['active', 'active', 'inactive']), // Más probabilidad de ser activo
+            'status' => $this->faker->randomElement(['active', 'active', 'inactive', 'waiting']), // Más probabilidad de ser activo
 
             // --- LLAVES FORÁNEAS MAGISTRALES ---
             // Esto busca un ID aleatorio que ya exista en tu BD.

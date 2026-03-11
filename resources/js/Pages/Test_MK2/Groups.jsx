@@ -3,24 +3,35 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import { UsersRound } from "lucide-react";
 import CardGroup from "@/Components/Charts/CardGroup";
+import GroupDetailsModal from "@/Components/Charts/GroupDetailsModal";
 import GridToolbar from "@/Components/DataTable/GridToolbar";
 import GridPagination from "@/Components/DataTable/GridPagination";
 
-const ITEMS_POR_PAGINA = 10;
+const ITEMS_POR_PAGINA = 12;
 
-export default function Groups({ auth, grupos = [], levels }) {
+export default function Groups({ auth, grupos = [] }) {
     // ── Estado ──────────────────────────────────────────────────────────────
     const [busqueda, setBusqueda] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
+    const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
 
-    // ── Filtrado (memoizado por nombre de grupo O nombre del maestro) ────────
+    // ── Misión 1 & 2: Buscador multi-campo ──────────────────────────────────
+    // Busca simultáneamente en: nombre del grupo, nombre completo del docente
+    // (full_name del accessor de Laravel) y nivel TECNM.
     const gruposFiltrados = useMemo(() => {
         setPaginaActual(1);
         const q = busqueda.toLowerCase();
-        return grupos.filter((grupo) => {
-            const nombre = (grupo.name || "").toLowerCase();
-            const maestro = (grupo.teacher?.name || "").toLowerCase();
-            return nombre.includes(q) || maestro.includes(q);
+        return grupos.filter((g) => {
+            const nombre = (g.name || "").toLowerCase();
+            const maestro = (g.teacher?.full_name || "").toLowerCase();
+            const nivel = (
+                g.level?.level_tecnm ||
+                g.level?.name ||
+                ""
+            ).toLowerCase();
+            return (
+                nombre.includes(q) || maestro.includes(q) || nivel.includes(q)
+            );
         });
     }, [grupos, busqueda]);
 
@@ -29,11 +40,15 @@ export default function Groups({ auth, grupos = [], levels }) {
         1,
         Math.ceil(gruposFiltrados.length / ITEMS_POR_PAGINA),
     );
-
     const gruposPaginados = gruposFiltrados.slice(
         (paginaActual - 1) * ITEMS_POR_PAGINA,
         paginaActual * ITEMS_POR_PAGINA,
     );
+
+    // Mock visual — la lógica real será implementada por otro equipo en un sprint futuro.
+    const handleInscripcion = (_grupoId) => {
+        alert("Inscripción en construcción.");
+    };
 
     return (
         <AuthenticatedLayout
@@ -48,13 +63,12 @@ export default function Groups({ auth, grupos = [], levels }) {
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-
-                    {/* ── TOOLBAR (solo si hay datos cargados) ────────────── */}
+                    {/* ── TOOLBAR ─────────────────────────────────────────── */}
                     {grupos.length > 0 && (
                         <GridToolbar
                             busqueda={busqueda}
                             setBusqueda={setBusqueda}
-                            placeholder="Buscar por grupo o maestro..."
+                            placeholder="Buscar por grupo, docente o nivel..."
                             totalFiltrados={gruposFiltrados.length}
                             labelItem="grupos"
                         />
@@ -63,27 +77,18 @@ export default function Groups({ auth, grupos = [], levels }) {
                     {/* ── GRID ────────────────────────────────────────────── */}
                     {gruposFiltrados.length > 0 ? (
                         <>
-                            {/*
-                             * items-stretch hace que todas las celdas del grid
-                             * tengan la misma altura, y CardGroup usa h-full
-                             * para estirarse hasta ocuparla por completo.
-                             */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
                                 {gruposPaginados.map((grupo) => (
                                     <CardGroup
                                         key={grupo.id}
-                                        // ── Mapeo de datos reales ──────────
-                                        title={grupo.name ?? `Grupo #${grupo.id}`}
-                                        instructor={grupo.teacher?.name ?? "Maestro no asignado"}
-                                        Id_Grupo={grupo.id}
-                                        Periodo={grupo.period?.name ?? "—"}
-                                        Horario={grupo.schedule ?? "Por definir"}
-                                        Modalidad={grupo.mode ?? "Presencial"}
+                                        grupo={grupo}
+                                        auth={auth}
+                                        onVerDetalles={setGrupoSeleccionado}
+                                        onInscribir={handleInscripcion}
                                     />
                                 ))}
                             </div>
 
-                            {/* ── PAGINACIÓN ──────────────────────────────── */}
                             {totalPaginas > 1 && (
                                 <GridPagination
                                     paginaActual={paginaActual}
@@ -116,6 +121,12 @@ export default function Groups({ auth, grupos = [], levels }) {
                     )}
                 </div>
             </div>
+
+            {/* ── MODAL — montado al fondo del árbol para evitar z-index issues */}
+            <GroupDetailsModal
+                grupo={grupoSeleccionado}
+                onClose={() => setGrupoSeleccionado(null)}
+            />
         </AuthenticatedLayout>
     );
 }
