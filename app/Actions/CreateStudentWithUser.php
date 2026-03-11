@@ -20,8 +20,8 @@ class CreateStudentWithUser
             // 1. Crear el usuario vinculado
             $user = User::create([
                 'name'           => $data['first_name'] . ' ' . $data['last_name'],
-                'email'          => $data['email'],
-                'password'       => Hash::make($data['password']),
+                'email'    => $data['email'] ?? $data['num_control'] . '@leon.tecnm.mx',
+                'password' => Hash::make($data['password'] ?? $data['num_control']), // Contraseña por defecto
                 'phone'          => $data['phone'] ?? null,
                 'email_recovery' => $data['email_recovery'] ?? null,
             ]);

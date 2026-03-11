@@ -5,6 +5,7 @@ use App\Http\Controllers\DegreeController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\StudentController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -25,10 +26,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
     Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
-
-    // Inscripción de estudiante a grupo
-    Route::post('/grupos/{group}/inscribir', [EnrollmentController::class, 'store'])
-        ->name('grupos.inscribir');
+    Route::post('/students', [StudentController::class, 'createStudent'])->name('students');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');

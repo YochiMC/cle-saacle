@@ -9,6 +9,7 @@ use App\Models\Teacher;
 use App\Models\Level;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Models\TypeStudent;
 use Inertia\Inertia;
 
 /**
@@ -26,11 +27,13 @@ class AdminViewsController extends Controller
         $teachers = Teacher::all();
         $degrees = Degree::all();
         $levels = Level::all();
+        $type_students = TypeStudent::all();
         return Inertia::render('TestYochi/Users', [
             'students' => $students,
             'teachers' => $teachers,
             'degrees' => $degrees,
-            'levels' => $levels
+            'levels' => $levels,
+            'typeStudents' => $type_students
         ]);
     }
 

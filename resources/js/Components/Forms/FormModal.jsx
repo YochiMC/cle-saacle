@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
-export default function FormModal({ show = false, onClose, title, children }) {
-    
+export default function FormModal({ show = false, onClose, children }) {
+
     // Cerrar con la tecla Escape
     useEffect(() => {
         const closeOnEscape = (e) => {
@@ -15,15 +15,16 @@ export default function FormModal({ show = false, onClose, title, children }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            {/* Contenedor del Modal */}
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden transform transition-all">
-                
-                {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-                    <button 
+
+            {/* Contenedor del Modal modificado */}
+            <div className="w-fit min-w-[300px] max-w-[90vw] max-h-[90vh] overflow-y-auto transition-all transform bg-white rounded-lg shadow-xl flex flex-col">
+
+                {/* Header estático en la parte superior */}
+                <div className="sticky top-0 z-10 flex items-center justify-end px-6 py-4 bg-white border-b border-gray-100">
+                    <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-gray-400 transition-colors hover:text-gray-600 focus:outline-none"
+                        aria-label="Cerrar modal"
                     >
                         <span className="text-2xl">&times;</span>
                     </button>
