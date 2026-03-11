@@ -20,12 +20,13 @@ class StoreStudentRequest extends FormRequest
         return [
             // ── Campos del Usuario ──────────────────────────────────────────
             'email' => [
-                'required',
+                'nullable', // ¡Cambio importante! Ahora permite que sea nulo/vacío
                 'email',
                 'max:255',
                 Rule::unique('users', 'email')->whereNull('deleted_at'),
             ],
-            'password'       => 'required|string|min:8|confirmed',
+            // ¡Cambio importante! Cambiamos 'required' por 'nullable'
+            'password'       => 'nullable|string|min:8|confirmed', 
             'phone'          => 'nullable|string|max:20',
             'email_recovery' => 'nullable|email|max:255',
 

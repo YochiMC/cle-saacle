@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminViewsController;
 use App\Http\Controllers\DegreeController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\StudentController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -23,6 +24,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
+    Route::post('/students', [StudentController::class, 'createStudent'])->name('students');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');
