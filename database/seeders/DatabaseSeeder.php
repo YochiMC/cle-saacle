@@ -23,7 +23,8 @@ class DatabaseSeeder extends Seeder
             LevelSeeder::class,
             TypeStudentSeeder::class,
             RoleSeeder::class,
-            TestDataBaseSeeder::class
+            TestDataBaseSeeder::class,
+            SettingSeeder::class,
         ]);
         Student::factory(200)->withRole()->create();
         Period::factory(10)->create();

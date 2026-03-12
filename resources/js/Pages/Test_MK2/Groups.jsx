@@ -1,41 +1,64 @@
 import React, { useState, useMemo } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
-import { UsersRound } from "lucide-react";
-import CardGroup from "@/Components/Charts/CardGroup";
 import GroupDetailsModal from "@/Components/Charts/GroupDetailsModal";
-import GridToolbar from "@/Components/DataTable/GridToolbar";
-import GridPagination from "@/Components/DataTable/GridPagination";
+import GroupFilters from "./GroupFilters";
+import GroupGrid from "./GroupGrid";
+import ThemeButton from "@/Components/ThemeButton";
+import { Plus, Settings } from "lucide-react";
 
 const ITEMS_POR_PAGINA = 12;
 
-export default function Groups({ auth, grupos = [] }) {
-    // ── Estado ──────────────────────────────────────────────────────────────
+/**
+ * Componente contenedor para el catálogo de grupos.
+ * Gestiona el estado local y la lógica de filtrado global para la vista.
+ *
+ * @param {Object} props
+ * @param {Object} props.auth - Usuario autenticado actualmente.
+ * @param {Array<Object>} [props.grupos=[]] - Lista de grupos provenientes del servidor.
+ * @param {Array<Object>} [props.levels=[]] - Catálogo de niveles académicos.
+ */
+export default function Groups({ auth, grupos = [], levels = [] }) {
     const [busqueda, setBusqueda] = useState("");
+    const [filterStatus, setFilterStatus] = useState("");
+    const [filterLevel, setFilterLevel] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
     const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
 
-    // ── Misión 1 & 2: Buscador multi-campo ──────────────────────────────────
-    // Busca simultáneamente en: nombre del grupo, nombre completo del docente
-    // (full_name del accessor de Laravel) y nivel TECNM.
+    const roles = auth?.roles ?? [];
+    const esAdminOCoord = roles.includes("admin") || roles.includes("coordinator");
+
     const gruposFiltrados = useMemo(() => {
         setPaginaActual(1);
-        const q = busqueda.toLowerCase();
-        return grupos.filter((g) => {
-            const nombre = (g.name || "").toLowerCase();
-            const maestro = (g.teacher?.full_name || "").toLowerCase();
-            const nivel = (
-                g.level?.level_tecnm ||
-                g.level?.name ||
-                ""
-            ).toLowerCase();
-            return (
-                nombre.includes(q) || maestro.includes(q) || nivel.includes(q)
-            );
-        });
-    }, [grupos, busqueda]);
 
-    // ── Paginación ───────────────────────────────────────────────────────────
+        const q = busqueda.toLowerCase();
+
+        return grupos.filter((g) => {
+            if (q) {
+                const nombre = (g.name || "").toLowerCase();
+                const maestro = (g.teacher_name || "").toLowerCase();
+                const nivel = (g.level?.level_tecnm || "").toLowerCase();
+
+                const pasaTexto = nombre.includes(q) || maestro.includes(q) || nivel.includes(q);
+                if (!pasaTexto) return false;
+            }
+
+            if (filterStatus) {
+                const statusGrupo = (g.status || "").toLowerCase();
+                const statusNormalizado =
+                    statusGrupo === "pending" ? "waiting" : statusGrupo;
+
+                if (statusNormalizado !== filterStatus) return false;
+            }
+
+            if (filterLevel) {
+                if (String(g.level?.id) !== filterLevel) return false;
+            }
+
+            return true;
+        });
+    }, [grupos, busqueda, filterStatus, filterLevel]);
+
     const totalPaginas = Math.max(
         1,
         Math.ceil(gruposFiltrados.length / ITEMS_POR_PAGINA),
@@ -45,10 +68,16 @@ export default function Groups({ auth, grupos = [] }) {
         paginaActual * ITEMS_POR_PAGINA,
     );
 
-    // Mock visual — la lógica real será implementada por otro equipo en un sprint futuro.
     const handleInscripcion = (_grupoId) => {
         alert("Inscripción en construcción.");
     };
+
+    const handleEditar = (grupo) => {
+        alert("Abriendo formulario de edición para: " + grupo.name);
+    };
+
+    const hayFiltros = busqueda !== "" || filterStatus !== "" || filterLevel !== "";
+    const mostrarFiltros = grupos.length > 0 || esAdminOCoord;
 
     return (
         <AuthenticatedLayout
@@ -63,66 +92,53 @@ export default function Groups({ auth, grupos = [] }) {
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* ── TOOLBAR ─────────────────────────────────────────── */}
-                    {grupos.length > 0 && (
-                        <GridToolbar
+                    {/* Controles Administrativos */}
+                    {esAdminOCoord && (
+                        <div className="mb-6 flex flex-wrap items-center gap-4">
+                            <ThemeButton
+                                theme="institutional"
+                                icon={Plus}
+                                onClick={() => alert("Abrir modal de creación")}
+                            >
+                                Crear Grupo
+                            </ThemeButton>
+                            <ThemeButton
+                                theme="outline"
+                                icon={Settings}
+                                onClick={() => alert("Abrir modal para cambiar settings")}
+                            >
+                                Configurar Fecha de Inscripción
+                            </ThemeButton>
+                        </div>
+                    )}
+
+                    {mostrarFiltros && (
+                        <GroupFilters
                             busqueda={busqueda}
                             setBusqueda={setBusqueda}
-                            placeholder="Buscar por grupo, docente o nivel..."
+                            filterStatus={filterStatus}
+                            setFilterStatus={setFilterStatus}
+                            filterLevel={filterLevel}
+                            setFilterLevel={setFilterLevel}
+                            levels={levels}
                             totalFiltrados={gruposFiltrados.length}
-                            labelItem="grupos"
                         />
                     )}
 
-                    {/* ── GRID ────────────────────────────────────────────── */}
-                    {gruposFiltrados.length > 0 ? (
-                        <>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-                                {gruposPaginados.map((grupo) => (
-                                    <CardGroup
-                                        key={grupo.id}
-                                        grupo={grupo}
-                                        auth={auth}
-                                        onVerDetalles={setGrupoSeleccionado}
-                                        onInscribir={handleInscripcion}
-                                    />
-                                ))}
-                            </div>
-
-                            {totalPaginas > 1 && (
-                                <GridPagination
-                                    paginaActual={paginaActual}
-                                    totalPaginas={totalPaginas}
-                                    onPageChange={setPaginaActual}
-                                />
-                            )}
-                        </>
-                    ) : (
-                        /* ── EMPTY STATE ──────────────────────────────────── */
-                        <div className="flex flex-col items-center justify-center py-24 text-center">
-                            <div className="mb-6 flex items-center justify-center w-24 h-24 rounded-full bg-blue-50 border border-blue-100">
-                                <UsersRound
-                                    size={48}
-                                    className="text-[#1B396A] opacity-70"
-                                    strokeWidth={1.5}
-                                />
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-700 mb-2">
-                                {busqueda
-                                    ? "No hay resultados"
-                                    : "Sin grupos registrados"}
-                            </h3>
-                            <p className="text-gray-400 max-w-sm">
-                                {busqueda
-                                    ? `No encontramos ningún grupo que coincida con "${busqueda}".`
-                                    : "Aún no hay grupos registrados en el sistema."}
-                            </p>
-                        </div>
-                    )}
+                    <GroupGrid
+                        gruposPaginados={gruposPaginados}
+                        hayFiltros={hayFiltros}
+                        paginaActual={paginaActual}
+                        totalPaginas={totalPaginas}
+                        onPageChange={setPaginaActual}
+                        auth={auth}
+                        onVerDetalles={setGrupoSeleccionado}
+                        onInscribir={handleInscripcion}
+                        onEditar={handleEditar}
+                    />
                 </div>
             </div>
 
-            {/* ── MODAL — montado al fondo del árbol para evitar z-index issues */}
             <GroupDetailsModal
                 grupo={grupoSeleccionado}
                 onClose={() => setGrupoSeleccionado(null)}
