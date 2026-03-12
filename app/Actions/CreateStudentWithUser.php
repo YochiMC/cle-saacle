@@ -26,6 +26,8 @@ class CreateStudentWithUser
                 'email_recovery' => $data['email_recovery'] ?? null,
             ]);
 
+            $user->assignRole('student'); // Asignar el rol de estudiante
+
             // 2. Crear el estudiante vinculado al usuario
             $student = Student::create([
                 'user_id'         => $user->id,

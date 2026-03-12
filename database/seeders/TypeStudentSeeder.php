@@ -15,9 +15,8 @@ class TypeStudentSeeder extends Seeder
     {
         //
         $typeStudents = [
-            ['name' => 'Interno'],
+            ['name' => 'Vigente'],
             ['name' => 'Egresado'],
-            ['name' => 'Externo'],
         ];
 
         foreach ($typeStudents as $typeStudent) {

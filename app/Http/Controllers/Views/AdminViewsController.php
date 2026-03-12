@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Views;
 
+use App\Http\Controllers\Controller;
 use App\Models\Degree;
 use App\Models\Group;
 use App\Models\Student;
