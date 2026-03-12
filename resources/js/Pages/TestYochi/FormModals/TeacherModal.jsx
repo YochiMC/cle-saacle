@@ -31,7 +31,8 @@ export default function TeacherModal({ show = false, onClose, title }) {
         bank_name: '',
         grade: '',
         is_native: '0', // Por defecto 'No'
-        email: '', // Para la creación del usuario asociado
+        email: '',
+        phone: '',// Para la creación del usuario asociado
     });
 
     const submit = (e) => {
@@ -60,7 +61,7 @@ export default function TeacherModal({ show = false, onClose, title }) {
                 {Object.keys(errors).length > 0 && (
                     <div className="p-4 mb-4 text-sm text-white bg-red-500 rounded-lg">
                         <strong>Errores detectados:</strong>
-                        <ul className="list-disc ml-5">
+                        <ul className="ml-5 list-disc">
                             {Object.values(errors).map((err, i) => <li key={i}>{err}</li>)}
                         </ul>
                     </div>
@@ -72,17 +73,18 @@ export default function TeacherModal({ show = false, onClose, title }) {
                         <FieldLegend>Información Personal</FieldLegend>
                         <FieldDescription>Datos de identificación oficial del docente.</FieldDescription>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <InputForm label="Nombre(s)" inputId="first_name" value={data.first_name} onChange={e => setData('first_name', e.target.value)} />
                             <InputForm label="Apellidos" inputId="last_name" value={data.last_name} onChange={e => setData('last_name', e.target.value)} />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <InputForm label="RFC" inputId="rfc" value={data.rfc} onChange={e => setData('rfc', e.target.value.toUpperCase())} />
                             <InputForm label="CURP" inputId="curp" value={data.curp} onChange={e => setData('curp', e.target.value.toUpperCase())} />
                         </div>
 
                         <InputForm label="Correo Electrónico" type="email" inputId="email" value={data.email} onChange={e => setData('email', e.target.value)} />
+                        <InputForm label="Número de telefono" inputId="phone" value={data.phone} onChange={e =>setData('phone', e.target.value)} />
                     </FieldSet>
 
                     <FieldSeparator />
@@ -91,12 +93,12 @@ export default function TeacherModal({ show = false, onClose, title }) {
                     <FieldSet>
                         <FieldLegend>Perfil Académico y Laboral</FieldLegend>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <InputForm label="Grado Académico (Ej. Mtro, Dr)" inputId="grade" value={data.grade} onChange={e => setData('grade', e.target.value)} />
                             <SelectForm options={CATEGORY_OPTIONS} label="Categoría" selectId="category" value={data.category} onValueChange={v => setData('category', v)} />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <InputForm label="Nivel" inputId="level" value={data.level} onChange={e => setData('level', e.target.value)} />
                             <InputForm label="Horas TTC" type="number" inputId="ttc_hours" value={data.ttc_hours} onChange={e => setData('ttc_hours', e.target.value)} />
                             <SelectForm options={NATIVE_OPTIONS} label="¿Es Nativo?" selectId="is_native" value={data.is_native} onValueChange={v => setData('is_native', v)} />
@@ -108,7 +110,7 @@ export default function TeacherModal({ show = false, onClose, title }) {
                     {/* --- SECCIÓN 3: DATOS BANCARIOS --- */}
                     <FieldSet>
                         <FieldLegend>Información de Pago</FieldLegend>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <InputForm label="Nombre del Banco" inputId="bank_name" value={data.bank_name} onChange={e => setData('bank_name', e.target.value)} />
                             <InputForm label="CLABE Interbancaria" inputId="clabe" value={data.clabe} onChange={e => setData('clabe', e.target.value)} />
                         </div>
