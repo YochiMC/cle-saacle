@@ -6,6 +6,7 @@ use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TeacherController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -27,6 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
     Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
     Route::post('/students', [StudentController::class, 'createStudent'])->name('students');
+    Route::post('/teachers', [TeacherController::class, 'createTeacher'])->name('teachers');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');

@@ -11,6 +11,8 @@ use App\Models\Level;
 use App\Models\Setting;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\LevelResource;
+use App\Http\Resources\StudentResource;
+use App\Http\Resources\TeacherResource;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\TypeStudent;
@@ -27,8 +29,8 @@ class AdminViewsController extends Controller
 {
     public function usersView()
     {
-        $students = Student::all();
-        $teachers = Teacher::all();
+        $students = StudentResource::collection(Student::with(['degree', 'level', 'typeStudent'])->get())->resolve();
+        $teachers = TeacherResource::collection(Teacher::all())->resolve();
         $degrees = Degree::all();
         $levels = Level::all();
         $type_students = TypeStudent::all();
