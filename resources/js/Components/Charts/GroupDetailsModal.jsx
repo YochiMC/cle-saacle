@@ -51,8 +51,8 @@ const DetailRow = ({ label, children, fallback, empty = false }) => (
  *
  * Modal de detalles completos de un grupo académico.
  * Apegado estrictamente al esquema `groups` y sus relaciones:
- *  - teacher.full_name (accessor de Eloquent)
- *  - level.nivel_tecnm, level.level_mcer, level.hours
+ *  - teacher_name (aplanado desde teacher->full_name por GroupResource)
+ *  - level.level_tecnm, level.level_mcer, level.hours (LevelResource)
  *  - period.name
  *  - Campos directos: name, type, capacity, schedule, mode, status, classroom, meeting_link
  *
@@ -68,8 +68,8 @@ const GroupDetailsModal = ({ grupo, onClose }) => {
         grupo.mode?.toLowerCase() ?? "",
     );
 
-    // Docente: usa el accessor full_name. null si el backend lo ocultó.
-    const nombreDocente = grupo.teacher?.full_name ?? null;
+    // Docente: aplanado por GroupResource como teacher_name. null si fue ocultado.
+    const nombreDocente = grupo.teacher_name ?? null;
 
     return (
         /* ── OVERLAY ────────────────────────────────────────────────────────── */
@@ -88,7 +88,7 @@ const GroupDetailsModal = ({ grupo, onClose }) => {
                 {/* ── ENCABEZADO ───────────────────────────────────────────── */}
                 <div className="px-6 pt-5 pb-4 border-b border-gray-100 flex items-start justify-between gap-4 shrink-0">
                     <div className="space-y-0.5">
-                        {/* Badge nivel_tecnm */}
+                        {/* Badge level_tecnm */}
                         {grupo.level?.level_tecnm && (
                             <span className="inline-block mb-1 bg-[#1B396A] text-white text-xs font-bold px-3 py-0.5 rounded-full">
                                 {grupo.level?.level_tecnm}
@@ -136,13 +136,13 @@ const GroupDetailsModal = ({ grupo, onClose }) => {
                     {/* Cupo */}
                     <DetailRow label="Cupo">{grupo.capacity} alumnos</DetailRow>
 
-                    {/* Período */}
+                    {/* Período — aplanado por GroupResource como period_name */}
                     <DetailRow
                         label="Período"
-                        empty={!grupo.period?.name}
+                        empty={!grupo.period_name}
                         fallback="Sin período asignado"
                     >
-                        {grupo.period?.name}
+                        {grupo.period_name}
                     </DetailRow>
 
                     {/* Nivel TECNM */}
