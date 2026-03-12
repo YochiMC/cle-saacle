@@ -21,7 +21,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
  *    no se dispara una query adicional si no fue eager-loaded).
  *
  * Campos planos: id, name, schedule, mode, type, capacity, status,
- *               classroom, meeting_link, teacher_name, period_name.
+ *               classroom, meeting_link, teacher_name, period_name,
+ *               enrolled_count, available_seats.
  * Relaciones:   level (LevelResource).
  */
 class GroupResource extends JsonResource
@@ -38,6 +39,9 @@ class GroupResource extends JsonResource
             'status'       => $this->status,
             'classroom'    => $this->classroom,
             'meeting_link' => $this->meeting_link,
+
+            'enrolled_count'  => $this->qualifications_count ?? 0,
+            'available_seats' => $this->capacity - ($this->qualifications_count ?? 0),
 
             'teacher_name' => $this->teacher ? $this->teacher->full_name : null,
 

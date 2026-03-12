@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import GroupDetailsModal from "@/Components/Charts/GroupDetailsModal";
 import GroupFilters from "./GroupFilters";
 import GroupGrid from "./GroupGrid";
+import BulkActionBar from "./BulkActionBar";
 import ThemeButton from "@/Components/ThemeButton";
-import { Plus, Settings } from "lucide-react";
+import { Plus } from "lucide-react";
 
 const ITEMS_POR_PAGINA = 12;
 
@@ -24,22 +25,28 @@ export default function Groups({ auth, grupos = [], levels = [] }) {
     const [filterLevel, setFilterLevel] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
     const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
+    const [ordenCupo, setOrdenCupo] = useState(null);
+    const [gruposSeleccionados, setGruposSeleccionados] = useState([]);
 
     const roles = auth?.roles ?? [];
-    const esAdminOCoord = roles.includes("admin") || roles.includes("coordinator");
+    const esAdminOCoord =
+        roles.includes("admin") || roles.includes("coordinator");
 
     const gruposFiltrados = useMemo(() => {
         setPaginaActual(1);
 
         const q = busqueda.toLowerCase();
 
-        return grupos.filter((g) => {
+        const filtrados = grupos.filter((g) => {
             if (q) {
                 const nombre = (g.name || "").toLowerCase();
                 const maestro = (g.teacher_name || "").toLowerCase();
                 const nivel = (g.level?.level_tecnm || "").toLowerCase();
 
-                const pasaTexto = nombre.includes(q) || maestro.includes(q) || nivel.includes(q);
+                const pasaTexto =
+                    nombre.includes(q) ||
+                    maestro.includes(q) ||
+                    nivel.includes(q);
                 if (!pasaTexto) return false;
             }
 
@@ -57,7 +64,19 @@ export default function Groups({ auth, grupos = [], levels = [] }) {
 
             return true;
         });
-    }, [grupos, busqueda, filterStatus, filterLevel]);
+
+        if (ordenCupo === "asc") {
+            filtrados.sort(
+                (a, b) => (a.available_seats || 0) - (b.available_seats || 0),
+            );
+        } else if (ordenCupo === "desc") {
+            filtrados.sort(
+                (a, b) => (b.available_seats || 0) - (a.available_seats || 0),
+            );
+        }
+
+        return filtrados;
+    }, [grupos, busqueda, filterStatus, filterLevel, ordenCupo]);
 
     const totalPaginas = Math.max(
         1,
@@ -76,7 +95,37 @@ export default function Groups({ auth, grupos = [], levels = [] }) {
         alert("Abriendo formulario de edición para: " + grupo.name);
     };
 
-    const hayFiltros = busqueda !== "" || filterStatus !== "" || filterLevel !== "";
+    const handleToggleSelect = useCallback((id) => {
+        setGruposSeleccionados((prev) =>
+            prev.includes(id)
+                ? prev.filter((gId) => gId !== id)
+                : [...prev, id],
+        );
+    }, []);
+
+    const handleClearSelection = useCallback(() => {
+        setGruposSeleccionados([]);
+    }, []);
+
+    const handleBulkChangeStatus = () => {
+        alert(
+            `Abrir modal para cambiar estado de ${gruposSeleccionados.length} grupos`,
+        );
+    };
+
+    const handleBulkDelete = () => {
+        alert(`Confirmar eliminación de ${gruposSeleccionados.length} grupos`);
+    };
+
+    const handleCrearGrupo = () => alert("Abrir modal de creación");
+
+    const handleCerrarDetalles = () => setGrupoSeleccionado(null);
+
+    const hayFiltros =
+        busqueda !== "" ||
+        filterStatus !== "" ||
+        filterLevel !== "" ||
+        ordenCupo !== null;
     const mostrarFiltros = grupos.length > 0 || esAdminOCoord;
 
     return (
@@ -98,16 +147,9 @@ export default function Groups({ auth, grupos = [], levels = [] }) {
                             <ThemeButton
                                 theme="institutional"
                                 icon={Plus}
-                                onClick={() => alert("Abrir modal de creación")}
+                                onClick={handleCrearGrupo}
                             >
                                 Crear Grupo
-                            </ThemeButton>
-                            <ThemeButton
-                                theme="outline"
-                                icon={Settings}
-                                onClick={() => alert("Abrir modal para cambiar settings")}
-                            >
-                                Configurar Fecha de Inscripción
                             </ThemeButton>
                         </div>
                     )}
@@ -122,11 +164,25 @@ export default function Groups({ auth, grupos = [], levels = [] }) {
                             setFilterLevel={setFilterLevel}
                             levels={levels}
                             totalFiltrados={gruposFiltrados.length}
+                            ordenCupo={ordenCupo}
+                            setOrdenCupo={setOrdenCupo}
+                        />
+                    )}
+
+                    {/* Barra de Acciones en Lote Fija (Flotante) */}
+                    {gruposSeleccionados.length > 0 && esAdminOCoord && (
+                        <BulkActionBar
+                            seleccionados={gruposSeleccionados}
+                            onClearSelection={handleClearSelection}
+                            onBulkStatus={handleBulkChangeStatus}
+                            onBulkDelete={handleBulkDelete}
                         />
                     )}
 
                     <GroupGrid
                         gruposPaginados={gruposPaginados}
+                        gruposSeleccionados={gruposSeleccionados}
+                        onToggleSelect={handleToggleSelect}
                         hayFiltros={hayFiltros}
                         paginaActual={paginaActual}
                         totalPaginas={totalPaginas}
@@ -141,7 +197,7 @@ export default function Groups({ auth, grupos = [], levels = [] }) {
 
             <GroupDetailsModal
                 grupo={grupoSeleccionado}
-                onClose={() => setGrupoSeleccionado(null)}
+                onClose={handleCerrarDetalles}
             />
         </AuthenticatedLayout>
     );

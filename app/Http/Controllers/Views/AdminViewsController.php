@@ -54,7 +54,7 @@ class AdminViewsController extends Controller
     {
         $usuarioEsEstudiante = $request->user()?->hasRole('student') ?? false;
 
-        $gruposQuery = Group::with(['teacher', 'level', 'period']);
+        $gruposQuery = Group::with(['teacher', 'level', 'period'])->withCount('qualifications');
         
         if ($usuarioEsEstudiante) {
             $gruposQuery->whereIn('status', ['active', 'waiting']);

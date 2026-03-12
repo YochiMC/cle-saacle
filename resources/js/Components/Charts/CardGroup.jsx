@@ -1,4 +1,5 @@
 import React, { memo } from "react";
+import { Users } from "lucide-react";
 
 const getStatusBadge = (status) => {
     switch (status?.toLowerCase()) {
@@ -29,8 +30,10 @@ const getStatusBadge = (status) => {
  * @param {function(Object): void} props.onVerDetalles - Callback para mostrar los detalles completos.
  * @param {function(string|number): void} props.onInscribir - Callback de acción primaria para estudiantes.
  * @param {function(Object): void} props.onEditar - Callback de acción primaria para personal del sistema.
+ * @param {boolean} [props.seleccionado=false] - Define si la tarjeta está seleccionada.
+ * @param {function(string|number): void} [props.onToggleSelect] - Callback al alternar selección.
  */
-const CardGroup = memo(({ grupo, auth, onVerDetalles, onInscribir, onEditar }) => {
+const CardGroup = memo(({ grupo, auth, seleccionado = false, onToggleSelect, onVerDetalles, onInscribir, onEditar }) => {
     const badge = getStatusBadge(grupo?.status);
 
     const roles = auth?.roles ?? [];
@@ -43,7 +46,21 @@ const CardGroup = memo(({ grupo, auth, onVerDetalles, onInscribir, onEditar }) =
     return (
         <div className="w-full bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-200 hover:border-[#1B396A] h-full flex flex-col">
             <div className="h-2 bg-gradient-to-r from-[#1B396A] to-[#142952]" />
-            <div className="px-6 pt-4 flex justify-end">
+            <div className="px-6 pt-4 flex justify-between items-start">
+                {esAdminOCoord && onToggleSelect ? (
+                    <div className="relative flex items-start">
+                        <div className="flex items-center h-5 mt-0.5">
+                            <input
+                                type="checkbox"
+                                checked={seleccionado}
+                                onChange={() => onToggleSelect(grupo.id)}
+                                className="w-5 h-5 text-[#1B396A] bg-gray-50 border-gray-300 rounded focus:ring-[#1B396A] focus:ring-2 cursor-pointer transition-all hover:scale-110 shadow-sm"
+                            />
+                        </div>
+                    </div>
+                ) : (
+                    <div />
+                )}
                 <span
                     className={`text-xs font-semibold px-3 py-1 rounded-full ${badge.cls}`}
                 >
@@ -90,6 +107,18 @@ const CardGroup = memo(({ grupo, auth, onVerDetalles, onInscribir, onEditar }) =
                         <span className="text-[#1B396A] font-bold bg-blue-50 px-3 py-1 rounded-full text-xs">
                             {grupo.mode}
                         </span>
+                    </div>
+                    
+                    <div className={`flex justify-between items-center mt-3 p-2.5 rounded-xl border shadow-sm ${grupo.available_seats === 0 ? 'bg-red-50/60 border-red-100' : 'bg-blue-50/60 border-blue-100'}`}>
+                        <div className={`flex items-center gap-2 font-semibold ${grupo.available_seats === 0 ? 'text-red-700' : 'text-[#1B396A]'}`}>
+                            <Users size={16} strokeWidth={2.5} />
+                            <span>{grupo.available_seats === 0 ? 'Grupo Lleno' : 'Disponibilidad'}</span>
+                        </div>
+                        <div className={`bg-white px-3 py-1 rounded-lg shadow-sm border flex items-center justify-center ${grupo.available_seats === 0 ? 'border-red-200' : 'border-blue-100'}`}>
+                            <span className={`text-base font-black ${grupo.available_seats === 0 ? 'text-red-600' : 'text-[#1B396A]'}`}>
+                                {grupo.enrolled_count ?? "0"} <span className="text-sm font-semibold opacity-70 mb-0.5">/ {grupo.capacity ?? "0"}</span>
+                            </span>
+                        </div>
                     </div>
                 </div>
 

@@ -18,6 +18,8 @@ import GridPagination from "@/Components/DataTable/GridPagination";
  * @param {function(Object): void} props.onVerDetalles - Función para abrir el modal de detalles.
  * @param {function(string|number): void} props.onInscribir - Función para ejecutar la inscripción.
  * @param {function(Object): void} props.onEditar - Función para abrir la edición del grupo.
+ * @param {Array<string|number>} [props.gruposSeleccionados=[]] - IDs de grupos seleccionados.
+ * @param {function(string|number): void} [props.onToggleSelect] - Handler para alternar selección.
  */
 const GroupGrid = memo(({
     gruposPaginados,
@@ -29,6 +31,8 @@ const GroupGrid = memo(({
     onVerDetalles,
     onInscribir,
     onEditar,
+    gruposSeleccionados = [],
+    onToggleSelect,
 }) => {
     if (gruposPaginados.length === 0) {
         return (
@@ -60,6 +64,8 @@ const GroupGrid = memo(({
                         key={grupo.id}
                         grupo={grupo}
                         auth={auth}
+                        seleccionado={gruposSeleccionados.includes(grupo.id)}
+                        onToggleSelect={onToggleSelect}
                         onVerDetalles={onVerDetalles}
                         onInscribir={onInscribir}
                         onEditar={onEditar}
