@@ -1,22 +1,32 @@
-// resources/js/Utils/auth.js
+import { usePage } from '@inertiajs/react';
 
-// La lógica base (tu código actual)
+/**
+ * FUNCIONES PURAS (Utilidades)
+ * Úsalas fuera de componentes React o en archivos JS puros.
+ */
 export const checkCan = (permission, auth) => {
-    return auth?.permissions?.includes(permission) ?? false;
+    if (!auth || !auth.permissions) return false; // Seguridad extra
+    return auth.permissions.includes(permission);
 };
 
 export const checkRole = (role, auth) => {
-    return auth?.roles?.includes(role) ?? false;
+    if (!auth || !auth.roles) return false; // Seguridad extra
+    return auth.roles.includes(role);
 };
 
-// El Hook que usa esa lógica (para componentes React)
-import { usePage } from '@inertiajs/react';
-
+/**
+ * HOOK PERSONALIZADO
+ * Úsalo dentro de tus componentes de React.
+ * No necesitas pasarle 'auth' porque lo obtiene automáticamente de la sesión.
+ */
 export function usePermission() {
     const { auth } = usePage().props;
 
     return {
-        can: (p) => checkCan(p, auth),
-        hasRole: (r) => checkRole(r, auth),
+        can: (permission) => checkCan(permission, auth),
+        hasRole: (role) => checkRole(role, auth),
+        // Útil para depuración:
+        allPermissions: auth.permissions,
+        allRoles: auth.roles,
     };
 }

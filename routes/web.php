@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\AdminViewsController;
+use App\Http\Controllers\Views\AdminViewsController;
 use App\Http\Controllers\DegreeController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\ProfileController;

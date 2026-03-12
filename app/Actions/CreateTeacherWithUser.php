@@ -26,6 +26,8 @@ class CreateTeacherWithUser
                 'email_recovery' => $data['email_recovery'] ?? null,
             ]);
 
+            $user->assignRole('teacher'); // Asignar el rol de docente
+
             // 2. Crear el docente vinculado al usuario
             $teacher = Teacher::create([
                 'user_id'    => $user->id,
