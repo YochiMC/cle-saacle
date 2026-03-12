@@ -28,7 +28,8 @@ export default function ResourceDashboard({
     onEditRow,
     onPrint,
     onNew,
-    editableColumns   = [],
+    onViewChange,
+    editableColumns = [],
     restrictedColumns = [],
 }) {
     const firstView = viewOptions[0]?.value ?? '';
@@ -58,13 +59,19 @@ export default function ResourceDashboard({
     const handleViewChange = (newView) => {
         setVistaActual(newView);
         resetSelection();
+
+        if (onViewChange) {
+            onViewChange(newView);
+        }
     };
 
+
+
     return (
-        <div className="min-h-screen bg-gray-100 py-12">
+        <div className="min-h-screen py-12 bg-gray-100">
             <Head title={currentViewLabel} />
 
-            <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <DashboardHeader
                     title={title}
                     currentViewLabel={currentViewLabel}
@@ -78,7 +85,7 @@ export default function ResourceDashboard({
                     onToggleMode={handleToggleMode}
                 />
 
-                <div className="bg-white overflow-hidden shadow-sm rounded-sm p-6">
+                <div className="p-6 overflow-hidden bg-white rounded-sm shadow-sm">
                     {currentData.length > 0 ? (
                         <DataTable
                             columns={columns}
@@ -91,7 +98,7 @@ export default function ResourceDashboard({
                             isTeacherMode={isTeacherMode}
                         />
                     ) : (
-                        <div className="text-center py-10 text-slate-500">
+                        <div className="py-10 text-center text-slate-500">
                             No hay registros almacenados en {currentViewLabel.toLowerCase()}.
                         </div>
                     )}

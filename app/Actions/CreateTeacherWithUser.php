@@ -21,7 +21,7 @@ class CreateTeacherWithUser
             $user = User::create([
                 'name'           => $data['first_name'] . ' ' . $data['last_name'],
                 'email'          => $data['email'],
-                'password'       => Hash::make($data['password']),
+                'password'       => Hash::make($data['curp']),
                 'phone'          => $data['phone'] ?? null,
                 'email_recovery' => $data['email_recovery'] ?? null,
             ]);

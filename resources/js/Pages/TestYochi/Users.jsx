@@ -1,7 +1,8 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/ResourceDashboard";
 import { useState } from 'react';
-import UserModal from "@/Pages/TestYochi/FormModals/UserModal";
+import StudentModal from "@/Pages/TestYochi/FormModals/StudentModal";
+import TeacherModal from "@/Pages/TestYochi/FormModals/TeacherModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import { Head } from '@inertiajs/react';
 import { usePermission } from '@/Utils/auth';
@@ -14,6 +15,7 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
     const { flashModal, closeFlashModal } = useFlashAlert();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentView, setCurrentView] = useState("alumnos");
 
     const VIEW_OPTIONS = [
         { value: "alumnos", label: "Alumnos" },
@@ -30,17 +32,29 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
                     viewOptions={VIEW_OPTIONS}
                     deleteRoute="/carreras/eliminar-masivo"
                     onNew={() => setIsModalOpen(true)}
+                    onViewChange={(view) => setCurrentView(view)}
                     editableColumns={["firstName", "lastName"]}
                     restrictedColumns={["birthDate", "semester", "gender"]}
                 />
             </div>
 
             {/* Modales */}
-            <UserModal
-                show={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                degrees={degrees} levels={levels} typeStudents={typeStudents}
-            />
+            {currentView === "alumnos" && (
+                <StudentModal
+                    show={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    degrees={degrees}
+                    levels={levels}
+                    typeStudents={typeStudents}
+                />
+            )}
+
+            {currentView === "maestros" && (
+                <TeacherModal
+                    show={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                />
+            )}
 
             <ModalAlert
                 isOpen={flashModal.isOpen}

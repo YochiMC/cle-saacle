@@ -13,7 +13,7 @@ const YEARS = Array.from({ length: 100 }, (_, i) => ({ value: (new Date().getFul
 const DAYS = Array.from({ length: 31 }, (_, i) => ({ value: (i + 1).toString(), label: (i + 1).toString() }));
 const GENDER_OPTIONS = [ { value: 'M', label: 'Masculino' }, { value: 'F', label: 'Femenino' } ];
 
-export default function UserModal({ show = false, onClose, title, degrees, levels, typeStudents }) {
+export default function StudentModal({ show = false, onClose, title, degrees, levels, typeStudents }) {
     
     // Mapeamos las props que vienen de la base de datos
     const degreesOption = degrees.map(d => ({ value: d.id.toString(), label: d.name }));

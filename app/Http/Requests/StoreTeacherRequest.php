@@ -25,7 +25,7 @@ class StoreTeacherRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->whereNull('deleted_at'),
             ],
-            'password'       => 'required|string|min:8|confirmed',
+            'password'       => 'string|min:8|confirmed',
             'phone'          => 'nullable|string|max:20',
             'email_recovery' => 'nullable|email|max:255',
 
