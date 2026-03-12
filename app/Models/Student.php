@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Student extends Model
@@ -95,5 +96,15 @@ class Student extends Model
         if ($semester) {
             $query->where('semester', $semester);
         }
+    }
+
+    public function exams(): HasOne // Es mejor usar el nombre en inglés si el modelo es Exam
+    {
+        return $this->HasOne(exams::class);
+    }
+
+    public function validations(): HasOne // Cambiado a plural para consistencia
+    {
+        return $this->HasOne(validations::class);
     }
 }
