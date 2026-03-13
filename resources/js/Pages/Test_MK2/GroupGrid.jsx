@@ -14,7 +14,6 @@ import GridPagination from "@/Components/DataTable/GridPagination";
  * @param {number} props.paginaActual - Número de la página actual.
  * @param {number} props.totalPaginas - Cantidad total de páginas disponibles.
  * @param {function(number): void} props.onPageChange - Handler de cambio de página.
- * @param {Object} props.auth - Objeto con datos del usuario autenticado y sus roles.
  * @param {function(Object): void} props.onVerDetalles - Función para abrir el modal de detalles.
  * @param {function(string|number): void} props.onInscribir - Función para ejecutar la inscripción.
  * @param {function(Object): void} props.onEditar - Función para abrir la edición del grupo.
@@ -27,7 +26,6 @@ const GroupGrid = memo(({
     paginaActual,
     totalPaginas,
     onPageChange,
-    auth,
     onVerDetalles,
     onInscribir,
     onEditar,
@@ -63,7 +61,6 @@ const GroupGrid = memo(({
                     <CardGroup
                         key={grupo.id}
                         grupo={grupo}
-                        auth={auth}
                         seleccionado={gruposSeleccionados.includes(grupo.id)}
                         onToggleSelect={onToggleSelect}
                         onVerDetalles={onVerDetalles}

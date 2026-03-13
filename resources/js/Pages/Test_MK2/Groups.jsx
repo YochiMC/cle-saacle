@@ -7,6 +7,7 @@ import GroupGrid from "./GroupGrid";
 import BulkActionBar from "./BulkActionBar";
 import ThemeButton from "@/Components/ThemeButton";
 import { Plus } from "lucide-react";
+import { usePermission } from "@/Utils/auth";
 
 const ITEMS_POR_PAGINA = 12;
 
@@ -28,9 +29,8 @@ export default function Groups({ auth, grupos = [], levels = [] }) {
     const [ordenCupo, setOrdenCupo] = useState(null);
     const [gruposSeleccionados, setGruposSeleccionados] = useState([]);
 
-    const roles = auth?.roles ?? [];
-    const esAdminOCoord =
-        roles.includes("admin") || roles.includes("coordinator");
+    const { hasRole } = usePermission();
+    const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
 
     const gruposFiltrados = useMemo(() => {
         setPaginaActual(1);
@@ -187,7 +187,6 @@ export default function Groups({ auth, grupos = [], levels = [] }) {
                         paginaActual={paginaActual}
                         totalPaginas={totalPaginas}
                         onPageChange={setPaginaActual}
-                        auth={auth}
                         onVerDetalles={setGrupoSeleccionado}
                         onInscribir={handleInscripcion}
                         onEditar={handleEditar}

@@ -1,5 +1,6 @@
 import React, { memo } from "react";
 import { Users } from "lucide-react";
+import { usePermission } from "@/Utils/auth";
 
 const getStatusBadge = (status) => {
     switch (status?.toLowerCase()) {
@@ -26,19 +27,18 @@ const getStatusBadge = (status) => {
  *
  * @param {Object} props
  * @param {Object} props.grupo - Objeto con los datos del grupo (con relaciones eager loaded).
- * @param {Object} props.auth - Usuario autenticado y sus roles.
  * @param {function(Object): void} props.onVerDetalles - Callback para mostrar los detalles completos.
  * @param {function(string|number): void} props.onInscribir - Callback de acción primaria para estudiantes.
  * @param {function(Object): void} props.onEditar - Callback de acción primaria para personal del sistema.
  * @param {boolean} [props.seleccionado=false] - Define si la tarjeta está seleccionada.
  * @param {function(string|number): void} [props.onToggleSelect] - Callback al alternar selección.
  */
-const CardGroup = memo(({ grupo, auth, seleccionado = false, onToggleSelect, onVerDetalles, onInscribir, onEditar }) => {
+const CardGroup = memo(({ grupo, seleccionado = false, onToggleSelect, onVerDetalles, onInscribir, onEditar }) => {
     const badge = getStatusBadge(grupo?.status);
 
-    const roles = auth?.roles ?? [];
-    const esEstudiante = roles.includes("student");
-    const esAdminOCoord = roles.includes("admin") || roles.includes("coordinator");
+    const { hasRole } = usePermission();
+    const esEstudiante = hasRole("student");
+    const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
 
     const nombreDocente = grupo.teacher_name ?? null;
     const nivelDisplay = grupo.level?.level_tecnm || null;
@@ -108,7 +108,7 @@ const CardGroup = memo(({ grupo, auth, seleccionado = false, onToggleSelect, onV
                             {grupo.mode}
                         </span>
                     </div>
-                    
+
                     <div className={`flex justify-between items-center mt-3 p-2.5 rounded-xl border shadow-sm ${grupo.available_seats === 0 ? 'bg-red-50/60 border-red-100' : 'bg-blue-50/60 border-blue-100'}`}>
                         <div className={`flex items-center gap-2 font-semibold ${grupo.available_seats === 0 ? 'text-red-700' : 'text-[#1B396A]'}`}>
                             <Users size={16} strokeWidth={2.5} />

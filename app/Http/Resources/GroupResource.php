@@ -45,7 +45,7 @@ class GroupResource extends JsonResource
 
             'teacher_name' => $this->teacher ? $this->teacher->full_name : null,
 
-            'period_name'  => $this->period ? $this->period->name : null,
+            'period_name'  => $this->period?->name ?? 'Período Histórico / No asignado',
 
             'level'        => $this->level ? [
                 'id'          => $this->level->id,
