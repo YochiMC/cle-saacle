@@ -1,24 +1,46 @@
+/**
+ * TeacherModal
+ *
+ * Modal de registro para docentes. Contiene un formulario organizado en tres
+ * secciones: Información Personal, Perfil Académico y Laboral, e Información
+ * de Pago. Transforma los datos antes de enviarlos (booleano is_native,
+ * entero ttc_hours) y resetea el formulario al completar el registro.
+ *
+ * @component
+ *
+ * @param {boolean}  [show=false]  - Controla la visibilidad del modal.
+ * @param {Function} onClose       - Callback invocado al cerrar o cancelar el modal.
+ * @param {string}   [title]       - Título del encabezado del modal.
+ *
+ * @example
+ * <TeacherModal
+ *   title="Añadir maestro"
+ *   show={isModalOpen}
+ *   onClose={() => setIsModalOpen(false)}
+ * />
+ */
+
 import FormModal from "@/Components/Forms/FormModal";
 import { FieldDescription, FieldGroup, FieldLegend, FieldSeparator, FieldSet } from '@/Components/ui/field';
-import SelectForm from "@/components/Forms/SelectForm";
-import InputForm from "@/components/Forms/InputForm";
-import ButtonForm from "@/components/Forms/ButtonForm";
+import SelectForm from "@/Components/Forms/SelectForm";
+import InputForm from "@/Components/Forms/InputForm";
+import ButtonForm from "@/Components/Forms/ButtonForm";
 import { useForm } from '@inertiajs/react';
 
-// Constantes extraídas para evitar re-renders innecesarios
+// Opciones estáticas — definidas fuera del componente para evitar recreaciones en cada render.
 const CATEGORY_OPTIONS = [
     { value: 'A', label: 'A' },
     { value: 'B', label: 'B' },
-    { value: 'C', label: 'C' }
+    { value: 'C', label: 'C' },
 ];
 
 const NATIVE_OPTIONS = [
     { value: '0', label: 'No' },
-    { value: '1', label: 'Sí' }
+    { value: '1', label: 'Sí' },
 ];
 
 export default function TeacherModal({ show = false, onClose, title }) {
-    
+
     const { data, setData, post, processing, errors, reset, transform } = useForm({
         first_name: '',
         last_name: '',
@@ -32,31 +54,31 @@ export default function TeacherModal({ show = false, onClose, title }) {
         grade: '',
         is_native: '0', // Por defecto 'No'
         email: '',
-        phone: '',// Para la creación del usuario asociado
+        phone: '',
     });
 
     const submit = (e) => {
         e.preventDefault();
-        
-        // Transformamos datos antes de enviar (ej. convertir string a boolean)
+
+        // Transformamos los tipos antes de enviar: string → boolean / integer.
         transform((currentData) => ({
             ...currentData,
             is_native: currentData.is_native === '1',
             ttc_hours: parseInt(currentData.ttc_hours) || 0,
         }));
 
-        post('/teachers', { 
-            onSuccess: () => { 
-                reset(); 
-                onClose(); 
-            } 
+        post('/teachers', {
+            onSuccess: () => {
+                reset();
+                onClose();
+            },
         });
     };
 
     return (
         <FormModal title={title} show={show} onClose={onClose}>
             <form onSubmit={submit}>
-                
+
                 {/* Visualización de errores de validación */}
                 {Object.keys(errors).length > 0 && (
                     <div className="p-4 mb-4 text-sm text-white bg-red-500 rounded-lg">
@@ -84,7 +106,7 @@ export default function TeacherModal({ show = false, onClose, title }) {
                         </div>
 
                         <InputForm label="Correo Electrónico" type="email" inputId="email" value={data.email} onChange={e => setData('email', e.target.value)} />
-                        <InputForm label="Número de telefono" inputId="phone" value={data.phone} onChange={e =>setData('phone', e.target.value)} />
+                        <InputForm label="Número de teléfono" inputId="phone" value={data.phone} onChange={e => setData('phone', e.target.value)} />
                     </FieldSet>
 
                     <FieldSeparator />
@@ -92,7 +114,7 @@ export default function TeacherModal({ show = false, onClose, title }) {
                     {/* --- SECCIÓN 2: PERFIL ACADÉMICO Y LABORAL --- */}
                     <FieldSet>
                         <FieldLegend>Perfil Académico y Laboral</FieldLegend>
-                        
+
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <InputForm label="Grado Académico (Ej. Mtro, Dr)" inputId="grade" value={data.grade} onChange={e => setData('grade', e.target.value)} />
                             <SelectForm options={CATEGORY_OPTIONS} label="Categoría" selectId="category" value={data.category} onValueChange={v => setData('category', v)} />

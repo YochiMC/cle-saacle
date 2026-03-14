@@ -7,6 +7,9 @@ import GroupGrid from "./GroupGrid";
 import BulkActionBar from "./BulkActionBar";
 import ThemeButton from "@/Components/ThemeButton";
 import { Plus } from "lucide-react";
+import useFlashAlert from "@/Hooks/useFlashAlert"; 
+import GroupModal from "@/Pages/Test_MK2/FormModals/GroupModal";
+import ModalAlert from "@/Components/ui/ModalAlert";
 
 const ITEMS_POR_PAGINA = 12;
 
@@ -19,7 +22,7 @@ const ITEMS_POR_PAGINA = 12;
  * @param {Array<Object>} [props.grupos=[]] - Lista de grupos provenientes del servidor.
  * @param {Array<Object>} [props.levels=[]] - Catálogo de niveles académicos.
  */
-export default function Groups({ auth, grupos = [], levels = [] }) {
+export default function Groups({ auth, grupos = [], levels = [], teachers = [], periods = [] }) {
     const [busqueda, setBusqueda] = useState("");
     const [filterStatus, setFilterStatus] = useState("");
     const [filterLevel, setFilterLevel] = useState("");
@@ -27,6 +30,9 @@ export default function Groups({ auth, grupos = [], levels = [] }) {
     const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
     const [ordenCupo, setOrdenCupo] = useState(null);
     const [gruposSeleccionados, setGruposSeleccionados] = useState([]);
+
+    const { flashModal, closeFlashModal } = useFlashAlert();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const roles = auth?.roles ?? [];
     const esAdminOCoord =
@@ -117,7 +123,7 @@ export default function Groups({ auth, grupos = [], levels = [] }) {
         alert(`Confirmar eliminación de ${gruposSeleccionados.length} grupos`);
     };
 
-    const handleCrearGrupo = () => alert("Abrir modal de creación");
+    const handleCrearGrupo = () => setIsModalOpen(true);
 
     const handleCerrarDetalles = () => setGrupoSeleccionado(null);
 
@@ -198,6 +204,15 @@ export default function Groups({ auth, grupos = [], levels = [] }) {
             <GroupDetailsModal
                 grupo={grupoSeleccionado}
                 onClose={handleCerrarDetalles}
+            />
+
+            <GroupModal show={isModalOpen} onClose={() => setIsModalOpen(false)} levels={levels} teachers={teachers} periods={periods} />
+            <ModalAlert
+                isOpen={flashModal.isOpen}
+                onClose={closeFlashModal}
+                type={flashModal.type}
+                title={flashModal.title}
+                message={flashModal.message}
             />
         </AuthenticatedLayout>
     );

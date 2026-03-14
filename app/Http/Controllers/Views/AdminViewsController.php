@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\Level;
 use App\Models\Setting;
+use App\Models\Period;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\LevelResource;
 use App\Http\Resources\StudentResource;
@@ -22,7 +23,7 @@ use Inertia\Inertia;
  * Controlador de Vistas Administrativas
  *
  * Principio SRP: Solo gestiona la presentación de la información para las vistas.
- * Las reglas de presentación de datos (ocultar docentes, filtrar estados por rol) 
+ * Las reglas de presentación de datos (ocultar docentes, filtrar estados por rol)
  * se aplican aquí antes de despachar hacia Inertia.
  */
 class AdminViewsController extends Controller
@@ -57,15 +58,15 @@ class AdminViewsController extends Controller
         $usuarioEsEstudiante = $request->user()?->hasRole('student') ?? false;
 
         $gruposQuery = Group::with(['teacher', 'level', 'period'])->withCount('qualifications');
-        
+
         if ($usuarioEsEstudiante) {
             $gruposQuery->whereIn('status', ['active', 'waiting']);
         }
 
         $grupos = $gruposQuery->get();
 
-        $fechaRevelo = Setting::where('key', 'teacher_reveal_date')->value('value') 
-            ? Carbon::parse(Setting::where('key', 'teacher_reveal_date')->value('value')) 
+        $fechaRevelo = Setting::where('key', 'teacher_reveal_date')->value('value')
+            ? Carbon::parse(Setting::where('key', 'teacher_reveal_date')->value('value'))
             : Carbon::parse('2026-03-20');
 
         if ($usuarioEsEstudiante && now()->lt($fechaRevelo)) {
@@ -75,10 +76,14 @@ class AdminViewsController extends Controller
         }
 
         $levels = Level::orderBy('level_tecnm')->get();
+        $teachers = TeacherResource::collection(Teacher::all())->resolve();
+        $periods = Period::all();
 
         return Inertia::render('Test_MK2/Groups', [
             'grupos' => GroupResource::collection($grupos)->resolve(),
             'levels' => LevelResource::collection($levels)->resolve(),
+            'teachers' => $teachers,
+            'periods' => $periods
         ]);
     }
 }
