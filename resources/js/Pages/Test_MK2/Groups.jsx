@@ -7,7 +7,7 @@ import GroupGrid from "./GroupGrid";
 import BulkActionBar from "./BulkActionBar";
 import ThemeButton from "@/Components/ThemeButton";
 import { Plus } from "lucide-react";
-import useFlashAlert from "@/Hooks/useFlashAlert"; 
+import useFlashAlert from "@/Hooks/useFlashAlert";
 import GroupModal from "@/Pages/Test_MK2/FormModals/GroupModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 
@@ -206,7 +206,7 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
                 onClose={handleCerrarDetalles}
             />
 
-            <GroupModal show={isModalOpen} onClose={() => setIsModalOpen(false)} levels={levels} teachers={teachers} periods={periods} />
+            <GroupModal show={isModalOpen} title="Añadir grupo" onClose={() => setIsModalOpen(false)} levels={levels} teachers={teachers} periods={periods} />
             <ModalAlert
                 isOpen={flashModal.isOpen}
                 onClose={closeFlashModal}

@@ -88,24 +88,28 @@ export default function StudentModal({ show = false, onClose, title, degrees, le
                 <FieldGroup>
                     {/* --- PARTE 1: DATOS PERSONALES --- */}
                     <FieldSet>
-                        <FieldLegend>Añadir nuevo alumno</FieldLegend>
-                        <FieldDescription>Ingresar todos los datos del alumno</FieldDescription>
+                        <FieldLegend>Datos del Alumno</FieldLegend>
+                        <FieldDescription>Información personal para alta y seguimiento.</FieldDescription>
 
-                        <SelectForm options={typeStudentsOption} label="Tipo de estudiante" selectId="type_student_id" value={data.type_student_id} onValueChange={v => setData('type_student_id', v)} />
+                        <SelectForm options={typeStudentsOption} label="Tipo de estudiante" selectId="type_student_id" placeholder="Selecciona un tipo" description="Define los campos académicos y de acceso." value={data.type_student_id} onValueChange={v => setData('type_student_id', v)} />
 
                         <FieldGroup>
-                            <InputForm label="Nombre del alumno" inputId="first_name" value={data.first_name} onChange={e => setData('first_name', e.target.value)} />
-                            <InputForm label="Apellidos del alumno" inputId="last_name" value={data.last_name} onChange={e => setData('last_name', e.target.value)} />
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <InputForm label="Nombre(s)" inputId="first_name" placeholder="Ej. Carlos Alberto" value={data.first_name} onChange={e => setData('first_name', e.target.value)} />
+                                <InputForm label="Apellidos" inputId="last_name" placeholder="Ej. López Martínez" value={data.last_name} onChange={e => setData('last_name', e.target.value)} />
+                            </div>
 
                             <FieldLegend>Fecha de nacimiento</FieldLegend>
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                 <SelectForm options={DAYS} label="Día" selectId="birth_day" value={data.birth_day} onValueChange={v => setData('birth_day', v)} />
                                 <SelectForm options={MONTHS} label="Mes" selectId="birth_month" value={data.birth_month} onValueChange={v => setData('birth_month', v)} />
                                 <SelectForm options={YEARS} label="Año" selectId="birth_year" value={data.birth_year} onValueChange={v => setData('birth_year', v)} />
                             </div>
 
-                            <SelectForm options={GENDER_OPTIONS} label="Género" selectId="gender" value={data.gender} onValueChange={v => setData('gender', v)} />
-                            <InputForm label="Teléfono" inputId="phone" value={data.phone} onChange={e => setData('phone', e.target.value)} />
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <SelectForm options={GENDER_OPTIONS} label="Género" selectId="gender" placeholder="Selecciona una opción" value={data.gender} onValueChange={v => setData('gender', v)} />
+                                <InputForm label="Teléfono" inputId="phone" placeholder="10 dígitos" value={data.phone} onChange={e => setData('phone', e.target.value)} />
+                            </div>
                         </FieldGroup>
                     </FieldSet>
 
@@ -113,24 +117,27 @@ export default function StudentModal({ show = false, onClose, title, degrees, le
 
                     {/* --- PARTE 2: DATOS ESCOLARES --- */}
                     <FieldSet>
+                        <FieldLegend>Datos Académicos</FieldLegend>
+                        <FieldDescription>Control escolar y nivel del estudiante.</FieldDescription>
                         <FieldGroup>
-                            <InputForm label="Número de control" inputId="number_control" value={data.number_control} onChange={e => setData('number_control', e.target.value)} />
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <InputForm label="Número de control" inputId="number_control" placeholder="Ej. 22161045" description="Identificador escolar único." value={data.number_control} onChange={e => setData('number_control', e.target.value)} />
+                                <SelectForm options={degreesOption} label="Carrera" selectId="degree_id" placeholder="Selecciona una carrera" value={data.degree_id} onValueChange={v => setData('degree_id', v)} />
+
+                                {!isEgresado && (
+                                    <SelectForm options={SEMESTER_OPTIONS} label="Semestre" selectId="semester" placeholder="Selecciona un semestre" value={data.semester} onValueChange={v => setData('semester', v)} />
+                                )}
+
+                                <SelectForm options={levelsOption} label="Nivel" selectId="level_id" placeholder="Selecciona un nivel" value={data.level_id} onValueChange={v => setData('level_id', v)} />
+                            </div>
 
                             {isEgresado && (
-                                <>
-                                    <InputForm label="Correo personal" inputId="email" type="email" value={data.email} onChange={e => setData('email', e.target.value)} />
-                                    <InputForm label="Contraseña" inputId="password" type="password" value={data.password} onChange={e => setData('password', e.target.value)} />
-                                    <InputForm label="Confirmar Contraseña" inputId="password_confirmation" type="password" value={data.password_confirmation} onChange={e => setData('password_confirmation', e.target.value)} />
-                                </>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <InputForm label="Correo electrónico" inputId="email" type="email" placeholder="alumno@correo.com" description="Se usará para su acceso al sistema." value={data.email} onChange={e => setData('email', e.target.value)} />
+                                    <InputForm label="Contraseña" inputId="password" type="password" placeholder="Mínimo 8 caracteres" value={data.password} onChange={e => setData('password', e.target.value)} />
+                                    <InputForm label="Confirmar contraseña" inputId="password_confirmation" type="password" placeholder="Repite la contraseña" className="md:col-span-2" value={data.password_confirmation} onChange={e => setData('password_confirmation', e.target.value)} />
+                                </div>
                             )}
-
-                            <SelectForm options={degreesOption} label="Carrera" selectId="degree_id" value={data.degree_id} onValueChange={v => setData('degree_id', v)} />
-
-                            {!isEgresado && (
-                                <SelectForm options={SEMESTER_OPTIONS} label="Semestre" selectId="semester" value={data.semester} onValueChange={v => setData('semester', v)} />
-                            )}
-
-                            <SelectForm options={levelsOption} label="Nivel" selectId="level_id" value={data.level_id} onValueChange={v => setData('level_id', v)} />
                         </FieldGroup>
                     </FieldSet>
 

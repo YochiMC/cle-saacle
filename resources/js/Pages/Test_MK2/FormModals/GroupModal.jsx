@@ -1,3 +1,31 @@
+/**
+ * GroupModal
+ *
+ * Modal de registro para grupos. Contiene un formulario organizado en tres
+ * secciones: Datos del Grupo, Horario y Sede, y Asignaciones. Transforma los
+ * datos antes de enviarlos (entero capacity) y resetea el formulario al
+ * completar el registro.
+ *
+ * @component
+ *
+ * @param {boolean}  [show=false]  - Controla la visibilidad del modal.
+ * @param {Function} onClose       - Callback invocado al cerrar o cancelar el modal.
+ * @param {string}   [title]       - Título del encabezado del modal.
+ * @param {Array}    teachers      - Listado de docentes: [{ id, full_name }].
+ * @param {Array}    levels        - Listado de niveles: [{ id, level_tecnm }].
+ * @param {Array}    periods       - Listado de periodos: [{ id, name }].
+ *
+ * @example
+ * <GroupModal
+ *   title="Añadir grupo"
+ *   show={isModalOpen}
+ *   onClose={() => setIsModalOpen(false)}
+ *   teachers={teachers}
+ *   levels={levels}
+ *   periods={periods}
+ * />
+ */
+
 import FormModal from "@/Components/Forms/FormModal";
 import { FieldDescription, FieldGroup, FieldLegend, FieldSeparator, FieldSet } from '@/Components/ui/field';
 import SelectForm from "@/components/Forms/SelectForm";
@@ -76,18 +104,18 @@ export default function GroupModal({ show = false, onClose, title, teachers = []
                 <FieldGroup>
                     {/* --- SECCIÓN 1: INFORMACIÓN GENERAL --- */}
                     <FieldSet>
-                        <FieldLegend>Información del Grupo</FieldLegend>
-                        <FieldDescription>Datos básicos y configuración de la clase.</FieldDescription>
+                        <FieldLegend>Datos del Grupo</FieldLegend>
+                        <FieldDescription>Configuración base para apertura del grupo.</FieldDescription>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <SelectForm options={MODE_OPTIONS} label="Modalidad" selectId="mode" value={data.mode} onValueChange={v => setData('mode', v)} />
-                            <SelectForm options={TYPE_OPTIONS} label="Tipo" selectId="type" value={data.type} onValueChange={v => setData('type', v)} />
+                            <SelectForm options={MODE_OPTIONS} label="Modalidad" selectId="mode" placeholder="Selecciona una modalidad" value={data.mode} onValueChange={v => setData('mode', v)} />
+                            <SelectForm options={TYPE_OPTIONS} label="Tipo" selectId="type" placeholder="Selecciona un tipo" value={data.type} onValueChange={v => setData('type', v)} />
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <InputForm label="Nombre del grupo" inputId="name" value={data.name} onChange={e=>setData('name', e.target.value)} />
-                            <InputForm label="Capacidad (Alumnos)" type="number" inputId="capacity" value={data.capacity} onChange={e => setData('capacity', e.target.value)} />
-                            <SelectForm options={STATUS_OPTIONS} label="Estado" selectId="status" value={data.status} onValueChange={v => setData('status', v)} />
+                            <InputForm label="Nombre del grupo" inputId="name" placeholder="Ej. Inglés B1 - Matutino" value={data.name} onChange={e=>setData('name', e.target.value)} />
+                            <InputForm label="Capacidad (estudiantes)" type="number" inputId="capacity" placeholder="Ej. 25" description="Número máximo de estudiantes del grupo." value={data.capacity} onChange={e => setData('capacity', e.target.value)} />
+                            <SelectForm options={STATUS_OPTIONS} label="Estado" selectId="status" placeholder="Selecciona un estado" value={data.status} onValueChange={v => setData('status', v)} />
                         </div>
                     </FieldSet>
 
@@ -95,15 +123,16 @@ export default function GroupModal({ show = false, onClose, title, teachers = []
 
                     {/* --- SECCIÓN 2: HORARIO Y UBICACIÓN --- */}
                     <FieldSet>
-                        <FieldLegend>Horario y Ubicación</FieldLegend>
+                        <FieldLegend>Horario y Sede</FieldLegend>
+                        <FieldDescription>Define horario, aula o enlace de clase.</FieldDescription>
 
                         <div className="grid grid-cols-1 gap-4">
-                            <InputForm label="Horario (Ej. Lunes y Miércoles 16:00 - 18:00)" inputId="schedule" value={data.schedule} onChange={e => setData('schedule', e.target.value)} />
+                            <InputForm label="Horario" inputId="schedule" placeholder="Ej. Lunes y Miércoles 16:00 - 18:00" description="Incluye días y rango de horas." value={data.schedule} onChange={e => setData('schedule', e.target.value)} />
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
-                            <InputForm label="Aula Física" inputId="classroom" value={data.classroom} onChange={e => setData('classroom', e.target.value)} />
-                            <InputForm label="Enlace de Reunión (URL)" inputId="meeting_link" value={data.meeting_link} onChange={e => setData('meeting_link', e.target.value)} />
+                            <InputForm label="Aula" inputId="classroom" placeholder="Ej. B-203" value={data.classroom} onChange={e => setData('classroom', e.target.value)} />
+                            <InputForm label="Enlace de reunión (URL)" inputId="meeting_link" placeholder="https://..." description="Opcional para grupos virtuales o híbridos." value={data.meeting_link} onChange={e => setData('meeting_link', e.target.value)} />
                         </div>
                     </FieldSet>
 
@@ -112,12 +141,12 @@ export default function GroupModal({ show = false, onClose, title, teachers = []
                     {/* --- SECCIÓN 3: ASIGNACIONES --- */}
                     <FieldSet>
                         <FieldLegend>Asignaciones</FieldLegend>
-                        <FieldDescription>Relaciona el grupo con un periodo, nivel y docente.</FieldDescription>
+                        <FieldDescription>Vincula periodo, nivel y docente responsable.</FieldDescription>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <SelectForm options={periodOptions} label="Periodo" selectId="period_id" value={data.period_id} onValueChange={v => setData('period_id', v)} />
-                            <SelectForm options={levelOptions} label="Nivel" selectId="level_id" value={data.level_id} onValueChange={v => setData('level_id', v)} />
-                            <SelectForm options={teacherOptions} label="Docente" selectId="teacher_id" value={data.teacher_id} onValueChange={v => setData('teacher_id', v)} />
+                            <SelectForm options={periodOptions} label="Periodo" selectId="period_id" placeholder="Selecciona un periodo" value={data.period_id} onValueChange={v => setData('period_id', v)} />
+                            <SelectForm options={levelOptions} label="Nivel" selectId="level_id" placeholder="Selecciona un nivel" value={data.level_id} onValueChange={v => setData('level_id', v)} />
+                            <SelectForm options={teacherOptions} label="Docente" selectId="teacher_id" placeholder="Selecciona un docente" value={data.teacher_id} onValueChange={v => setData('teacher_id', v)} />
                         </div>
                     </FieldSet>
 

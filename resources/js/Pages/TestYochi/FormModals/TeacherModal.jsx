@@ -92,38 +92,39 @@ export default function TeacherModal({ show = false, onClose, title }) {
                 <FieldGroup>
                     {/* --- SECCIÓN 1: INFORMACIÓN PERSONAL --- */}
                     <FieldSet>
-                        <FieldLegend>Información Personal</FieldLegend>
-                        <FieldDescription>Datos de identificación oficial del docente.</FieldDescription>
+                        <FieldLegend>Datos del Docente</FieldLegend>
+                        <FieldDescription>Identificación y contacto para su registro.</FieldDescription>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <InputForm label="Nombre(s)" inputId="first_name" value={data.first_name} onChange={e => setData('first_name', e.target.value)} />
-                            <InputForm label="Apellidos" inputId="last_name" value={data.last_name} onChange={e => setData('last_name', e.target.value)} />
+                            <InputForm label="Nombre(s)" inputId="first_name" placeholder="Ej. Ana María" description="Captura los nombres como aparecen en su identificación." value={data.first_name} onChange={e => setData('first_name', e.target.value)} />
+                            <InputForm label="Apellidos" inputId="last_name" placeholder="Ej. Pérez Gómez" value={data.last_name} onChange={e => setData('last_name', e.target.value)} />
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <InputForm label="RFC" inputId="rfc" value={data.rfc} onChange={e => setData('rfc', e.target.value.toUpperCase())} />
-                            <InputForm label="CURP" inputId="curp" value={data.curp} onChange={e => setData('curp', e.target.value.toUpperCase())} />
+                            <InputForm label="RFC" inputId="rfc" placeholder="ABCD9001011A1" description="Se convertirá automáticamente a mayúsculas." value={data.rfc} onChange={e => setData('rfc', e.target.value.toUpperCase())} />
+                            <InputForm label="CURP" inputId="curp" placeholder="ABCD900101HDFRRN01" description="Se convertirá automáticamente a mayúsculas." value={data.curp} onChange={e => setData('curp', e.target.value.toUpperCase())} />
                         </div>
 
-                        <InputForm label="Correo Electrónico" type="email" inputId="email" value={data.email} onChange={e => setData('email', e.target.value)} />
-                        <InputForm label="Número de teléfono" inputId="phone" value={data.phone} onChange={e => setData('phone', e.target.value)} />
+                        <InputForm label="Correo electrónico" type="email" inputId="email" placeholder="docente@institucion.edu.mx" description="Usado para comunicación y acceso al sistema." value={data.email} onChange={e => setData('email', e.target.value)} />
+                        <InputForm label="Teléfono" inputId="phone" placeholder="10 dígitos" value={data.phone} onChange={e => setData('phone', e.target.value)} />
                     </FieldSet>
 
                     <FieldSeparator />
 
                     {/* --- SECCIÓN 2: PERFIL ACADÉMICO Y LABORAL --- */}
                     <FieldSet>
-                        <FieldLegend>Perfil Académico y Laboral</FieldLegend>
+                        <FieldLegend>Perfil Académico</FieldLegend>
+                        <FieldDescription>Información de categoría, nivel y carga docente.</FieldDescription>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <InputForm label="Grado Académico (Ej. Mtro, Dr)" inputId="grade" value={data.grade} onChange={e => setData('grade', e.target.value)} />
-                            <SelectForm options={CATEGORY_OPTIONS} label="Categoría" selectId="category" value={data.category} onValueChange={v => setData('category', v)} />
+                            <InputForm label="Grado académico (ej. Mtro., Dr.)" inputId="grade" placeholder="Ej. Mtro." value={data.grade} onChange={e => setData('grade', e.target.value)} />
+                            <SelectForm options={CATEGORY_OPTIONS} label="Categoría" selectId="category" placeholder="Selecciona una categoría" value={data.category} onValueChange={v => setData('category', v)} />
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <InputForm label="Nivel" inputId="level" value={data.level} onChange={e => setData('level', e.target.value)} />
-                            <InputForm label="Horas TTC" type="number" inputId="ttc_hours" value={data.ttc_hours} onChange={e => setData('ttc_hours', e.target.value)} />
-                            <SelectForm options={NATIVE_OPTIONS} label="¿Es Nativo?" selectId="is_native" value={data.is_native} onValueChange={v => setData('is_native', v)} />
+                            <InputForm label="Nivel" inputId="level" placeholder="Ej. Licenciatura" value={data.level} onChange={e => setData('level', e.target.value)} />
+                            <InputForm label="Horas TTC" type="number" inputId="ttc_hours" placeholder="Ej. 20" description="Carga horaria asignada al docente." value={data.ttc_hours} onChange={e => setData('ttc_hours', e.target.value)} />
+                            <SelectForm options={NATIVE_OPTIONS} label="Docente nativo" selectId="is_native" placeholder="Selecciona una opción" value={data.is_native} onValueChange={v => setData('is_native', v)} />
                         </div>
                     </FieldSet>
 
@@ -131,10 +132,11 @@ export default function TeacherModal({ show = false, onClose, title }) {
 
                     {/* --- SECCIÓN 3: DATOS BANCARIOS --- */}
                     <FieldSet>
-                        <FieldLegend>Información de Pago</FieldLegend>
+                        <FieldLegend>Datos de Pago</FieldLegend>
+                        <FieldDescription>Cuenta bancaria para gestión administrativa.</FieldDescription>
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <InputForm label="Nombre del Banco" inputId="bank_name" value={data.bank_name} onChange={e => setData('bank_name', e.target.value)} />
-                            <InputForm label="CLABE Interbancaria" inputId="clabe" value={data.clabe} onChange={e => setData('clabe', e.target.value)} />
+                            <InputForm label="Banco" inputId="bank_name" placeholder="Ej. BBVA" value={data.bank_name} onChange={e => setData('bank_name', e.target.value)} />
+                            <InputForm label="CLABE Interbancaria" inputId="clabe" placeholder="18 dígitos" description="Verifica la CLABE antes de guardar." value={data.clabe} onChange={e => setData('clabe', e.target.value)} />
                         </div>
                     </FieldSet>
 
