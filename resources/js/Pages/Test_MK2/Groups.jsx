@@ -31,7 +31,9 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
     const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
     const [ordenCupo, setOrdenCupo] = useState(null);
     const [gruposSeleccionados, setGruposSeleccionados] = useState([]);
+
     const { flashModal, closeFlashModal } = useFlashAlert();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const { hasRole } = usePermission();
     const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
