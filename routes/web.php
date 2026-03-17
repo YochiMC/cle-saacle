@@ -3,6 +3,7 @@
 use App\Http\Controllers\Views\AdminViewsController;
 use App\Http\Controllers\DegreeController;
 use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentController;
@@ -29,6 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
     Route::post('/students', [StudentController::class, 'createStudent'])->name('students');
     Route::post('/teachers', [TeacherController::class, 'createTeacher'])->name('teachers');
+    Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');
