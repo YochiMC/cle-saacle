@@ -46,6 +46,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Grupos
                                 </NavLink>
+                                <NavLink
+                                    href={route("reports")}
+                                    active={route().current("reports")}
+                                    className="text-white hover:text-orangeTec"
+                                >
+                                    Reportes
+                                </NavLink>
                             </div>
                         </div>
 
