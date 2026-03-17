@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Views;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Degree;
 use App\Models\Group;
 use App\Models\Student;
@@ -107,5 +108,12 @@ class AdminViewsController extends Controller
         $fechaRevelo = $fechaConfig ? Carbon::parse($fechaConfig) : Carbon::parse('2026-03-20');
 
         return now()->lt($fechaRevelo);
+    }
+
+    public function profilesView(User $user)
+    {
+           return Inertia::render('Profile/Users/Profile', [
+            'user' => $user
+        ]);
     }
 }

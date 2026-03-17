@@ -28,6 +28,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
     Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
+    Route::get('/profiles/{user}', [AdminViewsController::class, 'profilesView'])->name('profiles');
     Route::post('/students', [StudentController::class, 'createStudent'])->name('students');
     Route::post('/teachers', [TeacherController::class, 'createTeacher'])->name('teachers');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
