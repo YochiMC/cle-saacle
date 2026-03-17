@@ -6,27 +6,29 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @resource GroupResource
+ * Recurso de API para el modelo Group.
+ * Serializa los datos del grupo académico para su consumo en el frontend.
  *
- * Serializador de grupo académico.
- *
- * Contrato estricto con React: expone solo los campos que el frontend
- * consume, evitando filtrar datos sensibles por accidente.
- *
- * Decisiones de diseño:
- *  - teacher_name : aplanado desde teacher->full_name para evitar
- *    navegación anidada en React (grupo.teacher?.full_name).
- *    Es null si el backend ocultó al docente (regla de negocio de fecha).
- *  - level        : delegado a LevelResource (whenLoaded garantiza que
- *    no se dispara una query adicional si no fue eager-loaded).
- *
- * Campos planos: id, name, schedule, mode, type, capacity, status,
- *               classroom, meeting_link, teacher_name, period_name,
- *               enrolled_count, available_seats.
- * Relaciones:   level (LevelResource).
+ * @property int $id
+ * @property string $name
+ * @property string $schedule
+ * @property string $mode
+ * @property string $type
+ * @property int $capacity
+ * @property string $status
+ * @property string|null $classroom
+ * @property string|null $meeting_link
+ * @property int $teacher_id
+ * @property int $period_id
  */
 class GroupResource extends JsonResource
 {
+    /**
+     * Transforma el recurso en un array.
+     *
+     * @param Request $request
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -40,19 +42,26 @@ class GroupResource extends JsonResource
             'classroom'    => $this->classroom,
             'meeting_link' => $this->meeting_link,
 
+            // Cálculos de inscritos y disponibilidad
             'enrolled_count'  => $this->qualifications_count ?? 0,
-            'available_seats' => $this->capacity - ($this->qualifications_count ?? 0),
+            'available_seats' => max(0, $this->capacity - ($this->qualifications_count ?? 0)),
 
+            // Datos del docente (respetando la lógica de revelación en el controlador)
             'teacher_name' => $this->teacher ? $this->teacher->full_name : null,
+            'teacher_id'   => $this->teacher_id,
 
-            'period_name'  => $this->period?->name ?? 'Período Histórico / No asignado',
+            // Datos del periodo
+            'period_name'  => $this->period?->name ?? 'Sin asignar',
+            'period_id'    => $this->period_id,
 
+            // Relación con el nivel académmico
             'level'        => $this->level ? [
                 'id'          => $this->level->id,
                 'level_tecnm' => $this->level->level_tecnm,
                 'level_mcer'  => $this->level->level_mcer,
                 'hours'       => $this->level->hours,
             ] : null,
+            'level_id'     => $this->level_id,
         ];
     }
 }

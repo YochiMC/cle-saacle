@@ -28,12 +28,17 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
     const [filterStatus, setFilterStatus] = useState("");
     const [filterLevel, setFilterLevel] = useState("");
     const [paginaActual, setPaginaActual] = useState(1);
-    const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
-    const [ordenCupo, setOrdenCupo] = useState(null);
     const [gruposSeleccionados, setGruposSeleccionados] = useState([]);
+    const [ordenCupo, setOrdenCupo] = useState(null);
 
     const { flashModal, closeFlashModal } = useFlashAlert();
+
+    // Estado: modal de edición (solo admin/coord)
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [grupoEditando, setGrupoEditando] = useState(null);
+
+    // Estado: modal de vista rápida (todos los roles)
+    const [grupoViendo, setGrupoViendo] = useState(null);
 
     const { hasRole } = usePermission();
     const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
@@ -97,8 +102,12 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
         alert("Inscripción en construcción.");
     };
 
+    const handleVerDetalles = (grupo) => setGrupoViendo(grupo);
+    const handleCerrarDetalles = () => setGrupoViendo(null);
+
     const handleEditar = (grupo) => {
-        alert("Abriendo formulario de edición para: " + grupo.name);
+        setGrupoEditando(grupo);
+        setIsModalOpen(true);
     };
 
     const handleToggleSelect = useCallback((id) => {
@@ -123,9 +132,15 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
         alert(`Confirmar eliminación de ${gruposSeleccionados.length} grupos`);
     };
 
-    const handleCrearGrupo = () => setIsModalOpen(true);
+    const handleCrearGrupo = () => {
+        setGrupoEditando(null);
+        setIsModalOpen(true);
+    };
 
-    const handleCerrarDetalles = () => setGrupoSeleccionado(null);
+    const handleCerrarModal = () => {
+        setIsModalOpen(false);
+        setGrupoEditando(null);
+    };
 
     const hayFiltros =
         busqueda !== "" ||
@@ -193,19 +208,30 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
                         paginaActual={paginaActual}
                         totalPaginas={totalPaginas}
                         onPageChange={setPaginaActual}
-                        onVerDetalles={setGrupoSeleccionado}
+                        onVerDetalles={handleVerDetalles}
                         onInscribir={handleInscripcion}
                         onEditar={handleEditar}
                     />
                 </div>
             </div>
 
+
+            {/* Modal de vista rápida — accesible para todos los roles */}
             <GroupDetailsModal
-                grupo={grupoSeleccionado}
+                grupo={grupoViendo}
                 onClose={handleCerrarDetalles}
             />
 
-            <GroupModal show={isModalOpen} title="Añadir grupo" onClose={() => setIsModalOpen(false)} levels={levels} teachers={teachers} periods={periods} />
+            {/* Modal dual de creación/edición — solo admin/coordinador */}
+            <GroupModal
+                show={isModalOpen}
+                title={grupoEditando ? `Editar grupo: ${grupoEditando.name}` : 'Añadir grupo'}
+                onClose={handleCerrarModal}
+                grupoToEdit={grupoEditando}
+                levels={levels}
+                teachers={teachers}
+                periods={periods}
+            />
             <ModalAlert
                 isOpen={flashModal.isOpen}
                 onClose={closeFlashModal}

@@ -1,5 +1,6 @@
 import React, { memo } from "react";
-import { Users } from "lucide-react";
+import { Users, ExternalLink } from "lucide-react";
+import { Link } from "@inertiajs/react";
 import { usePermission } from "@/Utils/auth";
 
 const getStatusBadge = (status) => {
@@ -27,9 +28,9 @@ const getStatusBadge = (status) => {
  *
  * @param {Object} props
  * @param {Object} props.grupo - Objeto con los datos del grupo (con relaciones eager loaded).
- * @param {function(Object): void} props.onVerDetalles - Callback para mostrar los detalles completos.
- * @param {function(string|number): void} props.onInscribir - Callback de acción primaria para estudiantes.
- * @param {function(Object): void} props.onEditar - Callback de acción primaria para personal del sistema.
+ * @param {function(Object): void} props.onVerDetalles - Callback para abrir el modal de vista rápida (todos los roles).
+ * @param {function(Object): void} props.onEditar - Callback para abrir el modal de edición (solo admin/coord).
+ * @param {function(string|number): void} props.onInscribir - Callback de inscripción (solo estudiantes).
  * @param {boolean} [props.seleccionado=false] - Define si la tarjeta está seleccionada.
  * @param {function(string|number): void} [props.onToggleSelect] - Callback al alternar selección.
  */
@@ -39,6 +40,7 @@ const CardGroup = memo(({ grupo, seleccionado = false, onToggleSelect, onVerDeta
     const { hasRole } = usePermission();
     const esEstudiante = hasRole("student");
     const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
+    const esStaff = hasRole("admin") || hasRole("coordinator") || hasRole("teacher");
 
     const nombreDocente = grupo.teacher_name ?? null;
     const nivelDisplay = grupo.level?.level_tecnm || null;
@@ -125,6 +127,7 @@ const CardGroup = memo(({ grupo, seleccionado = false, onToggleSelect, onVerDeta
                 <div className="border-t border-gray-200" />
 
                 <div className="mt-auto flex flex-col gap-2">
+                    {/* Botón primario: Inscribirse (solo estudiantes) */}
                     {esEstudiante && (
                         <button
                             onClick={() => onInscribir(grupo.id)}
@@ -134,6 +137,7 @@ const CardGroup = memo(({ grupo, seleccionado = false, onToggleSelect, onVerDeta
                         </button>
                     )}
 
+                    {/* Botón edición rápida: solo admin/coordinador */}
                     {esAdminOCoord && (
                         <button
                             onClick={() => onEditar(grupo)}
@@ -143,6 +147,18 @@ const CardGroup = memo(({ grupo, seleccionado = false, onToggleSelect, onVerDeta
                         </button>
                     )}
 
+                    {/* Botón gestión profunda: admin, coordinador o maestro */}
+                    {esStaff && (
+                        <Link
+                            href={route('groups.show', grupo.id)}
+                            className="w-full py-2.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 active:scale-95 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                        >
+                            <ExternalLink size={15} strokeWidth={2.5} />
+                            Abrir Grupo
+                        </Link>
+                    )}
+
+                    {/* Botón vista rápida: accesible para todos los roles */}
                     <button
                         onClick={() => onVerDetalles(grupo)}
                         className="w-full py-2.5 border-2 border-[#1B396A] text-[#1B396A] font-semibold rounded-lg hover:bg-[#1B396A] hover:text-white active:scale-95 transition-all duration-200"
