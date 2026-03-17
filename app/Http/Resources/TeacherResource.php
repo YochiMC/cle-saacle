@@ -11,6 +11,7 @@ class TeacherResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'user_id' => $this->user_id,
             'full_name' => $this->full_name, // Usando el Accessor moderno de Laravel
             'category' => $this->category,
             'level' => $this->level,

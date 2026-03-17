@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Views;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Degree;
 use App\Models\Group;
 use App\Models\Student;
@@ -84,6 +85,13 @@ class AdminViewsController extends Controller
             'levels' => LevelResource::collection($levels)->resolve(),
             'teachers' => $teachers,
             'periods' => $periods
+        ]);
+    }
+
+    public function profilesView(User $user)
+    {
+           return Inertia::render('Profile/Users/Profile', [
+            'user' => $user
         ]);
     }
 }
