@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Enums\GroupStatus;
 
 class Group extends Model
 {
@@ -25,7 +26,7 @@ class Group extends Model
     ];
 
     protected $casts = [
-        'status' => \App\Enums\GroupStatus::class,
+        'status' => GroupStatus::class,
     ];
 
 

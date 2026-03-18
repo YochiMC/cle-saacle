@@ -38,8 +38,8 @@ class GroupResource extends JsonResource
             'mode'         => $this->mode,
             'type'         => $this->type,
             'capacity'     => $this->capacity,
-            'status'       => $this->status->value,
-            'status_label' => $this->status->label(),
+            'status'       => $this->status instanceof \App\Enums\GroupStatus ? $this->status->value : $this->status,
+            'status_label' => $this->status instanceof \App\Enums\GroupStatus ? $this->status->label() : 'Desconocido',
             'classroom'    => $this->classroom,
             'meeting_link' => $this->meeting_link,
 
