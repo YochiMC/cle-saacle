@@ -15,6 +15,7 @@ use App\Http\Resources\GroupResource;
 use App\Http\Resources\LevelResource;
 use App\Http\Resources\StudentResource;
 use App\Http\Resources\TeacherResource;
+use App\Http\Resources\UserResource;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\TypeStudent;
@@ -91,7 +92,7 @@ class AdminViewsController extends Controller
     public function profilesView(User $user)
     {
            return Inertia::render('Profile/Users/Profile', [
-            'user' => $user
+            'user' => UserResource::make($user)
         ]);
     }
 }
