@@ -23,7 +23,7 @@ const ITEMS_POR_PAGINA = 12;
  * @param {Array<Object>} [props.grupos=[]] - Lista de grupos provenientes del servidor.
  * @param {Array<Object>} [props.levels=[]] - Catálogo de niveles académicos.
  */
-export default function Groups({ auth, grupos = [], levels = [], teachers = [], periods = [] }) {
+export default function Groups({ auth, grupos = [], levels = [], teachers = [], periods = [], statuses = [] }) {
     const [busqueda, setBusqueda] = useState("");
     const [filterStatus, setFilterStatus] = useState("");
     const [filterLevel, setFilterLevel] = useState("");
@@ -63,10 +63,7 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
 
             if (filterStatus) {
                 const statusGrupo = (g.status || "").toLowerCase();
-                const statusNormalizado =
-                    statusGrupo === "pending" ? "waiting" : statusGrupo;
-
-                if (statusNormalizado !== filterStatus) return false;
+                if (statusGrupo !== filterStatus) return false;
             }
 
             if (filterLevel) {
@@ -184,6 +181,7 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
                             filterLevel={filterLevel}
                             setFilterLevel={setFilterLevel}
                             levels={levels}
+                            statuses={statuses}
                             totalFiltrados={gruposFiltrados.length}
                             ordenCupo={ordenCupo}
                             setOrdenCupo={setOrdenCupo}
@@ -195,8 +193,7 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
                         <BulkActionBar
                             seleccionados={gruposSeleccionados}
                             onClearSelection={handleClearSelection}
-                            onBulkStatus={handleBulkChangeStatus}
-                            onBulkDelete={handleBulkDelete}
+                            statuses={statuses}
                         />
                     )}
 
@@ -231,6 +228,7 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
                 levels={levels}
                 teachers={teachers}
                 periods={periods}
+                statuses={statuses}
             />
             <ModalAlert
                 isOpen={flashModal.isOpen}

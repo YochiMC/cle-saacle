@@ -22,8 +22,12 @@ class Group extends Model
         'status',
         'period_id',
         'teacher_id',
-        'level_id'
     ];
+
+    protected $casts = [
+        'status' => \App\Enums\GroupStatus::class,
+    ];
+
 
     public function period(): BelongsTo
     {

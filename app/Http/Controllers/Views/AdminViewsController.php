@@ -66,7 +66,8 @@ class AdminViewsController extends Controller
             'grupos'   => GroupResource::collection($grupos)->resolve(),
             'levels'   => LevelResource::collection(Level::orderBy('level_tecnm')->get())->resolve(),
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
-            'periods'  => Period::all()
+            'periods'  => Period::all(),
+            'statuses' => array_map(fn($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\GroupStatus::cases()),
         ]);
     }
 

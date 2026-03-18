@@ -44,12 +44,9 @@ const TYPE_OPTIONS = [
     { value: 'Intensivo', label: 'Intensivo' }
 ];
 
-const STATUS_OPTIONS = [
-    { value: 'Activo', label: 'Activo' },
-    { value: 'Inactivo', label: 'Inactivo' }
-];
 
-export default function GroupModal({ show = false, onClose, title, grupoToEdit = null, teachers = [], levels = [], periods = [] }) {
+
+export default function GroupModal({ show = false, onClose, title, grupoToEdit = null, teachers = [], levels = [], periods = [], statuses = [] }) {
 
     const modoEdicion = grupoToEdit !== null;
 
@@ -57,6 +54,7 @@ export default function GroupModal({ show = false, onClose, title, grupoToEdit =
     const teacherOptions = teachers.map(t => ({ value: t.id.toString(), label: t.full_name }));
     const levelOptions = levels.map(l => ({ value: l.id.toString(), label: l.level_tecnm }));
     const periodOptions = periods.map(p => ({ value: p.id.toString(), label: p.name }));
+    const statusOptions = statuses.map(s => ({ value: s.value, label: s.label }));
 
     const { data, setData, post, put, processing, errors, reset, transform } = useForm({
         name:        '',
@@ -139,7 +137,7 @@ export default function GroupModal({ show = false, onClose, title, grupoToEdit =
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <InputForm label="Nombre del grupo" inputId="name" placeholder="Ej. Inglés B1 - Matutino" value={data.name} onChange={e=>setData('name', e.target.value)} />
                             <InputForm label="Capacidad (estudiantes)" type="number" inputId="capacity" placeholder="Ej. 25" description="Número máximo de estudiantes del grupo." value={data.capacity} onChange={e => setData('capacity', e.target.value)} />
-                            <SelectForm options={STATUS_OPTIONS} label="Estado" selectId="status" placeholder="Selecciona un estado" value={data.status} onValueChange={v => setData('status', v)} />
+                            <SelectForm options={statusOptions} label="Estado" selectId="status" placeholder="Selecciona un estado" value={data.status} onValueChange={v => setData('status', v)} />
                         </div>
                     </FieldSet>
 

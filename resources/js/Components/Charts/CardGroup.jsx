@@ -3,19 +3,23 @@ import { Users, ExternalLink } from "lucide-react";
 import { Link } from "@inertiajs/react";
 import { usePermission } from "@/Utils/auth";
 
-const getStatusBadge = (status) => {
-    switch (status?.toLowerCase()) {
+const getStatusBadge = (grupo) => {
+    const status = grupo?.status?.toLowerCase();
+    const label = grupo?.status_label || status;
+    switch (status) {
+        case "enrolling":
+            return { label, cls: "bg-blue-100 text-blue-800" };
         case "active":
-            return { label: "Activo", cls: "bg-green-100 text-green-800" };
+            return { label, cls: "bg-green-100 text-green-800" };
         case "pending":
-        case "waiting":
-            return { label: "En espera", cls: "bg-yellow-100 text-yellow-800" };
-        case "closed":
-        case "inactive":
-            return { label: "Cerrado", cls: "bg-red-100 text-red-800" };
+            return { label, cls: "bg-yellow-100 text-yellow-800" };
+        case "grading":
+            return { label, cls: "bg-purple-100 text-purple-800" };
+        case "completed":
+            return { label, cls: "bg-gray-100 text-gray-800" };
         default:
             return {
-                label: status ?? "Sin estado",
+                label: label ?? "Sin estado",
                 cls: "bg-gray-100 text-gray-500",
             };
     }
@@ -35,7 +39,7 @@ const getStatusBadge = (status) => {
  * @param {function(string|number): void} [props.onToggleSelect] - Callback al alternar selección.
  */
 const CardGroup = memo(({ grupo, seleccionado = false, onToggleSelect, onVerDetalles, onInscribir, onEditar }) => {
-    const badge = getStatusBadge(grupo?.status);
+    const badge = getStatusBadge(grupo);
 
     const { hasRole } = usePermission();
     const esEstudiante = hasRole("student");

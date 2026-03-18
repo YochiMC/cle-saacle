@@ -7,6 +7,9 @@ use App\Models\Group;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use App\Enums\GroupStatus;
 
 /**
  * Controlador para la gestión de grupos académicos.
@@ -52,5 +55,42 @@ class GroupController extends Controller
         $group->delete();
         
         return redirect()->back()->with('success', 'Grupo eliminado exitosamente.');
+    }
+
+    /**
+     * Elimina múltiples grupos de la base de datos de manera masiva.
+     *
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:groups,id'
+        ]);
+
+        Group::whereIn('id', $request->ids)->delete();
+
+        return redirect()->back()->with('success', 'Grupos eliminados exitosamente.');
+    }
+
+    /**
+     * Actualiza el estado de múltiples grupos de manera masiva.
+     *
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function bulkUpdateStatus(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:groups,id',
+            'new_status' => ['required', Rule::enum(GroupStatus::class)]
+        ]);
+
+        Group::whereIn('id', $request->ids)->update(['status' => $request->new_status]);
+
+        return redirect()->back()->with('success', 'Estados de grupos actualizados exitosamente.');
     }
 }

@@ -38,7 +38,8 @@ class GroupResource extends JsonResource
             'mode'         => $this->mode,
             'type'         => $this->type,
             'capacity'     => $this->capacity,
-            'status'       => $this->status,
+            'status'       => $this->status->value,
+            'status_label' => $this->status->label(),
             'classroom'    => $this->classroom,
             'meeting_link' => $this->meeting_link,
 

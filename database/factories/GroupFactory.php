@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Period;
 use App\Models\Level;
 use App\Models\Teacher;
+use App\Enums\GroupStatus;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Group>
@@ -34,13 +35,13 @@ class GroupFactory extends Factory
             'classroom' => $this->faker->bothify('Aula ?-##'), // Ej: Aula A-12
             // meeting_link tiene un 30% de probabilidad de tener una URL (para los de línea/híbrido)
             'meeting_link' => $this->faker->optional(0.3)->url(),
-            'status' => $this->faker->randomElement(['active', 'active', 'inactive', 'waiting']), // Más probabilidad de ser activo
 
             // --- LLAVES FORÁNEAS MAGISTRALES ---
             // Esto busca un ID aleatorio que ya exista en tu BD.
             // Si la tabla está vacía, crea uno nuevo al vuelo llamando a su propio Factory.
             'period_id' => Period::inRandomOrder()->value('id') ?? Period::factory(),
             'level_id' => Level::inRandomOrder()->value('id') ?? Level::factory(),
+            'status' => $this->faker->randomElement(GroupStatus::cases())->value,
 
             // Asumiendo que tus docentes son Usuarios con el rol 'teacher' de Spatie
             // Si tienes una tabla separada llamada 'teachers', cámbialo a Teacher::inRandomOrder()...

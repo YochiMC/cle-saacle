@@ -32,6 +32,7 @@ const GroupFilters = memo(({
     filterLevel,
     setFilterLevel,
     levels = [],
+    statuses = [],
     totalFiltrados,
     ordenCupo,
     setOrdenCupo,
@@ -69,9 +70,11 @@ const GroupFilters = memo(({
                         aria-label="Filtrar por estado"
                     >
                         <option value="">Todos los estados</option>
-                        <option value="active">Activos</option>
-                        <option value="waiting">En espera</option>
-                        <option value="inactive">Inactivos</option>
+                        {statuses.map((status) => (
+                            <option key={status.value} value={status.value}>
+                                {status.label}
+                            </option>
+                        ))}
                     </select>
                     <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
