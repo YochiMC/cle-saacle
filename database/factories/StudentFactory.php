@@ -7,6 +7,7 @@ use App\Models\Level;
 use App\Models\TypeStudent;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Enums\GroupStatus;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Student>
@@ -23,12 +24,12 @@ class StudentFactory extends Factory
         return [
             'user_id' => User::factory(),
             'first_name' => $this->faker->firstName(),
-            'last_name' => $this->faker->lastName().' '.$this->faker->lastName(),
+            'last_name' => $this->faker->lastName() . ' ' . $this->faker->lastName(),
             'num_control' => $this->faker->unique()->numerify('########'),
             'gender' => $this->faker->randomElement(['M', 'F']),
             'birthdate' => $this->faker->dateTimeBetween('-25 years', '-18 years')->format('Y-m-d'),
             'semester' => $this->faker->numberBetween(1, 13),
-            'status' => $this->faker->randomElement(['Activo', 'Inactivo', 'Egresado']),
+            'status' => $this->faker->randomElement(GroupStatus::cases())->value,
             'degree_id' => Degree::inRandomOrder()->value('id') ?? Degree::factory(),
             'type_student_id' => TypeStudent::inRandomOrder()->value('id') ?? TypeStudent::factory(),
             'level_id' => Level::inRandomOrder()->value('id') ?? Level::factory(),

@@ -1,44 +1,51 @@
 import React, { memo } from "react";
-import { Users } from "lucide-react";
+import { Users, ExternalLink } from "lucide-react";
+import { Link } from "@inertiajs/react";
 import { usePermission } from "@/Utils/auth";
 
-const getStatusBadge = (status) => {
-    switch (status?.toLowerCase()) {
+const getStatusBadge = (grupo) => {
+    const status = grupo?.status?.toLowerCase();
+    const label = grupo?.status_label || status;
+    switch (status) {
+        case "enrolling":
+            return { label, cls: "bg-blue-100 text-blue-800" };
         case "active":
-            return { label: "Activo", cls: "bg-green-100 text-green-800" };
+            return { label, cls: "bg-green-100 text-green-800" };
         case "pending":
-        case "waiting":
-            return { label: "En espera", cls: "bg-yellow-100 text-yellow-800" };
-        case "closed":
-        case "inactive":
-            return { label: "Cerrado", cls: "bg-red-100 text-red-800" };
+            return { label, cls: "bg-yellow-100 text-yellow-800" };
+        case "grading":
+            return { label, cls: "bg-purple-100 text-purple-800" };
+        case "completed":
+            return { label, cls: "bg-gray-100 text-gray-800" };
         default:
             return {
-                label: status ?? "Sin estado",
+                label: label ?? "Sin estado",
                 cls: "bg-gray-100 text-gray-500",
             };
     }
 };
 
 /**
- * Tarjeta (Card) que representa visualmente un grupo en la grilla.
- * Componente presentacional puro, las acciones de negocio se inyectan a través de callbacks.
- * Se memoriza para evitar renders si el grupo asignado no cambia.
+ * Representación visual (Tarjeta) de un grupo académico.
+ * Componente presentacional puro, optimizado con React.memo para evitar re-procesamientos
+ * innecesarios en grillas de datos extensas.
  *
- * @param {Object} props
- * @param {Object} props.grupo - Objeto con los datos del grupo (con relaciones eager loaded).
- * @param {function(Object): void} props.onVerDetalles - Callback para mostrar los detalles completos.
- * @param {function(string|number): void} props.onInscribir - Callback de acción primaria para estudiantes.
- * @param {function(Object): void} props.onEditar - Callback de acción primaria para personal del sistema.
- * @param {boolean} [props.seleccionado=false] - Define si la tarjeta está seleccionada.
- * @param {function(string|number): void} [props.onToggleSelect] - Callback al alternar selección.
+ * @component
+ * @param {Object} props - Propiedades del componente.
+ * @param {Object} props.grupo - Objeto de datos del grupo (GroupResource).
+ * @param {boolean} [props.seleccionado=false] - Define si la tarjeta está marcada en la selección múltiple.
+ * @param {function(string|number): void} [props.onToggleSelect] - Notifica el cambio de selección.
+ * @param {function(Object): void} props.onVerDetalles - Abre el modal de información extendida.
+ * @param {function(string|number): void} props.onInscribir - Dispara el flujo de inscripción.
+ * @param {function(Object): void} props.onEditar - Dispara el flujo de edición administrativa.
  */
 const CardGroup = memo(({ grupo, seleccionado = false, onToggleSelect, onVerDetalles, onInscribir, onEditar }) => {
-    const badge = getStatusBadge(grupo?.status);
+    const badge = getStatusBadge(grupo);
 
     const { hasRole } = usePermission();
     const esEstudiante = hasRole("student");
     const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
+    const esStaff = hasRole("admin") || hasRole("coordinator") || hasRole("teacher");
 
     const nombreDocente = grupo.teacher_name ?? null;
     const nivelDisplay = grupo.level?.level_tecnm || null;
@@ -125,6 +132,7 @@ const CardGroup = memo(({ grupo, seleccionado = false, onToggleSelect, onVerDeta
                 <div className="border-t border-gray-200" />
 
                 <div className="mt-auto flex flex-col gap-2">
+                    {/* Botón primario: Inscribirse (solo estudiantes) */}
                     {esEstudiante && (
                         <button
                             onClick={() => onInscribir(grupo.id)}
@@ -134,6 +142,7 @@ const CardGroup = memo(({ grupo, seleccionado = false, onToggleSelect, onVerDeta
                         </button>
                     )}
 
+                    {/* Botón edición rápida: solo admin/coordinador */}
                     {esAdminOCoord && (
                         <button
                             onClick={() => onEditar(grupo)}
@@ -143,6 +152,18 @@ const CardGroup = memo(({ grupo, seleccionado = false, onToggleSelect, onVerDeta
                         </button>
                     )}
 
+                    {/* Botón gestión profunda: admin, coordinador o maestro */}
+                    {esStaff && (
+                        <Link
+                            href={route('groups.show', grupo.id)}
+                            className="w-full py-2.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 active:scale-95 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                        >
+                            <ExternalLink size={15} strokeWidth={2.5} />
+                            Abrir Grupo
+                        </Link>
+                    )}
+
+                    {/* Botón vista rápida: accesible para todos los roles */}
                     <button
                         onClick={() => onVerDetalles(grupo)}
                         className="w-full py-2.5 border-2 border-[#1B396A] text-[#1B396A] font-semibold rounded-lg hover:bg-[#1B396A] hover:text-white active:scale-95 transition-all duration-200"

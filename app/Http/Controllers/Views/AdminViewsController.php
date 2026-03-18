@@ -22,71 +22,94 @@ use App\Models\TypeStudent;
 use Inertia\Inertia;
 
 /**
- * Controlador de Vistas Administrativas
- *
- * Principio SRP: Solo gestiona la presentación de la información para las vistas.
- * Las reglas de presentación de datos (ocultar docentes, filtrar estados por rol)
- * se aplican aquí antes de despachar hacia Inertia.
+ * Controlador para la gestión de las vistas administrativas.
+ * Se encarga de preparar los datos y catálogos necesarios para las páginas de Inertia.
  */
 class AdminViewsController extends Controller
 {
+    /**
+     * Renderiza la vista de gestión de usuarios (Alumnos y Docentes).
+     *
+     * @return \Inertia\Response
+     */
     public function usersView()
     {
-        $students = StudentResource::collection(Student::with(['degree', 'level', 'typeStudent'])->get())->resolve();
-        $teachers = TeacherResource::collection(Teacher::all())->resolve();
-        $degrees = Degree::all();
-        $levels = Level::all();
-        $type_students = TypeStudent::all();
         return Inertia::render('TestYochi/Users', [
-            'students' => $students,
-            'teachers' => $teachers,
-            'degrees' => $degrees,
-            'levels' => $levels,
-            'typeStudents' => $type_students
+            'students'     => StudentResource::collection(Student::with(['degree', 'level', 'typeStudent'])->get())->resolve(),
+            'teachers'     => TeacherResource::collection(Teacher::all())->resolve(),
+            'degrees'      => Degree::all(),
+            'levels'       => Level::all(),
+            'typeStudents' => TypeStudent::all()
         ]);
     }
 
     /**
-     * Renderiza la vista del Catálogo de Grupos.
-     * Aplica reglas de negocio basadas en el rol del usuario:
-     * - Los estudiantes solo reciben grupos con estado 'active' o 'waiting'.
-     * - Los estudiantes no pueden ver al docente asignado antes de la fecha de revelión estipulada.
+     * Renderiza el catálogo de grupos filtrado según el rol del usuario.
+     * Implementa la regla de negocio de ocultar el nombre del docente según la fecha configurada.
      *
-     * @param Request $request Petición entrante.
-     * @return \Inertia\Response Render de la vista en Inertia con los datos.
+     * @param Request $request
+     * @return \Inertia\Response
      */
     public function groupsView(Request $request)
     {
-        $usuarioEsEstudiante = $request->user()?->hasRole('student') ?? false;
+        $esEstudiante = $request->user()?->hasRole('student') ?? false;
 
-        $gruposQuery = Group::with(['teacher', 'level', 'period'])->withCount('qualifications');
+        $grupos = Group::with(['teacher', 'level', 'period'])
+            ->withCount('qualifications')
+            ->when($esEstudiante, fn($q) => $q->whereIn('status', ['active', 'waiting']))
+            ->get();
 
-        if ($usuarioEsEstudiante) {
-            $gruposQuery->whereIn('status', ['active', 'waiting']);
+        if ($esEstudiante && $this->debeOcultarDocentes()) {
+            $grupos->each(fn($g) => $g->setRelation('teacher', null));
         }
-
-        $grupos = $gruposQuery->get();
-
-        $fechaRevelo = Setting::where('key', 'teacher_reveal_date')->value('value')
-            ? Carbon::parse(Setting::where('key', 'teacher_reveal_date')->value('value'))
-            : Carbon::parse('2026-03-20');
-
-        if ($usuarioEsEstudiante && now()->lt($fechaRevelo)) {
-            $grupos->each(function ($grupo) {
-                $grupo->setRelation('teacher', null);
-            });
-        }
-
-        $levels = Level::orderBy('level_tecnm')->get();
-        $teachers = TeacherResource::collection(Teacher::all())->resolve();
-        $periods = Period::all();
 
         return Inertia::render('Test_MK2/Groups', [
-            'grupos' => GroupResource::collection($grupos)->resolve(),
-            'levels' => LevelResource::collection($levels)->resolve(),
-            'teachers' => $teachers,
-            'periods' => $periods
+            'grupos'   => GroupResource::collection($grupos)->resolve(),
+            'levels'   => LevelResource::collection(Level::orderBy('level_tecnm')->get())->resolve(),
+            'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
+            'periods'  => Period::all(),
+            'statuses' => array_map(fn($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\GroupStatus::cases()),
         ]);
+    }
+
+    /**
+     * Muestra el detalle profundo (Dashboard) de un grupo específico.
+     *
+     * @param int|string $id ID del grupo.
+     * @return \Inertia\Response
+     */
+    public function showDetails($id)
+    {
+        $group = Group::with(['teacher', 'level', 'period', 'qualifications.student'])->findOrFail($id);
+        
+        // Mock de estudiantes inscritos para visualización de tabla (reutilizando ResourceDashboard)
+        $mockStudents = [
+            ['id' => 101, 'control_number' => '19000001', 'name' => 'Ana', 'last_name' => 'Pérez', 'status' => 'Activo'],
+            ['id' => 102, 'control_number' => '19000002', 'name' => 'Luis', 'last_name' => 'García', 'status' => 'Activo'],
+            ['id' => 103, 'control_number' => '19000003', 'name' => 'María', 'last_name' => 'López', 'status' => 'Inactivo'],
+            ['id' => 104, 'control_number' => '19000004', 'name' => 'José', 'last_name' => 'Martínez', 'status' => 'Activo'],
+            ['id' => 105, 'control_number' => '19000005', 'name' => 'Elena', 'last_name' => 'Rodríguez', 'status' => 'Activo'],
+        ];
+
+        return Inertia::render('Test_MK2/GroupView', [
+            'grupo'            => $group,
+            'teachers'         => TeacherResource::collection(Teacher::all())->resolve(),
+            'periods'          => Period::all(['id', 'name']),
+            'enrolledStudents' => $mockStudents
+        ]);
+    }
+
+    /**
+     * Determina si el nombre de los docentes debe permanecer oculto para los estudiantes.
+     *
+     * @return bool
+     */
+    private function debeOcultarDocentes(): bool
+    {
+        $fechaConfig = Setting::where('key', 'teacher_reveal_date')->value('value');
+        $fechaRevelo = $fechaConfig ? Carbon::parse($fechaConfig) : Carbon::parse('2026-03-20');
+
+        return now()->lt($fechaRevelo);
     }
 
     public function profilesView(User $user)

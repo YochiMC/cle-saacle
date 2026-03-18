@@ -14,7 +14,7 @@ import GridPagination from "@/Components/DataTable/GridPagination";
  * @param {number} props.paginaActual - Número de la página actual.
  * @param {number} props.totalPaginas - Cantidad total de páginas disponibles.
  * @param {function(number): void} props.onPageChange - Handler de cambio de página.
- * @param {function(Object): void} props.onVerDetalles - Función para abrir el modal de detalles.
+ * @param {function(Object): void} props.onVerDetalles - Abre el modal de vista rápida (todos los roles).
  * @param {function(string|number): void} props.onInscribir - Función para ejecutar la inscripción.
  * @param {function(Object): void} props.onEditar - Función para abrir la edición del grupo.
  * @param {Array<string|number>} [props.gruposSeleccionados=[]] - IDs de grupos seleccionados.

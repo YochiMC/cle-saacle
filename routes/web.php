@@ -25,13 +25,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
     Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
     Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
     Route::get('/profiles/{user}', [AdminViewsController::class, 'profilesView'])->name('profiles');
     Route::post('/students', [StudentController::class, 'createStudent'])->name('students');
     Route::post('/teachers', [TeacherController::class, 'createTeacher'])->name('teachers');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
+    Route::put('/groups/{group}', [GroupController::class, 'update'])->name('groups.update');
+    Route::delete('/groups/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
+    Route::put('/grupos/bulk-status', [GroupController::class, 'bulkUpdateStatus'])->name('groups.bulk-status');
+    Route::delete('/grupos/bulk-delete', [GroupController::class, 'bulkDestroy'])->name('groups.bulk-delete');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');
@@ -39,5 +42,7 @@ Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');
 Route::get('/yochi', function () {
     return Inertia::render('Yochi');
 })->name('Yochi');
+
+Route::get('/grupos/{group}/detalles', [\App\Http\Controllers\Views\AdminViewsController::class, 'showDetails'])->name('groups.show');
 
 require __DIR__ . '/auth.php';

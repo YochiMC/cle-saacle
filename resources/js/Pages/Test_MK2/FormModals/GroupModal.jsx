@@ -1,29 +1,27 @@
 /**
  * GroupModal
  *
- * Modal de registro para grupos. Contiene un formulario organizado en tres
- * secciones: Datos del Grupo, Horario y Sede, y Asignaciones. Transforma los
- * datos antes de enviarlos (entero capacity) y resetea el formulario al
- * completar el registro.
+ * Modal dual de creación y edición para grupos. Contiene un formulario organizado
+ * en tres secciones: Datos del Grupo, Horario y Sede, y Asignaciones.
+ * Opera en modo creación (POST /groups) cuando no se pasa `grupoToEdit`,
+ * y en modo edición (PUT /groups/{id}) cuando sí se pasa.
  *
  * @component
  *
- * @param {boolean}  [show=false]  - Controla la visibilidad del modal.
- * @param {Function} onClose       - Callback invocado al cerrar o cancelar el modal.
- * @param {string}   [title]       - Título del encabezado del modal.
- * @param {Array}    teachers      - Listado de docentes: [{ id, full_name }].
- * @param {Array}    levels        - Listado de niveles: [{ id, level_tecnm }].
- * @param {Array}    periods       - Listado de periodos: [{ id, name }].
+ * @param {boolean}       [show=false]    - Controla la visibilidad del modal.
+ * @param {Function}      onClose         - Callback invocado al cerrar o cancelar el modal.
+ * @param {string}        [title]         - Título del encabezado del modal.
+ * @param {Object|null}   [grupoToEdit]   - Grupo a editar. Si es null, activa el modo creación.
+ * @param {Array}         teachers        - Listado de docentes: [{ id, full_name }].
+ * @param {Array}         levels          - Listado de niveles: [{ id, level_tecnm }].
+ * @param {Array}         periods         - Listado de periodos: [{ id, name }].
  *
  * @example
- * <GroupModal
- *   title="Añadir grupo"
- *   show={isModalOpen}
- *   onClose={() => setIsModalOpen(false)}
- *   teachers={teachers}
- *   levels={levels}
- *   periods={periods}
- * />
+ * // Modo creación
+ * <GroupModal show={isOpen} onClose={onClose} grupoToEdit={null} ... />
+ *
+ * // Modo edición
+ * <GroupModal show={isOpen} onClose={onClose} grupoToEdit={grupo} ... />
  */
 
 import FormModal from "@/Components/Forms/FormModal";
@@ -32,6 +30,7 @@ import SelectForm from "@/components/Forms/SelectForm";
 import InputForm from "@/components/Forms/InputForm";
 import ButtonForm from "@/components/Forms/ButtonForm";
 import { useForm } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 // Opciones de ejemplo para los campos fijos. Puedes ajustarlos según tus reglas de negocio.
 const MODE_OPTIONS = [
@@ -45,31 +44,53 @@ const TYPE_OPTIONS = [
     { value: 'Intensivo', label: 'Intensivo' }
 ];
 
-const STATUS_OPTIONS = [
-    { value: 'Activo', label: 'Activo' },
-    { value: 'Inactivo', label: 'Inactivo' }
-];
 
-export default function GroupModal({ show = false, onClose, title, teachers = [], levels = [], periods = [] }) {
+
+export default function GroupModal({ show = false, onClose, title, grupoToEdit = null, teachers = [], levels = [], periods = [], statuses = [] }) {
+
+    const modoEdicion = grupoToEdit !== null;
 
     // Mapeamos las opciones que vienen de la base de datos para los componentes SelectForm
     const teacherOptions = teachers.map(t => ({ value: t.id.toString(), label: t.full_name }));
     const levelOptions = levels.map(l => ({ value: l.id.toString(), label: l.level_tecnm }));
     const periodOptions = periods.map(p => ({ value: p.id.toString(), label: p.name }));
+    const statusOptions = statuses.map(s => ({ value: s.value, label: s.label }));
 
-    const { data, setData, post, processing, errors, reset, transform } = useForm({
-        name:'',
-        mode: '',
-        type: '',
-        capacity: '',
-        schedule: '',
-        classroom: '',
+    const { data, setData, post, put, processing, errors, reset, transform } = useForm({
+        name:        '',
+        mode:        '',
+        type:        '',
+        capacity:    '',
+        schedule:    '',
+        classroom:   '',
         meeting_link: '',
-        status: 'Activo', // Por defecto
-        period_id: '',
-        teacher_id: '',
-        level_id: ''
+        status:      'Activo',
+        period_id:   '',
+        teacher_id:  '',
+        level_id:    '',
     });
+
+    useEffect(() => {
+        if (show) {
+            if (grupoToEdit) {
+                setData({
+                    name:        grupoToEdit.name          ?? '',
+                    mode:        grupoToEdit.mode          ?? '',
+                    type:        grupoToEdit.type          ?? '',
+                    capacity:    grupoToEdit.capacity?.toString() ?? '',
+                    schedule:    grupoToEdit.schedule      ?? '',
+                    classroom:   grupoToEdit.classroom     ?? '',
+                    meeting_link: grupoToEdit.meeting_link ?? '',
+                    status:      grupoToEdit.status        ?? 'Activo',
+                    period_id:   grupoToEdit.period_id?.toString()  ?? '',
+                    teacher_id:  grupoToEdit.teacher_id?.toString() ?? '',
+                    level_id:    (grupoToEdit.level_id || grupoToEdit.level?.id)?.toString()  ?? '',
+                });
+            } else {
+                reset();
+            }
+        }
+    }, [show, grupoToEdit]);
 
     const submit = (e) => {
         e.preventDefault();
@@ -80,12 +101,13 @@ export default function GroupModal({ show = false, onClose, title, teachers = []
             capacity: parseInt(currentData.capacity) || 0,
         }));
 
-        post('/groups', {
-            onSuccess: () => {
-                reset();
-                onClose();
-            }
-        });
+        const onSuccess = () => { reset(); onClose(); };
+
+        if (modoEdicion) {
+            put(`/groups/${grupoToEdit.id}`, { onSuccess });
+        } else {
+            post('/groups', { onSuccess });
+        }
     };
 
     return (
@@ -115,7 +137,7 @@ export default function GroupModal({ show = false, onClose, title, teachers = []
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <InputForm label="Nombre del grupo" inputId="name" placeholder="Ej. Inglés B1 - Matutino" value={data.name} onChange={e=>setData('name', e.target.value)} />
                             <InputForm label="Capacidad (estudiantes)" type="number" inputId="capacity" placeholder="Ej. 25" description="Número máximo de estudiantes del grupo." value={data.capacity} onChange={e => setData('capacity', e.target.value)} />
-                            <SelectForm options={STATUS_OPTIONS} label="Estado" selectId="status" placeholder="Selecciona un estado" value={data.status} onValueChange={v => setData('status', v)} />
+                            <SelectForm options={statusOptions} label="Estado" selectId="status" placeholder="Selecciona un estado" value={data.status} onValueChange={v => setData('status', v)} />
                         </div>
                     </FieldSet>
 
