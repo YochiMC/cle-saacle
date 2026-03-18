@@ -26,17 +26,18 @@ const getStatusBadge = (grupo) => {
 };
 
 /**
- * Tarjeta (Card) que representa visualmente un grupo en la grilla.
- * Componente presentacional puro, las acciones de negocio se inyectan a través de callbacks.
- * Se memoriza para evitar renders si el grupo asignado no cambia.
+ * Representación visual (Tarjeta) de un grupo académico.
+ * Componente presentacional puro, optimizado con React.memo para evitar re-procesamientos
+ * innecesarios en grillas de datos extensas.
  *
- * @param {Object} props
- * @param {Object} props.grupo - Objeto con los datos del grupo (con relaciones eager loaded).
- * @param {function(Object): void} props.onVerDetalles - Callback para abrir el modal de vista rápida (todos los roles).
- * @param {function(Object): void} props.onEditar - Callback para abrir el modal de edición (solo admin/coord).
- * @param {function(string|number): void} props.onInscribir - Callback de inscripción (solo estudiantes).
- * @param {boolean} [props.seleccionado=false] - Define si la tarjeta está seleccionada.
- * @param {function(string|number): void} [props.onToggleSelect] - Callback al alternar selección.
+ * @component
+ * @param {Object} props - Propiedades del componente.
+ * @param {Object} props.grupo - Objeto de datos del grupo (GroupResource).
+ * @param {boolean} [props.seleccionado=false] - Define si la tarjeta está marcada en la selección múltiple.
+ * @param {function(string|number): void} [props.onToggleSelect] - Notifica el cambio de selección.
+ * @param {function(Object): void} props.onVerDetalles - Abre el modal de información extendida.
+ * @param {function(string|number): void} props.onInscribir - Dispara el flujo de inscripción.
+ * @param {function(Object): void} props.onEditar - Dispara el flujo de edición administrativa.
  */
 const CardGroup = memo(({ grupo, seleccionado = false, onToggleSelect, onVerDetalles, onInscribir, onEditar }) => {
     const badge = getStatusBadge(grupo);

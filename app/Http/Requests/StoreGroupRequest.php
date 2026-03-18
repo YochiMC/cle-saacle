@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\GroupStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Validaciones para la creación de un nuevo grupo.
@@ -33,7 +35,7 @@ class StoreGroupRequest extends FormRequest
             'schedule'     => 'required|string|max:255',
             'classroom'    => 'nullable|string|max:255',
             'meeting_link' => 'nullable|url|max:255',
-            'status'       => 'required|string|max:255',
+            'status'       => ['required', 'string', Rule::enum(GroupStatus::class)],
             'period_id'    => 'required|exists:periods,id',
             'teacher_id'   => 'required|exists:teachers,id',
             'level_id'     => 'required|exists:levels,id',

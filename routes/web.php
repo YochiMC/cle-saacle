@@ -34,8 +34,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
     Route::put('/groups/{group}', [GroupController::class, 'update'])->name('groups.update');
     Route::delete('/groups/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
-    Route::post('/groups/bulk-status', [GroupController::class, 'bulkUpdateStatus'])->name('groups.bulkUpdateStatus');
-    Route::delete('/groups/bulk', [GroupController::class, 'bulkDestroy'])->name('groups.bulkDestroy');
+    Route::put('/grupos/bulk-status', [GroupController::class, 'bulkUpdateStatus'])->name('groups.bulk-status');
+    Route::delete('/grupos/bulk-delete', [GroupController::class, 'bulkDestroy'])->name('groups.bulk-delete');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import GroupDetailsModal from "@/Components/Charts/GroupDetailsModal";
@@ -7,144 +7,65 @@ import GroupGrid from "./GroupGrid";
 import BulkActionBar from "./BulkActionBar";
 import ThemeButton from "@/Components/ThemeButton";
 import { Plus } from "lucide-react";
-import { usePermission } from "@/Utils/auth";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import GroupModal from "@/Pages/Test_MK2/FormModals/GroupModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
-
-const ITEMS_POR_PAGINA = 12;
+import { useGroupsManagement } from "@/Hooks/useGroupsManagement";
 
 /**
- * Componente contenedor para el catálogo de grupos.
- * Gestiona el estado local y la lógica de filtrado global para la vista.
- *
- * @param {Object} props
- * @param {Object} props.auth - Usuario autenticado actualmente.
- * @param {Array<Object>} [props.grupos=[]] - Lista de grupos provenientes del servidor.
- * @param {Array<Object>} [props.levels=[]] - Catálogo de niveles académicos.
+ * Componente principal para el Catálogo de Grupos.
+ * Actúa como un contenedor ligero que delega la lógica de negocio al hook useGroupsManagement
+ * y la representación visual a componentes especializados.
+ * 
+ * @component
+ * @param {Object} props - Propiedades del componente de Inertia.
+ * @param {Object} props.auth - Datos de autenticación.
+ * @param {Array} props.grupos - Lista de grupos sincronizada desde el backend.
+ * @param {Array} props.levels - Catálogo de niveles académicos.
+ * @param {Array} props.teachers - Catálogo de docentes.
+ * @param {Array} props.periods - Catálogo de periodos escolares.
+ * @param {Array} props.statuses - Mapeo de estados del Enum GroupStatus.
  */
-export default function Groups({ auth, grupos = [], levels = [], teachers = [], periods = [], statuses = [] }) {
-    const [busqueda, setBusqueda] = useState("");
-    const [filterStatus, setFilterStatus] = useState("");
-    const [filterLevel, setFilterLevel] = useState("");
-    const [paginaActual, setPaginaActual] = useState(1);
-    const [gruposSeleccionados, setGruposSeleccionados] = useState([]);
-    const [ordenCupo, setOrdenCupo] = useState(null);
+export default function Groups({ 
+    auth, 
+    grupos = [], 
+    levels = [], 
+    teachers = [], 
+    periods = [], 
+    statuses = [] 
+}) {
+    // Inicialización del Hook de Gestión
+    const {
+        busqueda, setBusqueda,
+        filtroEstado, setFiltroEstado,
+        filtroNivel, setFiltroNivel,
+        ordenCupo, setOrdenCupo,
+        paginaActual, setPaginaActual,
+        gruposSeleccionados,
+        modalAbierto,
+        grupoEditando,
+        grupoViendo,
+        totalPaginas,
+        gruposPaginados,
+        gruposFiltrados,
+        hayFiltros,
+        handleToggleSelect,
+        handleClearSelection,
+        handleCrearGrupo,
+        handleEditar,
+        handleCerrarModal,
+        handleVerDetalles,
+        handleCerrarDetalles,
+        handleInscripcion,
+        handleBulkStatus,
+        handleBulkDelete
+    } = useGroupsManagement({ grupos });
 
     const { flashModal, closeFlashModal } = useFlashAlert();
 
-    // Estado: modal de edición (solo admin/coord)
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [grupoEditando, setGrupoEditando] = useState(null);
-
-    // Estado: modal de vista rápida (todos los roles)
-    const [grupoViendo, setGrupoViendo] = useState(null);
-
-    const { hasRole } = usePermission();
-    const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
-
-    const gruposFiltrados = useMemo(() => {
-        setPaginaActual(1);
-
-        const q = busqueda.toLowerCase();
-
-        const filtrados = grupos.filter((g) => {
-            if (q) {
-                const nombre = (g.name || "").toLowerCase();
-                const maestro = (g.teacher_name || "").toLowerCase();
-                const nivel = (g.level?.level_tecnm || "").toLowerCase();
-
-                const pasaTexto =
-                    nombre.includes(q) ||
-                    maestro.includes(q) ||
-                    nivel.includes(q);
-                if (!pasaTexto) return false;
-            }
-
-            if (filterStatus) {
-                const statusGrupo = (g.status || "").toLowerCase();
-                if (statusGrupo !== filterStatus) return false;
-            }
-
-            if (filterLevel) {
-                if (String(g.level?.id) !== filterLevel) return false;
-            }
-
-            return true;
-        });
-
-        if (ordenCupo === "asc") {
-            filtrados.sort(
-                (a, b) => (a.available_seats || 0) - (b.available_seats || 0),
-            );
-        } else if (ordenCupo === "desc") {
-            filtrados.sort(
-                (a, b) => (b.available_seats || 0) - (a.available_seats || 0),
-            );
-        }
-
-        return filtrados;
-    }, [grupos, busqueda, filterStatus, filterLevel, ordenCupo]);
-
-    const totalPaginas = Math.max(
-        1,
-        Math.ceil(gruposFiltrados.length / ITEMS_POR_PAGINA),
-    );
-    const gruposPaginados = gruposFiltrados.slice(
-        (paginaActual - 1) * ITEMS_POR_PAGINA,
-        paginaActual * ITEMS_POR_PAGINA,
-    );
-
-    const handleInscripcion = (_grupoId) => {
-        alert("Inscripción en construcción.");
-    };
-
-    const handleVerDetalles = (grupo) => setGrupoViendo(grupo);
-    const handleCerrarDetalles = () => setGrupoViendo(null);
-
-    const handleEditar = (grupo) => {
-        setGrupoEditando(grupo);
-        setIsModalOpen(true);
-    };
-
-    const handleToggleSelect = useCallback((id) => {
-        setGruposSeleccionados((prev) =>
-            prev.includes(id)
-                ? prev.filter((gId) => gId !== id)
-                : [...prev, id],
-        );
-    }, []);
-
-    const handleClearSelection = useCallback(() => {
-        setGruposSeleccionados([]);
-    }, []);
-
-    const handleBulkChangeStatus = () => {
-        alert(
-            `Abrir modal para cambiar estado de ${gruposSeleccionados.length} grupos`,
-        );
-    };
-
-    const handleBulkDelete = () => {
-        alert(`Confirmar eliminación de ${gruposSeleccionados.length} grupos`);
-    };
-
-    const handleCrearGrupo = () => {
-        setGrupoEditando(null);
-        setIsModalOpen(true);
-    };
-
-    const handleCerrarModal = () => {
-        setIsModalOpen(false);
-        setGrupoEditando(null);
-    };
-
-    const hayFiltros =
-        busqueda !== "" ||
-        filterStatus !== "" ||
-        filterLevel !== "" ||
-        ordenCupo !== null;
-    const mostrarFiltros = grupos.length > 0 || esAdminOCoord;
+    // Lógica de permisos rápida
+    const esAdminOCoord = 
+        auth.user.roles.some(r => r.name === 'admin' || r.name === 'coordinator');
 
     return (
         <AuthenticatedLayout
@@ -159,9 +80,9 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* Controles Administrativos */}
+                    {/* Sección de Acciones Globales */}
                     {esAdminOCoord && (
-                        <div className="mb-6 flex flex-wrap items-center gap-4">
+                        <div className="mb-6">
                             <ThemeButton
                                 theme="institutional"
                                 icon={Plus}
@@ -172,14 +93,15 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
                         </div>
                     )}
 
-                    {mostrarFiltros && (
+                    {/* Filtros de Búsqueda */}
+                    {(grupos.length > 0 || esAdminOCoord) && (
                         <GroupFilters
                             busqueda={busqueda}
                             setBusqueda={setBusqueda}
-                            filterStatus={filterStatus}
-                            setFilterStatus={setFilterStatus}
-                            filterLevel={filterLevel}
-                            setFilterLevel={setFilterLevel}
+                            filtroEstado={filtroEstado}
+                            setFiltroEstado={setFiltroEstado}
+                            filtroNivel={filtroNivel}
+                            setFiltroNivel={setFiltroNivel}
                             levels={levels}
                             statuses={statuses}
                             totalFiltrados={gruposFiltrados.length}
@@ -188,15 +110,18 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
                         />
                     )}
 
-                    {/* Barra de Acciones en Lote Fija (Flotante) */}
+                    {/* Barra de Acciones en Lote (Solo Administrativa) */}
                     {gruposSeleccionados.length > 0 && esAdminOCoord && (
                         <BulkActionBar
                             seleccionados={gruposSeleccionados}
                             onClearSelection={handleClearSelection}
                             statuses={statuses}
+                            onBulkStatus={handleBulkStatus}
+                            onBulkDelete={handleBulkDelete}
                         />
                     )}
 
+                    {/* Grilla de Resultados */}
                     <GroupGrid
                         gruposPaginados={gruposPaginados}
                         gruposSeleccionados={gruposSeleccionados}
@@ -212,16 +137,14 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
                 </div>
             </div>
 
-
-            {/* Modal de vista rápida — accesible para todos los roles */}
+            {/* Modales de Interacción */}
             <GroupDetailsModal
                 grupo={grupoViendo}
                 onClose={handleCerrarDetalles}
             />
 
-            {/* Modal dual de creación/edición — solo admin/coordinador */}
             <GroupModal
-                show={isModalOpen}
+                show={modalAbierto}
                 title={grupoEditando ? `Editar grupo: ${grupoEditando.name}` : 'Añadir grupo'}
                 onClose={handleCerrarModal}
                 grupoToEdit={grupoEditando}
@@ -230,6 +153,8 @@ export default function Groups({ auth, grupos = [], levels = [], teachers = [], 
                 periods={periods}
                 statuses={statuses}
             />
+
+
             <ModalAlert
                 isOpen={flashModal.isOpen}
                 onClose={closeFlashModal}

@@ -6,22 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Models\Group;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
+use App\Http\Requests\BulkDeleteGroupsRequest;
+use App\Http\Requests\BulkUpdateGroupStatusRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use App\Enums\GroupStatus;
 
 /**
- * Controlador para la gestión de grupos académicos.
- * Maneja la lógica de persistencia (Creación, Actualización, Eliminación).
+ * Controlador de Alto Nivel para la Gestión de Grupos Académicos.
+ * 
+ * Sigue el principio de Responsabilidad Única (SRP) delegando validaciones a Form Requests
+ * y concentrándose en la orquestación de la persistencia y redirección.
  */
 class GroupController extends Controller
 {
     /**
-     * Almacena un nuevo grupo en la base de datos.
+     * Persiste un nuevo grupo en el sistema.
      *
-     * @param StoreGroupRequest $request
-     * @return RedirectResponse
+     * @param StoreGroupRequest $request Datos validados de creación.
+     * @return RedirectResponse Redirección con mensaje de éxito.
      */
     public function store(StoreGroupRequest $request): RedirectResponse
     {
@@ -31,11 +32,11 @@ class GroupController extends Controller
     }
 
     /**
-     * Actualiza un grupo existente en la base de datos.
+     * Actualiza los datos de un grupo existente.
      *
-     * @param UpdateGroupRequest $request
-     * @param Group $group
-     * @return RedirectResponse
+     * @param UpdateGroupRequest $request Datos validados de actualización.
+     * @param Group $group Instancia del modelo a modificar.
+     * @return RedirectResponse Redirección con mensaje de éxito.
      */
     public function update(UpdateGroupRequest $request, Group $group): RedirectResponse
     {
@@ -45,10 +46,10 @@ class GroupController extends Controller
     }
 
     /**
-     * Elimina un grupo de la base de datos.
+     * Elimina físicamente un grupo de la base de datos.
      *
-     * @param Group $group
-     * @return RedirectResponse
+     * @param Group $group Instancia del modelo a eliminar.
+     * @return RedirectResponse Redirección con mensaje de éxito.
      */
     public function destroy(Group $group): RedirectResponse
     {
@@ -58,38 +59,28 @@ class GroupController extends Controller
     }
 
     /**
-     * Elimina múltiples grupos de la base de datos de manera masiva.
-     *
-     * @param Request $request
-     * @return RedirectResponse
+     * Realiza una eliminación masiva de grupos basada en un array de identificadores.
+     * 
+     * @param BulkDeleteGroupsRequest $request Contiene el array 'ids' ya validado contra la existencia en BD.
+     * @return RedirectResponse Redirección con mensaje de éxito.
      */
-    public function bulkDestroy(Request $request): RedirectResponse
+    public function bulkDestroy(BulkDeleteGroupsRequest $request): RedirectResponse
     {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:groups,id'
-        ]);
+        Group::whereIn('id', $request->validated('ids'))->delete();
 
-        Group::whereIn('id', $request->ids)->delete();
-
-        return redirect()->back()->with('success', 'Grupos eliminados exitosamente.');
+        return redirect()->back()->with('success', 'Grupos eliminados');
     }
 
     /**
-     * Actualiza el estado de múltiples grupos de manera masiva.
-     *
-     * @param Request $request
-     * @return RedirectResponse
+     * Actualiza el estado de múltiples grupos de manera atómica.
+     * 
+     * @param BulkUpdateGroupStatusRequest $request Contiene 'ids' y 'new_status' validados.
+     * @return RedirectResponse Redirección con mensaje de éxito.
      */
-    public function bulkUpdateStatus(Request $request): RedirectResponse
+    public function bulkUpdateStatus(BulkUpdateGroupStatusRequest $request): RedirectResponse
     {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:groups,id',
-            'new_status' => ['required', Rule::enum(GroupStatus::class)]
-        ]);
-
-        Group::whereIn('id', $request->ids)->update(['status' => $request->new_status]);
+        Group::whereIn('id', $request->validated('ids'))
+            ->update(['status' => $request->validated('new_status')]);
 
         return redirect()->back()->with('success', 'Estados de grupos actualizados exitosamente.');
     }

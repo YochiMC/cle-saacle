@@ -15,10 +15,10 @@ import {
  * @param {Object} props
  * @param {string} props.busqueda - Texto actual en la barra de búsqueda.
  * @param {function(string): void} props.setBusqueda - Función para actualizar la búsqueda.
- * @param {string} props.filterStatus - Estado seleccionado para el filtro.
- * @param {function(string): void} props.setFilterStatus - Función para actualizar el estado del filtro.
- * @param {string} props.filterLevel - ID del nivel seleccionado.
- * @param {function(string): void} props.setFilterLevel - Función para actualizar el nivel del filtro.
+ * @param {string} props.filtroEstado - Estado seleccionado para el filtro.
+ * @param {function(string): void} props.setFiltroEstado - Función para actualizar el estado del filtro.
+ * @param {string} props.filtroNivel - ID del nivel seleccionado.
+ * @param {function(string): void} props.setFiltroNivel - Función para actualizar el nivel del filtro.
  * @param {Array<{id: number, level_tecnm: string, name: string}>} [props.levels=[]] - Catálogo de niveles.
  * @param {number} [props.totalFiltrados] - Cantidad total de grupos que coinciden con los filtros.
  * @param {string|null} props.ordenCupo - Criterio de ordenamiento actual por disponibilidad.
@@ -27,10 +27,10 @@ import {
 const GroupFilters = memo(({
     busqueda,
     setBusqueda,
-    filterStatus,
-    setFilterStatus,
-    filterLevel,
-    setFilterLevel,
+    filtroEstado,
+    setFiltroEstado,
+    filtroNivel,
+    setFiltroNivel,
     levels = [],
     statuses = [],
     totalFiltrados,
@@ -64,8 +64,8 @@ const GroupFilters = memo(({
                 <div className="relative min-w-[180px]">
                     <ToggleRight className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 size-5 pointer-events-none" />
                     <select
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
+                        value={filtroEstado}
+                        onChange={(e) => setFiltroEstado(e.target.value)}
                         className={selectorClase}
                         aria-label="Filtrar por estado"
                     >
@@ -83,8 +83,8 @@ const GroupFilters = memo(({
                 <div className="relative min-w-[200px]">
                     <Layers3 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 size-5 pointer-events-none" />
                     <select
-                        value={filterLevel}
-                        onChange={(e) => setFilterLevel(e.target.value)}
+                        value={filtroNivel}
+                        onChange={(e) => setFiltroNivel(e.target.value)}
                         className={selectorClase}
                         aria-label="Filtrar por nivel"
                     >

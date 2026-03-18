@@ -1,88 +1,92 @@
 import { useState, useMemo, useCallback } from "react";
+import { router } from "@inertiajs/react";
 
 /**
- * Hook personalizado para la gestión de la lógica de negocio del catálogo de grupos.
- * Centraliza el filtrado, búsqueda, ordenamiento, paginación y manejo de selección.
+ * Hook personalizado para la gestión integral del estado de la vista de Grupos.
+ * Centraliza la lógica de filtrado, búsqueda, selección múltiple y control de modales.
  * 
- * @param {Array<Object>} grupos - Lista inicial de grupos desde el servidor.
- * @param {number} itemsPorPagina - Cantidad de registros por página.
- * @returns {Object} Estados y funciones para controlar la vista de grupos.
+ * @param {Object} params - Parámetros iniciales.
+ * @param {Array} params.grupos - Lista completa de grupos desde el servidor.
+ * @param {number} [params.elementosPorPagina=12] - Cantidad de elementos a mostrar por página.
+ * @returns {Object} Estado y manejadores de eventos memoizados.
  */
-export function useGroupsManagement(grupos = [], itemsPorPagina = 12) {
+export const useGroupsManagement = ({ grupos = [], elementosPorPagina = 12 }) => {
+    // Estados de filtrado y búsqueda (Nomenclatura en Español)
     const [busqueda, setBusqueda] = useState("");
-    const [filterStatus, setFilterStatus] = useState("");
-    const [filterLevel, setFilterLevel] = useState("");
-    const [paginaActual, setPaginaActual] = useState(1);
-    const [gruposSeleccionados, setGruposSeleccionados] = useState([]);
+    const [filtroEstado, setFiltroEstado] = useState("");
+    const [filtroNivel, setFiltroNivel] = useState("");
     const [ordenCupo, setOrdenCupo] = useState(null);
 
-    // Estado para modales
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    // Estados de navegación y selección
+    const [paginaActual, setPaginaActual] = useState(1);
+    const [gruposSeleccionados, setGruposSeleccionados] = useState([]);
+
+    // Estados de modales
+    const [modalAbierto, setModalAbierto] = useState(false);
     const [grupoEditando, setGrupoEditando] = useState(null);
     const [grupoViendo, setGrupoViendo] = useState(null);
 
     /**
-     * Lógica de filtrado y ordenamiento memorizada.
+     * Lógica de filtrado y búsqueda memoizada para optimizar el rendimiento.
      */
     const gruposFiltrados = useMemo(() => {
-        // Resetear a la primera página al filtrar (opcional, pero recomendado)
-        // Nota: No se puede llamar a setPaginaActual aquí directamente porque es un render side-effect.
-        // Se maneja externamente o mediante useEffect si fuera necesario.
+        // Reiniciar a la primera página si cambian los filtros
+        setPaginaActual(1);
 
-        const q = busqueda.toLowerCase();
+        const consulta = busqueda.toLowerCase();
 
         const filtrados = grupos.filter((g) => {
-            // Filtro por texto (Nombre, Maestro, Nivel)
-            if (q) {
+            // Filtro por texto (Nombre, Docente o Nivel)
+            if (consulta) {
                 const nombre = (g.name || "").toLowerCase();
                 const maestro = (g.teacher_name || "").toLowerCase();
                 const nivel = (g.level?.level_tecnm || "").toLowerCase();
 
-                if (!(nombre.includes(q) || maestro.includes(q) || nivel.includes(q))) {
+                if (!nombre.includes(consulta) && !maestro.includes(consulta) && !nivel.includes(consulta)) {
                     return false;
                 }
             }
 
-            // Filtro por Estado
-            if (filterStatus) {
-                const statusGrupo = (g.status || "").toLowerCase();
-                const statusNormalizado = statusGrupo === "pending" ? "waiting" : statusGrupo;
-                if (statusNormalizado !== filterStatus) return false;
+            // Filtro por Estado exacto del Enum
+            if (filtroEstado && (g.status || "").toLowerCase() !== filtroEstado) {
+                return false;
             }
 
             // Filtro por Nivel
-            if (filterLevel && String(g.level?.id) !== filterLevel) {
+            if (filtroNivel && String(g.level?.id) !== filtroNivel) {
                 return false;
             }
 
             return true;
         });
 
-        // Lógica de ordenamiento por cupo disponible
-        if (ordenCupo) {
-            filtrados.sort((a, b) => {
-                const valA = a.available_seats || 0;
-                const valB = b.available_seats || 0;
-                return ordenCupo === "asc" ? valA - valB : valB - valA;
-            });
+        // Ordenamiento por disponibilidad
+        if (ordenCupo === "asc") {
+            filtrados.sort((a, b) => (a.available_seats || 0) - (b.available_seats || 0));
+        } else if (ordenCupo === "desc") {
+            filtrados.sort((a, b) => (b.available_seats || 0) - (a.available_seats || 0));
         }
 
         return filtrados;
-    }, [grupos, busqueda, filterStatus, filterLevel, ordenCupo]);
+    }, [grupos, busqueda, filtroEstado, filtroNivel, ordenCupo]);
 
     /**
-     * Paginación
+     * Cálculos de paginación.
      */
-    const totalPaginas = Math.max(1, Math.ceil(gruposFiltrados.length / itemsPorPagina));
-    const gruposPaginados = useMemo(() => {
-        return gruposFiltrados.slice(
-            (paginaActual - 1) * itemsPorPagina,
-            paginaActual * itemsPorPagina
-        );
-    }, [gruposFiltrados, paginaActual, itemsPorPagina]);
+    const totalPaginas = useMemo(() => 
+        Math.max(1, Math.ceil(gruposFiltrados.length / elementosPorPagina)),
+    [gruposFiltrados.length, elementosPorPagina]);
+
+    const gruposPaginados = useMemo(() => 
+        gruposFiltrados.slice((paginaActual - 1) * elementosPorPagina, paginaActual * elementosPorPagina),
+    [gruposFiltrados, paginaActual, elementosPorPagina]);
+
+    const hayFiltros = useMemo(() => 
+        busqueda !== "" || filtroEstado !== "" || filtroNivel !== "" || ordenCupo !== null,
+    [busqueda, filtroEstado, filtroNivel, ordenCupo]);
 
     /**
-     * Handlers de Selección
+     * Handlers de eventos memoizados para evitar re-renders en componentes hijos.
      */
     const handleToggleSelect = useCallback((id) => {
         setGruposSeleccionados((prev) =>
@@ -90,54 +94,92 @@ export function useGroupsManagement(grupos = [], itemsPorPagina = 12) {
         );
     }, []);
 
-    const handleClearSelection = useCallback(() => setGruposSeleccionados([]), []);
+    const handleClearSelection = useCallback(() => {
+        setGruposSeleccionados([]);
+    }, []);
+
+    const handleCrearGrupo = useCallback(() => {
+        setGrupoEditando(null);
+        setModalAbierto(true);
+    }, []);
+
+    const handleEditar = useCallback((grupo) => {
+        setGrupoEditando(grupo);
+        setModalAbierto(true);
+    }, []);
+
+    const handleCerrarModal = useCallback(() => {
+        setModalAbierto(false);
+        setGrupoEditando(null);
+    }, []);
+
+    const handleVerDetalles = useCallback((grupo) => setGrupoViendo(grupo), []);
+    const handleCerrarDetalles = useCallback(() => setGrupoViendo(null), []);
 
     /**
-     * Handlers de Modales
+     * Acciones de Negocio (Integración con Inertia)
      */
-    const handleOpenCreate = useCallback(() => {
-        setGrupoEditando(null);
-        setIsModalOpen(true);
+
+    const handleInscripcion = useCallback((id) => {
+        router.post(route('groups.enroll', id), {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Notificación o feedback visual puede ser manejado globalmente vía flash
+            }
+        });
     }, []);
 
-    const handleOpenEdit = useCallback((grupo) => {
-        setGrupoEditando(grupo);
-        setIsModalOpen(true);
-    }, []);
+    const handleBulkStatus = useCallback((nuevoEstado) => {
+        if (!nuevoEstado || gruposSeleccionados.length === 0) return;
+        
+        router.post(route('groups.bulk-status'), {
+            ids: gruposSeleccionados,
+            new_status: nuevoEstado
+        }, {
+            onSuccess: () => handleClearSelection()
+        });
+    }, [gruposSeleccionados, handleClearSelection]);
 
-    const handleCloseModal = useCallback(() => {
-        setIsModalOpen(false);
-        setGrupoEditando(null);
-    }, []);
+    const handleBulkDelete = useCallback(() => {
+        if (gruposSeleccionados.length === 0) return;
 
-    const handleOpenDetails = useCallback((grupo) => setGrupoViendo(grupo), []);
-    const handleCloseDetails = useCallback(() => setGrupoViendo(null), []);
+        router.delete(route('groups.bulk-delete'), {
+            data: { ids: gruposSeleccionados },
+            onSuccess: () => handleClearSelection()
+        });
+    }, [gruposSeleccionados, handleClearSelection]);
 
     return {
         // Estados
         busqueda, setBusqueda,
-        filterStatus, setFilterStatus,
-        filterLevel, setFilterLevel,
+        filtroEstado, setFiltroEstado,
+        filtroNivel, setFiltroNivel,
+        ordenCupo, setOrdenCupo,
         paginaActual, setPaginaActual,
         gruposSeleccionados,
-        ordenCupo, setOrdenCupo,
-        isModalOpen,
+        modalAbierto,
         grupoEditando,
         grupoViendo,
-
-        // Datos procesados
+        
+        // Datos filtrados y calculados
         gruposFiltrados,
-        gruposPaginados,
         totalPaginas,
-        hayFiltros: busqueda !== "" || filterStatus !== "" || filterLevel !== "" || ordenCupo !== null,
+        gruposPaginados,
+        hayFiltros,
 
-        // Funciones
+        // Handlers de UI
         handleToggleSelect,
         handleClearSelection,
-        handleOpenCreate,
-        handleOpenEdit,
-        handleCloseModal,
-        handleOpenDetails,
-        handleCloseDetails,
+        handleCrearGrupo,
+        handleEditar,
+        handleCerrarModal,
+        handleVerDetalles,
+        handleCerrarDetalles,
+
+        // Handlers de Acciones (Post/Delete)
+        handleInscripcion,
+        handleBulkStatus,
+        handleBulkDelete
     };
-}
+};
+

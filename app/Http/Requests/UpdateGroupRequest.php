@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\GroupStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Validaciones para la actualización de un grupo existente.
@@ -30,7 +32,7 @@ class UpdateGroupRequest extends FormRequest
             'schedule'     => 'sometimes|required|string|max:255',
             'classroom'    => 'nullable|string|max:255',
             'meeting_link' => 'nullable|url|max:255',
-            'status'       => 'sometimes|required|string|max:255',
+            'status'       => ['sometimes', 'required', 'string', Rule::enum(GroupStatus::class)],
             'period_id'    => 'sometimes|required|exists:periods,id',
             'teacher_id'   => 'sometimes|required|exists:teachers,id',
             'level_id'     => 'sometimes|required|exists:levels,id',
