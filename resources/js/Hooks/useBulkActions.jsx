@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { router } from '@inertiajs/react';
+import { useState, useCallback } from "react";
+import { router } from "@inertiajs/react";
 
 /**
  * useBulkActions
@@ -37,21 +37,37 @@ export function useBulkActions(deleteRoute, vistaActual) {
     /** Copia solo las columnas visibles al portapapeles en formato TSV (Excel-friendly). */
     const handleBulkCopy = useCallback(() => {
         if (filasSeleccionadas.length === 0) return;
-        const EXCLUDED = ['select', 'actions'];
-        const visibleDataCols = columnasVisibles.filter((id) => !EXCLUDED.includes(id));
-        const headerRow = visibleDataCols.join('\t');
+        const EXCLUDED = ["select", "actions"];
+        const visibleDataCols = columnasVisibles.filter(
+            (id) => !EXCLUDED.includes(id),
+        );
+        const headerRow = visibleDataCols.join("\t");
         const dataRows = filasSeleccionadas
-            .map((row) => visibleDataCols.map((key) => row[key] ?? '').join('\t'))
-            .join('\n');
+            .map((row) =>
+                visibleDataCols.map((key) => row[key] ?? "").join("\t"),
+            )
+            .join("\n");
         navigator.clipboard.writeText(`${headerRow}\n${dataRows}`);
-        alert('Copiado al portapapeles (solo columnas visibles)');
+        alert("Copiado al portapapeles (solo columnas visibles)");
     }, [filasSeleccionadas, columnasVisibles]);
 
     /** Envía los IDs seleccionados al servidor para eliminación masiva. */
     const handleBulkDelete = useCallback(() => {
         if (filasSeleccionadas.length === 0) return;
-        if (confirm(`¿Estás seguro de eliminar ${filasSeleccionadas.length} registros?`)) {
-            const ids = filasSeleccionadas.map((row) => row.id || row.matricula);
+        if (!deleteRoute) {
+            alert(
+                "No se configuró una ruta de eliminación masiva para esta vista.",
+            );
+            return;
+        }
+        if (
+            confirm(
+                `¿Estás seguro de eliminar ${filasSeleccionadas.length} registros?`,
+            )
+        ) {
+            const ids = filasSeleccionadas.map(
+                (row) => row.id || row.matricula,
+            );
             router.post(deleteRoute, { ids, tipo: vistaActual });
         }
     }, [filasSeleccionadas, deleteRoute, vistaActual]);

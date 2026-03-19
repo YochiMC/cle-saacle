@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/groups/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
     Route::put('/grupos/bulk-status', [GroupController::class, 'bulkUpdateStatus'])->name('groups.bulk-status');
     Route::delete('/grupos/bulk-delete', [GroupController::class, 'bulkDestroy'])->name('groups.bulk-delete');
+    Route::get('/grupos/{group}/detalles', [GroupController::class, 'show'])->name('groups.show');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');
@@ -47,6 +48,6 @@ Route::get('/yochi', function () {
     return Inertia::render('Yochi');
 })->name('Yochi');
 
-Route::get('/grupos/{group}/detalles', [\App\Http\Controllers\Views\AdminViewsController::class, 'showDetails'])->name('groups.show');
+
 
 require __DIR__ . '/auth.php';
