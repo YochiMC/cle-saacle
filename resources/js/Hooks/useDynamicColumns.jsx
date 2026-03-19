@@ -187,11 +187,7 @@ export function useDynamicColumns(
                 return (
                     <div className="flex items-center justify-center gap-2">
                         <Button
-                            onClick={() =>
-                                onEditRow
-                                    ? onEditRow(item)
-                                    : alert(`Editar: ${itemName}`)
-                            }
+                            onClick={() => (onEditRow ? onEditRow(item) : alert(`Editar: ${itemName}`))}
                             className="w-8 h-8 p-0 text-white bg-orange-500 rounded-md hover:bg-orange-600"
                             title="Editar"
                         >

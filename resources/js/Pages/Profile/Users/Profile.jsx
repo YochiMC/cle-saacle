@@ -9,6 +9,21 @@ import useFlashAlert from "@/Hooks/useFlashAlert";
 export default function Profile({ user, degrees, levels, typeStudents }) {
     const { flashModal, closeFlashModal } = useFlashAlert();
 
+    const onDeleteUser = () => {
+        switch (currentView) {
+            case 'alumnos':
+                router.delete(route('students.delete', itemId), {
+                    onSuccess: () => setItemToDelete(null), // Cerramos el modal si tiene éxito
+                });
+                break;
+            case 'maestros':
+                router.delete(route('teachers.delete', itemId), {
+                    onSuccess: () => setItemToDelete(null), // Cerramos el modal si tiene éxito
+                });
+                break;
+        }
+    }
+
     return (
         <AuthenticatedLayout
             header={<h2 className="text-xl font-semibold leading-tight text-gray-800">
