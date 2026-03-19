@@ -100,6 +100,7 @@ const EditableCell = ({ value, rowId, fieldKey, onChange }) => {
 export function useDynamicColumns(
     data,
     onEditRow,
+    onDeleteRow,
     {
         isTeacherMode = false,
         editableColumns = [],
