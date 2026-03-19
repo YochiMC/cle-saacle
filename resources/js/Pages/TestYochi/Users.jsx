@@ -57,6 +57,15 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
         router.get(route('profiles', userId));
     };
 
+    const handleDeleteRow = (item) => {
+        switch(currentView){
+            case 'alumnos':
+                return router.delete(route('students.delete', item));
+            case 'maestros':
+                return router.delete(route('teachers.delete', item));
+        }
+    }
+
     return (
         <AuthenticatedLayout header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Usuarios</h2>}>
             <Head title="Usuarios" />
@@ -68,6 +77,7 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
                     deleteRoute="/carreras/eliminar-masivo"
                     onNew={() => setIsModalOpen(true)}
                     onEditRow={handleEditRow}
+                    onDeleteRow={handleDeleteRow}
                     onViewChange={(view) => setCurrentView(view)}
                     editableColumns={["firstName", "lastName"]}
                     restrictedColumns={["birthDate", "semester", "gender"]}

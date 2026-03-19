@@ -26,6 +26,7 @@ export default function ResourceDashboard({
     deleteRoute,
     hiddenColumns = { created_at: false, updated_at: false },
     onEditRow,
+    onDeleteRow,
     onPrint,
     onNew,
     onViewChange,
@@ -45,7 +46,7 @@ export default function ResourceDashboard({
     const currentViewLabel = viewOptions.find((o) => o.value === vistaActual)?.label ?? title;
 
     // Generación reactiva de columnas — reacciona también al modo, columnas editables y restringidas
-    const columns = useDynamicColumns(currentData, onEditRow, { isTeacherMode, editableColumns, restrictedColumns });
+    const columns = useDynamicColumns(currentData, onEditRow, onDeleteRow, { isTeacherMode, editableColumns, restrictedColumns });
 
     // Estado y handlers de acciones masivas
     const {

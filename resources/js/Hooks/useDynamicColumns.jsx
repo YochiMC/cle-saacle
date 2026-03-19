@@ -92,6 +92,7 @@ const EditableCell = ({ value, rowId, fieldKey, onChange }) => {
 export function useDynamicColumns(
     data,
     onEditRow,
+    onDeleteRow,
     { isTeacherMode = false, editableColumns = [], restrictedColumns = [], onCellChange } = {},
 ) {
     return useMemo(() => {
@@ -174,7 +175,7 @@ export function useDynamicColumns(
                             <Edit className="h-4 w-4" />
                         </Button>
                         <Button
-                            onClick={() => alert(`Eliminar: ${itemName}`)}
+                            onClick={() => (onDeleteRow ? onDeleteRow(item) : alert(`Eliminar: ${itemName}`))}
                             className="h-8 w-8 bg-red-600 hover:bg-red-700 text-white rounded-md p-0"
                             title="Eliminar"
                         >
@@ -193,5 +194,5 @@ export function useDynamicColumns(
             // OCP: añadimos/quitamos la columna sin tocar su definición interna.
             ...(isTeacherMode ? [] : [actionsColumn]),
         ];
-    }, [data, onEditRow, isTeacherMode, editableColumns, restrictedColumns, onCellChange]);
+    }, [data, onEditRow, onDeleteRow, isTeacherMode, editableColumns, restrictedColumns, onCellChange]);
 }

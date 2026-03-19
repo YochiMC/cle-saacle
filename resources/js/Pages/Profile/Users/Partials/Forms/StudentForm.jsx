@@ -104,7 +104,7 @@ export default function StudentForm({
 
     const levelOptions = levels.map((l) => ({
         value: String(l.id),
-        label: l.level_mcer,
+        label: l.level_tecnm,
     }));
 
     const typeStudentOptions = typeStudents.map((t) => ({
