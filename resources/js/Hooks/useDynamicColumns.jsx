@@ -20,9 +20,9 @@ const resolveInputType = (fieldKey) => {
 
 const SortIcon = ({ column }) => {
     const sorted = column.getIsSorted();
-    if (sorted === 'asc')  return <ArrowUp   className="ml-2 h-4 w-4" />;
-    if (sorted === 'desc') return <ArrowDown className="ml-2 h-4 w-4" />;
-    return <ArrowUpDown className="ml-2 h-4 w-4 opacity-40" />;
+    if (sorted === 'asc')  return <ArrowUp   className="w-4 h-4 ml-2" />;
+    if (sorted === 'desc') return <ArrowDown className="w-4 h-4 ml-2" />;
+    return <ArrowUpDown className="w-4 h-4 ml-2 opacity-40" />;
 };
 
 // ── EditableCell ───────────────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ const EditableCell = ({ value, rowId, fieldKey, onChange }) => {
             defaultValue={value ?? ''}
             aria-label={`${formatLabel(fieldKey)} — fila ${rowId}`}
             wrapperClassName="w-28"
-            className="text-center text-sm"
+            className="text-sm text-center"
             onChange={(e) => {
                 const next = e.target.value;
                 if (onChange) {
@@ -169,17 +169,17 @@ export function useDynamicColumns(
                     <div className="flex items-center justify-center gap-2">
                         <Button
                             onClick={() => (onEditRow ? onEditRow(item) : alert(`Editar: ${itemName}`))}
-                            className="h-8 w-8 bg-orange-500 hover:bg-orange-600 text-white rounded-md p-0"
+                            className="w-8 h-8 p-0 text-white bg-orange-500 rounded-md hover:bg-orange-600"
                             title="Editar"
                         >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="w-4 h-4" />
                         </Button>
                         <Button
                             onClick={() => (onDeleteRow ? onDeleteRow(item) : alert(`Eliminar: ${itemName}`))}
-                            className="h-8 w-8 bg-red-600 hover:bg-red-700 text-white rounded-md p-0"
+                            className="w-8 h-8 p-0 text-white bg-red-600 rounded-md hover:bg-red-700"
                             title="Eliminar"
                         >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="w-4 h-4" />
                         </Button>
                     </div>
                 );

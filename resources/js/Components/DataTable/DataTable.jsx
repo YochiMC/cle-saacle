@@ -84,7 +84,7 @@ export function DataTable({
                 isTeacherMode={isTeacherMode}
             />
 
-            <div className="rounded-sm border border-slate-300 bg-white overflow-hidden shadow-sm">
+            <div className="overflow-hidden bg-white border rounded-sm shadow-sm border-slate-300">
                 <Table>
                     <TableHeader className="bg-[#17365D]">
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -95,7 +95,7 @@ export function DataTable({
                                 {headerGroup.headers.map((header) => (
                                     <TableHead
                                         key={header.id}
-                                        className="text-white font-bold text-center align-middle h-12"
+                                        className="h-12 font-bold text-center text-white align-middle"
                                     >
                                         {header.isPlaceholder
                                             ? null
@@ -117,7 +117,7 @@ export function DataTable({
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell
                                             key={cell.id}
-                                            className="text-center align-middle py-3"
+                                            className="py-3 text-center align-middle"
                                         >
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </TableCell>

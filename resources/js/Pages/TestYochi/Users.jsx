@@ -23,6 +23,8 @@ import ModalAlert from "@/Components/ui/ModalAlert";
 import { Head, router } from '@inertiajs/react';
 import { usePermission } from '@/Utils/auth';
 import useFlashAlert from "@/Hooks/useFlashAlert";
+import ConfirmModal from '@/Components/ConfirmModal';
+
 
 // Definidas fuera del componente para mantener referencia estable entre renders.
 const VIEW_OPTIONS = [
@@ -39,6 +41,8 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentView, setCurrentView] = useState("alumnos");
 
+    const [itemToDelete, setItemToDelete] = useState(null);
+
     /**
      * Navega al perfil del registro seleccionado.
      *
@@ -46,6 +50,8 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
      * @param {number|string} item.user_id Identificador del usuario asociado al registro.
      * @returns {void}
      */
+
+
     const handleEditRow = (item) => {
         const userId = item?.user_id;
 
@@ -57,12 +63,30 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
         router.get(route('profiles', userId));
     };
 
-    const handleDeleteRow = (item) => {
-        switch(currentView){
+    const openDeleteModal = (item) => {
+        setItemToDelete(item); // Guardamos el usuario en el estado para que el modal sepa cuál es
+    };
+
+    const handleDeleteRow = () => {
+        if (!itemToDelete) return; // Por seguridad
+
+        const itemId = itemToDelete?.id;
+        if (!itemId) {
+            console.error('No se pudo eliminar: id no disponible en el registro.', itemToDelete);
+            return;
+        }
+
+        switch (currentView) {
             case 'alumnos':
-                return router.delete(route('students.delete', item));
+                router.delete(route('students.delete', itemId), {
+                    onSuccess: () => setItemToDelete(null), // Cerramos el modal si tiene éxito
+                });
+                break;
             case 'maestros':
-                return router.delete(route('teachers.delete', item));
+                router.delete(route('teachers.delete', itemId), {
+                    onSuccess: () => setItemToDelete(null), // Cerramos el modal si tiene éxito
+                });
+                break;
         }
     }
 
@@ -77,10 +101,10 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
                     deleteRoute="/carreras/eliminar-masivo"
                     onNew={() => setIsModalOpen(true)}
                     onEditRow={handleEditRow}
-                    onDeleteRow={handleDeleteRow}
+                    onDeleteRow={openDeleteModal}
                     onViewChange={(view) => setCurrentView(view)}
                     editableColumns={["firstName", "lastName"]}
-                    restrictedColumns={["birthDate", "semester", "gender"]}
+                    hiddenColumns={{ user_id: false, birthdate: false, type: false }}
                 />
             </div>
 
@@ -103,6 +127,16 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
                     onClose={() => setIsModalOpen(false)}
                 />
             )}
+
+            <ConfirmModal
+                isOpen={itemToDelete != null}
+                onClose={() => setItemToDelete(null)}
+                onConfirm={handleDeleteRow}
+                title="Eliminar usuario"
+                // Opcional: Puedes usar el nombre del usuario en el mensaje para darle más contexto
+                message={`¿Estás seguro de que deseas eliminar a ${itemToDelete?.first_name || itemToDelete?.full_name || 'este usuario'}? Esta acción no se puede deshacer.`}
+                confirmText="Sí, eliminar"
+            />
 
             <ModalAlert
                 isOpen={flashModal.isOpen}
