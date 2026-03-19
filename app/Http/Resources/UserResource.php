@@ -12,6 +12,8 @@ class UserResource extends JsonResource
      *
      * @return array<string, mixed>
      */
+    public static $wrap = null;
+
     public function toArray(Request $request): array
     {
         return [
@@ -22,8 +24,14 @@ class UserResource extends JsonResource
             'phone' => $this->phone,
             'roles' => $this->getRoleNames(),
             'profile' => match (true) {
-                $this->hasRole('student') => new StudentProfileResource($this->profile),
-                $this->hasRole('teacher') => new TeacherProfileResource($this->profile),
+                $this->hasRole('teacher') => $this->whenLoaded(
+                    'teacher',
+                    fn () => new TeacherProfileResource($this->teacher)
+                ),
+                $this->hasRole('student') => $this->whenLoaded(
+                    'student',
+                    fn () => new StudentProfileResource($this->student)
+                ),
                 default => null,
             },
         ];

@@ -53,7 +53,9 @@ export default function StudentModal({ show = false, onClose, title, degrees, le
     });
 
     // Determina si el tipo seleccionado es "Egresado" para adaptar los campos del formulario.
-    const selectedType = typeStudents.find(t => t.id.toString() === data.type_student_id);
+    const selectedType = typeStudents.find(
+        (t) => String(t.id) === String(data.type_student_id ?? "")
+    );
     const isEgresado = selectedType?.name.toLowerCase() === 'egresado';
 
     const submit = (e) => {

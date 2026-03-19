@@ -15,6 +15,7 @@ class StudentProfileResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id' => $this->id,
             'user_id' => $this->user_id,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
@@ -26,6 +27,7 @@ class StudentProfileResource extends JsonResource
             'degree_id' => $this->degree_id,
             'type_student_id' => $this->type_student_id,
             'level_id' => $this->level_id,
+            'type' => 'student',
         ];
     }
 }

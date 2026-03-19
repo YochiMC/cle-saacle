@@ -29,7 +29,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
     Route::get('/profiles/{user}', [AdminViewsController::class, 'profilesView'])->name('profiles');
     Route::post('/students', [StudentController::class, 'createStudent'])->name('students');
+    Route::put('/students/{student}', [StudentController::class, 'updateStudent'])->name('students.update');
     Route::post('/teachers', [TeacherController::class, 'createTeacher'])->name('teachers');
+    Route::put('/teachers/{teacher}', [TeacherController::class, 'updateTeacher'])->name('teachers.update');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
     Route::put('/groups/{group}', [GroupController::class, 'update'])->name('groups.update');
     Route::delete('/groups/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
