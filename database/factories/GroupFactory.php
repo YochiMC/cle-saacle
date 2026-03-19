@@ -23,8 +23,8 @@ class GroupFactory extends Factory
         $codigoAleatorio = 'GRP-' . $this->faker->unique()->numberBetween(1000, 9999);
         return [
             'name' => $codigoAleatorio,
-            'mode' => $this->faker->randomElement(['Presencial', 'En línea', 'Híbrido']),
-            'type' => $this->faker->randomElement(['Regular', 'Intensivo', 'Sabatino']),
+            'mode' => $this->faker->randomElement(['Presencial', 'Virtual', 'Híbrido']),
+            'type' => $this->faker->randomElement(['Regular', 'Intensivo']),
             'capacity' => $this->faker->numberBetween(15, 35),
             'schedule' => $this->faker->randomElement([
                 'Lunes y Miércoles 16:00 - 18:00',
