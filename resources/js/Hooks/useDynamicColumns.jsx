@@ -1,27 +1,36 @@
-import { useMemo } from 'react';
-import { Button } from '@/Components/ui/button';
-import { Checkbox } from '@/Components/ui/checkbox';
-import { ThemeInput } from '@/Components/ThemeInput';
-import { Edit, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { useMemo } from "react";
+import { Button } from "@/Components/ui/button";
+import { Checkbox } from "@/Components/ui/checkbox";
+import { ThemeInput } from "@/Components/ThemeInput";
+import { Edit, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const formatLabel = (key) =>
-    key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+const renderCellValue = (value) => {
+    if (value === null || value === undefined || value === "") return "—";
+    if (typeof value === "object") {
+        // Evita crashear React cuando accidentalmente llega un objeto como valor de celda.
+        return JSON.stringify(value);
+    }
+    return value;
+};
 
 /** Devuelve el tipo de <input> adecuado basándose en el nombre del campo. */
 const resolveInputType = (fieldKey) => {
     const lower = fieldKey.toLowerCase();
-    if (lower.includes('name')  || lower.includes('nombre')) return 'text';
-    if (lower.includes('email') || lower.includes('correo')) return 'email';
-    if (lower.includes('date')  || lower.includes('fecha'))  return 'date';
-    return 'number'; // Default: calificación numérica
+    if (lower.includes("name") || lower.includes("nombre")) return "text";
+    if (lower.includes("email") || lower.includes("correo")) return "email";
+    if (lower.includes("date") || lower.includes("fecha")) return "date";
+    return "number"; // Default: calificación numérica
 };
 
 const SortIcon = ({ column }) => {
     const sorted = column.getIsSorted();
-    if (sorted === 'asc')  return <ArrowUp   className="ml-2 h-4 w-4" />;
-    if (sorted === 'desc') return <ArrowDown className="ml-2 h-4 w-4" />;
+    if (sorted === "asc") return <ArrowUp className="ml-2 h-4 w-4" />;
+    if (sorted === "desc") return <ArrowDown className="ml-2 h-4 w-4" />;
     return <ArrowUpDown className="ml-2 h-4 w-4 opacity-40" />;
 };
 
@@ -44,14 +53,13 @@ const SortIcon = ({ column }) => {
 const EditableCell = ({ value, rowId, fieldKey, onChange }) => {
     const inputType = resolveInputType(fieldKey);
 
-    const extraNumericProps = inputType === 'number'
-        ? { min: 0, max: 100, step: 0.1 }
-        : {};
+    const extraNumericProps =
+        inputType === "number" ? { min: 0, max: 100, step: 0.1 } : {};
 
     return (
         <ThemeInput
             type={inputType}
-            defaultValue={value ?? ''}
+            defaultValue={value ?? ""}
             aria-label={`${formatLabel(fieldKey)} — fila ${rowId}`}
             wrapperClassName="w-28"
             className="text-center text-sm"
@@ -92,7 +100,12 @@ const EditableCell = ({ value, rowId, fieldKey, onChange }) => {
 export function useDynamicColumns(
     data,
     onEditRow,
-    { isTeacherMode = false, editableColumns = [], restrictedColumns = [], onCellChange } = {},
+    {
+        isTeacherMode = false,
+        editableColumns = [],
+        restrictedColumns = [],
+        onCellChange,
+    } = {},
 ) {
     return useMemo(() => {
         if (!data || data.length === 0) return [];
@@ -110,7 +123,9 @@ export function useDynamicColumns(
             header: ({ column }) => (
                 <Button
                     variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                    onClick={() =>
+                        column.toggleSorting(column.getIsSorted() === "asc")
+                    }
                     className="hover:bg-white/10 hover:text-white"
                 >
                     {formatLabel(key)}
@@ -119,10 +134,12 @@ export function useDynamicColumns(
             ),
             // ISP: la celda solo sabe si ELLA es editable, no conoce el modo global.
             cell: ({ row, getValue }) => {
+                const cellValue = getValue();
+
                 if (isTeacherMode && editableSet.has(key)) {
                     return (
                         <EditableCell
-                            value={getValue()}
+                            value={cellValue}
                             rowId={row.original.id}
                             fieldKey={key}
                             onChange={onCellChange}
@@ -130,16 +147,18 @@ export function useDynamicColumns(
                     );
                 }
                 // Celda de solo-lectura (comportamiento original)
-                return <span>{getValue() ?? '—'}</span>;
+                return <span>{renderCellValue(cellValue)}</span>;
             },
         }));
 
         const selectionColumn = {
-            id: 'select',
+            id: "select",
             header: ({ table }) => (
                 <Checkbox
                     checked={table.getIsAllPageRowsSelected()}
-                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    onCheckedChange={(value) =>
+                        table.toggleAllPageRowsSelected(!!value)
+                    }
                     aria-label="Seleccionar todos"
                     className="border-white data-[state=checked]:bg-white data-[state=checked]:text-[#17365D]"
                 />
@@ -158,16 +177,21 @@ export function useDynamicColumns(
         // ── Columna de acciones: solo en Modo Administrador ───────────────────
         // SRP: la decisión de incluir esta columna está aislada aquí, no dispersa.
         const actionsColumn = {
-            id: 'actions',
-            header: 'Acciones',
+            id: "actions",
+            header: "Acciones",
             enableHiding: false,
             cell: ({ row }) => {
                 const item = row.original;
-                const itemName = item.name || item.nombre || item.matricula || item.id;
+                const itemName =
+                    item.name || item.nombre || item.matricula || item.id;
                 return (
                     <div className="flex items-center justify-center gap-2">
                         <Button
-                            onClick={() => (onEditRow ? onEditRow(item) : alert(`Editar: ${itemName}`))}
+                            onClick={() =>
+                                onEditRow
+                                    ? onEditRow(item)
+                                    : alert(`Editar: ${itemName}`)
+                            }
                             className="h-8 w-8 bg-orange-500 hover:bg-orange-600 text-white rounded-md p-0"
                             title="Editar"
                         >
@@ -193,5 +217,12 @@ export function useDynamicColumns(
             // OCP: añadimos/quitamos la columna sin tocar su definición interna.
             ...(isTeacherMode ? [] : [actionsColumn]),
         ];
-    }, [data, onEditRow, isTeacherMode, editableColumns, restrictedColumns, onCellChange]);
+    }, [
+        data,
+        onEditRow,
+        isTeacherMode,
+        editableColumns,
+        restrictedColumns,
+        onCellChange,
+    ]);
 }
