@@ -21,6 +21,11 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/kardex', function () {
+    return Inertia::render('Test_Vik/Kardex');
+})->middleware(['auth', 'verified'])->name('kardex');
+
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -40,6 +45,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/grupos/bulk-status', [GroupController::class, 'bulkUpdateStatus'])->name('groups.bulk-status');
     Route::delete('/grupos/bulk-delete', [GroupController::class, 'bulkDestroy'])->name('groups.bulk-delete');
     Route::get('/grupos/{group}/detalles', [GroupController::class, 'show'])->name('groups.show');
+    Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
+    Route::get('/exams', [AdminViewsController::class, 'examsView'])->name('exams.index');
+    Route::post('/exams', [\App\Http\Controllers\ExamController::class, 'store'])->name('exams.store');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');

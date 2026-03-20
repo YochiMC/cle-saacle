@@ -17,6 +17,7 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\TypeStudent;
 use App\Models\User;
+use App\Models\Exam;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -128,4 +129,42 @@ class AdminViewsController extends Controller
             'typeStudents' => TypeStudent::all(['id', 'name']),
         ]);
     }
+
+    public function reportsView(Request $request)
+    {
+        $students = StudentResource::collection(Student::with(['degree', 'level', 'typeStudent'])->get())->resolve();
+        $teachers = TeacherResource::collection(Teacher::all())->resolve();
+        $degrees = Degree::all();
+        $levels = Level::all();
+        $type_students = TypeStudent::all();
+        $groups = Group::all();
+        return Inertia::render('Test_Vik/Reports', [
+            'students' => $students,
+            'teachers' => $teachers,
+            'degrees' => $degrees,
+            'levels' => $levels,
+            'groups' => $groups,
+            'typeStudents' => $type_students
+        ]);
+    }
+
+    public function examsView(Request $request)
+    {
+        $exams = Exam::with('student')->get(); // Opcional, si tienes relación definida (para mostrar nombre)
+        $levels = Level::all();
+        $teachers = Teacher::all();
+        $periods = Period::all();
+        $students = StudentResource::collection(Student::all())->resolve();
+        
+        return Inertia::render('Test_Vik/Examen', [
+            'examenes' => $exams,
+            'levels' => $levels,
+            'teachers' => $teachers,
+            'periods' => $periods,
+            'students' => $students
+
+            
+        ]);
+    }
 }
+
