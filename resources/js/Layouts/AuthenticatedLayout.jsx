@@ -53,6 +53,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Reportes
                                 </NavLink>
+                                <NavLink
+                                    href={route("exams.index")}
+                                    active={route().current("exams.index")}
+                                    className="text-white hover:text-orangeTec"
+                                >
+                                    Examen 4H
+                                </NavLink>
                             </div>
                         </div>
 

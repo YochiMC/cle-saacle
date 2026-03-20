@@ -1,19 +1,18 @@
 import { Head } from "@inertiajs/react";
-import Graficas from "@/Components/Charts/Graficas";
+import Graficas from "@/Components/Charts/Graphics";
 import { useState } from "react";
-import CardGroup from "@/Components/Charts/CardGroup";
 import ModalAlert from "@/Components/UI/ModalAlert";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
 
-export default function Reports({ degrees = [], students = [], groups = [] }) {
+export default function Reports({ degrees = [], students = [], levels = [] }) {
     const [openModal, setOpenModal] = useState(false);
 
     // SELECTORES DE LAS 4 GRAFICAS
     const [chartType1, setChartType1] = useState("carrera");
     const [chartType2, setChartType2] = useState("genero");
     const [chartType3, setChartType3] = useState("semestre");
-    const [chartType4, setChartType4] = useState("grupos");
+    const [chartType4, setChartType4] = useState("level");
 
     // -------------------
     // DATOS DE GRAFICAS
@@ -26,14 +25,21 @@ export default function Reports({ degrees = [], students = [], groups = [] }) {
             total: students.length,
         },
     ];
+    //NIVEL
+    const levelData = levels.map((lvl) => {
+        const total = students.filter((s) => s.level_id === lvl.id); 
+        console.log(total);
+        const total2 = total.filter((s) => s.gender === "M").length; 
+        console.log("total2: "+total2);
 
-    // GRUPOS
-    const gruposData = groups.map((group) => ({
-        name: group.name || "Grupo",
-        total: group.students ? group.students.length : 0,
-    }));
+        return {
+            name: lvl.level_tecnm,
+            total2,
+            
+        };
+    });
+    
 
-    // CARRERAS
     const carreraData = degrees.map((degree) => {
         const total = students.filter((s) => s.degree_id === degree.id).length;
 
@@ -70,11 +76,10 @@ export default function Reports({ degrees = [], students = [], groups = [] }) {
         if (type === "carrera") return carreraData;
         if (type === "genero") return generoData;
         if (type === "semestre") return semestreData;
-        if (type === "grupos") return gruposData;
+        if (type === "level") return levelData;
 
         return [];
     };
-
     return (
         <AuthenticatedLayout>
             <div className="min-h-screen bg-gray-100 py-12">
@@ -88,16 +93,13 @@ export default function Reports({ degrees = [], students = [], groups = [] }) {
                         title="Error al registrar"
                         message="No se pudo inscribir al estudiante."
                     />
-
                     {/* GRAFICA GRANDE ARRIBA */}
 
                     <Graficas
                         title="Total de alumnos inscritos"
                         chartData={totalStudentsData}
                     />
-
                     {/* 4 GRAFICAS CON SELECTOR */}
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                         <Graficas
                             title="Cursos ordinarios"
@@ -106,7 +108,6 @@ export default function Reports({ degrees = [], students = [], groups = [] }) {
                             chartType={chartType1}
                             setChartType={setChartType1}
                         />
-
                         <Graficas
                             title="Egresados próximos a egresar"
                             chartData={getChartData(chartType2)}

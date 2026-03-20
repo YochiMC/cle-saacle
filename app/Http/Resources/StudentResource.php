@@ -20,6 +20,8 @@ class StudentResource extends JsonResource
             'age' => $this->age,
             'semester' => $this->semester,
             'status' => $this->status,
+            'degree_id' => $this->degree_id,
+            'level_id' => $this->level_id,
             'degree' => $this->degree ? $this->degree->name : null,
             'level' => $this->level ? $this->level->level_mcer : null,
             'type_student' => $this->typeStudent ? $this->typeStudent->name : null,
