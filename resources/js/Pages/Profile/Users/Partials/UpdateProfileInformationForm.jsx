@@ -189,6 +189,7 @@ export default function UpdateProfileInformationForm({
                         submitLabel="Guardar cambios"
                         cancelLabel="Cancelar"
                         isLoading={processing}
+                        tone="institutional"
                     />
                 </FieldGroup>
             </form>

@@ -9,21 +9,6 @@ import useFlashAlert from "@/Hooks/useFlashAlert";
 export default function Profile({ user, degrees, levels, typeStudents }) {
     const { flashModal, closeFlashModal } = useFlashAlert();
 
-    const onDeleteUser = () => {
-        switch (currentView) {
-            case 'alumnos':
-                router.delete(route('students.delete', itemId), {
-                    onSuccess: () => setItemToDelete(null), // Cerramos el modal si tiene éxito
-                });
-                break;
-            case 'maestros':
-                router.delete(route('teachers.delete', itemId), {
-                    onSuccess: () => setItemToDelete(null), // Cerramos el modal si tiene éxito
-                });
-                break;
-        }
-    }
-
     return (
         <AuthenticatedLayout
             header={<h2 className="text-xl font-semibold leading-tight text-gray-800">
@@ -32,22 +17,27 @@ export default function Profile({ user, degrees, levels, typeStudents }) {
         >
             <Head title="Profile" />
             <div className="py-12">
-                <div className="mx-auto space-y-6 max-w-7xl sm:px-6 lg:px-8">
-                    <div className="p-4 bg-white shadow sm:rounded-lg sm:p-8">
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                        <div className="p-4 bg-white border shadow border-blueTec/20 lg:col-span-2 sm:rounded-lg sm:p-8">
                         <UpdateProfileInformationForm
                             user={user}
                             degrees={degrees}
                             levels={levels}
                             typeStudents={typeStudents}
-                            className="max-w-xl"
+                            className="w-full"
                         />
-                    </div>
-                    <div className="p-4 bg-white shadow sm:rounded-lg sm:p-8">
-                        <UpdatePasswordForm className="max-w-xl" />
-                    </div>
+                        </div>
 
-                    <div className="p-4 bg-white shadow sm:rounded-lg sm:p-8">
-                        <DeleteUserForm className="max-w-xl" />
+                        <div className="space-y-6">
+                            <div className="p-4 bg-white border shadow border-blueTec/20 sm:rounded-lg sm:p-8">
+                                <UpdatePasswordForm className="w-full" user={user} />
+                            </div>
+
+                            <div className="p-4 bg-white border shadow border-orangeTec/25 sm:rounded-lg sm:p-8">
+                                <DeleteUserForm className="w-full" user={user} />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

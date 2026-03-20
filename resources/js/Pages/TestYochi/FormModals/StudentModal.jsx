@@ -143,7 +143,7 @@ export default function StudentModal({ show = false, onClose, title, degrees, le
                         </FieldGroup>
                     </FieldSet>
 
-                    <ButtonForm onCancel={onClose} disabled={processing} />
+                    <ButtonForm onCancel={onClose} isLoading={processing} tone="institutional" />
                 </FieldGroup>
             </form>
         </FormModal>

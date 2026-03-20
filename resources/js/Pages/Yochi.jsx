@@ -79,7 +79,7 @@ export default function Yochi() {
                                 <TextAreaForm label="Comments" placeholder="Add any additional comments" textAreaId="checkout-7j9-optional-comments" />
                             </FieldGroup>
                         </FieldSet>
-                        <ButtonForm />
+                        <ButtonForm tone="institutional" />
                     </FieldGroup>
                 </form>
             </div>
