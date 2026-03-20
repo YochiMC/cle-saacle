@@ -136,6 +136,7 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
                 // Opcional: Puedes usar el nombre del usuario en el mensaje para darle más contexto
                 message={`¿Estás seguro de que deseas eliminar a ${itemToDelete?.first_name || itemToDelete?.full_name || 'este usuario'}? Esta acción no se puede deshacer.`}
                 confirmText="Sí, eliminar"
+                variant="warning"
             />
 
             <ModalAlert

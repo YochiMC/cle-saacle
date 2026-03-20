@@ -110,6 +110,7 @@ const BulkActionBar = memo(
                     title="Eliminar Grupos"
                     message={`¿Estás seguro de que deseas eliminar ${seleccionados.length} grupos? Esta acción no se puede deshacer.`}
                     confirmText="Sí, eliminar"
+                    variant="warning"
                 />
             </div>
         );

@@ -2,11 +2,18 @@ import React from "react";
 import Modal from "@/Components/Charts/Modal";
 
 const ModalAlert = ({ isOpen, onClose, type = "info", title, message }) => {
+    const fallbackTitles = {
+        success: "¡Operación exitosa!",
+        error: "¡Ups! Algo salió mal",
+        warning: "Atención",
+        info: "Información",
+    };
+
     const styles = {
         success: {
-            iconColor: "text-blue-600",
-            borderColor: "border-blue-600",
-            button: "bg-blue-600 hover:bg-blue-700",
+            iconColor: "text-blueTec",
+            borderColor: "border-blueTec",
+            button: "bg-blueTec hover:bg-blueTec/90",
             icon: "✓",
         },
         error: {
@@ -16,23 +23,24 @@ const ModalAlert = ({ isOpen, onClose, type = "info", title, message }) => {
             icon: "✕",
         },
         warning: {
-            iconColor: "text-yellow-500",
-            borderColor: "border-yellow-500",
-            button: "bg-yellow-500 hover:bg-yellow-600",
+            iconColor: "text-orangeTec",
+            borderColor: "border-orangeTec",
+            button: "bg-orangeTec hover:bg-orangeTec/90",
             icon: "!",
         },
         info: {
-            iconColor: "text-[#1B396A]",
-            borderColor: "border-[#1B396A]",
-            button: "bg-[#1B396A] hover:bg-[#142952]",
+            iconColor: "text-blueTec",
+            borderColor: "border-blueTec",
+            button: "bg-blueTec hover:bg-blueTec/90",
             icon: "i",
         },
     };
 
     const current = styles[type] || styles.info;
+    const resolvedTitle = title || fallbackTitles[type] || fallbackTitles.info;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={title}>
+        <Modal isOpen={isOpen} onClose={onClose} title={resolvedTitle}>
             <div className="text-center">
                 {/* Icono circular */}
                 <div
@@ -42,7 +50,7 @@ const ModalAlert = ({ isOpen, onClose, type = "info", title, message }) => {
                 </div>
 
                 {/* Mensaje */}
-                <p className="text-gray-500 text-sm mb-6">{message}</p>
+                <p className="mb-6 text-sm text-gray-600">{message}</p>
 
                 {/* Botón */}
                 <button

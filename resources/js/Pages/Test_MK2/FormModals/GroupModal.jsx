@@ -172,7 +172,7 @@ export default function GroupModal({ show = false, onClose, title, grupoToEdit =
                         </div>
                     </FieldSet>
 
-                    <ButtonForm onCancel={onClose} disabled={processing} />
+                    <ButtonForm onCancel={onClose} isLoading={processing} tone="institutional" />
                 </FieldGroup>
             </form>
         </FormModal>

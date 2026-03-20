@@ -29,21 +29,55 @@ export default function ButtonForm({
     cancelLabel = 'Cancel',
     onCancel,
     isLoading = false,
+    disabled = false,
+    tone = 'default',
+    submitVariant = 'default',
+    cancelVariant = 'outline',
+    submitClassName = '',
+    cancelClassName = '',
+    showCancel = true,
     className,
 }) {
+    const isBusy = isLoading || disabled;
+
+    const toneClasses = {
+        default: {
+            submit: '',
+            cancel: '',
+        },
+        institutional: {
+            submit: 'bg-blueTec text-white hover:bg-blueTec/90',
+            cancel: 'border-blueTec/30 text-blueTec hover:bg-blueTec/10',
+        },
+        warning: {
+            submit: 'bg-orangeTec text-white hover:bg-orangeTec/90',
+            cancel: 'border-orangeTec/30 text-orangeTec hover:bg-orangeTec/10',
+        },
+    };
+
+    const currentTone = toneClasses[tone] ?? toneClasses.default;
+
     return (
         <Field orientation="horizontal" className={className}>
-            <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Cargando...' : submitLabel}
-            </Button>
             <Button
-                variant="outline"
-                type="button"
-                disabled={isLoading}
-                onClick={onCancel}
+                type="submit"
+                variant={submitVariant}
+                disabled={isBusy}
+                className={`${currentTone.submit} ${submitClassName}`.trim()}
             >
-                {cancelLabel}
+                {isBusy ? 'Cargando...' : submitLabel}
             </Button>
+            {showCancel && (
+                <Button
+                    variant={cancelVariant}
+                    type="button"
+                    disabled={isBusy}
+                    onClick={onCancel}
+                    className={`${currentTone.cancel} ${cancelClassName}`.trim()}
+                >
+                    {cancelLabel}
+                </Button>
+            )}
         </Field>
     );
 }

@@ -1,13 +1,13 @@
 <?php
 
-use App\Http\Controllers\Views\AdminViewsController;
+use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\DegreeController;
-use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\Views\AdminViewsController;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -32,7 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
     Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
-    Route::get('/profiles/{user}', [AdminViewsController::class, 'profilesView'])->name('profiles');
+    Route::get('/profiles/{user}', [ProfileController::class, 'show'])->name('profiles');
     Route::post('/students', [StudentController::class, 'createStudent'])->name('students');
     Route::put('/students/{student}', [StudentController::class, 'updateStudent'])->name('students.update');
     Route::delete('/students/{student}', [StudentController::class, 'deleteStudent'])->name('students.delete');
@@ -48,6 +48,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
     Route::get('/exams', [AdminViewsController::class, 'examsView'])->name('exams.index');
     Route::post('/exams', [\App\Http\Controllers\ExamController::class, 'store'])->name('exams.store');
+    Route::put('/password/{user}', [PasswordController::class, 'updatePassword'])->name('users.password.update');
+    Route::delete('/profiles/{user}', [ProfileController::class, 'delete'])->name('profiles.delete');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');
@@ -56,6 +58,4 @@ Route::get('/yochi', function () {
     return Inertia::render('Yochi');
 })->name('Yochi');
 
-
-
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

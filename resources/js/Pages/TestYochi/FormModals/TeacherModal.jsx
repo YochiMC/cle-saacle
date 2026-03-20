@@ -140,7 +140,7 @@ export default function TeacherModal({ show = false, onClose, title }) {
                         </div>
                     </FieldSet>
 
-                    <ButtonForm onCancel={onClose} disabled={processing} />
+                    <ButtonForm onCancel={onClose} isLoading={processing} tone="institutional" />
                 </FieldGroup>
             </form>
         </FormModal>
