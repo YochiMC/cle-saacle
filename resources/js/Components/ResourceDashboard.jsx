@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { useState } from "react";
+import { Head } from "@inertiajs/react";
 
-import { DataTable } from '@/Components/DataTable/DataTable';
-import DashboardHeader from '@/Components/DashboardHeader';
-import { useDynamicColumns } from '@/Hooks/useDynamicColumns';
-import { useBulkActions } from '@/Hooks/useBulkActions';
+import { DataTable } from "@/Components/DataTable/DataTable";
+import DashboardHeader from "@/Components/DashboardHeader";
+import { useDynamicColumns } from "@/Hooks/useDynamicColumns";
+import { useBulkActions } from "@/Hooks/useBulkActions";
 
 const EMPTY_DATA = [];
 
@@ -17,6 +17,10 @@ const EMPTY_DATA = [];
  * @param {string}   deleteRoute     - Ruta POST para eliminación masiva.
  * @param {object}   hiddenColumns   - Columnas ocultas por defecto.
  * @param {Function} onEditRow       - Callback opcional al pulsar Editar: (item) => void.
+ * @param {Function} onDeleteRow     - Callback opcional al pulsar Eliminar: (item) => void.
+ * @param {number|null} editingRowId - ID de la fila actualmente en edición (para edición individual).
+ * @param {Function} onSaveRow       - Callback opcional al guardar fila individual: (item) => void.
+ * @param {Function} onCancelRow     - Callback opcional al cancelar edición individual: () => void.
  * @param {string[]} editableColumns - Keys de columnas que se vuelven <input> en Modo Docente.
  */
 export default function ResourceDashboard({
@@ -32,21 +36,28 @@ export default function ResourceDashboard({
     onViewChange,
     editableColumns = [],
     restrictedColumns = [],
+    isTeacherMode = false,
+    customActions,
+    editingRowId = null,
+    onSaveRow,
+    onCancelRow,
 }) {
-    const firstView = viewOptions[0]?.value ?? '';
+    const firstView = viewOptions[0]?.value ?? "";
     const [vistaActual, setVistaActual] = useState(firstView);
 
-    // ── Feature Toggle: Modo Admin / Modo Docente ──────────────────────────
-    // El estado vive aquí (DIP: los hijos dependen de la abstracción isTeacherMode,
-    // no de un sistema de roles real que aún no existe).
-    const [isTeacherMode, setIsTeacherMode] = useState(false);
-    const handleToggleMode = () => setIsTeacherMode((prev) => !prev);
-
     const currentData = dataMap[vistaActual] || EMPTY_DATA;
-    const currentViewLabel = viewOptions.find((o) => o.value === vistaActual)?.label ?? title;
+    const currentViewLabel =
+        viewOptions.find((o) => o.value === vistaActual)?.label ?? title;
 
     // Generación reactiva de columnas — reacciona también al modo, columnas editables y restringidas
-    const columns = useDynamicColumns(currentData, onEditRow, onDeleteRow, { isTeacherMode, editableColumns, restrictedColumns });
+    const columns = useDynamicColumns(currentData, onEditRow, onDeleteRow, {
+        isTeacherMode,
+        editableColumns,
+        restrictedColumns,
+        editingRowId,
+        onSaveRow,
+        onCancelRow,
+    });
 
     // Estado y handlers de acciones masivas
     const {
@@ -66,8 +77,6 @@ export default function ResourceDashboard({
         }
     };
 
-
-
     return (
         <div className="min-h-screen py-12 bg-gray-100">
             <Head title={currentViewLabel} />
@@ -83,7 +92,7 @@ export default function ResourceDashboard({
                     onBulkCopy={handleBulkCopy}
                     onBulkDelete={handleBulkDelete}
                     isTeacherMode={isTeacherMode}
-                    onToggleMode={handleToggleMode}
+                    customActions={customActions}
                 />
 
                 <div className="p-6 overflow-hidden bg-white rounded-sm shadow-sm">
@@ -100,7 +109,8 @@ export default function ResourceDashboard({
                         />
                     ) : (
                         <div className="py-10 text-center text-slate-500">
-                            No hay registros almacenados en {currentViewLabel.toLowerCase()}.
+                            No hay registros almacenados en{" "}
+                            {currentViewLabel.toLowerCase()}.
                         </div>
                     )}
                 </div>
@@ -108,4 +118,3 @@ export default function ResourceDashboard({
         </div>
     );
 }
-
