@@ -11,7 +11,7 @@ class UpdateQualificationsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check();
+        return $this->user() && $this->user()->hasAnyRole(['admin', 'teacher']);
     }
 
     /**

@@ -11,7 +11,9 @@ class UpdateQualificationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check();
+        // Solo permitimos que pasen administradores o profesores
+        // $this->user() obtiene al usuario actualmente autenticado en Laravel
+        return $this->user() && $this->user()->hasAnyRole(['admin', 'teacher']);
     }
 
     /**
