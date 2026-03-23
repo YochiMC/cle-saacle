@@ -1,8 +1,10 @@
 import ButtonForm from '@/Components/Forms/ButtonForm';
 import InputForm from '@/Components/Forms/InputForm';
+import ModalAlert from '@/Components/ui/ModalAlert';
 import { FieldError, FieldGroup } from '@/Components/ui/field';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 /**
  * Formulario para actualizar datos básicos del usuario autenticado.
@@ -21,6 +23,12 @@ export default function UpdateProfileInformation({
     className = '',
 }) {
     const user = usePage().props.auth.user;
+    const [feedbackModal, setFeedbackModal] = useState({
+        isOpen: false,
+        type: 'info',
+        title: '',
+        message: '',
+    });
 
     const { data, setData, patch, errors, processing, recentlySuccessful } =
         useForm({
@@ -34,8 +42,36 @@ export default function UpdateProfileInformation({
     const submit = (e) => {
         e.preventDefault();
 
-        patch(route('profile.update'));
+        patch(route('profile.update'), {
+            preserveScroll: true,
+            onError: (formErrors) => {
+                const message =
+                    formErrors.name ||
+                    formErrors.email ||
+                    formErrors.email_recovery ||
+                    formErrors.phone ||
+                    'No se pudo actualizar la información de perfil.';
+
+                setFeedbackModal({
+                    isOpen: true,
+                    type: 'error',
+                    title: 'Error al guardar',
+                    message,
+                });
+            },
+        });
     };
+
+    useEffect(() => {
+        if (!recentlySuccessful) return;
+
+        setFeedbackModal({
+            isOpen: true,
+            type: 'success',
+            title: 'Perfil actualizado',
+            message: 'La información del perfil se actualizó correctamente.',
+        });
+    }, [recentlySuccessful]);
 
     return (
         <section className={className}>
@@ -86,7 +122,7 @@ export default function UpdateProfileInformation({
                             value={data.email_recovery}
                             onChange={(e) => setData('email_recovery', e.target.value)}
                             autoComplete="username"
-                            required
+                            required={false}
                         />
                         <FieldError>{errors.email_recovery}</FieldError>
                     </div>
@@ -99,7 +135,7 @@ export default function UpdateProfileInformation({
                             value={data.phone}
                             onChange={(e) => setData('phone', e.target.value)}
                             autoComplete="tel"
-                            required
+                            required={false}
                         />
                         <FieldError>{errors.phone}</FieldError>
                     </div>
@@ -151,6 +187,19 @@ export default function UpdateProfileInformation({
                     </Transition>
                 </div>
             </form>
+
+            <ModalAlert
+                isOpen={feedbackModal.isOpen}
+                onClose={() =>
+                    setFeedbackModal((prev) => ({
+                        ...prev,
+                        isOpen: false,
+                    }))
+                }
+                type={feedbackModal.type}
+                title={feedbackModal.title}
+                message={feedbackModal.message}
+            />
         </section>
     );
 }

@@ -264,6 +264,7 @@ return [
         'state' => 'estado',
         'status' => 'estado',
         'street' => 'calle',
+        'email_recovery' => 'correo alternativo',
         'type_student_id' => 'tipo de estudiante',
         'degree_id' => 'carrera',
         'level_id' => 'nivel',

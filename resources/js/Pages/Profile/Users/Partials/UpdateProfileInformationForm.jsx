@@ -36,6 +36,7 @@
 
 import {
     FieldDescription,
+    FieldError,
     FieldGroup,
     FieldLegend,
     FieldSeparator,
@@ -111,6 +112,7 @@ export default function UpdateProfileInformationForm({
                         degrees={degrees}
                         levels={levels}
                         typeStudents={typeStudents}
+                        errors={errors}
                     />
                 );
             case "teacher":
@@ -118,6 +120,7 @@ export default function UpdateProfileInformationForm({
                     <TeacherForm
                         data={data}
                         setData={setData}
+                        errors={errors}
                     />
                 );
             default:
@@ -156,6 +159,7 @@ export default function UpdateProfileInformationForm({
                                 value={data.email}
                                 onChange={(e) => setData("email", e.target.value)}
                             />
+                            <FieldError>{errors.email}</FieldError>
                             <InputForm
                                 label="Correo alternativo"
                                 inputId="profile-email-recovery"
@@ -168,6 +172,7 @@ export default function UpdateProfileInformationForm({
                                     setData("email_recovery", e.target.value)
                                 }
                             />
+                            <FieldError>{errors.email_recovery}</FieldError>
                             <InputForm
                                 label="Teléfono"
                                 inputId="profile-phone"
@@ -178,6 +183,7 @@ export default function UpdateProfileInformationForm({
                                 value={data.phone}
                                 onChange={(e) => setData("phone", e.target.value)}
                             />
+                            <FieldError>{errors.phone}</FieldError>
                         </FieldGroup>
                     </FieldSet>
 
