@@ -28,6 +28,7 @@ import { useEffect, useState } from "react";
 
 import {
     FieldDescription,
+    FieldError,
     FieldGroup,
     FieldLegend,
     FieldSet,
@@ -79,6 +80,7 @@ export default function StudentForm({
     degrees = [],
     levels = [],
     typeStudents = [],
+    errors = {},
 }) {
     const [birthDay, setBirthDay] = useState("");
     const [birthMonth, setBirthMonth] = useState("");
@@ -134,6 +136,7 @@ export default function StudentForm({
                     value={String(data.type_student_id)}
                     onValueChange={(val) => setData("type_student_id", Number(val))}
                 />
+                <FieldError>{errors.type_student_id}</FieldError>
 
                 {/* ── Nombre y apellido ── */}
                 <InputForm
@@ -143,6 +146,7 @@ export default function StudentForm({
                     value={data.first_name}
                     onChange={(e) => setData("first_name", e.target.value)}
                 />
+                <FieldError>{errors.first_name}</FieldError>
                 <InputForm
                     label="Apellidos"
                     inputId="student-last-name"
@@ -150,6 +154,7 @@ export default function StudentForm({
                     value={data.last_name}
                     onChange={(e) => setData("last_name", e.target.value)}
                 />
+                <FieldError>{errors.last_name}</FieldError>
 
                 {/* ── Número de control ── */}
                 <InputForm
@@ -160,6 +165,7 @@ export default function StudentForm({
                     value={data.num_control}
                     onChange={(e) => setData("num_control", e.target.value)}
                 />
+                <FieldError>{errors.num_control}</FieldError>
 
                 {/* ── Género ── */}
                 <SelectForm
@@ -170,6 +176,7 @@ export default function StudentForm({
                     value={data.gender}
                     onValueChange={(val) => setData("gender", val)}
                 />
+                <FieldError>{errors.gender}</FieldError>
 
                 {/* ── Fecha de nacimiento ── */}
                 <FieldLegend>Fecha de nacimiento</FieldLegend>
@@ -205,18 +212,22 @@ export default function StudentForm({
                         }}
                     />
                 </div>
+                <FieldError>{errors.birthdate}</FieldError>
 
                 {/* ── Semestre ── */}
                 {!isEgresado && (
-                    <SelectForm
-                        options={SEMESTER_OPTIONS}
-                        label="Semestre"
-                        selectId="semester"
-                        placeholder="Selecciona un semestre"
-                        description="Semestre actual del estudiante."
-                        value={String(data.semester ?? "")}
-                        onValueChange={(val) => setData("semester", val ? Number(val) : "")}
-                    />
+                    <>
+                        <SelectForm
+                            options={SEMESTER_OPTIONS}
+                            label="Semestre"
+                            selectId="semester"
+                            placeholder="Selecciona un semestre"
+                            description="Semestre actual del estudiante."
+                            value={String(data.semester ?? "")}
+                            onValueChange={(val) => setData("semester", val ? Number(val) : "")}
+                        />
+                        <FieldError>{errors.semester}</FieldError>
+                    </>
                 )}
                 {/* ── Catálogos ── */}
                 <SelectForm
@@ -227,6 +238,7 @@ export default function StudentForm({
                     value={String(data.degree_id)}
                     onValueChange={(val) => setData("degree_id", Number(val))}
                 />
+                <FieldError>{errors.degree_id}</FieldError>
                 <SelectForm
                     label="Nivel"
                     selectId="student-level"
@@ -235,6 +247,7 @@ export default function StudentForm({
                     value={String(data.level_id)}
                     onValueChange={(val) => setData("level_id", Number(val))}
                 />
+                <FieldError>{errors.level_id}</FieldError>
             </FieldGroup>
         </FieldSet>
     );

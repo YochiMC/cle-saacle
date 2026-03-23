@@ -25,7 +25,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('Profile/Edit', [
+        return Inertia::render('Profile/User/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
         ]);
@@ -44,7 +44,7 @@ class ProfileController extends Controller
             'student.typeStudent',
         ]);
 
-        return Inertia::render('Profile/Users/Profile', [
+        return Inertia::render('Profile/Users/Edit', [
             'user' => UserResource::make($user),
             'degrees' => Degree::all(['id', 'name']),
             'levels' => Level::all(['id', 'level_tecnm']),

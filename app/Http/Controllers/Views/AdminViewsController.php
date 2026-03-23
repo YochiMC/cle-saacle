@@ -122,7 +122,7 @@ class AdminViewsController extends Controller
             'student.typeStudent',
         ]);
 
-        return Inertia::render('Profile/Users/Profile', [
+        return Inertia::render('Profile/Users/Edit', [
             'user'         => UserResource::make($user),
             'degrees'      => Degree::all(['id', 'name']),
             'levels'       => Level::all(['id', 'level_tecnm']),
@@ -155,7 +155,7 @@ class AdminViewsController extends Controller
         $teachers = Teacher::all();
         $periods = Period::all();
         $students = StudentResource::collection(Student::all())->resolve();
-        
+
         return Inertia::render('Test_Vik/Examen', [
             'examenes' => $exams,
             'levels' => $levels,
@@ -163,7 +163,7 @@ class AdminViewsController extends Controller
             'periods' => $periods,
             'students' => $students
 
-            
+
         ]);
     }
 }

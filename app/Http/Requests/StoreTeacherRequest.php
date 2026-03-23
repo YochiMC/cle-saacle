@@ -22,6 +22,8 @@ class StoreTeacherRequest extends FormRequest
             'email' => [
                 'required',
                 'email',
+                'string',
+                'lowercase',
                 'max:255',
                 Rule::unique('users', 'email')->whereNull('deleted_at'),
             ],

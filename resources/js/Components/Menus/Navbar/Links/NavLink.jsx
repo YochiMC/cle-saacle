@@ -1,5 +1,17 @@
 import { Link } from '@inertiajs/react';
 
+/**
+ * Enlace reutilizable para la barra de navegacion en desktop.
+ *
+ * Props:
+ * - active: activa estilos visuales del enlace actual.
+ * - className: permite extender o sobreescribir estilos de Tailwind.
+ * - children: contenido visible del enlace.
+ * - props: resto de props compatibles con Link de Inertia.
+ *
+ * Ejemplo de uso:
+ * <NavLink href="/dashboard" active={true}>Dashboard</NavLink>
+ */
 export default function NavLink({
     active = false,
     className = '',

@@ -15,6 +15,7 @@ export default function Profile({ user, degrees, levels, typeStudents }) {
                 Perfil
             </h2>}
         >
+            <p>{user.role}</p>
             <Head title="Profile" />
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">

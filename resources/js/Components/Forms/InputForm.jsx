@@ -32,8 +32,9 @@
 
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { forwardRef } from 'react';
 
-export default function InputForm({
+const InputForm = forwardRef(function InputForm({
     label,
     inputId,
     placeholder,
@@ -45,13 +46,14 @@ export default function InputForm({
     disabled = false,
     className,
     ...props
-}) {
+}, ref) {
     return (
         <Field>
             <FieldLabel htmlFor={inputId}>
                 {label}
             </FieldLabel>
             <Input
+                ref={ref}
                 id={inputId}
                 type={type}
                 placeholder={placeholder}
@@ -67,4 +69,6 @@ export default function InputForm({
             )}
         </Field>
     );
-}
+});
+
+export default InputForm;

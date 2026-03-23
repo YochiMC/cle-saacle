@@ -1,5 +1,17 @@
 import { Link } from '@inertiajs/react';
 
+/**
+ * Enlace reutilizable para la navegacion en vista movil.
+ *
+ * Props:
+ * - active: aplica estilos del item seleccionado.
+ * - className: agrega clases de estilo complementarias.
+ * - children: texto o contenido del enlace.
+ * - props: props adicionales compatibles con Link de Inertia.
+ *
+ * Ejemplo de uso:
+ * <ResponsiveNavLink href="/groups" active={false}>Grupos</ResponsiveNavLink>
+ */
 export default function ResponsiveNavLink({
     active = false,
     className = '',
