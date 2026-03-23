@@ -6,16 +6,14 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 import ModalAlert from "@/Components/ui/ModalAlert";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 
-export default function Profile({ user, degrees, levels, typeStudents }) {
+export default function Profile({ roles, user, degrees, levels, typeStudents }) {
     const { flashModal, closeFlashModal } = useFlashAlert();
-
     return (
         <AuthenticatedLayout
             header={<h2 className="text-xl font-semibold leading-tight text-gray-800">
                 Perfil
             </h2>}
         >
-            <p>{user.role}</p>
             <Head title="Profile" />
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -26,6 +24,7 @@ export default function Profile({ user, degrees, levels, typeStudents }) {
                             degrees={degrees}
                             levels={levels}
                             typeStudents={typeStudents}
+                            roles={roles}
                             className="w-full"
                         />
                         </div>

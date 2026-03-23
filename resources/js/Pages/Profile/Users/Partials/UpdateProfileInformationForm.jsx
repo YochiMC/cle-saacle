@@ -49,6 +49,7 @@ import StudentForm from "./Forms/StudentForm";
 import TeacherForm from "./Forms/TeacherForm";
 
 export default function UpdateProfileInformationForm({
+    roles,
     user,
     degrees = [],
     levels = [],
@@ -130,6 +131,9 @@ export default function UpdateProfileInformationForm({
 
     return (
         <section className={className}>
+            {roles.map((role)=>{
+                return <p key={role.id}>{role.name}</p>
+            })}
             <form onSubmit={submit}>
                 {Object.keys(errors).length > 0 && (
                     <div className="p-4 mb-4 text-sm text-white bg-red-500 rounded-lg">

@@ -10,6 +10,7 @@ use App\Models\Degree;
 use App\Models\Level;
 use App\Models\TypeStudent;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,13 +40,13 @@ class ProfileController extends Controller
         // Cargamos las relaciones para mapear correctamente teacher/student en UserResource.
         $user->loadMissing([
             'teacher',
-            'student.roles',
             'student.degree',
             'student.level',
             'student.typeStudent',
         ]);
 
         return Inertia::render('Profile/Users/Edit', [
+            'roles' => Role::all(),
             'user' => UserResource::make($user),
             'degrees' => Degree::all(['id', 'name']),
             'levels' => Level::all(['id', 'level_tecnm']),
