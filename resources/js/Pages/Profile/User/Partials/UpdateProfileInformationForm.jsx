@@ -32,10 +32,10 @@ export default function UpdateProfileInformation({
 
     const { data, setData, patch, errors, processing, recentlySuccessful } =
         useForm({
-            name: user.name,
-            email: user.email,
-            email_recovery: user.email_recovery,
-            phone: user.phone,
+            name: user.name ?? '',
+            email: user.email ?? '',
+            email_recovery: user.email_recovery ?? '',
+            phone: user.phone ?? '',
         });
 
     // Persistencia del formulario sobre el perfil del usuario autenticado.

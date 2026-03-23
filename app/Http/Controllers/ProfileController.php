@@ -39,6 +39,7 @@ class ProfileController extends Controller
         // Cargamos las relaciones para mapear correctamente teacher/student en UserResource.
         $user->loadMissing([
             'teacher',
+            'student.roles',
             'student.degree',
             'student.level',
             'student.typeStudent',
