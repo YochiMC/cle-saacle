@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/Components/ui/button";
 import { Checkbox } from "@/Components/ui/checkbox";
 import { ThemeInput } from "@/Components/ThemeInput";
@@ -69,8 +69,13 @@ const SortIcon = ({ column }) => {
  * @param {string}        fieldKey – Clave del campo (determina tipo de input).
  * @param {Function}      onChange – Callback opcional: (fieldKey, rowId, value) => void
  */
-const EditableCell = ({ value, rowId, fieldKey, onChange }) => {
+const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange }) => {
     const inputType = resolveInputType(fieldKey);
+    const [value, setValue] = useState(initialValue);
+
+    useEffect(() => {
+        setValue(initialValue);
+    }, [initialValue]);
 
     // OCP: Nueva rama de renderizado para checkboxes (sin tocar inputs de texto/número)
     if (inputType === "checkbox") {
@@ -81,6 +86,7 @@ const EditableCell = ({ value, rowId, fieldKey, onChange }) => {
                     onCheckedChange={(checked) => {
                         // Enviamos 1 o 0 (Laravel acepta ambos boolean/tinyint idealmente)
                         const next = checked ? 1 : 0;
+                        setValue(next);
                         if (onChange) {
                             onChange(fieldKey, rowId, next);
                         } else {
@@ -103,18 +109,18 @@ const EditableCell = ({ value, rowId, fieldKey, onChange }) => {
     return (
         <ThemeInput
             type={inputType}
-            defaultValue={value ?? ""}
+            value={value ?? ""}
             aria-label={`${formatLabel(fieldKey)} — fila ${rowId}`}
             wrapperClassName="w-28"
             className="text-sm text-center"
             onChange={(e) => {
-                const next = e.target.value;
+                setValue(e.target.value);
+            }}
+            onBlur={() => {
                 if (onChange) {
-                    onChange(fieldKey, rowId, next);
+                    onChange(fieldKey, rowId, value);
                 } else {
-                    console.log(
-                        `[Modo Docente] campo="${fieldKey}" alumno_id=${rowId} valor=${next}`,
-                    );
+                    console.log(`[Modo Docente] campo="${fieldKey}" alumno_id=${rowId} valor=${value}`);
                 }
             }}
             {...extraNumericProps}
@@ -155,13 +161,15 @@ export function useDynamicColumns(
         onCancelRow,
     } = {},
 ) {
-    return useMemo(() => {
-        if (!data || data.length === 0) return [];
+    // Generar una firma de las llaves para evitar recrear columnas cuando el array `data`
+    // cambia su valor interno pero no su estructura (evita perder el foco en inputs)
+    const dataKeys = data && data.length > 0 ? Object.keys(data[0]).join(",") : "";
 
-        const allKeys = Object.keys(data[0]);
+    return useMemo(() => {
+        if (!dataKeys) return [];
+
+        const allKeys = dataKeys.split(",");
         const editableSet = new Set(editableColumns);
-        // SRP: el filtrado de privacidad ocurre en un único lugar, antes de cualquier
-        // lógica de renderizado. Las columnas restringidas nunca llegan a TanStack Table.
         const restrictedSet = new Set(isTeacherMode ? restrictedColumns : []);
         const keys = allKeys.filter((k) => !restrictedSet.has(k));
 
@@ -181,8 +189,8 @@ export function useDynamicColumns(
                 </Button>
             ),
             // ISP: la celda solo sabe si ELLA es editable, no conoce el modo global.
-            cell: ({ row, getValue }) => {
-                const cellValue = getValue();
+            cell: ({ row }) => {
+                const cellValue = row.original[key];
                 const isRowEditing = row.original.id === editingRowId;
 
                 if (
@@ -307,7 +315,7 @@ export function useDynamicColumns(
             ...(isTeacherMode ? [] : [actionsColumn]),
         ];
     }, [
-        data,
+        dataKeys,
         onEditRow,
         onDeleteRow,
         isTeacherMode,

@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/ResourceDashboard";
 import { usePermission } from "@/Utils/auth";
 import ThemeButton from "@/Components/ThemeButton";
 import { Check, X, Save, Edit3 } from "lucide-react";
+import { router } from "@inertiajs/react";
 
 /**
  * Vista de Gestión de Grupo (Dashboard).
@@ -33,6 +34,14 @@ export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
           ? enrolledStudents.data
           : [];
 
+    // Estado local para los estudiantes y sus calificaciones
+    const [localData, setLocalData] = useState(normalizedEnrolledStudents);
+
+    // Sincronizar el estado local si cambian los props desde servidor
+    useEffect(() => {
+        setLocalData(normalizedEnrolledStudents);
+    }, [enrolledStudents]);
+
     // Verificamos si el usuario actual es docente o administrador
     const canEditQualifications = hasRole("teacher") || hasRole("admin");
 
@@ -49,7 +58,21 @@ export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
 
     const handleSaveRow = (item) => {
         console.log("Guardando fila", item);
-        setEditingRowId(null);
+        const rowToSave = localData.find(row => row.id === item.id);
+        if (rowToSave && rowToSave.qualification_id) {
+            router.patch(route('qualifications.update', rowToSave.qualification_id), rowToSave, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setEditingRowId(null);
+                },
+                onError: (errors) => {
+                    console.error("Error al guardar fila:", errors);
+                }
+            });
+        } else {
+            console.warn("No se encontró el qualification_id para la fila.");
+            setEditingRowId(null);
+        }
     };
 
     const handleCancelRow = () => {
@@ -57,10 +80,25 @@ export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
     };
 
     // ── Callbacks de Edición Global ────────────────────────────────────────────────
+    const handleCellChange = (fieldKey, rowId, newValue) => {
+        setLocalData((prev) =>
+            prev.map((row) =>
+                row.id === rowId ? { ...row, [fieldKey]: newValue } : row
+            )
+        );
+    };
+
     const handleSaveGlobal = () => {
         console.log("Guardando cambios globales...");
-        // TODO: Implementar POST/PATCH al backend para todos los cambios
-        setIsEditingMode(false);
+        router.patch(route('qualifications.bulk-update'), { qualifications: localData }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsEditingMode(false);
+            },
+            onError: (errors) => {
+                console.error("Errores al guardar", errors);
+            }
+        });
     };
 
     // Lógica de Roles: Configuramos las columnas editables dinámicamente.
@@ -79,7 +117,7 @@ export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
 
     // DataMap inyecta los alumnos que ahora vienen listos desde el API Resource de Laravel
     const dataMap = {
-        alumnos: normalizedEnrolledStudents,
+        alumnos: localData,
     };
 
     return (
@@ -118,12 +156,10 @@ export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
                         restrictedColumns={restrictedColumns}
                         hiddenColumns={{ qualification_id: false }}
                         isTeacherMode={canEditQualifications && isEditingMode}
+                        onCellChange={handleCellChange}
                         editingRowId={editingRowId}
                         onEditRow={(item) => setEditingRowId(item.id)}
-                        onSaveRow={(item) => {
-                            console.log("Guardando fila", item);
-                            setEditingRowId(null);
-                        }}
+                        onSaveRow={handleSaveRow}
                         onCancelRow={() => setEditingRowId(null)}
                     />
                 </div>

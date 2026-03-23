@@ -6,6 +6,9 @@ use App\Models\Qualification;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use App\Http\Requests\UpdateQualificationsRequest;
+use App\Http\Requests\UpdateQualificationRequest;
 
 class QualificationController extends Controller
 {
@@ -38,19 +41,12 @@ class QualificationController extends Controller
     }
 
     /**
-     * Actualizar usando Route Model Binding.
+     * Actualiza una sola calificación.
      */
-    public function updateQualification(Request $request, Qualification $qualification): void
+    public function update(UpdateQualificationRequest $request, Qualification $qualification)
     {
-        $validated = $request->validate([
-            'unit_1'        => 'sometimes|numeric|min:0|max:100',
-            'unit_2'        => 'sometimes|numeric|min:0|max:100',
-            'final_average' => 'sometimes|numeric|min:0|max:100',
-            'is_approved'  => 'sometimes|boolean',
-            'is_left'      => 'sometimes|boolean',
-        ]);
-
-        $qualification->update($validated);
+        $qualification->update($request->validated());
+        return redirect()->back()->with('success', 'Calificación individual guardada exitosamente.');
     }
 
     /**
@@ -59,5 +55,26 @@ class QualificationController extends Controller
     public function deleteQualification(Qualification $qualification): void
     {
         $qualification->delete();
+    }
+
+    /**
+     * Actualiza masivamente un array de calificaciones proveniente de la vista de hoja de cálculo.
+     */
+    public function bulkUpdate(UpdateQualificationsRequest $request)
+    {
+        DB::transaction(function () use ($request) {
+            $qualifications = $request->validated('qualifications');
+            
+            foreach ($qualifications as $item) {
+                Qualification::where('id', $item['qualification_id'])->update([
+                    'unit_1' => $item['unit_1'] ?? null,
+                    'unit_2' => $item['unit_2'] ?? null,
+                    'is_approved' => $item['is_approved'] ?? false,
+                    'is_left' => $item['is_left'] ?? false,
+                ]);
+            }
+        });
+
+        return redirect()->back()->with('success', 'Calificaciones guardadas exitosamente.');
     }
 }
