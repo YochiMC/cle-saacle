@@ -122,7 +122,7 @@ class AdminViewsController extends Controller
             'student.typeStudent',
         ]);
 
-        return Inertia::render('Profile/Users/Profile', [
+        return Inertia::render('Profile/Users/Edit', [
             'user'         => UserResource::make($user),
             'degrees'      => Degree::all(['id', 'name']),
             'levels'       => Level::all(['id', 'level_tecnm']),

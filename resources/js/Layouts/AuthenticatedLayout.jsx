@@ -66,14 +66,14 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <Dropdown.Link
                                             href={route("profile.edit")}
                                         >
-                                            Profile
+                                            Perfil
                                         </Dropdown.Link>
                                         <Dropdown.Link
                                             href={route("logout")}
                                             method="post"
                                             as="button"
                                         >
-                                            Log Out
+                                            Cerrar Sesión
                                         </Dropdown.Link>
                                     </Dropdown.Content>
                                 </Dropdown>
@@ -146,7 +146,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 href={route("profile.edit")}
                                 className="text-white hover:text-orangeTec"
                             >
-                                Profile
+                                Perfil
                             </ResponsiveNavLink>
                             <ResponsiveNavLink
                                 method="post"
@@ -154,7 +154,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 as="button"
                                 className="text-white hover:text-orangeTec"
                             >
-                                Log Out
+                                Cerrar Sesión
                             </ResponsiveNavLink>
                         </div>
                     </div>
