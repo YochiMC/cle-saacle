@@ -1,6 +1,27 @@
 import { Link } from '@inertiajs/react';
 
-export default function Sidebar({ links, isOpen, onToggle }) {
+/**
+ * Sidebar lateral para escritorio y moviles.
+ *
+ * Contrato de datos esperado en links:
+ * - Forma A: { url, title, active }
+ * - Forma B: { route, label, active }
+ *
+ * Ejemplo de uso:
+ * <Sidebar
+ *   links={[{ url: '/dashboard', title: 'Dashboard', active: true }]}
+ *   isOpen={isOpen}
+ *   onToggle={setIsOpen}
+ * />
+ */
+export default function Sidebar({ links = [], isOpen, onToggle }) {
+    const normalizedLinks = links.map((link, index) => ({
+        key: link.key ?? link.route ?? link.url ?? `sidebar-link-${index}`,
+        href: link.url ?? '#',
+        title: link.title ?? link.label ?? `Enlace ${index + 1}`,
+        active: Boolean(link.active),
+    }));
+
     return (
         <>
             {/* Overlay (móviles) */}
@@ -20,10 +41,10 @@ export default function Sidebar({ links, isOpen, onToggle }) {
 
                 {/* Lista de enlaces */}
                 <ul className="flex flex-col space-y-1 mt-6 flex-grow px-3">
-                    {links.map((link, index) => (
-                        <li key={index}>
+                    {normalizedLinks.map((link) => (
+                        <li key={link.key}>
                             <Link
-                                href={link.url}
+                                href={link.href}
                                 className={`block px-4 py-3 rounded-md transition-colors duration-200 font-medium ${
                                     link.active
                                         ? 'bg-orangeTec text-white shadow-sm'
@@ -55,10 +76,10 @@ export default function Sidebar({ links, isOpen, onToggle }) {
 
                 {/* Lista de enlaces */}
                 <ul className="flex flex-col space-y-1 mt-6 flex-grow px-3">
-                    {links.map((link, index) => (
-                        <li key={index}>
+                    {normalizedLinks.map((link) => (
+                        <li key={link.key}>
                             <Link
-                                href={link.url}
+                                href={link.href}
                                 className={`block px-4 py-3 rounded-md transition-colors duration-200 font-medium ${
                                     link.active
                                         ? 'bg-orangeTec text-white shadow-sm'

@@ -1,12 +1,21 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import Dropdown from "@/Components/Dropdown";
-import NavLink from "@/Components/NavLink";
-import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
+import Navbar from "@/Components/Menus/Navbar/Navbar";
+import ResponsiveNavbar from "@/Components/Menus/Navbar/ResponsiveNavbar";
+import ResponsiveNavLink from "@/Components/Menus/Navbar/Links/ResponsiveNavLink";
 import { Link, usePage } from "@inertiajs/react";
 import { useState } from "react";
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+
+    const links = [
+        { route: "dashboard", label: "Dashboard" },
+        { route: "users", label: "Usuarios" },
+        { route: "groups", label: "Grupos" },
+        { route: "reports", label: "Reportes" },
+        { route: "exams.index", label: "Exámenes"}
+    ];
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
@@ -24,45 +33,8 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </Link>
                             </div>
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route("dashboard")}
-                                    active={route().current("dashboard")}
-                                    className="text-white hover:text-orangeTec"
-                                >
-                                    Dashboard
-                                </NavLink>
-                                <NavLink
-                                    href={route("users")}
-                                    active={route().current("users")}
-                                    className="text-white hover:text-orangeTec"
-                                >
-                                    Usuarios
-                                </NavLink>
-                                <NavLink
-                                    href={route("groups")}
-                                    active={route().current("groups")}
-                                    className="text-white hover:text-orangeTec"
-                                >
-                                    Grupos
-                                </NavLink>
-                                <NavLink
-                                    href={route("reports")}
-                                    active={route().current("reports")}
-                                    className="text-white hover:text-orangeTec"
-                                >
-                                    Reportes
-                                </NavLink>
-                                <NavLink
-                                    href={route("exams.index")}
-                                    active={route().current("exams.index")}
-                                    className="text-white hover:text-orangeTec"
-                                >
-                                    Examen 4H
-                                </NavLink>
-                            </div>
                         </div>
-
+                        <Navbar links={links} />
                         <div className="hidden sm:ms-6 sm:flex sm:items-center">
                             <div className="relative ms-3">
                                 <Dropdown>
@@ -157,15 +129,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         " sm:hidden"
                     }
                 >
-                    <div className="space-y-1 bg-blueTec/80 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route("dashboard")}
-                            active={route().current("dashboard")}
-                            className="text-white hover:text-orangeTec"
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
-                    </div>
+                    <ResponsiveNavbar links={links} />
 
                     <div className="border-t border-blueTec/30 bg-blueTec/80 pb-1 pt-4">
                         <div className="px-4">
