@@ -2,7 +2,15 @@ import { useMemo } from "react";
 import { Button } from "@/Components/ui/button";
 import { Checkbox } from "@/Components/ui/checkbox";
 import { ThemeInput } from "@/Components/ThemeInput";
-import { Edit, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import {
+    Edit,
+    Trash2,
+    ArrowUp,
+    ArrowDown,
+    ArrowUpDown,
+    Check,
+    X,
+} from "lucide-react";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -21,9 +29,20 @@ const renderCellValue = (value) => {
 /** Devuelve el tipo de <input> adecuado basándose en el nombre del campo. */
 const resolveInputType = (fieldKey) => {
     const lower = fieldKey.toLowerCase();
+
+    // Extensión para valores booleanos (OCP)
+    if (
+        lower.startsWith("is_") ||
+        lower.includes("aprobado") ||
+        lower.includes("activo") ||
+        lower.includes("left")
+    )
+        return "checkbox";
+
     if (lower.includes("name") || lower.includes("nombre")) return "text";
     if (lower.includes("email") || lower.includes("correo")) return "email";
     if (lower.includes("date") || lower.includes("fecha")) return "date";
+
     return "number"; // Default: calificación numérica
 };
 
@@ -52,6 +71,31 @@ const SortIcon = ({ column }) => {
  */
 const EditableCell = ({ value, rowId, fieldKey, onChange }) => {
     const inputType = resolveInputType(fieldKey);
+
+    // OCP: Nueva rama de renderizado para checkboxes (sin tocar inputs de texto/número)
+    if (inputType === "checkbox") {
+        return (
+            <div className="flex justify-center w-full">
+                <Checkbox
+                    checked={!!value}
+                    onCheckedChange={(checked) => {
+                        // Enviamos 1 o 0 (Laravel acepta ambos boolean/tinyint idealmente)
+                        const next = checked ? 1 : 0;
+                        if (onChange) {
+                            onChange(fieldKey, rowId, next);
+                        } else {
+                            console.log(
+                                `[Modo Docente] campo="${fieldKey}" alumno_id=${rowId} valor=${next}`,
+                            );
+                        }
+                    }}
+                    aria-label={`${formatLabel(fieldKey)} — fila ${rowId}`}
+                    // Consistencia UI usando las clases base en tu sistema (asumiendo que Checkbox las maneje. Puedes ajustar colores)
+                    className="border-gray-500 data-[state=checked]:bg-[#17365D]"
+                />
+            </div>
+        );
+    }
 
     const extraNumericProps =
         inputType === "number" ? { min: 0, max: 100, step: 0.1 } : {};
@@ -106,6 +150,9 @@ export function useDynamicColumns(
         editableColumns = [],
         restrictedColumns = [],
         onCellChange,
+        editingRowId = null,
+        onSaveRow,
+        onCancelRow,
     } = {},
 ) {
     return useMemo(() => {
@@ -136,8 +183,12 @@ export function useDynamicColumns(
             // ISP: la celda solo sabe si ELLA es editable, no conoce el modo global.
             cell: ({ row, getValue }) => {
                 const cellValue = getValue();
+                const isRowEditing = row.original.id === editingRowId;
 
-                if (isTeacherMode && editableSet.has(key)) {
+                if (
+                    (isTeacherMode && editableSet.has(key)) ||
+                    (isRowEditing && editableSet.has(key))
+                ) {
                     return (
                         <EditableCell
                             value={cellValue}
@@ -185,17 +236,58 @@ export function useDynamicColumns(
                 const item = row.original;
                 const itemName =
                     item.name || item.nombre || item.matricula || item.id;
+                const isRowEditing = item.id === editingRowId;
+
+                // Si esta fila está en edición, mostrar botones de Guardar/Cancelar
+                if (isRowEditing) {
+                    return (
+                        <div className="flex items-center justify-center gap-2">
+                            <Button
+                                onClick={() =>
+                                    onSaveRow
+                                        ? onSaveRow(item)
+                                        : alert(`Guardar: ${itemName}`)
+                                }
+                                className="w-8 h-8 p-0 text-white bg-green-600 rounded-md hover:bg-green-700"
+                                title="Guardar"
+                            >
+                                <Check className="w-4 h-4" />
+                            </Button>
+                            <Button
+                                onClick={() =>
+                                    onCancelRow
+                                        ? onCancelRow()
+                                        : alert(`Cancelar edición`)
+                                }
+                                className="w-8 h-8 p-0 text-white bg-gray-500 rounded-md hover:bg-gray-600"
+                                title="Cancelar"
+                            >
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    );
+                }
+
+                // Botones normales de Editar y Eliminar
                 return (
                     <div className="flex items-center justify-center gap-2">
                         <Button
-                            onClick={() => (onEditRow ? onEditRow(item) : alert(`Editar: ${itemName}`))}
+                            onClick={() =>
+                                onEditRow
+                                    ? onEditRow(item)
+                                    : alert(`Editar: ${itemName}`)
+                            }
                             className="w-8 h-8 p-0 text-white bg-orange-500 rounded-md hover:bg-orange-600"
                             title="Editar"
                         >
                             <Edit className="w-4 h-4" />
                         </Button>
                         <Button
-                            onClick={() => (onDeleteRow ? onDeleteRow(item) : alert(`Eliminar: ${itemName}`))}
+                            onClick={() =>
+                                onDeleteRow
+                                    ? onDeleteRow(item)
+                                    : alert(`Eliminar: ${itemName}`)
+                            }
                             className="w-8 h-8 p-0 text-white bg-red-600 rounded-md hover:bg-red-700"
                             title="Eliminar"
                         >
@@ -217,9 +309,13 @@ export function useDynamicColumns(
     }, [
         data,
         onEditRow,
+        onDeleteRow,
         isTeacherMode,
         editableColumns,
         restrictedColumns,
         onCellChange,
+        editingRowId,
+        onSaveRow,
+        onCancelRow,
     ]);
 }

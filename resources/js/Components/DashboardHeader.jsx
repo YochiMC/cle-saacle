@@ -5,8 +5,7 @@ import { Copy, Trash2 } from 'lucide-react';
  * DashboardHeader
  *
  * Renderiza la cabecera institucional: título con barra naranja, selector de
- * vistas, **toggle de modo (Admin / Docente)** y —cuando hay filas
- * seleccionadas— la barra de acciones masivas.
+ * vistas y —cuando hay filas seleccionadas— la barra de acciones masivas.
  *
  * @param {string}   title              - Título de la pantalla.
  * @param {string}   currentViewLabel   - Etiqueta de la vista activa.
@@ -17,7 +16,6 @@ import { Copy, Trash2 } from 'lucide-react';
  * @param {Function} onBulkCopy         - Handler para copiar a Excel.
  * @param {Function} onBulkDelete       - Handler para eliminar seleccionados.
  * @param {boolean}  isTeacherMode      - true = Modo Docente activo.
- * @param {Function} onToggleMode       - () => void — alterna el modo.
  */
 export default function DashboardHeader({
     title,
@@ -29,7 +27,7 @@ export default function DashboardHeader({
     onBulkCopy,
     onBulkDelete,
     isTeacherMode = false,
-    onToggleMode,
+    customActions,
 }) {
     return (
         <div className="mb-8">
@@ -72,6 +70,8 @@ export default function DashboardHeader({
                     )}
                 </div>
             </div>
+
+            {customActions && <div className="flex items-center gap-2">{customActions}</div>}
 
             {/* Barra de acciones masivas */}
             {selectionCount > 0 && (

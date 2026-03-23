@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/ResourceDashboard";
 import { usePermission } from "@/Utils/auth";
+import ThemeButton from "@/Components/ThemeButton";
+import { Check, X, Save, Edit3 } from "lucide-react";
 
 /**
  * Vista de Gestión de Grupo (Dashboard).
@@ -10,6 +12,10 @@ import { usePermission } from "@/Utils/auth";
  * - La transformación y aplanado de datos ('flattening') ahora se maneja
  *   desde Laravel a través del StudentQualificationResource, siguiendo
  *   el Principio de Responsabilidad Única (SRP). El frontend solo renderiza.
+ *
+ * - Edición Individual: Cada fila tiene botones Editar/Eliminar. Al pulsar Editar,
+ *   esa fila se vuelve editable en línea, y sus botones cambian a Guardar/Cancelar.
+ *   Esta arquitectura separa la edición individual de la global (OCP).
  *
  * @param {Object} props
  * @param {Object} props.auth - Objeto de autenticación de Inertia.
@@ -30,6 +36,44 @@ export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
     // Verificamos si el usuario actual es docente o administrador
     const canEditQualifications = hasRole("teacher") || hasRole("admin");
 
+    // ── Estados de Edición ──────────────────────────────────────────────────────────
+    // Estado para edición individual: rastrea qué fila está siendo editada
+    const [editingRowId, setEditingRowId] = useState(null);
+    // Estado para edición global: indica si estamos en modo "Capturar Calificaciones"
+    const [isEditingMode, setIsEditingMode] = useState(false);
+
+    // ── Callbacks de Edición Individual ────────────────────────────────────────────
+    const handleEditRow = (item) => {
+        setEditingRowId(item.id);
+    };
+
+    const handleSaveRow = (item) => {
+        console.log("Guardando fila", item);
+        setEditingRowId(null);
+    };
+
+    const handleCancelRow = () => {
+        setEditingRowId(null);
+    };
+
+    // ── Callbacks de Edición Global ────────────────────────────────────────────────
+    const handleSaveGlobal = () => {
+        console.log("Guardando cambios globales...");
+        // TODO: Implementar POST/PATCH al backend para todos los cambios
+        setIsEditingMode(false);
+    };
+
+    // Lógica de Roles: Configuramos las columnas editables dinámicamente.
+    // Usamos EXACTAMENTE las keys devueltas por el StudentQualificationResource.
+    // Cuando una fila está en edición, todas sus columnas configuradas aquí se vuelven editables.
+    const editableColumns = canEditQualifications
+        ? ["unit_1", "unit_2", "is_approved", "is_left"]
+        : [];
+
+    // Definimos las columnas que NO deseamos que se rendericen en TanStack Table durante modo lectura.
+    // Usamos EXACTAMENTE las keys del recurso
+    const restrictedColumns = [];
+
     // Formateamos las opciones de vista para el ResourceDashboard
     const viewOptions = [{ value: "alumnos", label: "Alumnos Inscritos" }];
 
@@ -37,22 +81,6 @@ export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
     const dataMap = {
         alumnos: normalizedEnrolledStudents,
     };
-
-    // Lógica de Roles: Configuramos las columnas editables dinámicamente.
-    // Usamos EXACTAMENTE las keys devueltas por el StudentQualificationResource
-    const editableColumns = canEditQualifications
-        ? ["unit_1", "unit_2", "is_approved", "is_left"]
-        : [];
-
-    // Definimos las columnas que NO deseamos que se rendericen en TanStack Table durante modo lectura.
-    // Usamos EXACTAMENTE las keys del recurso
-    const restrictedColumns = [
-        "matricula",
-        "full_name",
-        "final_average",
-        "semester",
-        "gender",
-    ];
 
     return (
         <AuthenticatedLayout
@@ -63,19 +91,65 @@ export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
                 </h2>
             }
         >
-            <div className="py-12">
+            <div className="py-12 pb-32">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    {/* ── Barra Superior: Botón "Capturar Calificaciones" ──────────────────── */}
+                    {canEditQualifications && (
+                        <div className="flex justify-end mb-4">
+                            {!isEditingMode ? (
+                                <ThemeButton
+                                    theme="primary"
+                                    icon={Edit3}
+                                    onClick={() => setIsEditingMode(true)}
+                                >
+                                    Capturar Calificaciones
+                                </ThemeButton>
+                            ) : null}
+                        </div>
+                    )}
+
+                    {/* ── Dashboard Principal ────────────────────────────────────────────── */}
                     <ResourceDashboard
                         title={`Calificaciones del Grupo: ${grupo?.name || "N/A"}`}
                         dataMap={dataMap}
                         viewOptions={viewOptions}
                         deleteRoute={route("groups.bulk-delete")}
-                        editableColumns={["unit_1", "unit_2"]}
+                        editableColumns={editableColumns}
                         restrictedColumns={restrictedColumns}
                         hiddenColumns={{ qualification_id: false }}
+                        isTeacherMode={canEditQualifications && isEditingMode}
+                        editingRowId={editingRowId}
+                        onEditRow={(item) => setEditingRowId(item.id)}
+                        onSaveRow={(item) => {
+                            console.log("Guardando fila", item);
+                            setEditingRowId(null);
+                        }}
+                        onCancelRow={() => setEditingRowId(null)}
                     />
                 </div>
             </div>
+
+            {/* ── Barra Inferior: Panel de Guardado Global ──────────────────────────── */}
+            {isEditingMode && canEditQualifications && (
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-6">
+                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 flex justify-end gap-4">
+                        <ThemeButton
+                            theme="outline"
+                            icon={X}
+                            onClick={() => setIsEditingMode(false)}
+                        >
+                            Cancelar
+                        </ThemeButton>
+                        <ThemeButton
+                            theme="success"
+                            icon={Save}
+                            onClick={handleSaveGlobal}
+                        >
+                            Guardar Cambios
+                        </ThemeButton>
+                    </div>
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }
