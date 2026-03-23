@@ -26,7 +26,7 @@ export default function UpdateProfileInformation({
         useForm({
             name: user.name,
             email: user.email,
-            email_alternative: user.email_recovery,
+            email_recovery: user.email_recovery,
             phone: user.phone,
         });
 
@@ -81,14 +81,14 @@ export default function UpdateProfileInformation({
                     <div>
                         <InputForm
                             label="Correo alternativo"
-                            inputId="email_alternative"
+                            inputId="email_recovery"
                             type="email"
-                            value={data.email_alternative}
-                            onChange={(e) => setData('email_alternative', e.target.value)}
+                            value={data.email_recovery}
+                            onChange={(e) => setData('email_recovery', e.target.value)}
                             autoComplete="username"
                             required
                         />
-                        <FieldError>{errors.email_alternative}</FieldError>
+                        <FieldError>{errors.email_recovery}</FieldError>
                     </div>
 
                     <div>

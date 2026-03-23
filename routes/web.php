@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\Views\AdminViewsController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -50,6 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/exams', [\App\Http\Controllers\ExamController::class, 'store'])->name('exams.store');
     Route::put('/password/{user}', [PasswordController::class, 'updatePassword'])->name('users.password.update');
     Route::delete('/profiles/{user}', [ProfileController::class, 'delete'])->name('profiles.delete');
+    Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');

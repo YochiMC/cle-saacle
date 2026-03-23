@@ -25,6 +25,15 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'email_recovery' => [
+                'nullable',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique(User::class, 'email_recovery')->ignore($this->user()->id),
+            ],
+            'phone' => ['nullable', 'string', 'max:20'],
         ];
     }
 }
