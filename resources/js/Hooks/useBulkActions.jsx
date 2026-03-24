@@ -21,6 +21,7 @@ import { router } from "@inertiajs/react";
 export function useBulkActions(deleteRoute, vistaActual) {
     const [filasSeleccionadas, setFilasSeleccionadas] = useState([]);
     const [columnasVisibles, setColumnasVisibles] = useState([]);
+    const [isConfirmingBulkDelete, setIsConfirmingBulkDelete] = useState(false);
 
     /** Recibe los datos del callback onSelectionChange de <DataTable />. */
     const handleSelectionChange = useCallback((datos, columnas) => {
@@ -51,26 +52,29 @@ export function useBulkActions(deleteRoute, vistaActual) {
         alert("Copiado al portapapeles (solo columnas visibles)");
     }, [filasSeleccionadas, columnasVisibles]);
 
-    /** Envía los IDs seleccionados al servidor para eliminación masiva. */
     const handleBulkDelete = useCallback(() => {
         if (filasSeleccionadas.length === 0) return;
         if (!deleteRoute) {
-            alert(
-                "No se configuró una ruta de eliminación masiva para esta vista.",
-            );
+            console.error("No se configuró una ruta de eliminación masiva para esta vista.");
             return;
         }
-        if (
-            confirm(
-                `¿Estás seguro de eliminar ${filasSeleccionadas.length} registros?`,
-            )
-        ) {
-            const ids = filasSeleccionadas.map(
-                (row) => row.id || row.matricula,
-            );
-            router.post(deleteRoute, { ids, tipo: vistaActual });
-        }
-    }, [filasSeleccionadas, deleteRoute, vistaActual]);
+        setIsConfirmingBulkDelete(true);
+    }, [filasSeleccionadas, deleteRoute]);
+
+    const executeBulkDelete = useCallback(() => {
+        const ids = filasSeleccionadas.map((row) => row.id || row.matricula);
+        router.post(
+            deleteRoute,
+            { ids, tipo: vistaActual },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    resetSelection();
+                    setIsConfirmingBulkDelete(false);
+                },
+            }
+        );
+    }, [filasSeleccionadas, deleteRoute, vistaActual, resetSelection]);
 
     return {
         filasSeleccionadas,
@@ -79,5 +83,8 @@ export function useBulkActions(deleteRoute, vistaActual) {
         handleBulkCopy,
         handleBulkDelete,
         resetSelection,
+        isConfirmingBulkDelete,
+        setIsConfirmingBulkDelete,
+        executeBulkDelete,
     };
 }

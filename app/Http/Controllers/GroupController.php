@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Group;
+use App\Models\Qualification;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
 use App\Http\Requests\BulkDeleteGroupsRequest;
 use App\Http\Requests\BulkUpdateGroupStatusRequest;
+use App\Http\Requests\EnrollStudentsRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Http\Resources\StudentQualificationResource;
@@ -109,10 +112,68 @@ class GroupController extends Controller
             return new StudentQualificationResource($student);
         });
 
+        // Alumnos disponibles para inscripción
+        $enrolledIds = $group->qualifications()->pluck('student_id');
+        $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
+            ->select('id', 'first_name', 'last_name', 'num_control')
+            ->get();
+
         // 3. Retornamos la vista enviando los datos limpios
         return Inertia::render('Test_MK2/GroupView', [
-            'grupo' => $group,
-            'enrolledStudents' => $enrolledStudents
+            'grupo'             => $group,
+            'enrolledStudents'  => $enrolledStudents,
+            'availableStudents' => $availableStudents,
         ]);
+    }
+
+    /**
+     * Inscribe alumnos al grupo.
+     */
+    public function enroll(EnrollStudentsRequest $request, Group $group): RedirectResponse
+    {
+        DB::transaction(function () use ($request, $group) {
+            foreach ($request->validated('student_ids') as $studentId) {
+                Qualification::create([
+                    'group_id' => $group->id,
+                    'student_id' => $studentId,
+                    'unit_1' => 0,
+                    'unit_2' => 0,
+                    'final_average' => 0,
+                    'is_approved' => false,
+                    'is_left' => false,
+                ]);
+            }
+        });
+
+        return redirect()->back()->with('success', 'Alumnos inscritos correctamente.');
+    }
+
+    /**
+     * Da de baja a un solo alumno del grupo.
+     */
+    public function unenroll(\App\Models\Group $group, \App\Models\Student $student): \Illuminate\Http\RedirectResponse
+    {
+        \App\Models\Qualification::where('group_id', $group->id)
+            ->where('student_id', $student->id)
+            ->delete();
+
+        return redirect()->back()->with('success', 'Alumno dado de baja del grupo.');
+    }
+
+    /**
+     * Da de baja a múltiples alumnos del grupo.
+     */
+    public function bulkUnenroll(\Illuminate\Http\Request $request, \App\Models\Group $group): \Illuminate\Http\RedirectResponse
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:students,id'
+        ]);
+
+        \App\Models\Qualification::where('group_id', $group->id)
+            ->whereIn('student_id', $request->ids)
+            ->delete();
+
+        return redirect()->back()->with('success', 'Alumnos seleccionados dados de baja.');
     }
 }

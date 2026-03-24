@@ -8,7 +8,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\UpdateQualificationsRequest;
-use App\Http\Requests\UpdateQualificationRequest;
 
 class QualificationController extends Controller
 {
@@ -43,9 +42,15 @@ class QualificationController extends Controller
     /**
      * Actualiza una sola calificación.
      */
-    public function update(UpdateQualificationRequest $request, Qualification $qualification)
+    public function update(Request $request, Qualification $qualification)
     {
-        $qualification->update($request->validated());
+        $qualification->update([
+            'unit_1' => $request->input('unit_1'),
+            'unit_2' => $request->input('unit_2'),
+            'is_approved' => $request->boolean('is_approved'),
+            'is_left' => $request->boolean('is_left'),
+        ]);
+
         return redirect()->back()->with('success', 'Calificación individual guardada exitosamente.');
     }
 

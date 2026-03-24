@@ -13,6 +13,7 @@ class Qualification extends Model
     protected $fillable = [
         'unit_1',
         'unit_2',
+        'final_average',
         'is_approved',
         'is_left',
         'student_id',

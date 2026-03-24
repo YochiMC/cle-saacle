@@ -5,6 +5,10 @@ import { usePermission } from "@/Utils/auth";
 import ThemeButton from "@/Components/ThemeButton";
 import { Check, X, Save, Edit3 } from "lucide-react";
 import { router } from "@inertiajs/react";
+import EnrollStudentModal from "@/Pages/Test_MK2/FormModals/EnrollStudentModal";
+import ConfirmModal from '@/Components/ConfirmModal';
+import ModalAlert from "@/Components/ui/ModalAlert";
+import useFlashAlert from "@/Hooks/useFlashAlert";
 
 /**
  * Vista de Gestión de Grupo (Dashboard).
@@ -23,7 +27,12 @@ import { router } from "@inertiajs/react";
  * @param {Object} props.grupo - El objeto del grupo cargado.
  * @param {Array} props.enrolledStudents - Colección serializada de alumnos listos para la tabla.
  */
-export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
+export default function GroupView({
+    auth,
+    grupo,
+    enrolledStudents = [],
+    availableStudents = [],
+}) {
     // Utilizamos el Custom Hook para el manejo de roles
     const { hasRole } = usePermission();
 
@@ -50,6 +59,12 @@ export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
     const [editingRowId, setEditingRowId] = useState(null);
     // Estado para edición global: indica si estamos en modo "Capturar Calificaciones"
     const [isEditingMode, setIsEditingMode] = useState(false);
+    // Control del modal de inscripción
+    const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
+    // Control de advertencia para baja individual
+    const [itemToDelete, setItemToDelete] = useState(null);
+    // Alertas globales flash
+    const { flashModal, closeFlashModal } = useFlashAlert();
 
     // ── Callbacks de Edición Individual ────────────────────────────────────────────
     const handleEditRow = (item) => {
@@ -58,17 +73,21 @@ export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
 
     const handleSaveRow = (item) => {
         console.log("Guardando fila", item);
-        const rowToSave = localData.find(row => row.id === item.id);
+        const rowToSave = localData.find((row) => row.id === item.id);
         if (rowToSave && rowToSave.qualification_id) {
-            router.patch(route('qualifications.update', rowToSave.qualification_id), rowToSave, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setEditingRowId(null);
+            router.patch(
+                route("qualifications.update", rowToSave.qualification_id),
+                rowToSave,
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setEditingRowId(null);
+                    },
+                    onError: (errors) => {
+                        console.error("Error al guardar fila:", errors);
+                    },
                 },
-                onError: (errors) => {
-                    console.error("Error al guardar fila:", errors);
-                }
-            });
+            );
         } else {
             console.warn("No se encontró el qualification_id para la fila.");
             setEditingRowId(null);
@@ -79,26 +98,53 @@ export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
         setEditingRowId(null);
     };
 
+    const handleDeleteRow = (item) => {
+        setItemToDelete(item);
+    };
+
+    const confirmDelete = () => {
+        if (!itemToDelete) return;
+        router.delete(route('groups.unenroll', [grupo.id, itemToDelete.id]), {
+            preserveScroll: true,
+            onSuccess: () => setItemToDelete(null)
+        });
+    };
+
     // ── Callbacks de Edición Global ────────────────────────────────────────────────
     const handleCellChange = (fieldKey, rowId, newValue) => {
         setLocalData((prev) =>
             prev.map((row) =>
-                row.id === rowId ? { ...row, [fieldKey]: newValue } : row
-            )
+                row.id === rowId ? { ...row, [fieldKey]: newValue } : row,
+            ),
         );
     };
 
     const handleSaveGlobal = () => {
         console.log("Guardando cambios globales...");
-        router.patch(route('qualifications.bulk-update'), { qualifications: localData }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setIsEditingMode(false);
+        router.patch(
+            route("qualifications.bulk-update"),
+            { qualifications: localData },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsEditingMode(false);
+                },
+                onError: (errors) => {
+                    console.error("Errores al guardar", errors);
+                },
             },
-            onError: (errors) => {
-                console.error("Errores al guardar", errors);
-            }
-        });
+        );
+    };
+
+    const handleEnroll = (selectedIds) => {
+        router.post(
+            route("groups.enroll", grupo.id),
+            { student_ids: selectedIds },
+            {
+                preserveScroll: true,
+                onSuccess: () => setIsEnrollModalOpen(false),
+            },
+        );
     };
 
     // Lógica de Roles: Configuramos las columnas editables dinámicamente.
@@ -121,71 +167,106 @@ export default function GroupView({ auth, grupo, enrolledStudents = [] }) {
     };
 
     return (
-        <AuthenticatedLayout
-            user={auth?.user}
-            header={
-                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                    Gestión de Grupo: {grupo?.name || "N/A"}
-                </h2>
-            }
-        >
-            <div className="py-12 pb-32">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* ── Barra Superior: Botón "Capturar Calificaciones" ──────────────────── */}
-                    {canEditQualifications && (
-                        <div className="flex justify-end mb-4">
-                            {!isEditingMode ? (
-                                <ThemeButton
-                                    theme="primary"
-                                    icon={Edit3}
-                                    onClick={() => setIsEditingMode(true)}
-                                >
-                                    Capturar Calificaciones
-                                </ThemeButton>
-                            ) : null}
-                        </div>
-                    )}
+        <>
+            <AuthenticatedLayout
+                user={auth?.user}
+                header={
+                    <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+                        Gestión de Grupo: {grupo?.name || "N/A"}
+                    </h2>
+                }
+            >
+                <div className="py-12 pb-32">
+                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                        {/* ── Barra Superior: Botón "Capturar Calificaciones" ──────────────────── */}
+                        {canEditQualifications && (
+                            <div className="flex justify-end mb-4">
+                                {!isEditingMode ? (
+                                    <ThemeButton
+                                        theme="primary"
+                                        icon={Edit3}
+                                        onClick={() => setIsEditingMode(true)}
+                                    >
+                                        Capturar Calificaciones
+                                    </ThemeButton>
+                                ) : null}
+                            </div>
+                        )}
 
-                    {/* ── Dashboard Principal ────────────────────────────────────────────── */}
-                    <ResourceDashboard
-                        title={`Calificaciones del Grupo: ${grupo?.name || "N/A"}`}
-                        dataMap={dataMap}
-                        viewOptions={viewOptions}
-                        deleteRoute={route("groups.bulk-delete")}
-                        editableColumns={editableColumns}
-                        restrictedColumns={restrictedColumns}
-                        hiddenColumns={{ qualification_id: false }}
-                        isTeacherMode={canEditQualifications && isEditingMode}
-                        onCellChange={handleCellChange}
-                        editingRowId={editingRowId}
-                        onEditRow={(item) => setEditingRowId(item.id)}
-                        onSaveRow={handleSaveRow}
-                        onCancelRow={() => setEditingRowId(null)}
-                    />
-                </div>
-            </div>
-
-            {/* ── Barra Inferior: Panel de Guardado Global ──────────────────────────── */}
-            {isEditingMode && canEditQualifications && (
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-6">
-                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 flex justify-end gap-4">
-                        <ThemeButton
-                            theme="outline"
-                            icon={X}
-                            onClick={() => setIsEditingMode(false)}
-                        >
-                            Cancelar
-                        </ThemeButton>
-                        <ThemeButton
-                            theme="success"
-                            icon={Save}
-                            onClick={handleSaveGlobal}
-                        >
-                            Guardar Cambios
-                        </ThemeButton>
+                        {/* ── Dashboard Principal ────────────────────────────────────────────── */}
+                        <ResourceDashboard
+                            title={`Calificaciones del Grupo: ${grupo?.name || "N/A"}`}
+                            dataMap={dataMap}
+                            viewOptions={viewOptions}
+                            deleteRoute={route('groups.unenroll-bulk', grupo.id)}
+                            onDeleteRow={handleDeleteRow}
+                            editableColumns={editableColumns}
+                            restrictedColumns={restrictedColumns}
+                            hiddenColumns={{ qualification_id: false }}
+                            isTeacherMode={
+                                canEditQualifications && isEditingMode
+                            }
+                            onCellChange={handleCellChange}
+                            editingRowId={editingRowId}
+                            onEditRow={(item) => setEditingRowId(item.id)}
+                            onSaveRow={handleSaveRow}
+                            onCancelRow={() => setEditingRowId(null)}
+                            onNew={
+                                canEditQualifications
+                                    ? () => setIsEnrollModalOpen(true)
+                                    : undefined
+                            }
+                        />
                     </div>
                 </div>
-            )}
-        </AuthenticatedLayout>
+
+                {/* ── Barra Inferior: Panel de Guardado Global ──────────────────────────── */}
+                {isEditingMode && canEditQualifications && (
+                    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-6">
+                        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 flex justify-end gap-4">
+                            <ThemeButton
+                                theme="outline"
+                                icon={X}
+                                onClick={() => setIsEditingMode(false)}
+                            >
+                                Cancelar
+                            </ThemeButton>
+                            <ThemeButton
+                                theme="success"
+                                icon={Save}
+                                onClick={handleSaveGlobal}
+                            >
+                                Guardar Cambios
+                            </ThemeButton>
+                        </div>
+                    </div>
+                )}
+            </AuthenticatedLayout>
+
+            <EnrollStudentModal
+                show={isEnrollModalOpen}
+                onClose={() => setIsEnrollModalOpen(false)}
+                availableStudents={availableStudents}
+                onEnroll={handleEnroll}
+            />
+
+            <ConfirmModal
+                isOpen={itemToDelete !== null}
+                onClose={() => setItemToDelete(null)}
+                onConfirm={confirmDelete}
+                title="Dar de baja alumno"
+                message={`¿Estás seguro de que deseas dar de baja a ${itemToDelete?.full_name || 'este alumno'} del grupo?`}
+                confirmText="Sí, dar de baja"
+                variant="warning"
+            />
+
+            <ModalAlert
+                isOpen={flashModal.isOpen}
+                onClose={closeFlashModal}
+                type={flashModal.type}
+                title={flashModal.title}
+                message={flashModal.message}
+            />
+        </>
     );
 }

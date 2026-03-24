@@ -5,6 +5,7 @@ import { DataTable } from "@/Components/DataTable/DataTable";
 import DashboardHeader from "@/Components/DashboardHeader";
 import { useDynamicColumns } from "@/Hooks/useDynamicColumns";
 import { useBulkActions } from "@/Hooks/useBulkActions";
+import ConfirmModal from '@/Components/ConfirmModal';
 
 const EMPTY_DATA = [];
 
@@ -68,6 +69,9 @@ export default function ResourceDashboard({
         handleBulkCopy,
         handleBulkDelete,
         resetSelection,
+        isConfirmingBulkDelete, 
+        setIsConfirmingBulkDelete, 
+        executeBulkDelete 
     } = useBulkActions(deleteRoute, vistaActual);
 
     const handleViewChange = (newView) => {
@@ -100,6 +104,7 @@ export default function ResourceDashboard({
                 <div className="p-6 overflow-hidden bg-white rounded-sm shadow-sm">
                     {currentData.length > 0 ? (
                         <DataTable
+                            key={`table-${vistaActual}-${currentData.length}`}
                             columns={columns}
                             data={currentData}
                             hiddenColumns={hiddenColumns}
@@ -117,6 +122,16 @@ export default function ResourceDashboard({
                     )}
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={isConfirmingBulkDelete}
+                onClose={() => setIsConfirmingBulkDelete(false)}
+                onConfirm={executeBulkDelete}
+                title="Baja Masiva"
+                message={`¿Estás seguro de que deseas dar de baja a los ${filasSeleccionadas.length} alumnos seleccionados del grupo? Esta acción puede deshacerse volviendo a inscribirlos.`}
+                confirmText="Sí, dar de baja"
+                variant="warning"
+            />
         </div>
     );
 }
