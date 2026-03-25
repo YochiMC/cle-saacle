@@ -156,6 +156,7 @@ export default function TeacherForm({ data, setData, errors = {} }) {
                     onCheckedChange={(checked) =>
                         setData("is_native", Boolean(checked))
                     }
+                    tone='institutional'
                 />
 
                 <FieldLegend>Datos de Pago</FieldLegend>

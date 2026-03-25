@@ -3,8 +3,8 @@
  *
  * Modal de registro para docentes. Contiene un formulario organizado en tres
  * secciones: Información Personal, Perfil Académico y Laboral, e Información
- * de Pago. Transforma los datos antes de enviarlos (booleano is_native,
- * entero ttc_hours) y resetea el formulario al completar el registro.
+ * de Pago. Normaliza los datos antes de enviarlos (ttc_hours como entero)
+ * y resetea el formulario al completar el registro.
  *
  * @component
  *
@@ -23,6 +23,7 @@
 import FormModal from "@/Components/Forms/FormModal";
 import { FieldDescription, FieldGroup, FieldLegend, FieldSeparator, FieldSet } from '@/Components/ui/field';
 import SelectForm from "@/Components/Forms/SelectForm";
+import CheckboxForm from "@/Components/Forms/CheckboxForm";
 import InputForm from "@/Components/Forms/InputForm";
 import ButtonForm from "@/Components/Forms/ButtonForm";
 import { useForm } from '@inertiajs/react';
@@ -32,11 +33,6 @@ const CATEGORY_OPTIONS = [
     { value: 'A', label: 'A' },
     { value: 'B', label: 'B' },
     { value: 'C', label: 'C' },
-];
-
-const NATIVE_OPTIONS = [
-    { value: '0', label: 'No' },
-    { value: '1', label: 'Sí' },
 ];
 
 export default function TeacherModal({ show = false, onClose, title }) {
@@ -52,7 +48,7 @@ export default function TeacherModal({ show = false, onClose, title }) {
         ttc_hours: '',
         bank_name: '',
         grade: '',
-        is_native: '0', // Por defecto 'No'
+        is_native: false,
         email: '',
         phone: '',
     });
@@ -60,11 +56,12 @@ export default function TeacherModal({ show = false, onClose, title }) {
     const submit = (e) => {
         e.preventDefault();
 
-        // Transformamos los tipos antes de enviar: string → boolean / integer.
+        // Normalizamos tipos antes de enviar.
         transform((currentData) => ({
             ...currentData,
-            is_native: currentData.is_native === '1',
-            ttc_hours: parseInt(currentData.ttc_hours) || 0,
+            ttc_hours: Number.isNaN(Number.parseInt(currentData.ttc_hours, 10))
+                ? 0
+                : Number.parseInt(currentData.ttc_hours, 10),
         }));
 
         post('/teachers', {
@@ -124,7 +121,14 @@ export default function TeacherModal({ show = false, onClose, title }) {
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <InputForm label="Nivel" inputId="level" placeholder="Ej. Licenciatura" value={data.level} onChange={e => setData('level', e.target.value)} />
                             <InputForm label="Horas TTC" type="number" inputId="ttc_hours" placeholder="Ej. 20" description="Carga horaria asignada al docente." value={data.ttc_hours} onChange={e => setData('ttc_hours', e.target.value)} />
-                            <SelectForm options={NATIVE_OPTIONS} label="Docente nativo" selectId="is_native" placeholder="Selecciona una opción" value={data.is_native} onValueChange={v => setData('is_native', v)} />
+                            <CheckboxForm
+                                checkboxId="is_native"
+                                label="Docente nativo"
+                                description="Actívalo si el docente es hablante nativo."
+                                checked={Boolean(data.is_native)}
+                                onCheckedChange={(checked) => setData('is_native', Boolean(checked))}
+                                tone="institutional"
+                            />
                         </div>
                     </FieldSet>
 
