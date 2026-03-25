@@ -28,7 +28,6 @@ class StoreGroupRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'         => 'required|string|max:255',
             'mode'         => 'required|string|max:255',
             'type'         => 'required|string|max:255',
             'capacity'     => 'required|integer|min:1',
@@ -48,7 +47,6 @@ class StoreGroupRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required'      => 'El nombre del grupo es obligatorio.',
             'capacity.integer'   => 'La capacidad debe ser un número entero.',
             'meeting_link.url'   => 'El enlace de reunión debe ser una URL válida.',
             'period_id.exists'   => 'El periodo seleccionado no existe.',

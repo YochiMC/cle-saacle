@@ -135,7 +135,6 @@ export default function GroupModal({ show = false, onClose, title, grupoToEdit =
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <InputForm label="Nombre del grupo" inputId="name" placeholder="Ej. Inglés B1 - Matutino" value={data.name} onChange={e=>setData('name', e.target.value)} />
                             <InputForm label="Capacidad (estudiantes)" type="number" inputId="capacity" placeholder="Ej. 25" description="Número máximo de estudiantes del grupo." value={data.capacity} onChange={e => setData('capacity', e.target.value)} />
                             <SelectForm options={statusOptions} label="Estado" selectId="status" placeholder="Selecciona un estado" value={data.status} onValueChange={v => setData('status', v)} />
                         </div>

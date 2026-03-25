@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Http\Resources\StudentQualificationResource;
+use App\Services\GroupNamingService;
 
 /**
  * Controlador de Alto Nivel para la Gestión de Grupos Académicos.
@@ -30,9 +31,12 @@ class GroupController extends Controller
      * @param StoreGroupRequest $request Datos validados de creación.
      * @return RedirectResponse Redirección con mensaje de éxito.
      */
-    public function store(StoreGroupRequest $request): RedirectResponse
+    public function store(StoreGroupRequest $request, GroupNamingService $namingService): RedirectResponse
     {
-        Group::create($request->validated());
+        $validated = $request->validated();
+        $validated['name'] = $namingService->generateName($validated);
+
+        Group::create($validated);
 
         return redirect()->back()->with('success', 'Grupo creado exitosamente.');
     }
@@ -44,9 +48,15 @@ class GroupController extends Controller
      * @param Group $group Instancia del modelo a modificar.
      * @return RedirectResponse Redirección con mensaje de éxito.
      */
-    public function update(UpdateGroupRequest $request, Group $group): RedirectResponse
+    public function update(UpdateGroupRequest $request, Group $group, GroupNamingService $namingService): RedirectResponse
     {
-        $group->update($request->validated());
+        $validated = $request->validated();
+
+        // Fusionamos con los atributos actuales para que el nombre no pierda datos no enviados
+        $mergedAttributes = array_merge($group->toArray(), $validated);
+        $validated['name'] = $namingService->generateName($mergedAttributes);
+
+        $group->update($validated);
 
         return redirect()->back()->with('success', 'Grupo actualizado exitosamente.');
     }

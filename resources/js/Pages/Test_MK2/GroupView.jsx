@@ -110,12 +110,25 @@ export default function GroupView({
         });
     };
 
-    // ── Callbacks de Edición Global ────────────────────────────────────────────────
     const handleCellChange = (fieldKey, rowId, newValue) => {
-        setLocalData((prev) =>
-            prev.map((row) =>
-                row.id === rowId ? { ...row, [fieldKey]: newValue } : row,
-            ),
+        setLocalData((prevData) =>
+            prevData.map((row) => {
+                if (row.id === rowId) {
+                    const updatedRow = { ...row, [fieldKey]: newValue };
+
+                    if (fieldKey === 'unit_1' || fieldKey === 'unit_2') {
+                        const u1 = parseFloat(updatedRow.unit_1) || 0;
+                        const u2 = parseFloat(updatedRow.unit_2) || 0;
+                        
+                        const average = Math.round((u1 + u2) / 2);
+                        updatedRow.final_average = average;
+                        updatedRow.is_approved = average >= 70;
+                    }
+
+                    return updatedRow;
+                }
+                return row;
+            })
         );
     };
 

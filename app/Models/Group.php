@@ -23,6 +23,7 @@ class Group extends Model
         'status',
         'period_id',
         'teacher_id',
+        'level_id',
     ];
 
     protected $casts = [

@@ -25,7 +25,6 @@ class UpdateGroupRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'         => 'sometimes|required|string|max:255',
             'mode'         => 'sometimes|required|string|max:255',
             'type'         => 'sometimes|required|string|max:255',
             'capacity'     => 'sometimes|required|integer|min:1',
@@ -45,7 +44,6 @@ class UpdateGroupRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required'      => 'El nombre del grupo es obligatorio.',
             'capacity.integer'   => 'La capacidad debe ser un número entero.',
             'period_id.exists'   => 'El periodo seleccionado no existe.',
         ];

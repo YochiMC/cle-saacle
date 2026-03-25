@@ -58,6 +58,7 @@ export function DataTable({
         onColumnFiltersChange: setColumnFilters,
         onColumnVisibilityChange: setColumnVisibility,
         onRowSelectionChange: setRowSelection,
+        autoResetPageIndex: false,
         state: { sorting, columnFilters, columnVisibility, rowSelection, globalFilter },
     });
 
