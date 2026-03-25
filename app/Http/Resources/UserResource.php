@@ -22,7 +22,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'email_recovery' => $this->email_recovery,
             'phone' => $this->phone,
-            'roles' => $this->getRoleNames(),
+            'roles' => $this->roles->pluck('id')->toArray(),
             'profile' => match (true) {
                 $this->hasRole('teacher') => $this->whenLoaded(
                     'teacher',
