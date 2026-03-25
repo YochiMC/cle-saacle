@@ -7,6 +7,8 @@ use Inertia\Inertia;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Http\Resources\RoleResource;
+use App\Http\Resources\PermissionResource;
 
 class RoleController extends Controller
 {
@@ -19,19 +21,23 @@ class RoleController extends Controller
         $users = User::with('roles')->get();
         $roles = Role::with('permissions')->get();
         $permissions = Permission::all();
-        return Inertia::render('TestYochi/Asignation', [
+        return Inertia::render('TestYochi/RolesPermissions/Asignation', [
             'users' => $users,
-            'roles' => $roles,
-            'permissions' => $permissions,
+            'roles' => RoleResource::collection($roles)->resolve(),
+            'permissions' => PermissionResource::collection($permissions)->resolve(),
         ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         //
+        $role = Role::create(['name' => $request->name]);
+        $role->givePermission($request->permissions);
+
+        return redirect()->back()->with('success', 'Rol creado exitosamente.');
     }
 
     /**
