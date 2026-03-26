@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/password/{user}', [PasswordController::class, 'updatePassword'])->name('users.password.update');
     Route::delete('/profiles/{user}', [ProfileController::class, 'delete'])->name('profiles.delete');
     Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
+    Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');

@@ -14,6 +14,10 @@ const VIEW_OPTIONS = [
     { value: "permissions", label: "Permisos" },
 ];
 
+/**
+ * Vista de gestión de roles y permisos.
+ * Centraliza handlers de UI para crear, editar y eliminar por tipo de entidad.
+ */
 export default function Asignation({ users, roles, permissions }) {
 
     // Centraliza el estado del modal de alertas de feedback (flash messages).
@@ -35,6 +39,18 @@ export default function Asignation({ users, roles, permissions }) {
 
     const openDeleteModal = (item) => {
         setItemToDelete(item);
+    };
+
+    const handleSubmitRole = ({ data, reset, onClose }) => {
+        console.log('Crear/editar rol pendiente de integrar con backend:', data);
+        reset();
+        onClose?.();
+        setIsModalOpen(false);
+    };
+
+    const handleSubmitPermission = () => {
+        console.log('Crear/editar permiso pendiente de integrar con backend.');
+        setIsModalOpen(false);
     };
 
     const handleDeleteRow = () => {
@@ -82,20 +98,20 @@ export default function Asignation({ users, roles, permissions }) {
             {/* Modales — se monta únicamente el correspondiente a la vista activa */}
             {currentView === "roles" && (
                 <RoleModal
+                    permissions={permissions}
                     title="Añadir rol"
                     show={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
+                    onSubmitRole={handleSubmitRole}
                 />
             )}
 
             {currentView === "permissions" && (
-                <ConfirmModal
-                    isOpen={isModalOpen}
+                <PermissionModal
+                    title="Añadir permiso"
+                    show={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                    onConfirm={() => setIsModalOpen(false)}
-                    title="Formulario pendiente"
-                    message="El modal de permisos aún no está implementado. Cuando lo definas, se conectará aquí."
-                    confirmText="Entendido"
+                    onSubmitPermission={handleSubmitPermission}
                 />
             )}
 
@@ -103,9 +119,10 @@ export default function Asignation({ users, roles, permissions }) {
                 isOpen={itemToDelete != null}
                 onClose={() => setItemToDelete(null)}
                 onConfirm={handleDeleteRow}
-                title="Eliminar usuario"
-                // Opcional: Puedes usar el nombre del usuario en el mensaje para darle más contexto
-                message={`¿Estás seguro de que deseas eliminar a ${itemToDelete?.first_name || itemToDelete?.full_name || 'este usuario'}? Esta acción no se puede deshacer.`}
+                title={currentView === 'roles' ? 'Eliminar rol' : 'Eliminar permiso'}
+                message={currentView === 'roles'
+                    ? `¿Estás seguro de que deseas eliminar el rol ${itemToDelete?.name || 'seleccionado'}? Esta acción no se puede deshacer.`
+                    : `¿Estás seguro de que deseas eliminar el permiso ${itemToDelete?.name || 'seleccionado'}? Esta acción no se puede deshacer.`}
                 confirmText="Sí, eliminar"
                 variant="warning"
             />

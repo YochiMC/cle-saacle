@@ -31,13 +31,9 @@ class RoleController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
+    public function create()
     {
         //
-        $role = Role::create(['name' => $request->name]);
-        $role->givePermission($request->permissions);
-
-        return redirect()->back()->with('success', 'Rol creado exitosamente.');
     }
 
     /**
@@ -46,6 +42,10 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         //
+        $role = Role::create(['name' => $request->name]);
+        $role->givePermission($request->permissions);
+
+        return redirect()->back()->with('success', 'Rol creado exitosamente.');
     }
 
     /**
