@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Http\Resources\RoleResource;
+use App\Http\Requests\StoreRoleRequest;
 use App\Http\Resources\PermissionResource;
 
 class RoleController extends Controller
@@ -38,14 +40,36 @@ class RoleController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * Crea un nuevo rol y sincroniza los permisos seleccionados.
+     *
+     * Reglas aplicadas:
+     * - El nombre del rol es obligatorio y único.
+     * - Los permisos son opcionales, pero si se envían deben existir.
+     *
+     * @param  \App\Http\Requests\StoreRoleRequest  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request)
+    public function store(StoreRoleRequest $request)
     {
-        //
-        $role = Role::create(['name' => $request->name]);
-        $role->givePermission($request->permissions);
+        $validated = $request->validated();
 
-        return redirect()->back()->with('success', 'Rol creado exitosamente.');
+        try {
+            DB::transaction(function () use ($validated) {
+                $role = Role::create(['name' => $validated['name']]);
+
+                $permissionIds = $validated['permissions'] ?? [];
+                $role->syncPermissions($permissionIds);
+            });
+
+            return redirect()->back()->with('success', 'Rol creado exitosamente.');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->back()
+                ->withErrors(['role' => 'No se pudo crear el rol. Intenta nuevamente.'])
+                ->withInput();
+        }
     }
 
     /**
@@ -67,7 +91,7 @@ class RoleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(\Illuminate\Http\Request $request, string $id)
     {
         //
     }
@@ -78,5 +102,6 @@ class RoleController extends Controller
     public function destroy(string $id)
     {
         //
+        
     }
 }

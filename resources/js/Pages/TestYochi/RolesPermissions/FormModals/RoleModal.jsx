@@ -1,5 +1,5 @@
 import FormModal from "@/Components/Forms/FormModal"
-import { FieldDescription, FieldGroup, FieldLegend, FieldSeparator, FieldSet } from '@/Components/ui/field';
+import { FieldDescription, FieldError, FieldGroup, FieldLegend, FieldSeparator, FieldSet } from '@/Components/ui/field';
 import InputForm from "@/Components/Forms/InputForm";
 import CheckboxForm from "@/Components/Forms/CheckboxForm";
 import ButtonForm from "@/Components/Forms/ButtonForm";
@@ -10,12 +10,13 @@ import { useForm } from '@inertiajs/react';
  * Mantiene la lógica de formulario local y expone un callback opcional para integrar backend desde la Page.
  */
 export default function RoleModal({ permissions = [], title, show, onClose, onSubmitRole }) {
-    const { data, setData, post, processing, reset } = useForm({
+    const { data, setData, post, processing, reset, errors } = useForm({
         name: '',
         permissions: []
     });
 
     const selectedPermissions = Array.isArray(data.permissions) ? data.permissions : [];
+    const permissionItemError = Object.keys(errors).find((key) => key.startsWith('permissions.'));
 
     const handlePermissionChange = (permissionId, isChecked) => {
         const current = selectedPermissions;
@@ -35,7 +36,12 @@ export default function RoleModal({ permissions = [], title, show, onClose, onSu
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        post('/roles', { onSuccess: () => { reset(); onClose(); } });
+        post('/roles', {
+            onSuccess: () => {
+                reset();
+                onClose();
+            },
+        });
     };
 
     return (
@@ -58,6 +64,7 @@ export default function RoleModal({ permissions = [], title, show, onClose, onSu
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
                         />
+                        <FieldError>{errors.name}</FieldError>
                     </FieldSet>
                     <FieldSeparator />
                     <FieldSet>
@@ -84,9 +91,11 @@ export default function RoleModal({ permissions = [], title, show, onClose, onSu
                         <FieldDescription>
                             Permisos seleccionados: {selectedPermissions.length}
                         </FieldDescription>
+                        <FieldError>{errors.permissions || (permissionItemError ? errors[permissionItemError] : null)}</FieldError>
                     </FieldSet>
                     <FieldSeparator />
                     <FieldSet>
+                        <FieldError>{errors.role}</FieldError>
                         <FieldDescription>
                             Verifica la información antes de guardar. Después podrás ajustar el rol editándolo.
                         </FieldDescription>
