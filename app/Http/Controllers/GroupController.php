@@ -26,6 +26,16 @@ use App\Services\GroupNamingService;
 class GroupController extends Controller
 {
     /**
+     * Muestra una lista de grupos, cargando relaciones para evitar problemas N+1 (Eager Loading).
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public function index()
+    {
+        $groups = Group::with(['level', 'teacher', 'period'])->get();
+        return \App\Http\Resources\GroupResource::collection($groups);
+    }
+    /**
      * Persiste un nuevo grupo en el sistema.
      *
      * @param StoreGroupRequest $request Datos validados de creación.

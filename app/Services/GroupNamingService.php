@@ -24,12 +24,17 @@ class GroupNamingService
      */
     public function generateName(array $attributes): string
     {
-        $typeStr     = $this->getTypeCode($attributes['type'] ?? '');
-        $levelStr    = $this->getLevelCode($attributes['level_id'] ?? null);
-        $scheduleLetter = $this->getScheduleLetter($attributes['schedule'] ?? '');
-        $periodStr   = $this->getPeriodCode($attributes['period_id'] ?? null);
-        $modeStr     = $this->getModeCode($attributes['mode'] ?? '');
+        $type = $attributes['type'] ?? '';
+        $typeStr = $this->getTypeCode($type);
 
+        // Pasamos el tipo para omitir el nivel si es Egresados
+        $levelStr = $this->getLevelCode($attributes['level_id'] ?? null, $type);
+
+        $scheduleLetter = $this->getScheduleLetter($attributes['schedule'] ?? '');
+        $periodStr = $this->getPeriodCode($attributes['period_id'] ?? null);
+        $modeStr = $this->getModeCode($attributes['mode'] ?? '');
+
+        // Genera el código concatenado (Ej: RB100AENE26P o PECMAY25P)
         return strtoupper("{$typeStr}{$levelStr}{$scheduleLetter}{$periodStr}{$modeStr}");
     }
 
@@ -38,17 +43,25 @@ class GroupNamingService
      */
     private function getTypeCode(string $type): string
     {
-        if (empty($type)) return 'X';
-        // Capitaliza cada palabra y extrae solo las letras mayúsculas
-        preg_match_all('/[A-Z]/', ucwords(strtolower($type)), $matches);
-        return implode('', $matches[0]);
+        $typeMap = [
+            'regular' => 'R',
+            'intensivo' => 'I',
+            'semi intensivo' => 'S',
+            'programa egresados' => 'PE'
+        ];
+        return $typeMap[strtolower($type)] ?? 'X';
     }
 
     /**
      * Consulta el nivel y devuelve su código compuesto (ej. B100, A200).
      */
-    private function getLevelCode($levelId): string
+    private function getLevelCode($levelId, string $type): string
     {
+        // Excepción: Programa Egresados no lleva nivel
+        if (strtolower($type) === 'programa egresados') {
+            return '400';
+        }
+
         if (!$levelId) return 'XXX';
 
         $level = Level::find($levelId);
@@ -65,7 +78,7 @@ class GroupNamingService
         }
 
         if (str_contains($name, 'intermedio')) {
-            return "A{$number}00";
+            return "I{$number}00"; // Cambiado de A a I
         }
 
         return "L{$number}00";
@@ -78,28 +91,26 @@ class GroupNamingService
      */
     private function getScheduleLetter(string $schedule): string
     {
-        $schedule = mb_strtolower($schedule, 'UTF-8');
+        // 1. Extraer todas las horas en formato HH:MM (ej. 08:00 o 8:00) del string
+        preg_match_all('/\b\d{1,2}:\d{2}\b/', $schedule, $matches);
+        
+        // Si no encontró ninguna hora, devolvemos Z
+        if (empty($matches[0])) {
+            return 'Z';
+        }
 
-        // Diccionario de búsqueda de mayor especificidad a menor (Sábados primero y horas dobles antes que simples)
+        // 2. Tomamos la PRIMERA hora encontrada como la "hora de inicio"
+        $startTime = $matches[0][0];
+
+        // Normalizamos a formato de 2 dígitos (ej. "8:00" -> "08:00")
+        if (strlen($startTime) == 4) {
+            $startTime = '0' . $startTime;
+        }
+
+        // 3. Diccionario exacto basado en la tabla oficial (Hora de inicio => Letra)
         $scheduleMap = [
-            // Sábados (Semi Intensivo)
-            'sábado 10:00' => 'S-C', 'sabado 10:00' => 'S-C',
-            'sábado 11:00' => 'S-D', 'sabado 11:00' => 'S-D',
-            'sábado 12:00' => 'S-E', 'sabado 12:00' => 'S-E',
-            'sábado 13:00' => 'S-F', 'sabado 13:00' => 'S-F',
-            'sábado 14:00' => 'S-G', 'sabado 14:00' => 'S-G',
-            'sábado 15:00' => 'S-H', 'sabado 15:00' => 'S-H',
-            'sábado 16:00' => 'S-I', 'sabado 16:00' => 'S-I',
-            'sábado 17:00' => 'S-J', 'sabado 17:00' => 'S-J',
-            'sábado 18:00' => 'S-K', 'sabado 18:00' => 'S-K',
-            'sábado 19:00' => 'S-L', 'sabado 19:00' => 'S-L',
-            'sábado 20:00' => 'S-M', 'sabado 20:00' => 'S-M',
-            'sábado 08:00' => 'S-A', 'sabado 08:00' => 'S-A',
-            'sábado 8:00'  => 'S-A', 'sabado 8:00'  => 'S-A',
-            'sábado 09:00' => 'S-B', 'sabado 09:00' => 'S-B',
-            'sábado 9:00'  => 'S-B', 'sabado 9:00'  => 'S-B',
-
-            // Entre semana (Regular)
+            '08:00' => 'A',
+            '09:00' => 'B',
             '10:00' => 'C',
             '11:00' => 'D',
             '12:00' => 'E',
@@ -111,19 +122,9 @@ class GroupNamingService
             '18:00' => 'K',
             '19:00' => 'L',
             '20:00' => 'M',
-            '08:00' => 'A',
-            '8:00'  => 'A',
-            '09:00' => 'B',
-            '9:00'  => 'B',
         ];
 
-        foreach ($scheduleMap as $time => $letter) {
-            if (str_contains($schedule, $time)) {
-                return $letter;
-            }
-        }
-
-        return 'Z';
+        return $scheduleMap[$startTime] ?? 'Z';
     }
 
     /**

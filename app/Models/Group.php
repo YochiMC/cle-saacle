@@ -28,6 +28,8 @@ class Group extends Model
 
     protected $casts = [
         'status' => GroupStatus::class,
+        'mode'   => \App\Enums\GroupMode::class,
+        'type'   => \App\Enums\GroupType::class,
     ];
 
 

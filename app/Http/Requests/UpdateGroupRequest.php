@@ -29,11 +29,11 @@ class UpdateGroupRequest extends FormRequest
             'type'         => 'sometimes|required|string|max:255',
             'capacity'     => 'sometimes|required|integer|min:1',
             'schedule'     => 'sometimes|required|string|max:255',
-            'classroom'    => 'nullable|string|max:255',
-            'meeting_link' => 'nullable|url|max:255',
+            'classroom'    => ['nullable', 'string', 'max:255'],
+            'meeting_link' => ['nullable', 'url', 'max:255'],
             'status'       => ['sometimes', 'required', 'string', Rule::enum(GroupStatus::class)],
             'period_id'    => 'sometimes|required|exists:periods,id',
-            'teacher_id'   => 'sometimes|required|exists:teachers,id',
+            'teacher_id'   => ['nullable', 'exists:teachers,id'],
             'level_id'     => 'sometimes|required|exists:levels,id',
         ];
     }

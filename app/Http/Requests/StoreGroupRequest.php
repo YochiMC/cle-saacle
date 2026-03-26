@@ -32,11 +32,11 @@ class StoreGroupRequest extends FormRequest
             'type'         => 'required|string|max:255',
             'capacity'     => 'required|integer|min:1',
             'schedule'     => 'required|string|max:255',
-            'classroom'    => 'nullable|string|max:255',
-            'meeting_link' => 'nullable|url|max:255',
+            'classroom'    => ['nullable', 'string', 'max:255'],
+            'meeting_link' => ['nullable', 'url', 'max:255'],
             'status'       => ['required', 'string', Rule::enum(GroupStatus::class)],
             'period_id'    => 'required|exists:periods,id',
-            'teacher_id'   => 'required|exists:teachers,id',
+            'teacher_id'   => ['nullable', 'exists:teachers,id'],
             'level_id'     => 'required|exists:levels,id',
         ];
     }

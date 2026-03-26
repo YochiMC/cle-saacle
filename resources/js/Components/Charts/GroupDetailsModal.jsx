@@ -4,7 +4,7 @@ import { X, ExternalLink } from "lucide-react";
 // ── Sub-componentes ───────────────────────────────────────────────────────────
 
 /** Badge de color según el status del grupo. */
-const StatusBadge = ({ status }) => {
+const StatusBadge = ({ status, status_label }) => {
     const map = {
         active: { label: "Activo", cls: "bg-green-100 text-green-800" },
         pending: { label: "En espera", cls: "bg-yellow-100 text-yellow-800" },
@@ -20,7 +20,7 @@ const StatusBadge = ({ status }) => {
         <span
             className={`inline-block text-sm font-semibold px-3 py-1 rounded-full ${cls}`}
         >
-            {label}
+            {status_label || label}
         </span>
     );
 };
@@ -127,7 +127,7 @@ const GroupDetailsModal = ({ grupo, onClose }) => {
                         <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">
                             Estado
                         </span>
-                        <StatusBadge status={grupo.status} />
+                        <StatusBadge status={grupo.status} status_label={grupo.status_label} />
                     </div>
 
                     {/* Tipo de curso */}
@@ -184,36 +184,34 @@ const GroupDetailsModal = ({ grupo, onClose }) => {
                         </DetailRow>
                     </div>
 
-                    {/* ── AULA o ENLACE según modalidad — ocupa columna completa */}
-                    <div className="col-span-2">
-                        {isOnline ? (
-                            /* Clase en línea: enlace clicable o "Enlace no disponible" */
-                            <DetailRow label="Enlace de clase">
-                                {grupo.meeting_link ? (
-                                    <a
-                                        href={grupo.meeting_link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1B396A] underline underline-offset-2 hover:text-[#142952] transition-colors"
-                                    >
-                                        <ExternalLink size={14} />
-                                        Enlace de clase
-                                    </a>
-                                ) : (
-                                    <span className="text-sm italic text-gray-400">
-                                        Enlace no disponible
-                                    </span>
-                                )}
-                            </DetailRow>
-                        ) : (
-                            /* Clase presencial: aula o "Aula por asignar" */
-                            <DetailRow
-                                label="Aula"
-                                empty={!grupo.classroom}
-                                fallback="Aula por asignar"
-                            >
+                    {/* ── SEDE / UBICACIÓN — ocupa columna completa */}
+                    <div className="col-span-2 flex flex-col gap-3">
+                        {grupo.classroom && (
+                            <DetailRow label="Aula">
                                 {grupo.classroom}
                             </DetailRow>
+                        )}
+
+                        {grupo.meeting_link && (
+                            <DetailRow label="Enlace de clase">
+                                <a
+                                    href={grupo.meeting_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1B396A] underline underline-offset-2 hover:text-[#142952] transition-colors"
+                                >
+                                    <ExternalLink size={14} />
+                                    Enlace de clase
+                                </a>
+                            </DetailRow>
+                        )}
+
+                        {(!grupo.classroom && !grupo.meeting_link) && (
+                            <DetailRow 
+                                label="Sede / Ubicación" 
+                                empty={true} 
+                                fallback="Sede por asignar" 
+                            />
                         )}
                     </div>
                 </div>
