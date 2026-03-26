@@ -69,6 +69,8 @@ class AdminViewsController extends Controller
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(),
             'statuses' => array_map(fn ($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\GroupStatus::cases()),
+            'modes' => \App\Enums\GroupMode::getOptions(),
+            'types' => \App\Enums\GroupType::getOptions(),
         ]);
     }
 

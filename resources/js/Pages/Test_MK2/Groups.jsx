@@ -32,7 +32,9 @@ export default function Groups({
     levels = [], 
     teachers = [], 
     periods = [], 
-    statuses = [] 
+    statuses = [],
+    modes = [],
+    types = []
 }) {
     // Inicialización del Hook de Gestión
     const {
@@ -152,6 +154,8 @@ export default function Groups({
                 teachers={teachers}
                 periods={periods}
                 statuses={statuses}
+                modes={modes}
+                types={types}
             />
 
 

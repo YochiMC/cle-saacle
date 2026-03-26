@@ -57,6 +57,8 @@ export default function SelectForm({
     fieldClassName = '',
     triggerClassName = '',
     contentClassName = '',
+    allowEmpty = false,
+    emptyLabel = '',
     ...props
 }) {
     return (
@@ -81,6 +83,11 @@ export default function SelectForm({
                     className={`max-w-[calc(100vw-2rem)] sm:max-w-[36rem] ${contentClassName}`.trim()}
                 >
                     <SelectGroup>
+                        {allowEmpty && (
+                            <SelectItem value="">
+                                {emptyLabel || placeholder || "Sin asignar"}
+                            </SelectItem>
+                        )}
                         {options.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                                 {option.label}
