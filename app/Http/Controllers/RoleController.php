@@ -5,8 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Http\Resources\RoleResource;
+use App\Http\Requests\StoreRoleRequest;
+use App\Http\Resources\PermissionResource;
 
 class RoleController extends Controller
 {
@@ -19,10 +24,10 @@ class RoleController extends Controller
         $users = User::with('roles')->get();
         $roles = Role::with('permissions')->get();
         $permissions = Permission::all();
-        return Inertia::render('TestYochi/Asignation', [
+        return Inertia::render('TestYochi/RolesPermissions/Asignation', [
             'users' => $users,
-            'roles' => $roles,
-            'permissions' => $permissions,
+            'roles' => RoleResource::collection($roles)->resolve(),
+            'permissions' => PermissionResource::collection($permissions)->resolve(),
         ]);
     }
 
@@ -36,10 +41,36 @@ class RoleController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * Crea un nuevo rol y sincroniza los permisos seleccionados.
+     *
+     * Reglas aplicadas:
+     * - El nombre del rol es obligatorio y único.
+     * - Los permisos son opcionales, pero si se envían deben existir.
+     *
+     * @param  \App\Http\Requests\StoreRoleRequest  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request)
+    public function store(StoreRoleRequest $request)
     {
-        //
+        $validated = $request->validated();
+
+        try {
+            DB::transaction(function () use ($validated) {
+                $role = Role::create(['name' => $validated['name']]);
+
+                $permissionIds = $validated['permissions'] ?? [];
+                $role->syncPermissions($permissionIds);
+            });
+
+            return redirect()->back()->with('success', 'Rol creado exitosamente.');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->back()
+                ->withErrors(['role' => 'No se pudo crear el rol. Intenta nuevamente.'])
+                ->withInput();
+        }
     }
 
     /**
@@ -61,16 +92,37 @@ class RoleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(\Illuminate\Http\Request $request, string $id)
     {
         //
     }
 
     /**
      * Remove the specified resource from storage.
+     *
+     * Elimina un rol por ID y libera sus permisos asociados.
+     *
+     * @param  string  $id
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            DB::transaction(function () use ($id) {
+                $role = Role::query()->findOrFail($id);
+
+                // Se limpian relaciones antes de eliminar para mantener consistencia en pivotes.
+                $role->syncPermissions([]);
+                $role->delete();
+            });
+
+            return redirect()->back()->with('success', 'Rol eliminado correctamente.');
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->withErrors(['role' => 'El rol que intentas eliminar no existe.']);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->back()->withErrors(['role' => 'No se pudo eliminar el rol. Intenta nuevamente.']);
+        }
     }
 }

@@ -35,7 +35,7 @@ class AdminViewsController extends Controller
      */
     public function usersView()
     {
-        return Inertia::render('TestYochi/Users', [
+        return Inertia::render('TestYochi/Users/Users', [
             'students' => StudentResource::collection(Student::with(['degree', 'level', 'typeStudent'])->get())->resolve(),
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
             'degrees' => Degree::all(),
