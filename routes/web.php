@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profiles/{user}', [ProfileController::class, 'delete'])->name('profiles.delete');
     Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
     Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
+    Route::delete('/roles/{id}', [RoleController::class, 'destroy'])->name('roles.destroy');
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');

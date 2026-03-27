@@ -1,6 +1,6 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/ResourceDashboard";
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import ConfirmModal from '@/Components/ConfirmModal';
@@ -59,14 +59,16 @@ export default function Asignation({ users, roles, permissions }) {
         const itemId = itemToDelete?.id;
         if (!itemId) {
             console.error('No se pudo eliminar: id no disponible en el registro.', itemToDelete);
+            setItemToDelete(null);
             return;
         }
 
-        // Controlador de página temporal: deja el flujo de UI listo mientras defines rutas finales.
+        // Elimina según la vista activa para mantener una sola confirmación de borrado.
         switch (currentView) {
             case 'roles':
-                console.log('Eliminar rol pendiente de integrar con backend. id:', itemId);
-                setItemToDelete(null);
+                router.delete(route('roles.destroy', itemId), {
+                    onSuccess: () => setItemToDelete(null),
+                });
                 break;
             case 'permissions':
                 console.log('Eliminar permiso pendiente de integrar con backend. id:', itemId);

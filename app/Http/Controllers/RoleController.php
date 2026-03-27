@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Http\Resources\RoleResource;
@@ -98,10 +99,30 @@ class RoleController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * Elimina un rol por ID y libera sus permisos asociados.
+     *
+     * @param  string  $id
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(string $id)
     {
-        //
-        
+        try {
+            DB::transaction(function () use ($id) {
+                $role = Role::query()->findOrFail($id);
+
+                // Se limpian relaciones antes de eliminar para mantener consistencia en pivotes.
+                $role->syncPermissions([]);
+                $role->delete();
+            });
+
+            return redirect()->back()->with('success', 'Rol eliminado correctamente.');
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->withErrors(['role' => 'El rol que intentas eliminar no existe.']);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->back()->withErrors(['role' => 'No se pudo eliminar el rol. Intenta nuevamente.']);
+        }
     }
 }
