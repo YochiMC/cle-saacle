@@ -20,6 +20,10 @@ const VIEW_OPTIONS = [
  */
 export default function Asignation({ users, roles, permissions }) {
 
+    
+
+console.table(roles);
+
     // Centraliza el estado del modal de alertas de feedback (flash messages).
     const { flashModal, closeFlashModal } = useFlashAlert();
 

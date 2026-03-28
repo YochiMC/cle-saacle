@@ -10,7 +10,7 @@ class RoleSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * 
+     *
      * Ejecuta la inicialización de roles y permisos del sistema.
      * Define los permisos CRUD para cada recurso y asigna roles específicos
      * con sus respectivos permisos según el nivel de acceso requerido.
@@ -20,65 +20,74 @@ class RoleSeeder extends Seeder
         // Limpiar caché de permisos antes de empezar
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
+        // Guard principal del sistema para autenticación web.
+        $guard = 'web';
+
         // ============================================================
         // 1. CREAR PERMISOS - Operaciones CRUD por Recurso
         // ============================================================
 
         // Permisos para Estudiantes
         // Permite gestionar el registro, visualización y edición de estudiantes
-        Permission::create(['name' => 'read students']);
-        Permission::create(['name' => 'create students']);
-        Permission::create(['name' => 'edit students']);
-        Permission::create(['name' => 'delete students']);
+        $permissions = [
+            'read students',
+            'create students',
+            'edit students',
+            'delete students',
 
-        // Permisos para Docentes
-        // Permite gestionar el registro y información de docentes en el sistema
-        Permission::create(['name' => 'read teachers']);
-        Permission::create(['name' => 'create teachers']);
-        Permission::create(['name' => 'edit teachers']);
-        Permission::create(['name' => 'delete teachers']);
+            // Permisos para Docentes
+            // Permite gestionar el registro y la información de docentes en el sistema
+            'read teachers',
+            'create teachers',
+            'edit teachers',
+            'delete teachers',
 
-        // Permisos para Documentos
-        // Permite acceder, crear y administrar documentos del sistema
-        Permission::create(['name' => 'read documents']);
-        Permission::create(['name' => 'create documents']);
-        Permission::create(['name' => 'edit documents']);
-        Permission::create(['name' => 'delete documents']);
+            // Permisos para Documentos
+            // Permite acceder, crear y administrar documentos del sistema
+            'read documents',
+            'create documents',
+            'edit documents',
+            'delete documents',
 
-        // Permisos para Títulos/Grados
-        // Permite configurar y mantener los grados académicos disponibles
-        Permission::create(['name' => 'read degrees']);
-        Permission::create(['name' => 'create degrees']);
-        Permission::create(['name' => 'edit degrees']);
-        Permission::create(['name' => 'delete degrees']);
+            // Permisos para Títulos/Grados
+            // Permite configurar y mantener los grados académicos disponibles
+            'read degrees',
+            'create degrees',
+            'edit degrees',
+            'delete degrees',
 
-        // Permisos para Niveles
-        // Permite administrar los niveles educativos del sistema
-        Permission::create(['name' => 'read levels']);
-        Permission::create(['name' => 'create levels']);
-        Permission::create(['name' => 'edit levels']);
-        Permission::create(['name' => 'delete levels']);
+            // Permisos para Niveles
+            // Permite administrar los niveles educativos del sistema
+            'read levels',
+            'create levels',
+            'edit levels',
+            'delete levels',
 
-        // Permisos para Calificaciones
-        // Permite registrar, visualizar y modificar calificaciones de estudiantes
-        Permission::create(['name' => 'read qualifications']);
-        Permission::create(['name' => 'create qualifications']);
-        Permission::create(['name' => 'edit qualifications']);
-        Permission::create(['name' => 'delete qualifications']);
+            // Permisos para Calificaciones
+            // Permite registrar, visualizar y modificar calificaciones de estudiantes
+            'read qualifications',
+            'create qualifications',
+            'edit qualifications',
+            'delete qualifications',
 
-        // Permisos para Tipos de Estudiantes
-        // Permite gestionar las categorías y clasificaciones de estudiantes
-        Permission::create(['name' => 'read type students']);
-        Permission::create(['name' => 'create type students']);
-        Permission::create(['name' => 'edit type students']);
-        Permission::create(['name' => 'delete type students']);
+            // Permisos para Tipos de Estudiantes
+            // Permite gestionar las categorías y clasificaciones de estudiantes
+            'read type students',
+            'create type students',
+            'edit type students',
+            'delete type students',
 
-        // Permisos para Perfiles
-        // Permite visualizar y editar información del perfil de usuarios
-        Permission::create(['name' => 'read profiles']);
-        Permission::create(['name' => 'create profiles']);
-        Permission::create(['name' => 'edit profiles']);
-        Permission::create(['name' => 'delete profiles']);
+            // Permisos para Perfiles
+            // Permite visualizar y editar información del perfil de usuarios
+            'read profiles',
+            'create profiles',
+            'edit profiles',
+            'delete profiles',
+        ];
+
+        foreach ($permissions as $permissionName) {
+            Permission::findOrCreate($permissionName, $guard);
+        }
 
         // ============================================================
         // 2. CREAR ROLES Y ASIGNAR PERMISOS
@@ -87,15 +96,17 @@ class RoleSeeder extends Seeder
         // ADMINISTRADOR
         // Acceso total al sistema. Puede ejecutar todas las operaciones
         // sobre todos los recursos disponibles en la plataforma.
-        $admin = Role::create(['name' => 'admin']);
-        $admin->givePermissionTo(Permission::all());
+        $admin = Role::findOrCreate('admin', $guard);
+        $admin->syncPermissions($permissions);
+        $admin->is_system = true;
+        $admin->save();
 
         // COORDINADOR
         // Gestiona estudiantes y docentes. Puede ver información de
         // configuración pero no puede eliminar registros críticos.
         // Tiene acceso a reportes y documentos del sistema.
-        $coordinator = Role::create(['name' => 'coordinator']);
-        $coordinator->givePermissionTo([
+        $coordinator = Role::findOrCreate('coordinator', $guard);
+        $coordinator->syncPermissions([
             'read students',
             'create students',
             'edit students',
@@ -109,25 +120,29 @@ class RoleSeeder extends Seeder
             'read type students',
             'read profiles',
         ]);
+        $coordinator->is_system = true;
+        $coordinator->save();
 
         // ESTUDIANTE
         // Acceso limitado a su propia información. Puede visualizar
         // su perfil, calificaciones y documentos relacionados con su
         // desempeño académico.
-        $student = Role::create(['name' => 'student']);
-        $student->givePermissionTo([
+        $student = Role::findOrCreate('student', $guard);
+        $student->syncPermissions([
             'read profiles',
             'edit profiles',
             'read documents',
             'read qualifications',
         ]);
+        $student->is_system = true;
+        $student->save();
 
         // DOCENTE
         // Puede gestionar calificaciones y acceder a información de
         // estudiantes. Visualiza documentos y perfiles para fines
         // académicos y de evaluación.
-        $teacher = Role::create(['name' => 'teacher']);
-        $teacher->givePermissionTo([
+        $teacher = Role::findOrCreate('teacher', $guard);
+        $teacher->syncPermissions([
             'read students',
             'read teachers',
             'read qualifications',
@@ -138,5 +153,10 @@ class RoleSeeder extends Seeder
             'read degrees',
             'read levels',
         ]);
+        $teacher->is_system = true;
+        $teacher->save();
+
+        // Limpiar caché al finalizar para evitar inconsistencias entre requests.
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
 }
