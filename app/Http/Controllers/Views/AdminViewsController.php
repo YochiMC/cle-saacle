@@ -56,11 +56,11 @@ class AdminViewsController extends Controller
 
         $grupos = Group::with(['teacher', 'level', 'period'])
             ->withCount('qualifications')
-            ->when($esEstudiante, fn ($q) => $q->whereIn('status', ['active', 'waiting']))
+            ->when($esEstudiante, fn($q) => $q->whereIn('status', ['active', 'waiting']))
             ->get();
 
         if ($esEstudiante && $this->debeOcultarDocentes()) {
-            $grupos->each(fn ($g) => $g->setRelation('teacher', null));
+            $grupos->each(fn($g) => $g->setRelation('teacher', null));
         }
 
         return Inertia::render('Test_MK2/Groups', [
@@ -68,7 +68,7 @@ class AdminViewsController extends Controller
             'levels' => LevelResource::collection(Level::orderBy('level_tecnm')->get())->resolve(),
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(),
-            'statuses' => array_map(fn ($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\GroupStatus::cases()),
+            'statuses' => array_map(fn($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\GroupStatus::cases()),
             'modes' => \App\Enums\GroupMode::getOptions(),
             'types' => \App\Enums\GroupType::getOptions(),
         ]);
@@ -152,21 +152,44 @@ class AdminViewsController extends Controller
 
     public function examsView(Request $request)
     {
-        $exams = Exam::with('student')->get(); // Opcional, si tienes relación definida (para mostrar nombre)
-        $levels = Level::all();
+        $exams = Exam::with(['students', 'teacher', 'period'])->get();
+
+        // Aplanamos los datos y calculamos campos derivados para el frontend
+        $examsData = $exams->map(function ($exam) {
+            $enrolledCount   = $exam->students->count();
+            $availableSeats  = max(0, ($exam->capacity ?? 0) - $enrolledCount);
+
+            return [
+                'id'               => $exam->id,
+                'name'             => $exam->name,
+                'exam_type'        => $exam->exam_type?->value ?? $exam->exam_type,
+                'capacity'         => $exam->capacity,
+                'application_date' => $exam->application_date,
+                'application_time' => $exam->application_time,
+                'classroom'        => $exam->classroom,
+                'status'           => $exam->status?->value ?? $exam->status,
+                'period_id'        => $exam->period_id,
+                'teacher_id'       => $exam->teacher_id,
+                'teacher_name'     => $exam->teacher?->full_name,
+                'period_name'      => $exam->period?->name,
+                'enrolled_count'   => $enrolledCount,
+                'available_seats'  => $availableSeats,
+            ];
+        });
+
+        $levels   = Level::all();
         $teachers = Teacher::all();
-        $periods = Period::all();
+        $periods  = Period::all();
         $students = StudentResource::collection(Student::all())->resolve();
 
         return Inertia::render('Test_Vik/Examen', [
-            'examenes' => $exams,
-            'levels' => $levels,
-            'teachers' => $teachers,
-            'periods' => $periods,
-            'students' => $students
-
-
+            'examenes'    => $examsData,
+            'levels'      => $levels,
+            'teachers'    => $teachers,
+            'periods'     => $periods,
+            'students'    => $students,
+            'statuses'    => array_map(fn($s) => ['value' => $s->value, 'label' => $s->label()], \App\Enums\GroupStatus::cases()),
+            'typeOptions' => \App\Enums\ExamType::getOptions(),
         ]);
     }
 }
-
