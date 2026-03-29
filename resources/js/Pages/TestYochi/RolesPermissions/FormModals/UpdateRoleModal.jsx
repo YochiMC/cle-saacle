@@ -56,19 +56,19 @@ export default function UpdateRoleModal({ permissions = [], title, show, onClose
             <form onSubmit={handleSubmit}>
                 <FieldGroup>
                     {!role.is_system && (
-                    <FieldSet>
-                        <InputForm
-                            label="Nombre del rol"
-                            inputId="role-name"
-                            name="name"
-                            placeholder="Ejemplo: Coordinador académico"
-                            description="Este nombre se mostrará en el sistema al asignar el rol a usuarios."
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                        />
-                        <FieldError>{errors.name}</FieldError>
-                        <FieldSeparator />
-                    </FieldSet>)}
+                        <FieldSet>
+                            <InputForm
+                                label="Nombre del rol"
+                                inputId="role-name"
+                                name="name"
+                                placeholder="Ejemplo: Coordinador académico"
+                                description="Este nombre se mostrará en el sistema al asignar el rol a usuarios."
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                            />
+                            <FieldError>{errors.name}</FieldError>
+                            <FieldSeparator />
+                        </FieldSet>)}
                     <FieldSet>
                         <FieldLegend>Permisos del rol</FieldLegend>
                         <FieldDescription>

@@ -97,7 +97,23 @@ class RoleController extends Controller
     {
         //
         $validated = $request->validated();
+        try{
+            DB::transaction(function () use ($id, $validated) {
+                $role = Role::query()->findOrFail($id);
+                if($role->is_system){
+                    return redirect()->back()->with('error', 'Este rol no se puede modificar ya que es parte del sistema');
+                }else{
+                    $role->update(['name' => $validated['name']]);
+                    $permissionIds = $validated['permissions'] ?? [];
+                    $role->syncPermissions($permissionIds);
+                    return redirect()->back()->with('success', 'Rol actualizado correctamente.');
+                }
+            });
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()->back()->withErrors(['role' => 'No se pudo actualizar el rol. Intenta nuevamente.']);
 
+        }
     }
 
     /**
