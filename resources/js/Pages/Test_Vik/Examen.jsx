@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, useForm } from "@inertiajs/react";
 import Modal from "@/Components/Modal";
@@ -8,73 +8,108 @@ import TextInput from "@/Components/TextInput";
 import InputLabel from "@/Components/InputLabel";
 import InputError from "@/Components/InputError";
 import ThemeButton from "@/Components/ThemeButton";
-import { Plus } from "lucide-react";
+import {
+    CalendarX,
+    ClipboardList,
+    Plus,
+    ToggleRight,
+    UsersRound,
+} from "lucide-react";
 import { usePermission } from "@/Utils/auth";
 
-import ExamFilters from "./ExamFilters";
-import ExamGrid from "./ExamGrid";
-import BulkActionBarExam from "./BulkActionBarExam";
+import CardExam from "./CardExam";
 import ExamDetailsModal from "./ExamDetailsModal";
-import { useExamsManagement } from "@/Hooks/useExamsManagement";
-
-const ITEMS_POR_PAGINA = 12;
+import { useResourceManagement } from "@/Hooks/useResourceManagement";
+import ResourceFilterBar from "@/Components/Resource/ResourceFilterBar";
+import ResourceGrid from "@/Components/Resource/ResourceGrid";
+import ResourceBulkActionBar from "@/Components/Resource/ResourceBulkActionBar";
+import ResourceSelectFilter from "@/Components/Resource/ResourceSelectFilter";
+import { filterExams } from "./examFilters";
+import useFlashAlert from "@/Hooks/useFlashAlert";
+import ModalAlert from "@/Components/ui/ModalAlert";
 
 export default function Examen({
     auth,
     examenes = [],
-    students = [],
-    levels = [],
-    teachers = [],
-    periods = [],
     statuses = [],
     typeOptions = [],
 }) {
     const {
         busqueda,
         setBusqueda,
-        filtroEstado,
-        setFiltroEstado,
-        filtroTipo,
-        setFiltroTipo,
-        ordenCupo,
-        setOrdenCupo,
         paginaActual,
         setPaginaActual,
-        examenesSeleccionados,
-        modalAbierto,
-        examenEditando,
-        examenViendo,
-        examenesFiltrados,
+        seleccionados,
+        modales,
+        itemViendo,
+        itemsFiltrados,
         totalPaginas,
-        examenesPaginados,
+        itemsPaginados,
         hayFiltros,
+        filtros,
+        handleSetFiltro,
         handleToggleSelect,
         handleClearSelection,
-        handleCrearExamen,
-        handleEditar,
-        handleCerrarModal,
-        handleVerDetalles,
-        handleCerrarDetalles,
-        handleInscripcion,
+        handleOpenModal,
+        handleCloseModal,
         handleBulkStatus,
         handleBulkDelete,
-    } = useExamsManagement({ exams: examenes });
+        handleAction,
+    } = useResourceManagement({
+        items: examenes,
+        filterCallback: filterExams,
+        routes: {
+            enroll: (id) => route("exams.enroll", id),
+            bulkStatus: "exams.bulk-status",
+            bulkStatusMethod: "put",
+            bulkDelete: "exams.bulk-delete",
+        },
+        initialFilters: {
+            estado: "",
+            tipo: "",
+            ordenCupo: null,
+        },
+    });
+
+    const filtroEstado = filtros.estado ?? "";
+    const filtroTipo = filtros.tipo ?? "";
+    const ordenCupo = filtros.ordenCupo ?? null;
+
+    const setFiltroEstado = (value) => handleSetFiltro("estado", value);
+    const setFiltroTipo = (value) => handleSetFiltro("tipo", value);
+    const setOrdenCupo = (value) => handleSetFiltro("ordenCupo", value);
+
+    const handleCrearExamen = () => handleOpenModal("formulario", null);
+    const handleEditar = (exam) => handleOpenModal("formulario", exam);
+    const handleCerrarModal = () => handleCloseModal("formulario");
+
+    const handleVerDetalles = (exam) => handleOpenModal("detalles", exam);
+    const handleCerrarDetalles = () => handleCloseModal("detalles");
+
+    const handleInscripcion = (id) => {
+        handleAction("enroll", {
+            routeParams: [id],
+            options: {
+                preserveScroll: true,
+            },
+        });
+    };
 
     // HANDLERS DEL FORMULARIO DE CREACIÓN
-    const { data, setData, post, processing, errors, reset, clearErrors } =
-        useForm({
-            name: "",
-            exam_type: "",
-            capacity: "",
-            application_date: "",
-            application_time: "",
-            classroom: "",
-            period_id: "",
-            teacher_id: "",
-        });
+    const { data, setData, post, processing, errors } = useForm({
+        name: "",
+        exam_type: "",
+        capacity: "",
+        application_date: "",
+        application_time: "",
+        classroom: "",
+        period_id: "",
+        teacher_id: "",
+    });
 
     const { hasRole } = usePermission();
     const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
+    const { flashModal, closeFlashModal } = useFlashAlert();
 
     const submit = (e) => {
         e.preventDefault();
@@ -111,52 +146,117 @@ export default function Examen({
                     )}
 
                     {exp_mostrarFiltros && (
-                        <ExamFilters
+                        <ResourceFilterBar
                             busqueda={busqueda}
                             setBusqueda={setBusqueda}
-                            filtroEstado={filtroEstado}
-                            setFiltroEstado={setFiltroEstado}
-                            filtroTipo={filtroTipo}
-                            setFiltroTipo={setFiltroTipo}
-                            statuses={statuses}
-                            typeOptions={typeOptions}
-                            totalFiltrados={examenesFiltrados.length}
-                            ordenCupo={ordenCupo}
-                            setOrdenCupo={setOrdenCupo}
-                        />
+                            searchPlaceholder="Buscar por nombre, docente, aula o fecha..."
+                            totalFiltrados={itemsFiltrados.length}
+                            resultSingularLabel="Examen encontrado"
+                            resultPluralLabel="Exámenes encontrados"
+                        >
+                            <ResourceSelectFilter
+                                icon={ToggleRight}
+                                value={filtroEstado}
+                                onChange={(e) =>
+                                    setFiltroEstado(e.target.value)
+                                }
+                                ariaLabel="Filtrar por estado"
+                                minWidthClassName="min-w-[180px]"
+                                placeholder="Todos los estados"
+                                options={statuses}
+                            />
+
+                            <ResourceSelectFilter
+                                icon={ClipboardList}
+                                value={filtroTipo}
+                                onChange={(e) => setFiltroTipo(e.target.value)}
+                                ariaLabel="Filtrar por tipo de examen"
+                                minWidthClassName="min-w-[200px]"
+                                placeholder="Todos los tipos"
+                                options={typeOptions}
+                            />
+
+                            <ResourceSelectFilter
+                                icon={UsersRound}
+                                value={ordenCupo || ""}
+                                onChange={(e) =>
+                                    setOrdenCupo(e.target.value || null)
+                                }
+                                ariaLabel="Ordenar por disponibilidad"
+                                minWidthClassName="min-w-[220px]"
+                                placeholder="Orden: Por defecto"
+                                options={[
+                                    {
+                                        value: "desc",
+                                        label: "Disponibilidad: Alta a Baja",
+                                    },
+                                    {
+                                        value: "asc",
+                                        label: "Disponibilidad: Baja a Alta",
+                                    },
+                                ]}
+                            />
+                        </ResourceFilterBar>
                     )}
 
-                    {examenesSeleccionados.length > 0 && esAdminOCoord && (
-                        <BulkActionBarExam
-                            seleccionados={examenesSeleccionados}
+                    {seleccionados.length > 0 && esAdminOCoord && (
+                        <ResourceBulkActionBar
+                            seleccionados={seleccionados}
                             onClearSelection={handleClearSelection}
-                            onBulkStatus={handleBulkStatus}
-                            onBulkDelete={handleBulkDelete}
+                            statuses={statuses}
+                            onBulkStatus={(newStatus) =>
+                                handleBulkStatus(newStatus)
+                            }
+                            onBulkDelete={() => handleBulkDelete()}
+                            selectedSingularLabel="Examen seleccionado"
+                            selectedPluralLabel="Exámenes seleccionados"
+                            statusPlaceholder="Cambiar Estado"
+                            confirmStatusChange={true}
+                            statusModalTitle="Actualizar estado de exámenes"
+                            statusModalMessage={(count, statusLabel) =>
+                                `¿Deseas cambiar el estado de ${count} exámenes a \"${statusLabel}\"?`
+                            }
+                            statusConfirmText="Sí, actualizar"
+                            deleteButtonText="Eliminar"
+                            deleteModalTitle="Eliminar Exámenes"
+                            deleteModalMessage={(count) =>
+                                `¿Estas seguro de que deseas eliminar ${count} exámenes? Esta acción no se puede deshacer.`
+                            }
                         />
                     )}
 
-                    <ExamGrid
-                        examenesPaginados={examenesPaginados}
+                    <ResourceGrid
+                        items={itemsPaginados}
+                        CardComponent={CardExam}
+                        getCardProps={(exam) => ({
+                            examen: exam,
+                            seleccionado: seleccionados.includes(exam.id),
+                            onToggleSelect: handleToggleSelect,
+                            onVerDetalles: handleVerDetalles,
+                            onInscribir: handleInscripcion,
+                            onEditar: handleEditar,
+                        })}
+                        getItemKey={(exam) => exam.id}
                         hayFiltros={hayFiltros}
                         paginaActual={paginaActual}
                         totalPaginas={totalPaginas}
                         onPageChange={setPaginaActual}
-                        onVerDetalles={handleVerDetalles}
-                        onInscribir={handleInscripcion}
-                        onEditar={handleEditar}
-                        examenesSeleccionados={examenesSeleccionados}
-                        onToggleSelect={handleToggleSelect}
+                        EmptyIcon={CalendarX}
+                        emptyTitle="Sin exámenes programados"
+                        emptyMessage="Aún no hay exámenes registrados en el sistema."
+                        emptyFilteredTitle="No hay resultados"
+                        emptyFilteredMessage="Ajusta los filtros de búsqueda para encontrar sesiones de examen."
                     />
                 </div>
             </div>
 
             <ExamDetailsModal
-                examen={examenViendo}
+                examen={itemViendo}
                 onClose={handleCerrarDetalles}
             />
 
             <Modal
-                show={modalAbierto}
+                show={modales.formulario}
                 onClose={handleCerrarModal}
                 maxWidth="md"
             >
@@ -233,6 +333,14 @@ export default function Examen({
                     </div>
                 </form>
             </Modal>
+
+            <ModalAlert
+                isOpen={flashModal.isOpen}
+                onClose={closeFlashModal}
+                type={flashModal.type}
+                title={flashModal.title}
+                message={flashModal.message}
+            />
         </AuthenticatedLayout>
     );
 }

@@ -2,21 +2,24 @@ import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import GroupDetailsModal from "@/Components/Charts/GroupDetailsModal";
-import GroupFilters from "./GroupFilters";
-import GroupGrid from "./GroupGrid";
-import BulkActionBar from "./BulkActionBar";
+import CardGroup from "@/Components/Charts/CardGroup";
+import ResourceFilterBar from "@/Components/Resource/ResourceFilterBar";
+import ResourceGrid from "@/Components/Resource/ResourceGrid";
+import ResourceBulkActionBar from "@/Components/Resource/ResourceBulkActionBar";
+import ResourceSelectFilter from "@/Components/Resource/ResourceSelectFilter";
 import ThemeButton from "@/Components/ThemeButton";
-import { Plus } from "lucide-react";
+import { Layers3, Plus, ToggleRight, UsersRound } from "lucide-react";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import GroupModal from "@/Pages/Test_MK2/FormModals/GroupModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
-import { useGroupsManagement } from "@/Hooks/useGroupsManagement";
+import { useResourceManagement } from "@/Hooks/useResourceManagement";
+import { filterGroups } from "./groupFilters";
 
 /**
  * Componente principal para el Catálogo de Grupos.
- * Actúa como un contenedor ligero que delega la lógica de negocio al hook useGroupsManagement
- * y la representación visual a componentes especializados.
- * 
+ * Actúa como un contenedor que delega la lógica de negocio al hook genérico
+ * de recursos y la representación visual a componentes reutilizables.
+ *
  * @component
  * @param {Object} props - Propiedades del componente de Inertia.
  * @param {Object} props.auth - Datos de autenticación.
@@ -26,48 +29,84 @@ import { useGroupsManagement } from "@/Hooks/useGroupsManagement";
  * @param {Array} props.periods - Catálogo de periodos escolares.
  * @param {Array} props.statuses - Mapeo de estados del Enum GroupStatus.
  */
-export default function Groups({ 
-    auth, 
-    grupos = [], 
-    levels = [], 
-    teachers = [], 
-    periods = [], 
+export default function Groups({
+    auth,
+    grupos = [],
+    levels = [],
+    teachers = [],
+    periods = [],
     statuses = [],
     modes = [],
-    types = []
+    types = [],
 }) {
-    // Inicialización del Hook de Gestión
     const {
-        busqueda, setBusqueda,
-        filtroEstado, setFiltroEstado,
-        filtroNivel, setFiltroNivel,
-        ordenCupo, setOrdenCupo,
-        paginaActual, setPaginaActual,
-        gruposSeleccionados,
-        modalAbierto,
-        grupoEditando,
-        grupoViendo,
+        busqueda,
+        setBusqueda,
+        paginaActual,
+        setPaginaActual,
+        seleccionados,
+        modales,
+        itemEditando,
+        itemViendo,
         totalPaginas,
-        gruposPaginados,
-        gruposFiltrados,
+        itemsPaginados,
+        itemsFiltrados,
         hayFiltros,
+        filtros,
+        handleSetFiltro,
         handleToggleSelect,
         handleClearSelection,
-        handleCrearGrupo,
-        handleEditar,
-        handleCerrarModal,
-        handleVerDetalles,
-        handleCerrarDetalles,
-        handleInscripcion,
+        handleOpenModal,
+        handleCloseModal,
         handleBulkStatus,
-        handleBulkDelete
-    } = useGroupsManagement({ grupos });
+        handleBulkDelete,
+        handleAction,
+    } = useResourceManagement({
+        items: grupos,
+        filterCallback: filterGroups,
+        routes: {
+            enroll: (id) => route("groups.enroll", id),
+            bulkStatus: "groups.bulk-status",
+            bulkStatusMethod: "put",
+            bulkDelete: "groups.bulk-delete",
+        },
+        initialFilters: {
+            estado: "",
+            nivel: "",
+            ordenCupo: null,
+        },
+    });
+
+    const filtroEstado = filtros.estado ?? "";
+    const filtroNivel = filtros.nivel ?? "";
+    const ordenCupo = filtros.ordenCupo ?? null;
+
+    const setFiltroEstado = (value) => handleSetFiltro("estado", value);
+    const setFiltroNivel = (value) => handleSetFiltro("nivel", value);
+    const setOrdenCupo = (value) => handleSetFiltro("ordenCupo", value);
+
+    const handleCrearGrupo = () => handleOpenModal("formulario", null);
+    const handleEditar = (group) => handleOpenModal("formulario", group);
+    const handleCerrarModal = () => handleCloseModal("formulario");
+
+    const handleVerDetalles = (group) => handleOpenModal("detalles", group);
+    const handleCerrarDetalles = () => handleCloseModal("detalles");
+
+    const handleInscripcion = (id) => {
+        handleAction("enroll", {
+            routeParams: [id],
+            options: {
+                preserveScroll: true,
+            },
+        });
+    };
 
     const { flashModal, closeFlashModal } = useFlashAlert();
 
     // Lógica de permisos rápida
-    const esAdminOCoord = 
-        auth.user.roles.some(r => r.name === 'admin' || r.name === 'coordinator');
+    const esAdminOCoord = auth.user.roles.some(
+        (r) => r.name === "admin" || r.name === "coordinator",
+    );
 
     return (
         <AuthenticatedLayout
@@ -97,59 +136,129 @@ export default function Groups({
 
                     {/* Filtros de Búsqueda */}
                     {(grupos.length > 0 || esAdminOCoord) && (
-                        <GroupFilters
+                        <ResourceFilterBar
                             busqueda={busqueda}
                             setBusqueda={setBusqueda}
-                            filtroEstado={filtroEstado}
-                            setFiltroEstado={setFiltroEstado}
-                            filtroNivel={filtroNivel}
-                            setFiltroNivel={setFiltroNivel}
-                            levels={levels}
-                            statuses={statuses}
-                            totalFiltrados={gruposFiltrados.length}
-                            ordenCupo={ordenCupo}
-                            setOrdenCupo={setOrdenCupo}
-                        />
+                            searchPlaceholder="Buscar por grupo, docente o nivel..."
+                            totalFiltrados={itemsFiltrados.length}
+                            resultSingularLabel="Grupo encontrado"
+                            resultPluralLabel="Grupos encontrados"
+                        >
+                            <ResourceSelectFilter
+                                icon={ToggleRight}
+                                value={filtroEstado}
+                                onChange={(e) =>
+                                    setFiltroEstado(e.target.value)
+                                }
+                                ariaLabel="Filtrar por estado"
+                                minWidthClassName="min-w-[180px]"
+                                placeholder="Todos los estados"
+                                options={statuses}
+                            />
+
+                            <ResourceSelectFilter
+                                icon={Layers3}
+                                value={filtroNivel}
+                                onChange={(e) => setFiltroNivel(e.target.value)}
+                                ariaLabel="Filtrar por nivel"
+                                minWidthClassName="min-w-[200px]"
+                                placeholder="Todos los niveles"
+                                options={levels.map((nivel) => ({
+                                    value: String(nivel.id),
+                                    label: nivel.level_tecnm || nivel.name,
+                                }))}
+                            />
+
+                            <ResourceSelectFilter
+                                icon={UsersRound}
+                                value={ordenCupo || ""}
+                                onChange={(e) =>
+                                    setOrdenCupo(e.target.value || null)
+                                }
+                                ariaLabel="Ordenar por disponibilidad"
+                                minWidthClassName="min-w-[220px]"
+                                placeholder="Orden: Por defecto"
+                                options={[
+                                    {
+                                        value: "desc",
+                                        label: "Disponibilidad: Alta a Baja",
+                                    },
+                                    {
+                                        value: "asc",
+                                        label: "Disponibilidad: Baja a Alta",
+                                    },
+                                ]}
+                            />
+                        </ResourceFilterBar>
                     )}
 
                     {/* Barra de Acciones en Lote (Solo Administrativa) */}
-                    {gruposSeleccionados.length > 0 && esAdminOCoord && (
-                        <BulkActionBar
-                            seleccionados={gruposSeleccionados}
+                    {seleccionados.length > 0 && esAdminOCoord && (
+                        <ResourceBulkActionBar
+                            seleccionados={seleccionados}
                             onClearSelection={handleClearSelection}
                             statuses={statuses}
-                            onBulkStatus={handleBulkStatus}
-                            onBulkDelete={handleBulkDelete}
+                            onBulkStatus={(newStatus) =>
+                                handleBulkStatus(newStatus)
+                            }
+                            onBulkDelete={() => handleBulkDelete()}
+                            selectedSingularLabel="Grupo seleccionado"
+                            selectedPluralLabel="Grupos seleccionados"
+                            statusPlaceholder="Cambiar Estado"
+                            confirmStatusChange={true}
+                            statusModalTitle="Actualizar estado de grupos"
+                            statusModalMessage={(count, statusLabel) =>
+                                `¿Deseas cambiar el estado de ${count} grupos a \"${statusLabel}\"?`
+                            }
+                            statusConfirmText="Sí, actualizar"
+                            deleteButtonText="Eliminar"
+                            deleteModalTitle="Eliminar Grupos"
+                            deleteModalMessage={(count) =>
+                                `¿Estas seguro de que deseas eliminar ${count} grupos? Esta accion no se puede deshacer.`
+                            }
                         />
                     )}
 
                     {/* Grilla de Resultados */}
-                    <GroupGrid
-                        gruposPaginados={gruposPaginados}
-                        gruposSeleccionados={gruposSeleccionados}
-                        onToggleSelect={handleToggleSelect}
+                    <ResourceGrid
+                        items={itemsPaginados}
+                        CardComponent={CardGroup}
+                        getCardProps={(group) => ({
+                            grupo: group,
+                            seleccionado: seleccionados.includes(group.id),
+                            onToggleSelect: handleToggleSelect,
+                            onVerDetalles: handleVerDetalles,
+                            onInscribir: handleInscripcion,
+                            onEditar: handleEditar,
+                        })}
+                        getItemKey={(group) => group.id}
                         hayFiltros={hayFiltros}
                         paginaActual={paginaActual}
                         totalPaginas={totalPaginas}
                         onPageChange={setPaginaActual}
-                        onVerDetalles={handleVerDetalles}
-                        onInscribir={handleInscripcion}
-                        onEditar={handleEditar}
+                        emptyTitle="Sin grupos registrados"
+                        emptyMessage="Aun no hay grupos registrados en el sistema."
+                        emptyFilteredTitle="No hay resultados"
+                        emptyFilteredMessage="No encontramos ningun grupo que coincida con los filtros seleccionados."
                     />
                 </div>
             </div>
 
             {/* Modales de Interacción */}
             <GroupDetailsModal
-                grupo={grupoViendo}
+                grupo={itemViendo}
                 onClose={handleCerrarDetalles}
             />
 
             <GroupModal
-                show={modalAbierto}
-                title={grupoEditando ? `Editar grupo: ${grupoEditando.name}` : 'Añadir grupo'}
+                show={modales.formulario}
+                title={
+                    itemEditando
+                        ? `Editar grupo: ${itemEditando.name}`
+                        : "Añadir grupo"
+                }
                 onClose={handleCerrarModal}
-                grupoToEdit={grupoEditando}
+                grupoToEdit={itemEditando}
                 levels={levels}
                 teachers={teachers}
                 periods={periods}
@@ -157,7 +266,6 @@ export default function Groups({
                 modes={modes}
                 types={types}
             />
-
 
             <ModalAlert
                 isOpen={flashModal.isOpen}

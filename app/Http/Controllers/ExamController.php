@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BulkDeleteExamsRequest;
+use App\Http\Requests\BulkUpdateExamsStatusRequest;
 use App\Models\Exam;
 use Illuminate\Http\Request;
 
@@ -76,6 +78,25 @@ class ExamController extends Controller
         return redirect()->back()->with('success', 'Alumnos seleccionados dados de baja.');
     }
 
+    public function bulkUpdateStatus(BulkUpdateExamsStatusRequest $request)
+    {
+        $validated = $request->validated();
+
+        Exam::whereIn('id', $validated['ids'])
+            ->update(['status' => $validated['new_status']]);
+
+        return redirect()->back()->with('success', 'Estados de exámenes actualizados exitosamente.');
+    }
+
+    public function bulkDestroy(BulkDeleteExamsRequest $request)
+    {
+        $validated = $request->validated();
+
+        Exam::whereIn('id', $validated['ids'])->delete();
+
+        return redirect()->back()->with('success', 'Exámenes eliminados.');
+    }
+
     public function updatePivot(Request $request, Exam $exam)
     {
         $request->validate([
@@ -98,12 +119,12 @@ class ExamController extends Controller
             'qualifications.*.calificacion' => 'nullable|numeric|min:0|max:100'
         ]);
 
-        foreach($request->qualifications as $q) {
+        foreach ($request->qualifications as $q) {
             $exam->students()->updateExistingPivot($q['id'], [
                 'calificacion' => $q['calificacion'] ?? null
             ]);
         }
-        
+
         return redirect()->back()->with('success', 'Calificaciones guardadas masivamente.');
     }
 }
