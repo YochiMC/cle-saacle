@@ -28,7 +28,7 @@ export default function Test({ degrees, students, teachers }) {
         <div className="min-h-screen py-12 bg-slate-50">
             <Head title="Gestión Académica" />
 
-            <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-[96rem] sm:px-6 lg:px-8">
                 <ResourceDashboard
                     title="Gestión Académica"
                     dataMap={{

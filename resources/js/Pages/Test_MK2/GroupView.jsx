@@ -190,7 +190,7 @@ export default function GroupView({
                 }
             >
                 <div className="py-12 pb-32">
-                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="mx-auto w-full max-w-[96rem] sm:px-6 lg:px-8">
                         {/* ── Barra Superior: Botón "Capturar Calificaciones" ──────────────────── */}
                         {canEditQualifications && (
                             <div className="flex justify-end mb-4">
@@ -236,7 +236,7 @@ export default function GroupView({
                 {/* ── Barra Inferior: Panel de Guardado Global ──────────────────────────── */}
                 {isEditingMode && canEditQualifications && (
                     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-6">
-                        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 flex justify-end gap-4">
+                        <div className="mx-auto w-full max-w-[96rem] sm:px-6 lg:px-8 flex justify-end gap-4">
                             <ThemeButton
                                 theme="outline"
                                 icon={X}

@@ -87,7 +87,7 @@ export default function ResourceDashboard({
         <div className="min-h-screen py-12 bg-gray-100">
             <Head title={currentViewLabel} />
 
-            <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-[96rem] sm:px-6 lg:px-8">
                 <DashboardHeader
                     title={title}
                     currentViewLabel={currentViewLabel}
