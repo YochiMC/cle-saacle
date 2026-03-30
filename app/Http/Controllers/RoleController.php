@@ -95,24 +95,30 @@ class RoleController extends Controller
      */
     public function update(UpdateRoleRequest $request, string $id)
     {
-        //
         $validated = $request->validated();
-        try{
+
+        try {
+            $role = Role::query()->findOrFail($id);
+
+            if ($role->is_system) {
+                return redirect()->back()->with('error', 'Este rol no se puede modificar ya que es parte del sistema.');
+            }
+
             DB::transaction(function () use ($id, $validated) {
                 $role = Role::query()->findOrFail($id);
-                if($role->is_system){
-                    return redirect()->back()->with('error', 'Este rol no se puede modificar ya que es parte del sistema');
-                }else{
-                    $role->update(['name' => $validated['name']]);
-                    $permissionIds = $validated['permissions'] ?? [];
-                    $role->syncPermissions($permissionIds);
-                    return redirect()->back()->with('success', 'Rol actualizado correctamente.');
-                }
+                $role->update(['name' => $validated['name']]);
+
+                $permissionIds = $validated['permissions'] ?? [];
+                $role->syncPermissions($permissionIds);
             });
+
+            return redirect()->back()->with('success', 'Rol actualizado correctamente.');
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->withErrors(['role' => 'El rol que intentas actualizar no existe.']);
         } catch (\Throwable $e) {
             report($e);
-            return redirect()->back()->withErrors(['role' => 'No se pudo actualizar el rol. Intenta nuevamente.']);
 
+            return redirect()->back()->withErrors(['role' => 'No se pudo actualizar el rol. Intenta nuevamente.']);
         }
     }
 
@@ -127,18 +133,21 @@ class RoleController extends Controller
     public function destroy(string $id)
     {
         try {
+            $role = Role::query()->findOrFail($id);
+
+            if ($role->is_system) {
+                return redirect()->back()->with('error', 'Este rol no se puede eliminar ya que es parte del sistema.');
+            }
+
             DB::transaction(function () use ($id) {
                 $role = Role::query()->findOrFail($id);
 
                 // Se limpian relaciones antes de eliminar para mantener consistencia en pivotes.
                 $role->syncPermissions([]);
-                if($role->is_system){
-                    return redirect()->back()->with('error', 'Este rol no se puede eliminar ya que es parte del sistema');
-                }else{
-                    $role->delete();
-                    return redirect()->back()->with('success', 'Rol eliminado correctamente.');
-                }
+                $role->delete();
             });
+
+            return redirect()->back()->with('success', 'Rol eliminado correctamente.');
         } catch (ModelNotFoundException $e) {
             return redirect()->back()->withErrors(['role' => 'El rol que intentas eliminar no existe.']);
         } catch (\Throwable $e) {

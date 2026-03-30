@@ -4,22 +4,37 @@ import InputForm from "@/Components/Forms/InputForm";
 import CheckboxForm from "@/Components/Forms/CheckboxForm";
 import ButtonForm from "@/Components/Forms/ButtonForm";
 import { useForm } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 /**
  * Modal de alta/edición de roles.
  * Mantiene la lógica de formulario local y expone un callback opcional para integrar backend desde la Page.
  */
-export default function UpdateRoleModal({ permissions = [], title, show, onClose, role, onSubmitRole }) {
+export default function UpdateRoleModal({ permissions = [], title, show, onClose, role }) {
+    const initialPermissionIds = Array.isArray(role?.permissions)
+        ? role.permissions.map((permission) => (typeof permission === 'object' ? permission?.id : permission)).filter((id) => id != null)
+        : [];
 
-    console.table(role);
-
-    const { data, setData, post, processing, reset, errors } = useForm({
-        name: role.name ?? '',
-        permissions: role.permissions ?? [],
+    const { data, setData, put, processing, errors } = useForm({
+        name: role?.name ?? '',
+        permissions: initialPermissionIds,
     });
 
     const selectedPermissions = Array.isArray(data.permissions) ? data.permissions : [];
     const permissionItemError = Object.keys(errors).find((key) => key.startsWith('permissions.'));
+
+    useEffect(() => {
+        const nextPermissionIds = Array.isArray(role?.permissions)
+            ? role.permissions.map((permission) => (typeof permission === 'object' ? permission?.id : permission)).filter((id) => id != null)
+            : [];
+
+        setData({
+            name: role?.name ?? '',
+            permissions: nextPermissionIds,
+        });
+    }, [role, setData]);
+
+    const isSystemRole = role?.is_system === true;
 
     const handlePermissionChange = (permissionId, isChecked) => {
         const current = selectedPermissions;
@@ -39,9 +54,12 @@ export default function UpdateRoleModal({ permissions = [], title, show, onClose
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        post('/roles', {
+        if (!role?.id || isSystemRole) {
+            return;
+        }
+
+        put(route("roles.update", role.id), {
             onSuccess: () => {
-                reset();
                 onClose();
             },
         });
@@ -55,7 +73,7 @@ export default function UpdateRoleModal({ permissions = [], title, show, onClose
         >
             <form onSubmit={handleSubmit}>
                 <FieldGroup>
-                    {!role.is_system && (
+                    {!isSystemRole && (
                         <FieldSet>
                             <InputForm
                                 label="Nombre del rol"
@@ -74,6 +92,11 @@ export default function UpdateRoleModal({ permissions = [], title, show, onClose
                         <FieldDescription>
                             Selecciona los permisos que tendrá este rol. Puedes marcar uno o varios según el nivel de acceso que necesites.
                         </FieldDescription>
+                        {isSystemRole && (
+                            <FieldDescription>
+                                Este rol pertenece al sistema y no puede modificarse desde este módulo.
+                            </FieldDescription>
+                        )}
                         {permissions.length === 0 ? (
                             <FieldDescription>
                                 No hay permisos disponibles para seleccionar en este momento.
@@ -86,6 +109,7 @@ export default function UpdateRoleModal({ permissions = [], title, show, onClose
                                     checkboxId={`permission-${permission.id}`}
                                     checked={selectedPermissions.map((id) => String(id)).includes(String(permission.id))}
                                     onCheckedChange={(checkedState) => handlePermissionChange(permission.id, checkedState === true)}
+                                    disabled={isSystemRole || processing}
                                     tone='institutional'
                                 />
                             ))
@@ -106,6 +130,8 @@ export default function UpdateRoleModal({ permissions = [], title, show, onClose
                             cancelLabel="Cancelar"
                             onCancel={onClose}
                             isLoading={processing}
+                            disabled={isSystemRole}
+                            tone="institutional"
                         />
                     </FieldSet>
                 </FieldGroup>

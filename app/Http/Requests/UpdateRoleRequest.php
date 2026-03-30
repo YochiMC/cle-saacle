@@ -13,7 +13,7 @@ class UpdateRoleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,9 +23,11 @@ class UpdateRoleRequest extends FormRequest
      */
     public function rules(): array
     {
+        $roleId = $this->route('id');
+
         return [
-            //
-            'name' => ['required', 'string', 'max:255', 'unique:roles,name', Rule::unique('roles', 'name')->whereNull('deleted_at'),],
+            // Permite conservar el nombre actual del rol sin disparar falso positivo de "unique".
+            'name' => ['required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($roleId)],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['integer', 'exists:permissions,id'],
         ];
