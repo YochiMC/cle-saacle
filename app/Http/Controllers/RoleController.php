@@ -11,6 +11,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Http\Resources\RoleResource;
 use App\Http\Requests\StoreRoleRequest;
+use App\Http\Requests\UpdateRoleRequest;
 use App\Http\Resources\PermissionResource;
 
 class RoleController extends Controller
@@ -58,7 +59,7 @@ class RoleController extends Controller
         try {
             DB::transaction(function () use ($validated) {
                 $role = Role::create(['name' => $validated['name']]);
-
+                $role->is_system = false;
                 $permissionIds = $validated['permissions'] ?? [];
                 $role->syncPermissions($permissionIds);
             });
@@ -92,9 +93,33 @@ class RoleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(\Illuminate\Http\Request $request, string $id)
+    public function update(UpdateRoleRequest $request, string $id)
     {
-        //
+        $validated = $request->validated();
+
+        try {
+            $role = Role::query()->findOrFail($id);
+
+            if ($role->is_system) {
+                return redirect()->back()->with('error', 'Este rol no se puede modificar ya que es parte del sistema.');
+            }
+
+            DB::transaction(function () use ($id, $validated) {
+                $role = Role::query()->findOrFail($id);
+                $role->update(['name' => $validated['name']]);
+
+                $permissionIds = $validated['permissions'] ?? [];
+                $role->syncPermissions($permissionIds);
+            });
+
+            return redirect()->back()->with('success', 'Rol actualizado correctamente.');
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->withErrors(['role' => 'El rol que intentas actualizar no existe.']);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->back()->withErrors(['role' => 'No se pudo actualizar el rol. Intenta nuevamente.']);
+        }
     }
 
     /**
@@ -108,6 +133,12 @@ class RoleController extends Controller
     public function destroy(string $id)
     {
         try {
+            $role = Role::query()->findOrFail($id);
+
+            if ($role->is_system) {
+                return redirect()->back()->with('error', 'Este rol no se puede eliminar ya que es parte del sistema.');
+            }
+
             DB::transaction(function () use ($id) {
                 $role = Role::query()->findOrFail($id);
 

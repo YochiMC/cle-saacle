@@ -6,12 +6,11 @@ import useFlashAlert from "@/Hooks/useFlashAlert";
 import ConfirmModal from '@/Components/ConfirmModal';
 import ModalAlert from "@/Components/ui/ModalAlert";
 import RoleModal from "@/Pages/TestYochi/RolesPermissions/FormModals/RoleModal";
-import PermissionModal from "@/Pages/TestYochi/RolesPermissions/FormModals/PermissionModal";
+import UpdateRoleModal from "@/Pages/TestYochi/RolesPermissions/FormModals/UpdateRoleModal";
 
 // Definidas fuera del componente para mantener referencia estable entre renders.
 const VIEW_OPTIONS = [
     { value: "roles", label: "Roles" },
-    { value: "permissions", label: "Permisos" },
 ];
 
 /**
@@ -19,38 +18,39 @@ const VIEW_OPTIONS = [
  * Centraliza handlers de UI para crear, editar y eliminar por tipo de entidad.
  */
 export default function Asignation({ users, roles, permissions }) {
-
     // Centraliza el estado del modal de alertas de feedback (flash messages).
     const { flashModal, closeFlashModal } = useFlashAlert();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [currentView, setCurrentView] = useState("roles");
-
+    const [itemToEdit, setItemToEdit] = useState(null);
     const [itemToDelete, setItemToDelete] = useState(null);
 
     const handleEditRow = (item) => {
-        console.log('Editar registro:', item, 'vista:', currentView);
-        setIsModalOpen(true);
+        if (currentView !== 'roles') return;
+
+        setItemToEdit(item);
+        setIsUpdateModalOpen(true);
     };
 
     const handleOpenCreateModal = () => {
-        setIsModalOpen(true);
+        if (currentView !== 'roles') return;
+
+        setIsCreateModalOpen(true);
     };
 
     const openDeleteModal = (item) => {
         setItemToDelete(item);
     };
 
-    const handleSubmitRole = ({ data, reset, onClose }) => {
-        console.log('Crear/editar rol pendiente de integrar con backend:', data);
-        reset();
-        onClose?.();
-        setIsModalOpen(false);
+    const closeCreateModal = () => {
+        setIsCreateModalOpen(false);
     };
 
-    const handleSubmitPermission = () => {
-        console.log('Crear/editar permiso pendiente de integrar con backend.');
-        setIsModalOpen(false);
+    const closeUpdateModal = () => {
+        setIsUpdateModalOpen(false);
+        setItemToEdit(null);
     };
 
     const handleDeleteRow = () => {
@@ -69,10 +69,6 @@ export default function Asignation({ users, roles, permissions }) {
                 router.delete(route('roles.destroy', itemId), {
                     onSuccess: () => setItemToDelete(null),
                 });
-                break;
-            case 'permissions':
-                console.log('Eliminar permiso pendiente de integrar con backend. id:', itemId);
-                setItemToDelete(null);
                 break;
             default:
                 setItemToDelete(null);
@@ -95,25 +91,25 @@ export default function Asignation({ users, roles, permissions }) {
                 onDeleteRow={openDeleteModal}
                 onViewChange={(view) => setCurrentView(view)}
                 editableColumns={[]}
-                hiddenColumns={{ permissions: false }}
+                hiddenColumns={{ permissions: false, is_system: false, id: false }}
             />
             {/* Modales — se monta únicamente el correspondiente a la vista activa */}
             {currentView === "roles" && (
                 <RoleModal
                     permissions={permissions}
                     title="Añadir rol"
-                    show={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    onSubmitRole={handleSubmitRole}
+                    show={isCreateModalOpen}
+                    onClose={closeCreateModal}
                 />
             )}
 
-            {currentView === "permissions" && (
-                <PermissionModal
-                    title="Añadir permiso"
-                    show={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    onSubmitPermission={handleSubmitPermission}
+            {currentView === "roles" && itemToEdit && (
+                <UpdateRoleModal
+                    permissions={permissions}
+                    title="Editar rol"
+                    show={isUpdateModalOpen}
+                    onClose={closeUpdateModal}
+                    role={itemToEdit}
                 />
             )}
 
