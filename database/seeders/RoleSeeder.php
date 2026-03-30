@@ -89,6 +89,9 @@ class RoleSeeder extends Seeder
             Permission::findOrCreate($permissionName, $guard);
         }
 
+        // Reiniciar caché de permisos antes de asignarlos a roles para evitar lecturas desfasadas.
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         // ============================================================
         // 2. CREAR ROLES Y ASIGNAR PERMISOS
         // ============================================================
