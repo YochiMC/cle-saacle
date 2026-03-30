@@ -56,7 +56,7 @@ const SortIcon = ({ column }) => {
 // ── EditableCell ───────────────────────────────────────────────────────────────
 
 /**
- * Celda editable para el Modo Docente.
+ * Celda editable para edición en línea.
  *
  * OCP: extiende el comportamiento de la celda sin tocar la definición base.
  * ISP: este componente solo conoce SU campo — no el modo global.
@@ -91,7 +91,7 @@ const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange }) => {
                             onChange(fieldKey, rowId, next);
                         } else {
                             console.log(
-                                `[Modo Docente] campo="${fieldKey}" alumno_id=${rowId} valor=${next}`,
+                                `[Edicion Tabla] campo="${fieldKey}" alumno_id=${rowId} valor=${next}`,
                             );
                         }
                     }}
@@ -120,7 +120,7 @@ const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange }) => {
                 if (onChange) {
                     onChange(fieldKey, rowId, value);
                 } else {
-                    console.log(`[Modo Docente] campo="${fieldKey}" alumno_id=${rowId} valor=${value}`);
+                    console.log(`[Edicion Tabla] campo="${fieldKey}" alumno_id=${rowId} valor=${value}`);
                 }
             }}
             {...extraNumericProps}
@@ -133,17 +133,16 @@ const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange }) => {
  *
  * Genera columnas TanStack Table a partir de las claves del primer registro.
  * Incluye columna de selección, columnas de datos con sort y, opcionalmente,
- * columna de acciones (solo en Modo Administrador).
+ * columna de acciones.
  *
  * @param {Array}    data             - Array de registros del que se extraen las claves.
- * @param {Function} onEditRow        - Callback al pulsar Editar: (item) => void. Solo Modo Admin.
- * @param {object}   modeOptions      - Opciones de modo de usuario:
- * @param {boolean}  modeOptions.isTeacherMode     - true = Modo Docente.
- * @param {string[]} modeOptions.editableColumns   - Keys de columnas que serán inputs en Modo Docente.
- * @param {string[]} modeOptions.restrictedColumns - Keys ELIMINADAS en Modo Docente
+ * @param {Function} onEditRow        - Callback al pulsar Editar: (item) => void.
+ * @param {object}   modeOptions      - Opciones de edición:
+ * @param {string[]} modeOptions.editableColumns   - Keys de columnas que serán inputs en edición.
+ * @param {string[]} modeOptions.restrictedColumns - Keys ELIMINADAS de la tabla
  *                                                   (no llegan a TanStack ni al menú Toggle Columns).
  * @param {Function} modeOptions.onCellChange      - (fieldKey, rowId, value) => void
- *                                                   Callback cuando el docente edita una celda.
+ *                                                   Callback cuando se edita una celda.
  *                                                   Si no se provee se usa console.log.
  * @returns {Array} Definición de columnas lista para pasar a <DataTable />.
  */
@@ -152,7 +151,6 @@ export function useDynamicColumns(
     onEditRow,
     onDeleteRow,
     {
-        isTeacherMode = false,
         editableColumns = [],
         restrictedColumns = [],
         onCellChange,
@@ -170,7 +168,7 @@ export function useDynamicColumns(
 
         const allKeys = dataKeys.split(",");
         const editableSet = new Set(editableColumns);
-        const restrictedSet = new Set(isTeacherMode ? restrictedColumns : []);
+        const restrictedSet = new Set(restrictedColumns);
         const keys = allKeys.filter((k) => !restrictedSet.has(k));
 
         // ── Columnas de datos (con lógica de celda condicional) ───────────────
@@ -188,15 +186,12 @@ export function useDynamicColumns(
                     <SortIcon column={column} />
                 </Button>
             ),
-            // ISP: la celda solo sabe si ELLA es editable, no conoce el modo global.
+            // ISP: la celda solo sabe si ELLA es editable.
             cell: ({ row }) => {
                 const cellValue = row.original[key];
                 const isRowEditing = row.original.id === editingRowId;
 
-                if (
-                    (isTeacherMode && editableSet.has(key)) ||
-                    (isRowEditing && editableSet.has(key))
-                ) {
+                if (isRowEditing && editableSet.has(key)) {
                     return (
                         <EditableCell
                             value={cellValue}
@@ -234,7 +229,7 @@ export function useDynamicColumns(
             enableHiding: false,
         };
 
-        // ── Columna de acciones: solo en Modo Administrador ───────────────────
+        // ── Columna de acciones ────────────────────────────────────────────────
         // SRP: la decisión de incluir esta columna está aislada aquí, no dispersa.
         const actionsColumn = {
             id: "actions",
@@ -307,18 +302,14 @@ export function useDynamicColumns(
         };
 
         return [
-            // SRP: en Modo Docente no hay acciones masivas → la columna de
-            // selección no tiene utilidad y se omite para mantener la UI limpia.
-            ...(isTeacherMode ? [] : [selectionColumn]),
+            selectionColumn,
             ...baseColumns,
-            // OCP: añadimos/quitamos la columna sin tocar su definición interna.
-            ...(isTeacherMode ? [] : [actionsColumn]),
+            actionsColumn,
         ];
     }, [
         dataKeys,
         onEditRow,
         onDeleteRow,
-        isTeacherMode,
         editableColumns,
         restrictedColumns,
         onCellChange,

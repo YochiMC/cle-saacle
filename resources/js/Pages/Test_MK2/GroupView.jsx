@@ -3,7 +3,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/ResourceDashboard";
 import { usePermission } from "@/Utils/auth";
 import ThemeButton from "@/Components/ThemeButton";
-import { Check, X, Save, Edit3 } from "lucide-react";
+import { X, Save, Edit3 } from "lucide-react";
 import { router } from "@inertiajs/react";
 import EnrollStudentModal from "@/Pages/Test_MK2/FormModals/EnrollStudentModal";
 import ConfirmModal from '@/Components/ConfirmModal';
@@ -167,10 +167,6 @@ export default function GroupView({
         ? ["unit_1", "unit_2", "is_approved", "is_left"]
         : [];
 
-    // Definimos las columnas que NO deseamos que se rendericen en TanStack Table durante modo lectura.
-    // Usamos EXACTAMENTE las keys del recurso
-    const restrictedColumns = [];
-
     // Formateamos las opciones de vista para el ResourceDashboard
     const viewOptions = [{ value: "alumnos", label: "Alumnos Inscritos" }];
 
@@ -190,47 +186,38 @@ export default function GroupView({
                 }
             >
                 <div className="py-12 pb-32">
-                    <div className="mx-auto w-full max-w-[96rem] sm:px-6 lg:px-8">
-                        {/* ── Barra Superior: Botón "Capturar Calificaciones" ──────────────────── */}
-                        {canEditQualifications && (
-                            <div className="flex justify-end mb-4">
-                                {!isEditingMode ? (
-                                    <ThemeButton
-                                        theme="primary"
-                                        icon={Edit3}
-                                        onClick={() => setIsEditingMode(true)}
-                                    >
-                                        Capturar Calificaciones
-                                    </ThemeButton>
-                                ) : null}
-                            </div>
-                        )}
-
-                        {/* ── Dashboard Principal ────────────────────────────────────────────── */}
-                        <ResourceDashboard
-                            title={`Calificaciones del Grupo: ${grupo?.name || "N/A"}`}
-                            dataMap={dataMap}
-                            viewOptions={viewOptions}
-                            deleteRoute={route('groups.unenroll-bulk', grupo.id)}
-                            onDeleteRow={handleDeleteRow}
-                            editableColumns={editableColumns}
-                            restrictedColumns={restrictedColumns}
-                            hiddenColumns={{ qualification_id: false }}
-                            isTeacherMode={
-                                canEditQualifications && isEditingMode
-                            }
-                            onCellChange={handleCellChange}
-                            editingRowId={editingRowId}
-                            onEditRow={(item) => setEditingRowId(item.id)}
-                            onSaveRow={handleSaveRow}
-                            onCancelRow={() => setEditingRowId(null)}
-                            onNew={
-                                canEditQualifications
-                                    ? () => setIsEnrollModalOpen(true)
-                                    : undefined
-                            }
-                        />
-                    </div>
+                    {/* ── Dashboard Principal ────────────────────────────────────────────── */}
+                    <ResourceDashboard
+                        title={`Calificaciones del Grupo: ${grupo?.name || "N/A"}`}
+                        dataMap={dataMap}
+                        viewOptions={viewOptions}
+                        deleteRoute={route('groups.unenroll-bulk', grupo.id)}
+                        onDeleteRow={handleDeleteRow}
+                        editableColumns={editableColumns}
+                        hiddenColumns={{ qualification_id: false }}
+                        onCellChange={handleCellChange}
+                        editingRowId={editingRowId}
+                        onEditRow={(item) => setEditingRowId(item.id)}
+                        onSaveRow={handleSaveRow}
+                        onCancelRow={() => setEditingRowId(null)}
+                        buttonSpace={
+                            canEditQualifications && !isEditingMode ? (
+                                <ThemeButton
+                                    theme="primary"
+                                    icon={Edit3}
+                                    size="sm"
+                                    onClick={() => setIsEditingMode(true)}
+                                >
+                                    Capturar Calificaciones
+                                </ThemeButton>
+                            ) : null
+                        }
+                        onNew={
+                            canEditQualifications
+                                ? () => setIsEnrollModalOpen(true)
+                                : undefined
+                        }
+                    />
                 </div>
 
                 {/* ── Barra Inferior: Panel de Guardado Global ──────────────────────────── */}

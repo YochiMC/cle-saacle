@@ -102,7 +102,6 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
                 onEditRow={handleEditRow}
                 onDeleteRow={openDeleteModal}
                 onViewChange={(view) => setCurrentView(view)}
-                editableColumns={["firstName", "lastName"]}
                 hiddenColumns={{ user_id: false, birthdate: false, type: false }}
             />
 

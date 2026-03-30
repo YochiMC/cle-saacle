@@ -15,7 +15,6 @@ import { Copy, Trash2 } from 'lucide-react';
  * @param {number}   selectionCount     - Número de filas seleccionadas.
  * @param {Function} onBulkCopy         - Handler para copiar a Excel.
  * @param {Function} onBulkDelete       - Handler para eliminar seleccionados.
- * @param {boolean}  isTeacherMode      - true = Modo Docente activo.
  */
 export default function DashboardHeader({
     title,
@@ -26,7 +25,6 @@ export default function DashboardHeader({
     selectionCount = 0,
     onBulkCopy,
     onBulkDelete,
-    isTeacherMode = false,
     customActions,
 }) {
     return (
@@ -41,9 +39,7 @@ export default function DashboardHeader({
                         </h2>
                     </div>
                     <p className="mt-2 ml-5 text-sm text-gray-600">
-                        {isTeacherMode
-                            ? 'Modo Docente — captura de calificaciones.'
-                            : 'Administración general de los registros del sistema.'}
+                        Administracion general de los registros del sistema.
                     </p>
                 </div>
 
@@ -88,17 +84,14 @@ export default function DashboardHeader({
                         >
                             Copiar a Excel
                         </ThemeButton>
-                        {/* El docente NO puede eliminar registros masivamente */}
-                        {!isTeacherMode && (
-                            <ThemeButton
-                                onClick={onBulkDelete}
-                                theme="danger"
-                                icon={Trash2}
-                                size="sm"
-                            >
-                                Eliminar Seleccionados
-                            </ThemeButton>
-                        )}
+                        <ThemeButton
+                            onClick={onBulkDelete}
+                            theme="danger"
+                            icon={Trash2}
+                            size="sm"
+                        >
+                            Eliminar Seleccionados
+                        </ThemeButton>
                     </div>
                 </div>
             )}

@@ -19,10 +19,11 @@ const EMPTY_DATA = [];
  * @param {object}   hiddenColumns   - Columnas ocultas por defecto.
  * @param {Function} onEditRow       - Callback opcional al pulsar Editar: (item) => void.
  * @param {Function} onDeleteRow     - Callback opcional al pulsar Eliminar: (item) => void.
+ * @param {React.ReactNode} buttonSpace - Acciones opcionales para el toolbar de la tabla.
  * @param {number|null} editingRowId - ID de la fila actualmente en edición (para edición individual).
  * @param {Function} onSaveRow       - Callback opcional al guardar fila individual: (item) => void.
  * @param {Function} onCancelRow     - Callback opcional al cancelar edición individual: () => void.
- * @param {string[]} editableColumns - Keys de columnas que se vuelven <input> en Modo Docente.
+ * @param {string[]} editableColumns - Keys de columnas editables durante edición de fila.
  */
 export default function ResourceDashboard({
     title,
@@ -33,11 +34,11 @@ export default function ResourceDashboard({
     onEditRow,
     onDeleteRow,
     onPrint,
+    buttonSpace,
     onNew,
     onViewChange,
     editableColumns = [],
     restrictedColumns = [],
-    isTeacherMode = false,
     onCellChange,
     customActions,
     editingRowId = null,
@@ -51,9 +52,8 @@ export default function ResourceDashboard({
     const currentViewLabel =
         viewOptions.find((o) => o.value === vistaActual)?.label ?? title;
 
-    // Generación reactiva de columnas — reacciona también al modo, columnas editables y restringidas
+    // Generación reactiva de columnas — reacciona a columnas editables/restringidas.
     const columns = useDynamicColumns(currentData, onEditRow, onDeleteRow, {
-        isTeacherMode,
         editableColumns,
         restrictedColumns,
         onCellChange,
@@ -97,7 +97,6 @@ export default function ResourceDashboard({
                     selectionCount={filasSeleccionadas.length}
                     onBulkCopy={handleBulkCopy}
                     onBulkDelete={handleBulkDelete}
-                    isTeacherMode={isTeacherMode}
                     customActions={customActions}
                 />
 
@@ -111,8 +110,8 @@ export default function ResourceDashboard({
                             onSelectionChange={handleSelectionChange}
                             searchPlaceholder={`Buscar en ${currentViewLabel.toLowerCase()}...`}
                             onPrint={onPrint}
+                            buttonSpace={buttonSpace}
                             onNew={onNew}
-                            isTeacherMode={isTeacherMode}
                         />
                     ) : (
                         <div className="py-10 text-center text-slate-500">

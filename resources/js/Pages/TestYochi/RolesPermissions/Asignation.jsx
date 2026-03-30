@@ -90,7 +90,6 @@ export default function Asignation({ users, roles, permissions }) {
                 onEditRow={handleEditRow}
                 onDeleteRow={openDeleteModal}
                 onViewChange={(view) => setCurrentView(view)}
-                editableColumns={[]}
                 hiddenColumns={{ permissions: false, is_system: false, id: false }}
             />
             {/* Modales — se monta únicamente el correspondiente a la vista activa */}

@@ -28,6 +28,7 @@ import DataTablePagination from '@/Components/DataTable/DataTablePagination';
  * @param {object}   hiddenColumns    - Columnas ocultas por defecto, ej: { created_at: false }.
  * @param {string}   searchPlaceholder
  * @param {string}   noDataMessage
+ * @param {React.ReactNode} buttonSpace - Espacio opcional para acciones personalizadas en toolbar.
  * @param {Function} onSelectionChange - (selectedRows: Array, visibleColIds: string[]) => void
  */
 export function DataTable({
@@ -38,8 +39,8 @@ export function DataTable({
     noDataMessage = 'No hay registros.',
     onSelectionChange,
     onPrint,
+    buttonSpace,
     onNew,
-    isTeacherMode = false,
 }) {
     const [sorting, setSorting] = useState([]);
     const [columnFilters, setColumnFilters] = useState([]);
@@ -81,8 +82,8 @@ export function DataTable({
                 onGlobalFilterChange={setGlobalFilter}
                 searchPlaceholder={searchPlaceholder}
                 onPrint={onPrint}
+                buttonSpace={buttonSpace}
                 onNew={onNew}
-                isTeacherMode={isTeacherMode}
             />
 
             <div className="overflow-hidden bg-white border rounded-sm shadow-sm border-slate-300">
