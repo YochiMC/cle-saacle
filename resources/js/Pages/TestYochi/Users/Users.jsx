@@ -93,20 +93,17 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
     return (
         <AuthenticatedLayout header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Usuarios</h2>}>
             <Head title="Usuarios" />
-            <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <ResourceDashboard
-                    title="Gestión de usuarios"
-                    dataMap={{ alumnos: students, maestros: teachers }}
-                    viewOptions={VIEW_OPTIONS}
-                    deleteRoute="/carreras/eliminar-masivo"
-                    onNew={() => setIsModalOpen(true)}
-                    onEditRow={handleEditRow}
-                    onDeleteRow={openDeleteModal}
-                    onViewChange={(view) => setCurrentView(view)}
-                    editableColumns={["firstName", "lastName"]}
-                    hiddenColumns={{ user_id: false, birthdate: false, type: false }}
-                />
-            </div>
+            <ResourceDashboard
+                title="Gestión de usuarios"
+                dataMap={{ alumnos: students, maestros: teachers }}
+                viewOptions={VIEW_OPTIONS}
+                deleteRoute="/carreras/eliminar-masivo"
+                onNew={() => setIsModalOpen(true)}
+                onEditRow={handleEditRow}
+                onDeleteRow={openDeleteModal}
+                onViewChange={(view) => setCurrentView(view)}
+                hiddenColumns={{ user_id: false, birthdate: false, type: false }}
+            />
 
             {/* Modales — se monta únicamente el correspondiente a la vista activa */}
             {currentView === "alumnos" && (

@@ -28,6 +28,7 @@ import DataTablePagination from '@/Components/DataTable/DataTablePagination';
  * @param {object}   hiddenColumns    - Columnas ocultas por defecto, ej: { created_at: false }.
  * @param {string}   searchPlaceholder
  * @param {string}   noDataMessage
+ * @param {React.ReactNode} buttonSpace - Espacio opcional para acciones personalizadas en toolbar.
  * @param {Function} onSelectionChange - (selectedRows: Array, visibleColIds: string[]) => void
  */
 export function DataTable({
@@ -38,8 +39,8 @@ export function DataTable({
     noDataMessage = 'No hay registros.',
     onSelectionChange,
     onPrint,
+    buttonSpace,
     onNew,
-    isTeacherMode = false,
 }) {
     const [sorting, setSorting] = useState([]);
     const [columnFilters, setColumnFilters] = useState([]);
@@ -81,22 +82,22 @@ export function DataTable({
                 onGlobalFilterChange={setGlobalFilter}
                 searchPlaceholder={searchPlaceholder}
                 onPrint={onPrint}
+                buttonSpace={buttonSpace}
                 onNew={onNew}
-                isTeacherMode={isTeacherMode}
             />
 
-            <div className="overflow-hidden bg-white border rounded-sm shadow-sm border-slate-300">
+            <div className="overflow-hidden border bg-white border-slate-200 rounded-lg shadow-sm">
                 <Table>
                     <TableHeader className="bg-[#17365D]">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow
                                 key={headerGroup.id}
-                                className="hover:bg-[#17365D] border-b-slate-300"
+                                className="border-b border-[#224a7a] hover:bg-[#17365D]"
                             >
                                 {headerGroup.headers.map((header) => (
                                     <TableHead
                                         key={header.id}
-                                        className="h-12 font-bold text-center text-white align-middle"
+                                        className="h-12 px-3 font-semibold text-center text-white align-middle"
                                     >
                                         {header.isPlaceholder
                                             ? null
@@ -109,16 +110,16 @@ export function DataTable({
 
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
+                            table.getRowModel().rows.map((row, index) => (
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && 'selected'}
-                                    className="border-b-slate-200 hover:bg-slate-50"
+                                    className={`border-b border-slate-200 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'} hover:bg-slate-100/70 data-[state=selected]:bg-blue-50`}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell
                                             key={cell.id}
-                                            className="py-3 text-center align-middle"
+                                            className="px-3 py-3 text-sm text-center text-slate-700 align-middle"
                                         >
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </TableCell>
