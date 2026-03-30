@@ -203,7 +203,7 @@ export default function GroupView({
                         buttonSpace={
                             canEditQualifications && !isEditingMode ? (
                                 <ThemeButton
-                                    theme="primary"
+                                    theme="institutional"
                                     icon={Edit3}
                                     size="sm"
                                     onClick={() => setIsEditingMode(true)}
@@ -222,8 +222,8 @@ export default function GroupView({
 
                 {/* ── Barra Inferior: Panel de Guardado Global ──────────────────────────── */}
                 {isEditingMode && canEditQualifications && (
-                    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-6">
-                        <div className="mx-auto w-full max-w-[96rem] sm:px-6 lg:px-8 flex justify-end gap-4">
+                    <div className="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 p-6 shadow-[0_-6px_20px_rgba(23,54,93,0.12)] backdrop-blur-sm">
+                        <div className="mx-auto flex w-full max-w-[96rem] items-center justify-end gap-4 sm:px-6 lg:px-8">
                             <ThemeButton
                                 theme="outline"
                                 icon={X}
@@ -232,7 +232,7 @@ export default function GroupView({
                                 Cancelar
                             </ThemeButton>
                             <ThemeButton
-                                theme="success"
+                                theme="institutional"
                                 icon={Save}
                                 onClick={handleSaveGlobal}
                             >
