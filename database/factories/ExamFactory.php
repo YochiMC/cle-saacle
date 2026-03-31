@@ -28,7 +28,8 @@ class ExamFactory extends Factory
             'name' => $codigoAleatorio,
             'exam_type' => $this->faker->randomElement(ExamType::cases())->value,
             'capacity' => $this->faker->numberBetween(10, 40),
-            'application_date' => $this->faker->dateTimeBetween('-30 days', '+30 days')->format('Y-m-d'),
+            'start_date' => $this->faker->dateTimeBetween('-30 days', '+30 days')->format('Y-m-d'),
+            'end_date' => $this->faker->dateTimeBetween('-30 days', '+30 days')->format('Y-m-d'),
             'application_time' => $this->faker->randomElement([
                 '08:00',
                 '09:00',
