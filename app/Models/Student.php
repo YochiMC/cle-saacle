@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -101,13 +102,11 @@ class Student extends Model
         }
     }
 
-    public function exams(): HasOne // Es mejor usar el nombre en inglés si el modelo es Exam
+    /** Exámenes en los que está inscrito el alumno (many-to-many con pivot de calificación). */
+    public function exams(): BelongsToMany
     {
-        return $this->HasOne(exams::class);
-    }
-
-    public function validations(): HasOne // Cambiado a plural para consistencia
-    {
-        return $this->HasOne(validations::class);
+        return $this->belongsToMany(Exam::class, 'exam_student')
+            ->withPivot('calificacion')
+            ->withTimestamps();
     }
 }

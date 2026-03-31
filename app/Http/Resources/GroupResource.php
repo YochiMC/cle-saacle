@@ -63,6 +63,11 @@ class GroupResource extends JsonResource
                 'hours'       => $this->level->hours,
             ] : null,
             'level_id'     => $this->level_id,
+
+            // Cadena de alumnos para búsqueda frontend
+            'students_string' => $this->whenLoaded('qualifications', function() {
+                return $this->qualifications->map(fn($q) => ($q->student->first_name ?? '') . ' ' . ($q->student->last_name ?? ''))->join(' ');
+            }, ''),
         ];
     }
 }
