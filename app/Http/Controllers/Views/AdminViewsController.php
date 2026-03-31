@@ -54,7 +54,7 @@ class AdminViewsController extends Controller
     {
         $esEstudiante = $request->user()?->hasRole('student') ?? false;
 
-        $grupos = Group::with(['teacher', 'level', 'period'])
+        $grupos = Group::with(['teacher', 'level', 'period', 'qualifications.student'])
             ->withCount('qualifications')
             ->when($esEstudiante, fn($q) => $q->whereIn('status', ['active', 'waiting']))
             ->get();
@@ -164,23 +164,32 @@ class AdminViewsController extends Controller
                 'name'             => $exam->name,
                 'exam_type'        => $exam->exam_type?->value ?? $exam->exam_type,
                 'capacity'         => $exam->capacity,
-                'application_date' => $exam->application_date,
+                'start_date'       => $exam->start_date,
+                'end_date'         => $exam->end_date,
+                'mode'             => $exam->mode,
                 'application_time' => $exam->application_time,
                 'classroom'        => $exam->classroom,
                 'status'           => $exam->status?->value ?? $exam->status,
                 'period_id'        => $exam->period_id,
                 'teacher_id'       => $exam->teacher_id,
                 'teacher_name'     => $exam->teacher?->full_name,
+                'teacher'          => $exam->teacher ? [
+                    'name' => $exam->teacher->first_name,
+                    'last_name' => $exam->teacher->last_name,
+                ] : null,
                 'period_name'      => $exam->period?->name,
+                'period'           => $exam->period ? ['id' => $exam->period->id, 'name' => $exam->period->name] : null,
+                'registered'       => $enrolledCount,
                 'enrolled_count'   => $enrolledCount,
                 'available_seats'  => $availableSeats,
+                'students_string'  => collect($exam->students)->map(fn($s) => ($s->first_name ?? '') . ' ' . ($s->last_name ?? ''))->join(' '),
             ];
         });
 
         $levels   = Level::all();
         $teachers = Teacher::all();
         $periods  = Period::all();
-        $students = StudentResource::collection(Student::all())->resolve();
+        $students = Student::all();
 
         return Inertia::render('Test_Vik/Examen', [
             'examenes'    => $examsData,

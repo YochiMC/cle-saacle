@@ -1,6 +1,6 @@
 const generarClave = (examen) => {
     const tipo = examen.exam_type?.value ?? examen.exam_type ?? "";
-    const fecha = examen.application_date ?? "";
+    const fecha = examen.start_date ?? "";
 
     const abrevTipo =
         {
@@ -39,19 +39,15 @@ export const filterExams = ({ items, busqueda, filtros }) => {
 
     const filtrados = items.filter((exam) => {
         if (consulta) {
-            const nombre = (exam.name || "").toLowerCase();
-            const clave = generarClave(exam).toLowerCase();
-            const evaluador = (exam.teacher_name ?? exam.teacher?.full_name ?? "").toLowerCase();
-            const aula = (exam.classroom || "").toLowerCase();
-            const fecha = (exam.application_date || "").toLowerCase();
+            const searchStr = consulta.toLowerCase();
+            const matchName = (exam.name || '').toLowerCase().includes(searchStr);
+            const teacherStr = (exam.teacher_name || '').toLowerCase();
+            const studentStr = (exam.students_string || '').toLowerCase();
+            const matchTeacher = teacherStr.includes(searchStr);
+            const matchStudent = studentStr.includes(searchStr);
+            const matchDates = (exam.start_date || '').includes(searchStr) || (exam.end_date || '').includes(searchStr);
 
-            if (
-                !nombre.includes(consulta) &&
-                !clave.includes(consulta) &&
-                !evaluador.includes(consulta) &&
-                !aula.includes(consulta) &&
-                !fecha.includes(consulta)
-            ) {
+            if (!matchName && !matchTeacher && !matchStudent && !matchDates) {
                 return false;
             }
         }
@@ -60,27 +56,16 @@ export const filterExams = ({ items, busqueda, filtros }) => {
             return false;
         }
 
-        const tipoExamen = exam.exam_type?.value ?? exam.exam_type ?? "";
-        if (filtros.tipo && tipoExamen !== filtros.tipo) {
+        if (filtros.period && String(exam.period_id ?? "") !== String(filtros.period)) {
+            return false;
+        }
+
+        if (filtros.mode && (exam.mode || "").toLowerCase() !== filtros.mode.toLowerCase()) {
             return false;
         }
 
         return true;
     });
-
-    if (filtros.ordenCupo === "asc") {
-        filtrados.sort((a, b) => {
-            const dispA = a.available_seats ?? (a.capacity ?? 0) - (a.enrolled_count ?? 0);
-            const dispB = b.available_seats ?? (b.capacity ?? 0) - (b.enrolled_count ?? 0);
-            return dispA - dispB;
-        });
-    } else if (filtros.ordenCupo === "desc") {
-        filtrados.sort((a, b) => {
-            const dispA = a.available_seats ?? (a.capacity ?? 0) - (a.enrolled_count ?? 0);
-            const dispB = b.available_seats ?? (b.capacity ?? 0) - (b.enrolled_count ?? 0);
-            return dispB - dispA;
-        });
-    }
 
     return filtrados;
 };

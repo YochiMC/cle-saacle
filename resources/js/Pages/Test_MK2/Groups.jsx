@@ -1,33 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
+import { Layers3, Plus, ToggleRight, UsersRound, Trash2, Edit2 } from "lucide-react";
+
+import ThemeButton from "@/Components/ThemeButton";
 import GroupDetailsModal from "@/Components/Charts/GroupDetailsModal";
 import CardGroup from "@/Components/Charts/CardGroup";
 import ResourceFilterBar from "@/Components/Resource/ResourceFilterBar";
-import ResourceGrid from "@/Components/Resource/ResourceGrid";
-import ResourceBulkActionBar from "@/Components/Resource/ResourceBulkActionBar";
 import ResourceSelectFilter from "@/Components/Resource/ResourceSelectFilter";
-import ThemeButton from "@/Components/ThemeButton";
-import { Layers3, Plus, ToggleRight, UsersRound } from "lucide-react";
-import useFlashAlert from "@/Hooks/useFlashAlert";
 import GroupModal from "@/Pages/Test_MK2/FormModals/GroupModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
-import { useResourceManagement } from "@/Hooks/useResourceManagement";
-import { filterGroups } from "./groupFilters";
+import ConfirmModal from "@/Components/ConfirmModal";
+import useFlashAlert from "@/Hooks/useFlashAlert";
+
+// Nuevos componentes genéricos importados
+import DataGrid from "@/Components/DataTable/DataGrid";
+import BulkActionBar from "@/Components/DataTable/BulkActionBar";
+import { useGroupsManagement } from "@/Hooks/useGroupsManagement";
 
 /**
  * Componente principal para el Catálogo de Grupos.
- * Actúa como un contenedor que delega la lógica de negocio al hook genérico
- * de recursos y la representación visual a componentes reutilizables.
- *
- * @component
- * @param {Object} props - Propiedades del componente de Inertia.
- * @param {Object} props.auth - Datos de autenticación.
- * @param {Array} props.grupos - Lista de grupos sincronizada desde el backend.
- * @param {Array} props.levels - Catálogo de niveles académicos.
- * @param {Array} props.teachers - Catálogo de docentes.
- * @param {Array} props.periods - Catálogo de periodos escolares.
- * @param {Array} props.statuses - Mapeo de estados del Enum GroupStatus.
+ * Actúa como una Vista limpia que delega su estado de negocio y lógica de
+ * interacción al custom hook `useGroupsManagement`.
  */
 export default function Groups({
     auth,
@@ -39,74 +33,38 @@ export default function Groups({
     modes = [],
     types = [],
 }) {
-    const {
-        busqueda,
-        setBusqueda,
-        paginaActual,
-        setPaginaActual,
-        seleccionados,
-        modales,
-        itemEditando,
-        itemViendo,
-        totalPaginas,
-        itemsPaginados,
-        itemsFiltrados,
-        hayFiltros,
-        filtros,
-        handleSetFiltro,
-        handleToggleSelect,
-        handleClearSelection,
-        handleOpenModal,
-        handleCloseModal,
-        handleBulkStatus,
-        handleBulkDelete,
-        handleAction,
-    } = useResourceManagement({
-        items: grupos,
-        filterCallback: filterGroups,
-        routes: {
-            enroll: (id) => route("groups.enroll", id),
-            bulkStatus: "groups.bulk-status",
-            bulkStatusMethod: "put",
-            bulkDelete: "groups.bulk-delete",
-        },
-        initialFilters: {
-            estado: "",
-            nivel: "",
-            ordenCupo: null,
-        },
-    });
-
-    const filtroEstado = filtros.estado ?? "";
-    const filtroNivel = filtros.nivel ?? "";
-    const ordenCupo = filtros.ordenCupo ?? null;
-
-    const setFiltroEstado = (value) => handleSetFiltro("estado", value);
-    const setFiltroNivel = (value) => handleSetFiltro("nivel", value);
-    const setOrdenCupo = (value) => handleSetFiltro("ordenCupo", value);
-
-    const handleCrearGrupo = () => handleOpenModal("formulario", null);
-    const handleEditar = (group) => handleOpenModal("formulario", group);
-    const handleCerrarModal = () => handleCloseModal("formulario");
-
-    const handleVerDetalles = (group) => handleOpenModal("detalles", group);
-    const handleCerrarDetalles = () => handleCloseModal("detalles");
-
-    const handleInscripcion = (id) => {
-        handleAction("enroll", {
-            routeParams: [id],
-            options: {
-                preserveScroll: true,
-            },
-        });
-    };
-
+    // 1. Hook Composition para lógica empresarial
+    const manager = useGroupsManagement(grupos);
     const { flashModal, closeFlashModal } = useFlashAlert();
 
-    // Lógica de permisos rápida
+    // 2. Estados locales de Interfaz para "Bulk Actions"
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+    const [pendingStatus, setPendingStatus] = useState("");
+
     const esAdminOCoord = auth.user.roles.some(
-        (r) => r.name === "admin" || r.name === "coordinator",
+        (r) => r.name === "admin" || r.name === "coordinator"
     );
+
+    // Callbacks de confirmación puros
+    const confirmDelete = () => {
+        manager.handleBulkDelete();
+        setIsDeleteModalOpen(false);
+    };
+
+    const confirmStatus = () => {
+        manager.handleBulkStatus(pendingStatus);
+        setIsStatusModalOpen(false);
+        setPendingStatus("");
+    };
+
+    const handleStatusSelect = (e) => {
+        const newStatus = e.target.value;
+        if (!newStatus) return;
+        setPendingStatus(newStatus);
+        setIsStatusModalOpen(true);
+        e.target.value = ""; // reset for next selection
+    };
 
     return (
         <AuthenticatedLayout
@@ -127,7 +85,7 @@ export default function Groups({
                             <ThemeButton
                                 theme="institutional"
                                 icon={Plus}
-                                onClick={handleCrearGrupo}
+                                onClick={() => manager.handleOpenModal("formulario")}
                             >
                                 Crear Grupo
                             </ThemeButton>
@@ -137,19 +95,17 @@ export default function Groups({
                     {/* Filtros de Búsqueda */}
                     {(grupos.length > 0 || esAdminOCoord) && (
                         <ResourceFilterBar
-                            busqueda={busqueda}
-                            setBusqueda={setBusqueda}
-                            searchPlaceholder="Buscar por grupo, docente o nivel..."
-                            totalFiltrados={itemsFiltrados.length}
+                            busqueda={manager.busqueda}
+                            setBusqueda={manager.setBusqueda}
+                            searchPlaceholder="Buscar grupo, docente, horario o alumno..."
+                            totalFiltrados={manager.itemsFiltrados.length}
                             resultSingularLabel="Grupo encontrado"
                             resultPluralLabel="Grupos encontrados"
                         >
                             <ResourceSelectFilter
                                 icon={ToggleRight}
-                                value={filtroEstado}
-                                onChange={(e) =>
-                                    setFiltroEstado(e.target.value)
-                                }
+                                value={manager.filtrosAdicionales.estado}
+                                onChange={(e) => manager.setFiltroAdicional("estado", e.target.value)}
                                 ariaLabel="Filtrar por estado"
                                 minWidthClassName="min-w-[180px]"
                                 placeholder="Todos los estados"
@@ -158,8 +114,8 @@ export default function Groups({
 
                             <ResourceSelectFilter
                                 icon={Layers3}
-                                value={filtroNivel}
-                                onChange={(e) => setFiltroNivel(e.target.value)}
+                                value={manager.filtrosAdicionales.nivel}
+                                onChange={(e) => manager.setFiltroAdicional("nivel", e.target.value)}
                                 ariaLabel="Filtrar por nivel"
                                 minWidthClassName="min-w-[200px]"
                                 placeholder="Todos los niveles"
@@ -171,100 +127,113 @@ export default function Groups({
 
                             <ResourceSelectFilter
                                 icon={UsersRound}
-                                value={ordenCupo || ""}
-                                onChange={(e) =>
-                                    setOrdenCupo(e.target.value || null)
-                                }
+                                value={manager.filtrosAdicionales.ordenCupo || ""}
+                                onChange={(e) => manager.setFiltroAdicional("ordenCupo", e.target.value || null)}
                                 ariaLabel="Ordenar por disponibilidad"
                                 minWidthClassName="min-w-[220px]"
                                 placeholder="Orden: Por defecto"
                                 options={[
-                                    {
-                                        value: "desc",
-                                        label: "Disponibilidad: Alta a Baja",
-                                    },
-                                    {
-                                        value: "asc",
-                                        label: "Disponibilidad: Baja a Alta",
-                                    },
+                                    { value: "desc", label: "Disponibilidad: Alta a Baja" },
+                                    { value: "asc", label: "Disponibilidad: Baja a Alta" },
                                 ]}
                             />
                         </ResourceFilterBar>
                     )}
 
-                    {/* Barra de Acciones en Lote (Solo Administrativa) */}
-                    {seleccionados.length > 0 && esAdminOCoord && (
-                        <ResourceBulkActionBar
-                            seleccionados={seleccionados}
-                            onClearSelection={handleClearSelection}
-                            statuses={statuses}
-                            onBulkStatus={(newStatus) =>
-                                handleBulkStatus(newStatus)
-                            }
-                            onBulkDelete={() => handleBulkDelete()}
+                    {/* Barra de Acciones en Lote (Inyección vía children) */}
+                    {esAdminOCoord && manager.seleccionados.length > 0 && (
+                        <BulkActionBar
+                            selectedCount={manager.seleccionados.length}
+                            onClearSelection={manager.clearSelection}
                             selectedSingularLabel="Grupo seleccionado"
                             selectedPluralLabel="Grupos seleccionados"
-                            statusPlaceholder="Cambiar Estado"
-                            confirmStatusChange={true}
-                            statusModalTitle="Actualizar estado de grupos"
-                            statusModalMessage={(count, statusLabel) =>
-                                `¿Deseas cambiar el estado de ${count} grupos a \"${statusLabel}\"?`
-                            }
-                            statusConfirmText="Sí, actualizar"
-                            deleteButtonText="Eliminar"
-                            deleteModalTitle="Eliminar Grupos"
-                            deleteModalMessage={(count) =>
-                                `¿Estas seguro de que deseas eliminar ${count} grupos? Esta accion no se puede deshacer.`
-                            }
-                        />
+                        >
+                            {/* Inyectamos acciones específicas de Grupos */}
+                            <div className="flex bg-white/50 border border-gray-200 rounded-lg overflow-hidden">
+                                <span className="flex items-center px-3 text-gray-500 bg-white border-r">
+                                    <Edit2 size={16} />
+                                </span>
+                                <select 
+                                    onChange={handleStatusSelect} 
+                                    defaultValue="" 
+                                    className="border-none py-2 text-sm focus:ring-0 cursor-pointer"
+                                >
+                                    <option value="" disabled>Cambiar Estado</option>
+                                    {statuses.map((s) => (
+                                        <option key={s.value} value={s.value}>{s.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <ThemeButton theme="danger" icon={Trash2} onClick={() => setIsDeleteModalOpen(true)}>
+                                Eliminar
+                            </ThemeButton>
+                        </BulkActionBar>
                     )}
 
-                    {/* Grilla de Resultados */}
-                    <ResourceGrid
-                        items={itemsPaginados}
-                        CardComponent={CardGroup}
-                        getCardProps={(group) => ({
-                            grupo: group,
-                            seleccionado: seleccionados.includes(group.id),
-                            onToggleSelect: handleToggleSelect,
-                            onVerDetalles: handleVerDetalles,
-                            onInscribir: handleInscripcion,
-                            onEditar: handleEditar,
-                        })}
-                        getItemKey={(group) => group.id}
-                        hayFiltros={hayFiltros}
-                        paginaActual={paginaActual}
-                        totalPaginas={totalPaginas}
-                        onPageChange={setPaginaActual}
+                    {/* Grilla de Resultados Genérica (OCP mediante renderCard) */}
+                    <DataGrid
+                        data={manager.itemsPaginados}
+                        hayFiltros={manager.hayFiltros}
+                        paginaActual={manager.paginaActual}
+                        totalPaginas={manager.totalPaginas}
+                        onPageChange={manager.setPaginaActual}
                         emptyTitle="Sin grupos registrados"
                         emptyMessage="Aun no hay grupos registrados en el sistema."
                         emptyFilteredTitle="No hay resultados"
                         emptyFilteredMessage="No encontramos ningun grupo que coincida con los filtros seleccionados."
+                        renderCard={(group) => (
+                            <CardGroup
+                                grupo={group}
+                                seleccionado={manager.seleccionados.includes(group.id)}
+                                onToggleSelect={manager.toggleSelect}
+                                onVerDetalles={(g) => manager.handleOpenModal("detalles", g)}
+                                onInscribir={() => manager.handleEnroll(group.id)}
+                                onEditar={(g) => manager.handleOpenModal("formulario", g)}
+                            />
+                        )}
                     />
                 </div>
             </div>
 
             {/* Modales de Interacción */}
             <GroupDetailsModal
-                grupo={itemViendo}
-                onClose={handleCerrarDetalles}
+                grupo={manager.itemViendo}
+                onClose={() => manager.handleCloseModal("detalles")}
             />
 
             <GroupModal
-                show={modales.formulario}
-                title={
-                    itemEditando
-                        ? `Editar grupo: ${itemEditando.name}`
-                        : "Añadir grupo"
-                }
-                onClose={handleCerrarModal}
-                grupoToEdit={itemEditando}
+                show={manager.modales.formulario}
+                title={manager.itemEditando ? `Editar grupo: ${manager.itemEditando.name}` : "Añadir grupo"}
+                onClose={() => manager.handleCloseModal("formulario")}
+                grupoToEdit={manager.itemEditando}
                 levels={levels}
                 teachers={teachers}
                 periods={periods}
                 statuses={statuses}
                 modes={modes}
                 types={types}
+            />
+
+            {/* Modales Confirmaciones de Bulk */}
+            <ConfirmModal
+                isOpen={isStatusModalOpen}
+                onClose={() => { setIsStatusModalOpen(false); setPendingStatus(""); }}
+                onConfirm={confirmStatus}
+                title="Actualizar estado de grupos"
+                message={`¿Deseas cambiar el estado de ${manager.seleccionados.length} grupos a "${statuses.find(s => s.value === pendingStatus)?.label || pendingStatus}"?`}
+                confirmText="Sí, actualizar"
+                variant="institutional"
+            />
+
+            <ConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Eliminar Grupos"
+                message={`¿Estas seguro de que deseas eliminar ${manager.seleccionados.length} grupos? Esta accion no se puede deshacer.`}
+                confirmText="Sí, eliminar"
+                variant="warning"
             />
 
             <ModalAlert

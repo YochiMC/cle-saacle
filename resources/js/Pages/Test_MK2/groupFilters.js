@@ -3,15 +3,14 @@ export const filterGroups = ({ items, busqueda, filtros }) => {
 
     const filtrados = items.filter((group) => {
         if (consulta) {
-            const nombre = (group.name || "").toLowerCase();
-            const maestro = (group.teacher_name || "").toLowerCase();
-            const nivel = (group.level?.level_tecnm || "").toLowerCase();
+            const searchStr = consulta.toLowerCase();
+            const matchName = (group.name || '').toLowerCase().includes(searchStr);
+            const teacherStr = (group.teacher_name || '').toLowerCase();
+            const matchTeacher = teacherStr.includes(searchStr);
+            const matchSchedule = (group.schedule || '').toLowerCase().includes(searchStr);
+            const matchStudent = (group.students_string || '').toLowerCase().includes(searchStr);
 
-            if (
-                !nombre.includes(consulta) &&
-                !maestro.includes(consulta) &&
-                !nivel.includes(consulta)
-            ) {
+            if (!matchName && !matchTeacher && !matchSchedule && !matchStudent) {
                 return false;
             }
         }

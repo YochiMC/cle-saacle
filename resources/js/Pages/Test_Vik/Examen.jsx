@@ -1,124 +1,80 @@
-import React from "react";
+import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, useForm } from "@inertiajs/react";
-import Modal from "@/Components/Modal";
-import PrimaryButton from "@/Components/PrimaryButton";
-import SecondaryButton from "@/Components/SecondaryButton";
-import TextInput from "@/Components/TextInput";
-import InputLabel from "@/Components/InputLabel";
-import InputError from "@/Components/InputError";
+import { Head, usePage } from "@inertiajs/react";
 import ThemeButton from "@/Components/ThemeButton";
 import {
     CalendarX,
     ClipboardList,
     Plus,
     ToggleRight,
-    UsersRound,
+    Trash2,
+    Edit2,
 } from "lucide-react";
 import { usePermission } from "@/Utils/auth";
 
 import CardExam from "./CardExam";
 import ExamDetailsModal from "./ExamDetailsModal";
-import { useResourceManagement } from "@/Hooks/useResourceManagement";
+import ExamFormModal from "./ExamFormModal";
 import ResourceFilterBar from "@/Components/Resource/ResourceFilterBar";
-import ResourceGrid from "@/Components/Resource/ResourceGrid";
-import ResourceBulkActionBar from "@/Components/Resource/ResourceBulkActionBar";
 import ResourceSelectFilter from "@/Components/Resource/ResourceSelectFilter";
-import { filterExams } from "./examFilters";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import ModalAlert from "@/Components/ui/ModalAlert";
+import ConfirmModal from "@/Components/ConfirmModal";
+
+import DataGrid from "@/Components/DataTable/DataGrid";
+import BulkActionBar from "@/Components/DataTable/BulkActionBar";
+import { useExamsManagement } from "@/Hooks/useExamsManagement";
 
 export default function Examen({
     auth,
     examenes = [],
-    statuses = [],
-    typeOptions = [],
+    periods = [],
+    students = [],
+    teachers = [],
+    levels = [],
 }) {
-    const {
-        busqueda,
-        setBusqueda,
-        paginaActual,
-        setPaginaActual,
-        seleccionados,
-        modales,
-        itemViendo,
-        itemsFiltrados,
-        totalPaginas,
-        itemsPaginados,
-        hayFiltros,
-        filtros,
-        handleSetFiltro,
-        handleToggleSelect,
-        handleClearSelection,
-        handleOpenModal,
-        handleCloseModal,
-        handleBulkStatus,
-        handleBulkDelete,
-        handleAction,
-    } = useResourceManagement({
-        items: examenes,
-        filterCallback: filterExams,
-        routes: {
-            enroll: (id) => route("exams.enroll", id),
-            bulkStatus: "exams.bulk-status",
-            bulkStatusMethod: "put",
-            bulkDelete: "exams.bulk-delete",
-        },
-        initialFilters: {
-            estado: "",
-            tipo: "",
-            ordenCupo: null,
-        },
-    });
+    const { statuses = [], typeOptions = [] } = usePage().props;
+    const periodOptions = periods.map((p) => ({
+        value: String(p.id),
+        label: p.name,
+    }));
+    const modeOptions = [
+        { value: "Presencial", label: "Presencial" },
+        { value: "Virtual", label: "Virtual" },
+    ];
 
-    const filtroEstado = filtros.estado ?? "";
-    const filtroTipo = filtros.tipo ?? "";
-    const ordenCupo = filtros.ordenCupo ?? null;
+    // 1. Hook Composition para la Lógica de Negocio
+    const manager = useExamsManagement(examenes);
+    const { flashModal, closeFlashModal } = useFlashAlert();
 
-    const setFiltroEstado = (value) => handleSetFiltro("estado", value);
-    const setFiltroTipo = (value) => handleSetFiltro("tipo", value);
-    const setOrdenCupo = (value) => handleSetFiltro("ordenCupo", value);
-
-    const handleCrearExamen = () => handleOpenModal("formulario", null);
-    const handleEditar = (exam) => handleOpenModal("formulario", exam);
-    const handleCerrarModal = () => handleCloseModal("formulario");
-
-    const handleVerDetalles = (exam) => handleOpenModal("detalles", exam);
-    const handleCerrarDetalles = () => handleCloseModal("detalles");
-
-    const handleInscripcion = (id) => {
-        handleAction("enroll", {
-            routeParams: [id],
-            options: {
-                preserveScroll: true,
-            },
-        });
-    };
-
-    // HANDLERS DEL FORMULARIO DE CREACIÓN
-    const { data, setData, post, processing, errors } = useForm({
-        name: "",
-        exam_type: "",
-        capacity: "",
-        application_date: "",
-        application_time: "",
-        classroom: "",
-        period_id: "",
-        teacher_id: "",
-    });
+    // 2. Estados locales de Interfaz para Opciones de "Bulk"
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+    const [pendingStatus, setPendingStatus] = useState("");
 
     const { hasRole } = usePermission();
     const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
-    const { flashModal, closeFlashModal } = useFlashAlert();
+    const exp_mostrarFiltros = examenes.length > 0 || esAdminOCoord;
 
-    const submit = (e) => {
-        e.preventDefault();
-        post(route("exams.store"), {
-            onSuccess: () => handleCerrarModal(),
-        });
+    // Callbacks de confirmación
+    const confirmDelete = () => {
+        manager.handleBulkDelete();
+        setIsDeleteModalOpen(false);
     };
 
-    const exp_mostrarFiltros = examenes.length > 0 || esAdminOCoord;
+    const confirmStatus = () => {
+        manager.handleBulkStatus(pendingStatus);
+        setIsStatusModalOpen(false);
+        setPendingStatus("");
+    };
+
+    const handleStatusSelect = (e) => {
+        const newStatus = e.target.value;
+        if (!newStatus) return;
+        setPendingStatus(newStatus);
+        setIsStatusModalOpen(true);
+        e.target.value = "";
+    };
 
     return (
         <AuthenticatedLayout
@@ -138,7 +94,9 @@ export default function Examen({
                             <ThemeButton
                                 theme="institutional"
                                 icon={Plus}
-                                onClick={handleCrearExamen}
+                                onClick={() =>
+                                    manager.handleOpenModal("formulario")
+                                }
                             >
                                 Crear Examen
                             </ThemeButton>
@@ -147,18 +105,21 @@ export default function Examen({
 
                     {exp_mostrarFiltros && (
                         <ResourceFilterBar
-                            busqueda={busqueda}
-                            setBusqueda={setBusqueda}
-                            searchPlaceholder="Buscar por nombre, docente, aula o fecha..."
-                            totalFiltrados={itemsFiltrados.length}
+                            busqueda={manager.busqueda}
+                            setBusqueda={manager.setBusqueda}
+                            searchPlaceholder="Buscar examen, docente, fechas o alumno..."
+                            totalFiltrados={manager.itemsFiltrados.length}
                             resultSingularLabel="Examen encontrado"
                             resultPluralLabel="Exámenes encontrados"
                         >
                             <ResourceSelectFilter
                                 icon={ToggleRight}
-                                value={filtroEstado}
+                                value={manager.filtrosAdicionales.estado || ""}
                                 onChange={(e) =>
-                                    setFiltroEstado(e.target.value)
+                                    manager.setFiltroAdicional(
+                                        "estado",
+                                        e.target.value,
+                                    )
                                 }
                                 ariaLabel="Filtrar por estado"
                                 minWidthClassName="min-w-[180px]"
@@ -168,171 +129,143 @@ export default function Examen({
 
                             <ResourceSelectFilter
                                 icon={ClipboardList}
-                                value={filtroTipo}
-                                onChange={(e) => setFiltroTipo(e.target.value)}
-                                ariaLabel="Filtrar por tipo de examen"
+                                value={manager.filtrosAdicionales.period || ""}
+                                onChange={(e) =>
+                                    manager.setFiltroAdicional(
+                                        "period",
+                                        e.target.value,
+                                    )
+                                }
+                                ariaLabel="Filtrar por periodo"
                                 minWidthClassName="min-w-[200px]"
-                                placeholder="Todos los tipos"
-                                options={typeOptions}
+                                placeholder="Todos los periodos"
+                                options={periodOptions}
                             />
 
                             <ResourceSelectFilter
-                                icon={UsersRound}
-                                value={ordenCupo || ""}
+                                icon={ToggleRight}
+                                value={manager.filtrosAdicionales.mode || ""}
                                 onChange={(e) =>
-                                    setOrdenCupo(e.target.value || null)
+                                    manager.setFiltroAdicional(
+                                        "mode",
+                                        e.target.value,
+                                    )
                                 }
-                                ariaLabel="Ordenar por disponibilidad"
+                                ariaLabel="Filtrar por modalidad"
                                 minWidthClassName="min-w-[220px]"
-                                placeholder="Orden: Por defecto"
-                                options={[
-                                    {
-                                        value: "desc",
-                                        label: "Disponibilidad: Alta a Baja",
-                                    },
-                                    {
-                                        value: "asc",
-                                        label: "Disponibilidad: Baja a Alta",
-                                    },
-                                ]}
+                                placeholder="Todas las modalidades"
+                                options={modeOptions}
                             />
                         </ResourceFilterBar>
                     )}
 
-                    {seleccionados.length > 0 && esAdminOCoord && (
-                        <ResourceBulkActionBar
-                            seleccionados={seleccionados}
-                            onClearSelection={handleClearSelection}
-                            statuses={statuses}
-                            onBulkStatus={(newStatus) =>
-                                handleBulkStatus(newStatus)
-                            }
-                            onBulkDelete={() => handleBulkDelete()}
+                    {esAdminOCoord && manager.seleccionados.length > 0 && (
+                        <BulkActionBar
+                            selectedCount={manager.seleccionados.length}
+                            onClearSelection={manager.clearSelection}
                             selectedSingularLabel="Examen seleccionado"
                             selectedPluralLabel="Exámenes seleccionados"
-                            statusPlaceholder="Cambiar Estado"
-                            confirmStatusChange={true}
-                            statusModalTitle="Actualizar estado de exámenes"
-                            statusModalMessage={(count, statusLabel) =>
-                                `¿Deseas cambiar el estado de ${count} exámenes a \"${statusLabel}\"?`
-                            }
-                            statusConfirmText="Sí, actualizar"
-                            deleteButtonText="Eliminar"
-                            deleteModalTitle="Eliminar Exámenes"
-                            deleteModalMessage={(count) =>
-                                `¿Estas seguro de que deseas eliminar ${count} exámenes? Esta acción no se puede deshacer.`
-                            }
-                        />
+                        >
+                            <div className="flex bg-white/50 border border-gray-200 rounded-lg overflow-hidden">
+                                <span className="flex items-center px-3 text-gray-500 bg-white border-r">
+                                    <Edit2 size={16} />
+                                </span>
+                                <select
+                                    onChange={handleStatusSelect}
+                                    defaultValue=""
+                                    className="border-none py-2 text-sm focus:ring-0 cursor-pointer"
+                                >
+                                    <option value="" disabled>
+                                        Cambiar Estado
+                                    </option>
+                                    {statuses.map((s) => (
+                                        <option key={s.value} value={s.value}>
+                                            {s.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <ThemeButton
+                                theme="danger"
+                                icon={Trash2}
+                                onClick={() => setIsDeleteModalOpen(true)}
+                            >
+                                Eliminar
+                            </ThemeButton>
+                        </BulkActionBar>
                     )}
 
-                    <ResourceGrid
-                        items={itemsPaginados}
-                        CardComponent={CardExam}
-                        getCardProps={(exam) => ({
-                            examen: exam,
-                            seleccionado: seleccionados.includes(exam.id),
-                            onToggleSelect: handleToggleSelect,
-                            onVerDetalles: handleVerDetalles,
-                            onInscribir: handleInscripcion,
-                            onEditar: handleEditar,
-                        })}
-                        getItemKey={(exam) => exam.id}
-                        hayFiltros={hayFiltros}
-                        paginaActual={paginaActual}
-                        totalPaginas={totalPaginas}
-                        onPageChange={setPaginaActual}
+                    <DataGrid
+                        data={manager.itemsPaginados}
+                        hayFiltros={manager.hayFiltros}
+                        paginaActual={manager.paginaActual}
+                        totalPaginas={manager.totalPaginas}
+                        onPageChange={manager.setPaginaActual}
                         EmptyIcon={CalendarX}
                         emptyTitle="Sin exámenes programados"
                         emptyMessage="Aún no hay exámenes registrados en el sistema."
                         emptyFilteredTitle="No hay resultados"
                         emptyFilteredMessage="Ajusta los filtros de búsqueda para encontrar sesiones de examen."
+                        renderCard={(exam) => (
+                            <CardExam
+                                examen={exam}
+                                seleccionado={manager.seleccionados.includes(
+                                    exam.id,
+                                )}
+                                onToggleSelect={manager.toggleSelect}
+                                onVerDetalles={(e) =>
+                                    manager.handleOpenModal("detalles", e)
+                                }
+                                onInscribir={() =>
+                                    manager.handleEnroll(exam.id)
+                                }
+                                onEditar={(e) =>
+                                    manager.handleOpenModal("formulario", e)
+                                }
+                            />
+                        )}
                     />
                 </div>
             </div>
 
+            {/* Modales Compartidos */}
             <ExamDetailsModal
-                examen={itemViendo}
-                onClose={handleCerrarDetalles}
+                examen={manager.itemViendo}
+                onClose={() => manager.handleCloseModal("detalles")}
             />
 
-            <Modal
-                show={modales.formulario}
-                onClose={handleCerrarModal}
-                maxWidth="md"
-            >
-                <form onSubmit={submit} className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900 mb-6">
-                        Agregar Nuevo Examen
-                    </h2>
+            <ExamFormModal
+                manager={manager}
+                periods={periods}
+                typeOptions={typeOptions}
+                teachers={teachers}
+                statuses={statuses}
+            />
 
-                    <div className="mb-4">
-                        <InputLabel
-                            htmlFor="nombre_examen"
-                            value="Nombre del Examen"
-                        />
-                        <TextInput
-                            id="nombre_examen"
-                            type="text"
-                            className="mt-1 block w-full"
-                            value={data.nombre_examen}
-                            onChange={(e) =>
-                                setData("nombre_examen", e.target.value)
-                            }
-                            required
-                        />
-                        <InputError
-                            message={errors.nombre_examen}
-                            className="mt-2"
-                        />
-                    </div>
+            {/* Confirmaciones Bulk */}
+            <ConfirmModal
+                isOpen={isStatusModalOpen}
+                onClose={() => {
+                    setIsStatusModalOpen(false);
+                    setPendingStatus("");
+                }}
+                onConfirm={confirmStatus}
+                title="Actualizar estado de exámenes"
+                message={`¿Deseas cambiar el estado de ${manager.seleccionados.length} exámenes a "${statuses.find((s) => s.value === pendingStatus)?.label || pendingStatus}"?`}
+                confirmText="Sí, actualizar"
+                variant="institutional"
+            />
 
-                    <div className="mb-4">
-                        <InputLabel htmlFor="horario" value="Horario" />
-                        <TextInput
-                            id="horario"
-                            type="text"
-                            className="mt-1 block w-full"
-                            value={data.horario}
-                            onChange={(e) => setData("horario", e.target.value)}
-                            required
-                        />
-                        <InputError message={errors.horario} className="mt-2" />
-                    </div>
-
-                    <div className="mb-6">
-                        <InputLabel
-                            htmlFor="fecha_aplicacion"
-                            value="Fecha de Aplicación"
-                        />
-                        <TextInput
-                            id="fecha_aplicacion"
-                            type="date"
-                            className="mt-1 block w-full"
-                            value={data.fecha_aplicacion}
-                            onChange={(e) =>
-                                setData("fecha_aplicacion", e.target.value)
-                            }
-                            required
-                        />
-                        <InputError
-                            message={errors.fecha_aplicacion}
-                            className="mt-2"
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-end gap-4">
-                        <SecondaryButton
-                            onClick={handleCerrarModal}
-                            disabled={processing}
-                        >
-                            Cancelar
-                        </SecondaryButton>
-                        <PrimaryButton disabled={processing}>
-                            Guardar
-                        </PrimaryButton>
-                    </div>
-                </form>
-            </Modal>
+            <ConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Eliminar Exámenes"
+                message={`¿Estas seguro de que deseas eliminar ${manager.seleccionados.length} exámenes? Esta acción no se puede deshacer.`}
+                confirmText="Sí, eliminar"
+                variant="warning"
+            />
 
             <ModalAlert
                 isOpen={flashModal.isOpen}

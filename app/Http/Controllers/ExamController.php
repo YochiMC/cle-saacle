@@ -5,26 +5,67 @@ namespace App\Http\Controllers;
 use App\Http\Requests\BulkDeleteExamsRequest;
 use App\Http\Requests\BulkUpdateExamsStatusRequest;
 use App\Models\Exam;
+use App\Services\ExamNamingService;
 use Illuminate\Http\Request;
 
 class ExamController extends Controller
 {
+    private ExamNamingService $namingService;
+
+    public function __construct(ExamNamingService $namingService)
+    {
+        $this->namingService = $namingService;
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
             'exam_type' => 'required|string',
+            'status' => 'required|string',
             'capacity' => 'required|integer|min:1',
-            'application_date' => 'required|date',
-            'application_time' => 'nullable|date_format:H:i',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'mode' => 'required|string',
+            'application_time' => 'nullable|string',
             'classroom' => 'nullable|string|max:255',
-            'period_id' => 'required|integer|exists:periods,id',
+            'period_id' => 'required|exists:periods,id',
             'teacher_id' => 'nullable|integer|exists:teachers,id',
         ]);
+
+        $validated['name'] = $this->namingService->generateName($validated);
 
         Exam::create($validated);
 
         return redirect()->back()->with('success', 'Examen agregado correctamente.');
+    }
+
+    public function update(Request $request, Exam $exam)
+    {
+        $validated = $request->validate([
+            'exam_type' => 'required|string',
+            'status' => 'required|string',
+            'capacity' => 'required|integer|min:1',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'mode' => 'required|string',
+            'application_time' => 'nullable|string',
+            'classroom' => 'nullable|string|max:255',
+            'period_id' => 'required|exists:periods,id',
+            'teacher_id' => 'nullable|integer|exists:teachers,id',
+        ]);
+
+        $validated['name'] = $this->namingService->generateName($validated);
+
+        $exam->update($validated);
+
+        return redirect()->back()->with('success', 'Examen actualizado correctamente.');
+    }
+
+    public function destroy(Exam $exam)
+    {
+        $exam->delete();
+
+        return redirect()->back()->with('success', 'Examen eliminado correctamente.');
     }
 
     public function show(Exam $exam)
@@ -78,23 +119,32 @@ class ExamController extends Controller
         return redirect()->back()->with('success', 'Alumnos seleccionados dados de baja.');
     }
 
-    public function bulkUpdateStatus(BulkUpdateExamsStatusRequest $request)
+    public function bulkStatus(Request $request)
     {
-        $validated = $request->validated();
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:exams,id',
+            'status' => 'required|string', // Wait, the frontend sends new_status. I'll support both to not break.
+        ]);
+
+        $newStatus = $request->input('new_status', $request->input('status'));
 
         Exam::whereIn('id', $validated['ids'])
-            ->update(['status' => $validated['new_status']]);
+            ->update(['status' => $newStatus]);
 
         return redirect()->back()->with('success', 'Estados de exámenes actualizados exitosamente.');
     }
 
-    public function bulkDestroy(BulkDeleteExamsRequest $request)
+    public function bulkDelete(Request $request)
     {
-        $validated = $request->validated();
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:exams,id',
+        ]);
 
         Exam::whereIn('id', $validated['ids'])->delete();
 
-        return redirect()->back()->with('success', 'Exámenes eliminados.');
+        return redirect()->back()->with('success', 'Exámenes eliminados correctamente.');
     }
 
     public function updatePivot(Request $request, Exam $exam)

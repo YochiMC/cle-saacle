@@ -54,8 +54,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
     Route::get('/exams', [AdminViewsController::class, 'examsView'])->name('exams.index');
     Route::post('/exams', [\App\Http\Controllers\ExamController::class, 'store'])->name('exams.store');
-    Route::put('/exams/bulk-status', [\App\Http\Controllers\ExamController::class, 'bulkUpdateStatus'])->name('exams.bulk-status');
-    Route::delete('/exams/bulk-delete', [\App\Http\Controllers\ExamController::class, 'bulkDestroy'])->name('exams.bulk-delete');
+    Route::put('/exams/{exam}', [App\Http\Controllers\ExamController::class, 'update'])->name('exams.update');
+    Route::delete('/exams/{exam}', [App\Http\Controllers\ExamController::class, 'destroy'])->name('exams.destroy');
+    Route::post('/exams/bulk-status', [\App\Http\Controllers\ExamController::class, 'bulkStatus'])->name('exams.bulk-status');
+    Route::delete('/exams/bulk-delete', [\App\Http\Controllers\ExamController::class, 'bulkDelete'])->name('exams.bulk-delete');
 
     // Rutas de gestión de un solo examen (clon de grupos)
     Route::get('/exams/{exam}/detalles', [\App\Http\Controllers\ExamController::class, 'show'])->name('exams.show');
