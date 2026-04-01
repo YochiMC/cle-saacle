@@ -27,7 +27,7 @@ class QualificationFactory extends Factory
     public function definition(): array
     {
         // Simula grupos con distinta cantidad de unidades evaluables.
-        $unitsCount = $this->faker->numberBetween(2, 6);
+        $unitsCount = 3;
         $unitsBreakdown = [];
 
         for ($i = 1; $i <= $unitsCount; $i++) {

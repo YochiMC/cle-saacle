@@ -22,10 +22,13 @@ class UpdateQualificationsRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // Contrato esperado desde el frontend:
+            // cada item trae id de calificación + units_breakdown + metadatos calculados.
             'qualifications' => 'required|array',
             'qualifications.*.qualification_id' => 'required|exists:qualifications,id',
-            'qualifications.*.unit_1' => 'nullable|numeric|min:0|max:100',
-            'qualifications.*.unit_2' => 'nullable|numeric|min:0|max:100',
+            'qualifications.*.units_breakdown' => 'required|array',
+            'qualifications.*.units_breakdown.*' => 'nullable|numeric|min:0|max:100',
+            'qualifications.*.final_average' => 'required|numeric|min:0|max:100',
             'qualifications.*.is_approved' => 'nullable|boolean',
             'qualifications.*.is_left' => 'nullable|boolean',
         ];

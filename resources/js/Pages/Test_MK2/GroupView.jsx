@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/ResourceDashboard";
 import { usePermission } from "@/Utils/auth";
@@ -9,6 +9,67 @@ import EnrollStudentModal from "@/Pages/Test_MK2/FormModals/EnrollStudentModal";
 import ConfirmModal from '@/Components/ConfirmModal';
 import ModalAlert from "@/Components/ui/ModalAlert";
 import useFlashAlert from "@/Hooks/useFlashAlert";
+
+const UNIT_KEY_PATTERN = /^unit_\d+$/i;
+
+const normalizeQualificationRow = (row) => {
+    // Convierte units_breakdown (objeto JSON) en columnas planas para la tabla dinámica.
+    const unitsBreakdown =
+        row?.units_breakdown && typeof row.units_breakdown === "object" && !Array.isArray(row.units_breakdown)
+            ? row.units_breakdown
+            : {};
+
+    const { units_breakdown, ...rest } = row;
+    const { final_average, is_approved, is_left, ...baseFields } = rest;
+
+    return {
+        ...baseFields,
+        ...unitsBreakdown,
+        final_average,
+        is_approved,
+        is_left,
+    };
+};
+
+const getUnitKeysFromRows = (rows) =>
+    Array.from(
+        new Set(
+            rows.flatMap((row) =>
+                Object.keys(row).filter((key) => UNIT_KEY_PATTERN.test(key)),
+            ),
+        ),
+    ).sort((left, right) => {
+        const leftNumber = Number(left.match(/\d+/)?.[0] ?? 0);
+        const rightNumber = Number(right.match(/\d+/)?.[0] ?? 0);
+
+        return leftNumber - rightNumber;
+    });
+
+const buildUnitsBreakdown = (row) =>
+    Object.fromEntries(
+        Object.entries(row).filter(([key]) => UNIT_KEY_PATTERN.test(key)),
+    );
+
+const calculateAverage = (unitsBreakdown) => {
+    const values = Object.values(unitsBreakdown)
+        .map((value) => Number(value))
+        .filter((value) => Number.isFinite(value));
+
+    if (values.length === 0) {
+        return 0;
+    }
+
+    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+};
+
+const serializeQualification = (row) => ({
+    // Reconstruye el contrato que espera el backend antes de persistir.
+    qualification_id: row.qualification_id,
+    units_breakdown: buildUnitsBreakdown(row),
+    final_average: row.final_average,
+    is_approved: !!row.is_approved,
+    is_left: !!row.is_left,
+});
 
 /**
  * Vista de Gestión de Grupo (Dashboard).
@@ -43,13 +104,18 @@ export default function GroupView({
           ? enrolledStudents.data
           : [];
 
+    const normalizedQualificationRows = useMemo(
+        () => normalizedEnrolledStudents.map(normalizeQualificationRow),
+        [normalizedEnrolledStudents],
+    );
+
     // Estado local para los estudiantes y sus calificaciones
-    const [localData, setLocalData] = useState(normalizedEnrolledStudents);
+    const [localData, setLocalData] = useState(normalizedQualificationRows);
 
     // Sincronizar el estado local si cambian los props desde servidor
     useEffect(() => {
-        setLocalData(normalizedEnrolledStudents);
-    }, [enrolledStudents]);
+        setLocalData(normalizedQualificationRows);
+    }, [normalizedQualificationRows]);
 
     // Verificamos si el usuario actual es docente o administrador
     const canEditQualifications = hasRole("teacher") || hasRole("admin");
@@ -66,18 +132,15 @@ export default function GroupView({
     // Alertas globales flash
     const { flashModal, closeFlashModal } = useFlashAlert();
 
-    // ── Callbacks de Edición Individual ────────────────────────────────────────────
-    const handleEditRow = (item) => {
-        setEditingRowId(item.id);
-    };
-
     const handleSaveRow = (item) => {
         console.log("Guardando fila", item);
         const rowToSave = localData.find((row) => row.id === item.id);
-        if (rowToSave && rowToSave.qualification_id) {
+        const qualificationId = rowToSave?.qualification_id;
+
+        if (rowToSave && qualificationId) {
             router.patch(
-                route("qualifications.update", rowToSave.qualification_id),
-                rowToSave,
+                route("qualifications.update", qualificationId),
+                serializeQualification(rowToSave),
                 {
                     preserveScroll: true,
                     onSuccess: () => {
@@ -113,21 +176,22 @@ export default function GroupView({
     const handleCellChange = (fieldKey, rowId, newValue) => {
         setLocalData((prevData) =>
             prevData.map((row) => {
-                if (row.id === rowId) {
-                    const updatedRow = { ...row, [fieldKey]: newValue };
-
-                    if (fieldKey === 'unit_1' || fieldKey === 'unit_2') {
-                        const u1 = parseFloat(updatedRow.unit_1) || 0;
-                        const u2 = parseFloat(updatedRow.unit_2) || 0;
-                        
-                        const average = Math.round((u1 + u2) / 2);
-                        updatedRow.final_average = average;
-                        updatedRow.is_approved = average >= 70;
-                    }
-
-                    return updatedRow;
+                if (row.id !== rowId) {
+                    return row;
                 }
-                return row;
+
+                const updatedRow = { ...row, [fieldKey]: newValue };
+
+                if (UNIT_KEY_PATTERN.test(fieldKey)) {
+                    // Regla local: cualquier cambio de unidad recalcula promedio y estatus.
+                    const unitsBreakdown = buildUnitsBreakdown(updatedRow);
+                    const average = calculateAverage(unitsBreakdown);
+
+                    updatedRow.final_average = average;
+                    updatedRow.is_approved = average >= 70;
+                }
+
+                return updatedRow;
             })
         );
     };
@@ -136,7 +200,7 @@ export default function GroupView({
         console.log("Guardando cambios globales...");
         router.patch(
             route("qualifications.bulk-update"),
-            { qualifications: localData },
+            { qualifications: localData.map(serializeQualification) },
             {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -163,17 +227,24 @@ export default function GroupView({
     // Lógica de Roles: Configuramos las columnas editables dinámicamente.
     // Usamos EXACTAMENTE las keys devueltas por el StudentQualificationResource.
     // Cuando una fila está en edición, todas sus columnas configuradas aquí se vuelven editables.
+    const unitColumns = useMemo(
+        () => getUnitKeysFromRows(normalizedQualificationRows),
+        [normalizedQualificationRows],
+    );
     const editableColumns = canEditQualifications
-        ? ["unit_1", "unit_2", "is_approved", "is_left"]
+        ? [...unitColumns, "is_approved", "is_left"]
         : [];
 
     // Formateamos las opciones de vista para el ResourceDashboard
     const viewOptions = [{ value: "alumnos", label: "Alumnos Inscritos" }];
 
     // DataMap inyecta los alumnos que ahora vienen listos desde el API Resource de Laravel
-    const dataMap = {
-        alumnos: localData,
-    };
+    const dataMap = useMemo(
+        () => ({
+            alumnos: localData,
+        }),
+        [localData],
+    );
 
     return (
         <>
@@ -194,12 +265,13 @@ export default function GroupView({
                         deleteRoute={route('groups.unenroll-bulk', grupo.id)}
                         onDeleteRow={handleDeleteRow}
                         editableColumns={editableColumns}
+                        editAllRows={isEditingMode}
                         hiddenColumns={{ qualification_id: false }}
                         onCellChange={handleCellChange}
                         editingRowId={editingRowId}
                         onEditRow={(item) => setEditingRowId(item.id)}
                         onSaveRow={handleSaveRow}
-                        onCancelRow={() => setEditingRowId(null)}
+                        onCancelRow={handleCancelRow}
                         buttonSpace={
                             canEditQualifications && !isEditingMode ? (
                                 <ThemeButton

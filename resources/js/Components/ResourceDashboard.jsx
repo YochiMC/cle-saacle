@@ -21,6 +21,7 @@ const EMPTY_DATA = [];
  * @param {Function} onDeleteRow     - Callback opcional al pulsar Eliminar: (item) => void.
  * @param {React.ReactNode} buttonSpace - Acciones opcionales para el toolbar de la tabla.
  * @param {number|null} editingRowId - ID de la fila actualmente en edición (para edición individual).
+ * @param {boolean} editAllRows - Activa la edición global de todas las filas visibles.
  * @param {Function} onSaveRow       - Callback opcional al guardar fila individual: (item) => void.
  * @param {Function} onCancelRow     - Callback opcional al cancelar edición individual: () => void.
  * @param {string[]} editableColumns - Keys de columnas editables durante edición de fila.
@@ -42,6 +43,7 @@ export default function ResourceDashboard({
     onCellChange,
     customActions,
     editingRowId = null,
+    editAllRows = false,
     onSaveRow,
     onCancelRow,
 }) {
@@ -58,6 +60,7 @@ export default function ResourceDashboard({
         restrictedColumns,
         onCellChange,
         editingRowId,
+        editAllRows,
         onSaveRow,
         onCancelRow,
     });
@@ -69,9 +72,9 @@ export default function ResourceDashboard({
         handleBulkCopy,
         handleBulkDelete,
         resetSelection,
-        isConfirmingBulkDelete, 
-        setIsConfirmingBulkDelete, 
-        executeBulkDelete 
+        isConfirmingBulkDelete,
+        setIsConfirmingBulkDelete,
+        executeBulkDelete
     } = useBulkActions(deleteRoute, vistaActual);
 
     const handleViewChange = (newView) => {

@@ -155,6 +155,7 @@ export function useDynamicColumns(
         restrictedColumns = [],
         onCellChange,
         editingRowId = null,
+        editAllRows = false,
         onSaveRow,
         onCancelRow,
     } = {},
@@ -189,7 +190,7 @@ export function useDynamicColumns(
             // ISP: la celda solo sabe si ELLA es editable.
             cell: ({ row }) => {
                 const cellValue = row.original[key];
-                const isRowEditing = row.original.id === editingRowId;
+                const isRowEditing = editAllRows || row.original.id === editingRowId;
 
                 if (isRowEditing && editableSet.has(key)) {
                     return (
@@ -239,7 +240,7 @@ export function useDynamicColumns(
                 const item = row.original;
                 const itemName =
                     item.name || item.nombre || item.matricula || item.id;
-                const isRowEditing = item.id === editingRowId;
+                const isRowEditing = editAllRows || item.id === editingRowId;
 
                 // Si esta fila está en edición, mostrar botones de Guardar/Cancelar
                 if (isRowEditing) {
