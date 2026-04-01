@@ -107,7 +107,6 @@ Este modelo conserva el cast correcto para `units_breakdown`.
 Puntos clave:
 
 - `units_breakdown` usa `array`;
-- `final_average` usa `decimal:2`;
 - la relación con `student` y `group` sigue intacta.
 
 ### [app/Http/Resources/StudentQualificationResource.php](../app/Http/Resources/StudentQualificationResource.php)

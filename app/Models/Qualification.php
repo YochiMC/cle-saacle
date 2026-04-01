@@ -21,7 +21,6 @@ class Qualification extends Model
 
     protected $casts = [
         'units_breakdown' => 'array',
-        'final_average' => 'decimal:2',
     ];
 
     public function student()
