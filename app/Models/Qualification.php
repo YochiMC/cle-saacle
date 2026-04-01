@@ -19,6 +19,11 @@ class Qualification extends Model
         'group_id'
     ];
 
+    protected $casts = [
+        'units_breakdown' => 'array',
+        'final_average' => 'decimal:2',
+    ];
+
     public function student()
     {
         return $this->belongsTo(Student::class);

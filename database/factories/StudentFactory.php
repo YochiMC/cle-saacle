@@ -7,7 +7,7 @@ use App\Models\Level;
 use App\Models\TypeStudent;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Enums\StudentStatus;
+ use App\Enums\StudentStatus;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Student>
