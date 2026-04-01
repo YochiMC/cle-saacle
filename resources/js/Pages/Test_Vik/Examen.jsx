@@ -9,6 +9,8 @@ import {
     ToggleRight,
     Trash2,
     Edit2,
+    Layers3,
+    UsersRound,
 } from "lucide-react";
 import { usePermission } from "@/Utils/auth";
 
@@ -33,15 +35,11 @@ export default function Examen({
     teachers = [],
     levels = [],
 }) {
-    const { statuses = [], typeOptions = [] } = usePage().props;
-    const periodOptions = periods.map((p) => ({
-        value: String(p.id),
-        label: p.name,
-    }));
-    const modeOptions = [
-        { value: "Presencial", label: "Presencial" },
-        { value: "Virtual", label: "Virtual" },
-    ];
+    const {
+        statuses = [],
+        typeOptions = [],
+        modeOptions = [],
+    } = usePage().props;
 
     // 1. Hook Composition para la Lógica de Negocio
     const manager = useExamsManagement(examenes);
@@ -128,33 +126,31 @@ export default function Examen({
                             />
 
                             <ResourceSelectFilter
-                                icon={ClipboardList}
-                                value={manager.filtrosAdicionales.period || ""}
+                                icon={Layers3}
+                                value={manager.filtrosAdicionales.exam_type || ""}
                                 onChange={(e) =>
                                     manager.setFiltroAdicional(
-                                        "period",
+                                        "exam_type",
                                         e.target.value,
                                     )
                                 }
-                                ariaLabel="Filtrar por periodo"
+                                ariaLabel="Filtrar por tipo de examen"
                                 minWidthClassName="min-w-[200px]"
-                                placeholder="Todos los periodos"
-                                options={periodOptions}
+                                placeholder="Todos los tipos"
+                                options={typeOptions}
                             />
 
                             <ResourceSelectFilter
-                                icon={ToggleRight}
-                                value={manager.filtrosAdicionales.mode || ""}
-                                onChange={(e) =>
-                                    manager.setFiltroAdicional(
-                                        "mode",
-                                        e.target.value,
-                                    )
-                                }
-                                ariaLabel="Filtrar por modalidad"
+                                icon={UsersRound}
+                                value={manager.filtrosAdicionales.ordenCupo || ""}
+                                onChange={(e) => manager.setFiltroAdicional("ordenCupo", e.target.value || null)}
+                                ariaLabel="Ordenar por disponibilidad"
                                 minWidthClassName="min-w-[220px]"
-                                placeholder="Todas las modalidades"
-                                options={modeOptions}
+                                placeholder="Orden: Por defecto"
+                                options={[
+                                    { value: "desc", label: "Disponibilidad: Alta a Baja" },
+                                    { value: "asc", label: "Disponibilidad: Baja a Alta" },
+                                ]}
                             />
                         </ResourceFilterBar>
                     )}
@@ -239,6 +235,7 @@ export default function Examen({
                 manager={manager}
                 periods={periods}
                 typeOptions={typeOptions}
+                modeOptions={modeOptions}
                 teachers={teachers}
                 statuses={statuses}
             />

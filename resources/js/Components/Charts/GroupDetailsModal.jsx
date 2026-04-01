@@ -1,32 +1,17 @@
 import React from "react";
 import { ExternalLink } from "lucide-react";
 import DataViewModal, { DataLabel } from "@/Components/DataTable/DataViewModal";
-
-/** Badge de color según el status del grupo. */
-const StatusBadge = ({ status, status_label }) => {
-    const map = {
-        active: { label: "Activo", cls: "bg-green-100 text-green-800" },
-        pending: { label: "En espera", cls: "bg-yellow-100 text-yellow-800" },
-        waiting: { label: "En espera", cls: "bg-yellow-100 text-yellow-800" },
-        closed: { label: "Cerrado", cls: "bg-red-100 text-red-800" },
-        inactive: { label: "Cerrado", cls: "bg-red-100 text-red-800" },
-    };
-    const { label, cls } = map[status?.toLowerCase()] ?? {
-        label: status ?? "Sin estado",
-        cls: "bg-gray-100 text-gray-500",
-    };
-    return (
-        <span
-            className={`inline-block text-sm font-semibold px-3 py-1 rounded-full ${cls}`}
-        >
-            {status_label || label}
-        </span>
-    );
-};
+import StatusBadge from "@/Components/ui/StatusBadge";
 
 /**
- * Modal de detalles completos de un grupo académico.
- * Desacoplado de la estructura visual repetitiva mediante DataViewModal.
+ * GroupDetailsModal — Modal de detalles completos de un grupo académico.
+ *
+ * Componente presentacional desacoplado de la estructura visual repetitiva
+ * mediante `DataViewModal`. Usa `StatusBadge` compartido para el estado.
+ *
+ * @param {Object}   props
+ * @param {Object}   props.grupo   - Objeto del grupo (GroupResource del backend).
+ * @param {Function} props.onClose - Callback para cerrar el modal.
  */
 export default function GroupDetailsModal({ grupo, onClose }) {
     if (!grupo) return null;
@@ -44,51 +29,48 @@ export default function GroupDetailsModal({ grupo, onClose }) {
                 {grupo.name ?? `Grupo #${grupo.id}`}
             </h2>
             {nombreDocente ? (
-                <p className="text-sm font-semibold text-[#1B396A]">
-                    {nombreDocente}
-                </p>
+                <p className="text-sm font-semibold text-[#1B396A]">{nombreDocente}</p>
             ) : (
-                <p className="text-sm italic text-gray-400">
-                    Docente por asignar
-                </p>
+                <p className="text-sm italic text-gray-400">Docente por asignar</p>
             )}
         </>
     );
 
     return (
         <DataViewModal isOpen={!!grupo} onClose={onClose} title={TitleHeader}>
+            {/* Badge de estado — componente compartido con Exámenes */}
             <div className="flex flex-col gap-1">
                 <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">
                     Estado
                 </span>
-                <StatusBadge status={grupo.status} status_label={grupo.status_label} />
+                <StatusBadge status={grupo.status} etiquetaCustom={grupo.status_label} />
             </div>
 
             <DataLabel label="Tipo de curso" value={grupo.type} />
             <DataLabel label="Cupo" value={`${grupo.capacity} alumnos`} />
-            
-            <DataLabel 
-                label="Período" 
-                value={grupo.period_name} 
-                fallback="Sin período asignado" 
+
+            <DataLabel
+                label="Período"
+                value={grupo.period_name}
+                fallback="Sin período asignado"
             />
 
-            <DataLabel 
-                label="Nivel (TECNM)" 
-                value={grupo.level?.level_tecnm} 
-                fallback="Sin nivel asignado" 
+            <DataLabel
+                label="Nivel (TECNM)"
+                value={grupo.level?.level_tecnm}
+                fallback="Sin nivel asignado"
             />
 
-            <DataLabel 
-                label="Nivel (MCER)" 
-                value={grupo.level?.level_mcer} 
-                fallback="—" 
+            <DataLabel
+                label="Nivel (MCER)"
+                value={grupo.level?.level_mcer}
+                fallback="—"
             />
 
-            <DataLabel 
-                label="Horas del nivel" 
-                value={grupo.level?.hours ? `${grupo.level?.hours} hrs` : null} 
-                fallback="—" 
+            <DataLabel
+                label="Horas del nivel"
+                value={grupo.level?.hours ? `${grupo.level?.hours} hrs` : null}
+                fallback="—"
             />
 
             <DataLabel label="Horario" value={grupo.schedule} />
@@ -116,11 +98,11 @@ export default function GroupDetailsModal({ grupo, onClose }) {
                     </DataLabel>
                 )}
 
-                {(!grupo.classroom && !grupo.meeting_link) && (
-                    <DataLabel 
-                        label="Sede / Ubicación" 
+                {!grupo.classroom && !grupo.meeting_link && (
+                    <DataLabel
+                        label="Sede / Ubicación"
                         value={null}
-                        fallback="Sede por asignar" 
+                        fallback="Sede por asignar"
                     />
                 )}
             </div>

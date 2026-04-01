@@ -52,20 +52,25 @@ Route::middleware('auth')->group(function () {
     Route::delete('/groups/{group}/unenroll/{student}', [GroupController::class, 'unenroll'])->name('groups.unenroll');
     Route::post('/groups/{group}/unenroll-bulk', [GroupController::class, 'bulkUnenroll'])->name('groups.unenroll-bulk');
     Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
-    Route::get('/exams', [AdminViewsController::class, 'examsView'])->name('exams.index');
-    Route::post('/exams', [\App\Http\Controllers\ExamController::class, 'store'])->name('exams.store');
-    Route::put('/exams/{exam}', [App\Http\Controllers\ExamController::class, 'update'])->name('exams.update');
-    Route::delete('/exams/{exam}', [App\Http\Controllers\ExamController::class, 'destroy'])->name('exams.destroy');
-    Route::post('/exams/bulk-status', [\App\Http\Controllers\ExamController::class, 'bulkStatus'])->name('exams.bulk-status');
-    Route::delete('/exams/bulk-delete', [\App\Http\Controllers\ExamController::class, 'bulkDelete'])->name('exams.bulk-delete');
+    Route::prefix('exams')->name('exams.')->controller(\App\Http\Controllers\ExamController::class)->group(function () {
+        // 1. Rutas estáticas y acciones masivas (Prioridad Alta)
+        Route::post('/bulk-status', 'bulkStatus')->name('bulk-status');
+        Route::delete('/bulk-delete', 'bulkDelete')->name('bulk-delete');
+        Route::get('/', [\App\Http\Controllers\Views\AdminViewsController::class, 'examsView'])->name('index');
 
-    // Rutas de gestión de un solo examen (clon de grupos)
-    Route::get('/exams/{exam}/detalles', [\App\Http\Controllers\ExamController::class, 'show'])->name('exams.show');
-    Route::post('/exams/{exam}/enroll', [\App\Http\Controllers\ExamController::class, 'enroll'])->name('exams.enroll');
-    Route::delete('/exams/{exam}/unenroll/{student}', [\App\Http\Controllers\ExamController::class, 'unenroll'])->name('exams.unenroll');
-    Route::post('/exams/{exam}/unenroll-bulk', [\App\Http\Controllers\ExamController::class, 'bulkUnenroll'])->name('exams.unenroll-bulk');
-    Route::patch('/exams/{exam}/qualifications', [\App\Http\Controllers\ExamController::class, 'updatePivot'])->name('exams.qualifications.update');
-    Route::patch('/exams/{exam}/qualifications-bulk', [\App\Http\Controllers\ExamController::class, 'bulkUpdatePivot'])->name('exams.qualifications.bulk-update');
+        // 2. Rutas CRUD base
+        Route::post('/', 'store')->name('store');
+
+        // 3. Rutas dinámicas con parámetros (Prioridad Baja)
+        Route::put('/{exam}', 'update')->name('update');
+        Route::delete('/{exam}', 'destroy')->name('destroy');
+        Route::get('/{exam}/detalles', 'show')->name('show');
+        Route::post('/{exam}/enroll', 'enroll')->name('enroll');
+        Route::delete('/{exam}/unenroll/{student}', 'unenroll')->name('unenroll');
+        Route::post('/{exam}/unenroll-bulk', 'bulkUnenroll')->name('unenroll-bulk');
+        Route::patch('/{exam}/qualifications', 'updatePivot')->name('qualifications.update');
+        Route::patch('/{exam}/qualifications-bulk', 'bulkUpdatePivot')->name('qualifications.bulk-update');
+    });
 
     Route::put('/password/{user}', [PasswordController::class, 'updatePassword'])->name('users.password.update');
     Route::delete('/profiles/{user}', [ProfileController::class, 'delete'])->name('profiles.delete');
