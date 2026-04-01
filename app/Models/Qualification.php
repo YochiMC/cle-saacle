@@ -11,8 +11,7 @@ class Qualification extends Model
     //
     use HasFactory, SoftDeletes;
     protected $fillable = [
-        'unit_1',
-        'unit_2',
+        'units_breakdown',
         'final_average',
         'is_approved',
         'is_left',
