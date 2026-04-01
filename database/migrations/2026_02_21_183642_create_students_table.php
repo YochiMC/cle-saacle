@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('num_control')->unique();
             $table->char('gender', 1);
             $table->date('birthdate');
-            $table->integer('semester')->default(1)->nullable();
-            $table->string('status')->default('active');
+            $table->integer('semester')->nullable();
+            $table->string('status')->default('current');
             $table->foreignId('degree_id')->constrained()->restrictOnDelete();
             $table->foreignId('type_student_id')->constrained()->restrictOnDelete();
             $table->foreignId('level_id')->constrained()->restrictOnDelete();

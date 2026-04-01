@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Views;
 
+use App\Enums\StudentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\LevelResource;
@@ -30,6 +31,9 @@ class AdminViewsController extends Controller
 {
     /**
      * Renderiza la vista de gestión de usuarios (Alumnos y Docentes).
+        *
+        * Incluye el catálogo de estados de estudiante para que la UI use etiquetas
+        * oficiales del enum y no dependa de strings hardcodeados.
      *
      * @return \Inertia\Response
      */
@@ -41,6 +45,7 @@ class AdminViewsController extends Controller
             'degrees' => Degree::all(),
             'levels' => Level::all(),
             'typeStudents' => TypeStudent::all(),
+            'studentStatuses' => array_map(fn($status) => ['value' => $status->value, 'label' => $status->label()], StudentStatus::cases()),
         ]);
     }
 

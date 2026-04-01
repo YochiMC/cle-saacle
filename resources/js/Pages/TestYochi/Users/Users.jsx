@@ -11,6 +11,7 @@
  * @param {Array<Object>} props.teachers Listado de maestros registrados.
  * @param {Array<Object>} props.levels Niveles académicos disponibles.
  * @param {Array<Object>} props.typeStudents Tipos de estudiante (por ejemplo, Regular o Egresado).
+ * @param {Array<Object>} [props.studentStatuses] Catálogo de estados del backend para UI.
  * @returns {JSX.Element}
  */
 
@@ -42,6 +43,12 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
     const [currentView, setCurrentView] = useState("alumnos");
 
     const [itemToDelete, setItemToDelete] = useState(null);
+
+    // La tabla muestra etiqueta humana y conserva el valor técnico para lógica interna.
+    const studentsForTable = students.map((student) => ({
+        ...student,
+        status: student.status_label ?? student.status,
+    }));
 
     /**
      * Navega al perfil del registro seleccionado.
@@ -95,14 +102,14 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
             <Head title="Usuarios" />
             <ResourceDashboard
                 title="Gestión de usuarios"
-                dataMap={{ alumnos: students, maestros: teachers }}
+                dataMap={{ alumnos: studentsForTable, maestros: teachers }}
                 viewOptions={VIEW_OPTIONS}
                 deleteRoute="/carreras/eliminar-masivo"
                 onNew={() => setIsModalOpen(true)}
                 onEditRow={handleEditRow}
                 onDeleteRow={openDeleteModal}
                 onViewChange={(view) => setCurrentView(view)}
-                hiddenColumns={{ user_id: false, birthdate: false, type: false }}
+                hiddenColumns={{ user_id: false, birthdate: false, type: false, status_label: false }}
             />
 
             {/* Modales — se monta únicamente el correspondiente a la vista activa */}

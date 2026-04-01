@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Enums\StudentStatus;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -29,6 +30,13 @@ class Student extends Model
         'type_student_id',
         'level_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => StudentStatus::class,
+        ];
+    }
 
     public function user(): BelongsTo
     {
