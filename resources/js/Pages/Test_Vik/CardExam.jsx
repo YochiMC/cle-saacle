@@ -3,6 +3,7 @@ import { UserCircle } from "lucide-react";
 import { usePermission } from "@/Utils/auth";
 import CatalogCard from "@/Components/DataTable/CatalogCard";
 import { resolverEstado } from "@/Components/ui/StatusBadge";
+import { abreviarEtiqueta } from "@/Utils/textFormatters";
 
 /**
  * Formatea una fecha ISO (YYYY-MM-DD) al formato legible en es-MX.
@@ -49,12 +50,9 @@ const CardExam = memo(
         // Badge de estado resuelto con el helper compartido (fuente única de verdad)
         const badge = resolverEstado(examen.status);
 
-        // Tipo del examen como etiqueta en cabecera
-        const examTypeDisplay = (
-            examen.exam_type?.value ?? examen.exam_type ?? "Sin tipo"
-        )
-            .toString()
-            .toUpperCase();
+        // Tipo del examen y abreviación usando la utilidad centralizada (SRP)
+        const examTypeCompleto = (examen.exam_type?.value ?? examen.exam_type ?? "Sin tipo").toString();
+        const tipoAbreviado = abreviarEtiqueta(examTypeCompleto);
 
         // Construcción del rango de fechas formateado
         const startDate = examen.start_date || "";
@@ -85,7 +83,8 @@ const CardExam = memo(
                 seleccionado={seleccionado}
                 onToggleSelect={() => onToggleSelect?.(examen.id)}
                 badge={badge}
-                categoryLabel={examTypeDisplay}
+                categoryLabel={tipoAbreviado}
+                categoryTitle={examTypeCompleto}
                 title={examen.name ?? "Sin nombre"}
                 enrolledCount={examen.registered ?? examen.enrolled_count}
                 capacity={examen.capacity ?? "Ilimitado"}

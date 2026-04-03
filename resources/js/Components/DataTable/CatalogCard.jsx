@@ -47,6 +47,7 @@ const CatalogCard = memo(
         onToggleSelect,
         badge,
         categoryLabel,
+        categoryTitle,
         title,
         children,
         enrolledCount,
@@ -96,7 +97,10 @@ const CatalogCard = memo(
                                 />
                             </div>
                         )}
-                        <span className="text-sm font-extrabold tracking-wide text-[#1B396A] uppercase truncate mt-0.5">
+                        <span 
+                            className="text-sm font-extrabold tracking-wide text-[#1B396A] uppercase truncate mt-0.5 cursor-help"
+                            title={categoryTitle || categoryLabel}
+                        >
                             {categoryLabel}
                         </span>
                     </div>

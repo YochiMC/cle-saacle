@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\GroupStatus;
+use App\Enums\AcademicStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,7 +16,7 @@ class BulkUpdateGroupStatusRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; 
+        return true;
     }
 
     /**
@@ -27,7 +27,7 @@ class BulkUpdateGroupStatusRequest extends FormRequest
         return [
             'ids'        => 'required|array|min:1',
             'ids.*'      => 'required|exists:groups,id',
-            'new_status' => ['required', Rule::enum(GroupStatus::class)]
+            'new_status' => ['required', Rule::enum(AcademicStatus::class)]
         ];
     }
 

@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\GroupStatus;
+use App\Enums\AcademicStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +18,7 @@ class BulkUpdateExamsStatusRequest extends FormRequest
         return [
             'ids' => 'required|array|min:1',
             'ids.*' => 'required|exists:exams,id',
-            'new_status' => ['required', Rule::enum(GroupStatus::class)],
+            'new_status' => ['required', Rule::enum(AcademicStatus::class)],
         ];
     }
 

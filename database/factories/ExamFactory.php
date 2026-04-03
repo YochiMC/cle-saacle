@@ -8,7 +8,7 @@ use App\Models\Teacher;
 use App\Models\Student;
 use App\Enums\ExamType;
 use App\Enums\GroupMode;
-use App\Enums\GroupStatus;
+use App\Enums\AcademicStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -43,7 +43,7 @@ class ExamFactory extends Factory
                 '17:00'
             ]),
             'classroom' => $this->faker->bothify('Aula ?-##'),
-            'status' => $this->faker->randomElement(GroupStatus::cases())->value,
+            'status' => $this->faker->randomElement(AcademicStatus::cases())->value,
             'period_id' => Period::inRandomOrder()->value('id') ?? Period::factory(),
             'teacher_id' => Teacher::inRandomOrder()->value('id') ?? Teacher::factory(),
         ];

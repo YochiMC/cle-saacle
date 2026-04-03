@@ -3,6 +3,7 @@ import { UserCircle } from "lucide-react";
 import { usePermission } from "@/Utils/auth";
 import CatalogCard from "@/Components/DataTable/CatalogCard";
 import { resolverEstado } from "@/Components/ui/StatusBadge";
+import { abreviarEtiqueta } from "@/Utils/textFormatters";
 
 /**
  * CardGroup — Tarjeta visual de un Grupo Académico.
@@ -30,18 +31,17 @@ const CardGroup = memo(
         // Badge de estado resuelto con el helper compartido (fuente única de verdad)
         const badge = resolverEstado(grupo.status, grupo.status_label);
 
-        // Acrónico del nivel para mejorar la legibilidad en la cabecera
-        let nivelDisplay = (grupo.level?.level_tecnm || "NIVEL NO DEFINIDO")
-            .toString()
-            .toUpperCase()
-            .replace("PROGRAMA EGRESADOS", "PE");
+        // Preparar nivel y abreviación usando la utilidad centralizada (SRP)
+        const nivelCompleto = (grupo.level?.level_tecnm || grupo.type || "NIVEL NO DEFINIDO").toString();
+        const nivelAbreviado = abreviarEtiqueta(nivelCompleto);
 
         return (
             <CatalogCard
                 seleccionado={seleccionado}
                 onToggleSelect={() => onToggleSelect?.(grupo.id)}
                 badge={badge}
-                categoryLabel={nivelDisplay}
+                categoryLabel={nivelAbreviado}
+                categoryTitle={nivelCompleto}
                 title={grupo.name ?? `Grupo #${grupo.id}`}
                 enrolledCount={grupo.enrolled_count}
                 capacity={grupo.capacity}

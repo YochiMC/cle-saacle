@@ -74,7 +74,7 @@ class AdminViewsController extends Controller
             'levels' => LevelResource::collection(Level::orderBy('level_tecnm')->get())->resolve(),
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(),
-            'statuses' => array_map(fn($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\GroupStatus::cases()),
+            'statuses' => array_map(fn($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\AcademicStatus::cases()),
             'modes' => \App\Enums\GroupMode::getOptions(),
             'types' => \App\Enums\GroupType::getOptions(),
         ]);
@@ -158,10 +158,13 @@ class AdminViewsController extends Controller
 
     public function examsView(Request $request)
     {
+        $esEstudiante = $request->user()?->hasRole('student') ?? false;
+        $ocultarDocentes = $esEstudiante && $this->debeOcultarDocentes();
+
         $exams = Exam::with(['students', 'teacher', 'period'])->get();
 
         // Aplanamos los datos y calculamos campos derivados para el frontend
-        $examsData = $exams->map(function ($exam) {
+        $examsData = $exams->map(function ($exam) use ($ocultarDocentes) {
             $enrolledCount   = $exam->students->count();
             $availableSeats  = max(0, ($exam->capacity ?? 0) - $enrolledCount);
 
@@ -177,12 +180,12 @@ class AdminViewsController extends Controller
                 'classroom'        => $exam->classroom,
                 'status'           => $exam->status?->value ?? $exam->status,
                 'period_id'        => $exam->period_id,
-                'teacher_id'       => $exam->teacher_id,
-                'teacher_name'     => $exam->teacher?->full_name,
-                'teacher'          => $exam->teacher ? [
+                'teacher_id'       => $ocultarDocentes ? null : $exam->teacher_id,
+                'teacher_name'     => $ocultarDocentes ? 'Por asignar' : $exam->teacher?->full_name,
+                'teacher'          => $ocultarDocentes || !$exam->teacher ? null : [
                     'name' => $exam->teacher->first_name,
                     'last_name' => $exam->teacher->last_name,
-                ] : null,
+                ],
                 'period_name'      => $exam->period?->name,
                 'period'           => $exam->period ? ['id' => $exam->period->id, 'name' => $exam->period->name] : null,
                 'registered'       => $enrolledCount,
@@ -203,7 +206,7 @@ class AdminViewsController extends Controller
             'teachers'    => $teachers,
             'periods'     => $periods,
             'students'    => $students,
-            'statuses'    => array_map(fn($s) => ['value' => $s->value, 'label' => $s->label()], \App\Enums\GroupStatus::cases()),
+            'statuses'    => array_map(fn($s) => ['value' => $s->value, 'label' => $s->label()], \App\Enums\AcademicStatus::cases()),
             'typeOptions' => \App\Enums\ExamType::getOptions(),
             'modeOptions' => GroupMode::getOptions(),
         ]);
