@@ -13,7 +13,7 @@ class Document extends Model
 {
     use HasFactory, SoftDeletes;
     protected $fillable = [
-        'teacher_id',
+        'user_id',
         'type',
         'file_path',
         'status',
