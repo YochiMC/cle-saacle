@@ -38,8 +38,8 @@ class GroupResource extends JsonResource
             'mode'         => $this->mode,
             'type'         => $this->type,
             'capacity'     => $this->capacity,
-            'status'       => $this->status instanceof \App\Enums\GroupStatus ? $this->status->value : $this->status,
-            'status_label' => $this->status instanceof \App\Enums\GroupStatus ? $this->status->label() : 'Desconocido',
+            'status'       => $this->status instanceof \App\Enums\AcademicStatus ? $this->status->value : $this->status,
+            'status_label' => $this->status instanceof \App\Enums\AcademicStatus ? $this->status->label() : 'Desconocido',
             'classroom'    => $this->classroom,
             'meeting_link' => $this->meeting_link,
 
@@ -65,7 +65,7 @@ class GroupResource extends JsonResource
             'level_id'     => $this->level_id,
 
             // Cadena de alumnos para búsqueda frontend
-            'students_string' => $this->whenLoaded('qualifications', function() {
+            'students_string' => $this->whenLoaded('qualifications', function () {
                 return $this->qualifications->map(fn($q) => ($q->student->first_name ?? '') . ' ' . ($q->student->last_name ?? ''))->join(' ');
             }, ''),
         ];

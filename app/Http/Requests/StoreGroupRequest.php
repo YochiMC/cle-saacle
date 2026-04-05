@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\GroupStatus;
+use App\Enums\AcademicStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -34,7 +34,7 @@ class StoreGroupRequest extends FormRequest
             'schedule'     => 'required|string|max:255',
             'classroom'    => ['nullable', 'string', 'max:255'],
             'meeting_link' => ['nullable', 'url', 'max:255'],
-            'status'       => ['required', 'string', Rule::enum(GroupStatus::class)],
+            'status'       => ['required', 'string', Rule::enum(AcademicStatus::class)],
             'period_id'    => 'required|exists:periods,id',
             'teacher_id'   => ['nullable', 'exists:teachers,id'],
             'level_id'     => 'required|exists:levels,id',

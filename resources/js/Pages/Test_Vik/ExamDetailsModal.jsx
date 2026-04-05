@@ -1,39 +1,17 @@
 import React, { memo } from "react";
 import { ExternalLink } from "lucide-react";
 import DataViewModal, { DataLabel } from "@/Components/DataTable/DataViewModal";
-
-/** Badge de estado con etiquetas 100% en español. */
-const StatusBadge = ({ status }) => {
-    const map = {
-        enrolling: {
-            label: "Inscripciones Abiertas",
-            cls: "bg-blue-100 text-blue-800",
-        },
-        active: { label: "Activo", cls: "bg-green-100 text-green-800" },
-        pending: { label: "En Espera", cls: "bg-yellow-100 text-yellow-800" },
-        grading: {
-            label: "En Evaluación",
-            cls: "bg-purple-100 text-purple-800",
-        },
-        completed: { label: "Completado", cls: "bg-gray-100 text-gray-800" },
-    };
-    const key = (status?.value ?? status ?? "").toLowerCase();
-    const { label, cls } = map[key] ?? {
-        label: key || "Sin estado",
-        cls: "bg-gray-100 text-gray-500",
-    };
-    return (
-        <span
-            className={`inline-block text-sm font-semibold px-3 py-1 rounded-full ${cls}`}
-        >
-            {label}
-        </span>
-    );
-};
+import StatusBadge from "@/Components/ui/StatusBadge";
 
 /**
- * Modal de detalles de un examen.
- * Basado en las nuevas clasificaciones (Sin cupo y con rango de aplicación).
+ * ExamDetailsModal — Modal de detalles de solo lectura para un examen.
+ *
+ * Componente presentacional optimizado con `React.memo`.
+ * Usa `StatusBadge` compartido para la visualización del estado.
+ *
+ * @param {Object}   props
+ * @param {Object}   props.examen  - Objeto del examen a mostrar (ExamResource del backend).
+ * @param {Function} props.onClose - Callback para cerrar el modal.
  */
 const ExamDetailsModal = memo(({ examen, onClose }) => {
     if (!examen) return null;
@@ -55,8 +33,8 @@ const ExamDetailsModal = memo(({ examen, onClose }) => {
     const horaDisplay = examen.application_time ?? null;
     const modalidadDisplay = examen.mode ?? "Sin definir";
 
-    // Función para detectar si el classroom es una URL
-    const isValidUrl = (string) => {
+    /** Detecta si el valor de `classroom` es una URL válida. */
+    const esUrl = (string) => {
         try {
             new URL(string);
             return true;
@@ -76,19 +54,16 @@ const ExamDetailsModal = memo(({ examen, onClose }) => {
                 {claveExamen}
             </h2>
             {nombreDocente ? (
-                <p className="text-sm font-semibold text-[#1B396A]">
-                    {nombreDocente}
-                </p>
+                <p className="text-sm font-semibold text-[#1B396A]">{nombreDocente}</p>
             ) : (
-                <p className="text-sm italic text-gray-400">
-                    Docente sin asignar
-                </p>
+                <p className="text-sm italic text-gray-400">Docente sin asignar</p>
             )}
         </>
     );
 
     return (
         <DataViewModal isOpen={!!examen} onClose={onClose} title={TitleHeader}>
+            {/* Badge de estado — componente compartido con Grupos */}
             <div className="flex flex-col gap-1">
                 <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">
                     Estado
@@ -127,7 +102,7 @@ const ExamDetailsModal = memo(({ examen, onClose }) => {
                     label="Aula / Sede o LINK"
                     value={
                         examen.classroom ? (
-                            isValidUrl(examen.classroom) ? (
+                            esUrl(examen.classroom) ? (
                                 <a
                                     href={examen.classroom}
                                     target="_blank"
@@ -151,4 +126,5 @@ const ExamDetailsModal = memo(({ examen, onClose }) => {
     );
 });
 
+ExamDetailsModal.displayName = "ExamDetailsModal";
 export default ExamDetailsModal;

@@ -1,14 +1,16 @@
 /**
- * GroupModal
+ * GroupModal — Modal de Creación/Edición para Grupos.
  *
- * Modal dual de creación y edición para grupos. Contiene un formulario organizado
- * en tres secciones: Datos del Grupo, Horario y Sede, y Asignaciones.
- * Opera en modo creación (POST /groups) cuando no se pasa `grupoToEdit`,
- * y en modo edición (PUT /groups/{id}) cuando sí se pasa.
- * Desacoplado de envoltorios manuales mediante `DataFormModal`.
+ * Componente "Tonto" (Dumb Component) que delega su estado,
+ * lógica de envío y validaciones al `manager` provisto por `useGroupsManagement`.
+ * Patrón homologado con `ExamFormModal` (SRP + DIP).
+ *
+ * Contiene dos efectos UX reactivos propios del formulario:
+ * - Tipo → actualiza el nivel automáticamente (Egresados vs Regular).
+ * - Modalidad → limpia el campo de sede contrario (Presencial/Virtual).
+ * Estos efectos son lógica de presentación y por diseño permanecen en el modal.
  */
 import React, { useEffect } from "react";
-import { useForm } from "@inertiajs/react";
 import {
     FieldDescription,
     FieldGroup,
@@ -19,12 +21,20 @@ import {
 import SelectForm from "@/components/Forms/SelectForm";
 import InputForm from "@/components/Forms/InputForm";
 import DataFormModal from "@/Components/DataTable/DataFormModal";
+import FormErrors from "@/Components/ui/FormErrors";
 
+/**
+ * @param {Object}   props
+ * @param {Object}   props.manager    - Objeto completo del hook `useGroupsManagement`.
+ * @param {Array}    props.teachers   - Lista de docentes disponibles.
+ * @param {Array}    props.levels     - Lista de niveles académicos.
+ * @param {Array}    props.periods    - Lista de periodos escolares.
+ * @param {Array}    props.statuses   - Opciones de estado del grupo.
+ * @param {Array}    props.modes      - Opciones de modalidad.
+ * @param {Array}    props.types      - Opciones de tipo de grupo.
+ */
 export default function GroupModal({
-    show = false,
-    onClose,
-    title,
-    grupoToEdit = null,
+    manager,
     teachers = [],
     levels = [],
     periods = [],
@@ -32,155 +42,82 @@ export default function GroupModal({
     modes = [],
     types = [],
 }) {
-    const modoEdicion = grupoToEdit !== null;
+    if (!manager) return null;
 
-    const { data, setData, post, put, processing, errors, reset, transform } =
-        useForm({
-            name: "",
-            mode: "",
-            type: "",
-            capacity: "",
-            schedule: "",
-            classroom: "",
-            meeting_link: "",
-            status: "Activo",
-            period_id: "",
-            teacher_id: "none",
-            level_id: "",
-        });
+    const {
+        formData,
+        setFormData,
+        submitForm,
+        processing,
+        errors,
+        modales,
+        itemEditando,
+        handleCloseModal,
+    } = manager;
 
+    const isOpen = modales.formulario;
+    // El título se calcula aquí para no contaminar la página contenedora
+    const titulo = itemEditando
+        ? `Editar grupo: ${itemEditando.name}`
+        : "Añadir Nuevo Grupo";
+
+    // ── Opciones de selects ────────────────────────────────────────────────────
     const teacherOptions = [
         { value: "none", label: "Sin docente asignado" },
-        ...teachers.map((t) => ({
-            value: t.id.toString(),
-            label: t.full_name,
-        })),
+        ...teachers.map((t) => ({ value: t.id.toString(), label: t.full_name })),
     ];
-    
+
+    // Filtra niveles según el tipo de programa seleccionado
     const levelOptions = levels
-        .filter(l => {
-            const currentLevelProgramType = l.program_type || 'Regular'; 
-            if (data.type === 'Programa Egresados') {
-                return currentLevelProgramType === 'Egresados';
-            }
-            return currentLevelProgramType === 'Regular';
+        .filter((l) => {
+            const programType = l.program_type || "Regular";
+            return formData.type === "Programa Egresados"
+                ? programType === "Egresados"
+                : programType === "Regular";
         })
-        .map((l) => ({
-            value: l.id.toString(),
-            label: l.level_tecnm,
-        }));
-        
-    const periodOptions = periods.map((p) => ({
-        value: p.id.toString(),
-        label: p.name,
-    }));
-    
-    const statusOptions = statuses.map((s) => ({
-        value: s.value,
-        label: s.label,
-    }));
+        .map((l) => ({ value: l.id.toString(), label: l.level_tecnm }));
 
+    const periodOptions = periods.map((p) => ({ value: p.id.toString(), label: p.name }));
+    const statusOptions = statuses.map((s) => ({ value: s.value, label: s.label }));
+
+    // ── Efecto reactivo: Tipo del grupo → autoselección de Nivel ──────────────
     useEffect(() => {
-        if (show) {
-            if (grupoToEdit) {
-                setData({
-                    name: grupoToEdit.name ?? "",
-                    mode: grupoToEdit.mode ?? "",
-                    type: grupoToEdit.type ?? "",
-                    capacity: grupoToEdit.capacity?.toString() ?? "",
-                    schedule: grupoToEdit.schedule ?? "",
-                    classroom: grupoToEdit.classroom ?? "",
-                    meeting_link: grupoToEdit.meeting_link ?? "",
-                    status: grupoToEdit.status ?? "Activo",
-                    period_id: grupoToEdit.period_id?.toString() ?? "",
-                    teacher_id: grupoToEdit.teacher_id
-                        ? grupoToEdit.teacher_id.toString()
-                        : "none",
-                    level_id:
-                        (
-                            grupoToEdit.level_id || grupoToEdit.level?.id
-                        )?.toString() ?? "",
-                });
-            } else {
-                reset();
-            }
-        }
-    }, [show, grupoToEdit]);
+        if (!isOpen) return;
+        // Evita limpiar el nivel al abrir en modo edición con el mismo tipo
+        if (itemEditando && formData.type === itemEditando.type) return;
 
-    useEffect(() => {
-        if (show) {
-            if (grupoToEdit && data.type === grupoToEdit.type) {
-                return;
-            }
-            if (data.type === 'Programa Egresados') {
-                const egresadosLevel = levels.find(l => l.program_type === 'Egresados');
-                if (egresadosLevel) {
-                    setData("level_id", egresadosLevel.id.toString());
-                }
-            } else {
-                setData("level_id", "");
-            }
-        }
-    }, [data.type]);
-
-    useEffect(() => {
-        if (show) {
-            if (grupoToEdit && data.mode === grupoToEdit.mode) {
-                return;
-            }
-            if (data.mode === 'Presencial') {
-                setData('meeting_link', '');
-            } else if (data.mode === 'Virtual') {
-                setData('classroom', '');
-            }
-        }
-    }, [data.mode]);
-
-    const submit = (e) => {
-        e.preventDefault();
-        transform((currentData) => ({
-            ...currentData,
-            capacity: parseInt(currentData.capacity) || 0,
-            teacher_id:
-                currentData.teacher_id === "none"
-                    ? null
-                    : currentData.teacher_id,
-        }));
-
-        const onSuccess = () => {
-            reset();
-            onClose();
-        };
-
-        if (modoEdicion) {
-            put(`/groups/${grupoToEdit.id}`, { onSuccess });
+        if (formData.type === "Programa Egresados") {
+            const nivelEgresados = levels.find((l) => l.program_type === "Egresados");
+            if (nivelEgresados) setFormData("level_id", nivelEgresados.id.toString());
         } else {
-            post("/groups", { onSuccess });
+            setFormData("level_id", "");
         }
-    };
+    }, [formData.type]);
+
+    // ── Efecto reactivo: Modalidad → limpia el campo de sede contrario ─────────
+    useEffect(() => {
+        if (!isOpen) return;
+        // Evita limpiar la sede al abrir en modo edición con la misma modalidad
+        if (itemEditando && formData.mode === itemEditando.mode) return;
+
+        if (formData.mode === "Presencial") setFormData("meeting_link", "");
+        else if (formData.mode === "Virtual") setFormData("classroom", "");
+    }, [formData.mode]);
 
     return (
         <DataFormModal
-            isOpen={show}
-            onClose={onClose}
-            title={title}
-            onSubmit={submit}
+            isOpen={isOpen}
+            onClose={() => handleCloseModal("formulario")}
+            title={titulo}
+            onSubmit={submitForm}
             processing={processing}
             maxWidth="2xl"
         >
-            {Object.keys(errors).length > 0 && (
-                <div className="p-4 mb-4 text-sm text-white bg-red-500 rounded-lg">
-                    <strong>Errores detectados:</strong>
-                    <ul className="ml-5 list-disc">
-                        {Object.values(errors).map((err, i) => (
-                            <li key={i}>{err}</li>
-                        ))}
-                    </ul>
-                </div>
-            )}
+            {/* Bloque de errores de validación — componente compartido */}
+            <FormErrors errors={errors} />
 
             <FieldGroup>
-                {/* --- SECCIÓN 1: INFORMACIÓN GENERAL --- */}
+                {/* ── SECCIÓN 1: INFORMACIÓN GENERAL ── */}
                 <FieldSet>
                     <FieldLegend>Datos del Grupo</FieldLegend>
                     <FieldDescription>
@@ -193,43 +130,43 @@ export default function GroupModal({
                             label="Modalidad"
                             selectId="mode"
                             placeholder="Selecciona una modalidad"
-                            value={data.mode}
-                            onValueChange={(v) => setData("mode", v)}
+                            value={formData.mode}
+                            onValueChange={(v) => setFormData("mode", v)}
                         />
                         <SelectForm
                             options={types}
                             label="Tipo"
                             selectId="type"
                             placeholder="Selecciona un tipo"
-                            value={data.type}
-                            onValueChange={(v) => setData("type", v)}
+                            value={formData.type}
+                            onValueChange={(v) => setFormData("type", v)}
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
                         <InputForm
                             label="Capacidad (estudiantes)"
                             type="number"
                             inputId="capacity"
                             placeholder="Ej. 25"
                             description="Número máximo de estudiantes del grupo."
-                            value={data.capacity}
-                            onChange={(e) => setData("capacity", e.target.value)}
+                            value={formData.capacity}
+                            onChange={(e) => setFormData("capacity", e.target.value)}
                         />
                         <SelectForm
                             options={statusOptions}
                             label="Estado"
                             selectId="status"
                             placeholder="Selecciona un estado"
-                            value={data.status}
-                            onValueChange={(v) => setData("status", v)}
+                            value={formData.status}
+                            onValueChange={(v) => setFormData("status", v)}
                         />
                     </div>
                 </FieldSet>
 
                 <FieldSeparator />
 
-                {/* --- SECCIÓN 2: HORARIO Y UBICACIÓN --- */}
+                {/* ── SECCIÓN 2: HORARIO Y UBICACIÓN ── */}
                 <FieldSet>
                     <FieldLegend>Horario y Sede</FieldLegend>
                     <FieldDescription>
@@ -242,8 +179,8 @@ export default function GroupModal({
                             inputId="schedule"
                             placeholder="Ej. Lunes y Miércoles 16:00 - 18:00"
                             description="Incluye días y rango de horas."
-                            value={data.schedule}
-                            onChange={(e) => setData("schedule", e.target.value)}
+                            value={formData.schedule}
+                            onChange={(e) => setFormData("schedule", e.target.value)}
                         />
                     </div>
 
@@ -252,28 +189,28 @@ export default function GroupModal({
                             label="Aula"
                             inputId="classroom"
                             required={false}
-                            disabled={data.mode === 'Virtual'}
+                            disabled={formData.mode === "Virtual"}
                             placeholder="Ej. B-203"
                             description="Opcional"
-                            value={data.classroom}
-                            onChange={(e) => setData("classroom", e.target.value)}
+                            value={formData.classroom}
+                            onChange={(e) => setFormData("classroom", e.target.value)}
                         />
                         <InputForm
                             label="Enlace de reunión (URL)"
                             inputId="meeting_link"
                             required={false}
-                            disabled={data.mode === 'Presencial'}
+                            disabled={formData.mode === "Presencial"}
                             placeholder="https://..."
                             description="Opcional para grupos virtuales o híbridos."
-                            value={data.meeting_link}
-                            onChange={(e) => setData("meeting_link", e.target.value)}
+                            value={formData.meeting_link}
+                            onChange={(e) => setFormData("meeting_link", e.target.value)}
                         />
                     </div>
                 </FieldSet>
 
                 <FieldSeparator />
 
-                {/* --- SECCIÓN 3: ASIGNACIONES --- */}
+                {/* ── SECCIÓN 3: ASIGNACIONES ── */}
                 <FieldSet>
                     <FieldLegend>Asignaciones</FieldLegend>
                     <FieldDescription>
@@ -286,25 +223,25 @@ export default function GroupModal({
                             label="Periodo"
                             selectId="period_id"
                             placeholder="Selecciona un periodo"
-                            value={data.period_id}
-                            onValueChange={(v) => setData("period_id", v)}
+                            value={formData.period_id}
+                            onValueChange={(v) => setFormData("period_id", v)}
                         />
                         <SelectForm
                             options={levelOptions}
                             label="Nivel"
                             selectId="level_id"
                             placeholder="Selecciona un nivel"
-                            value={data.level_id}
-                            disabled={data.type === 'Programa Egresados'}
-                            onValueChange={(v) => setData("level_id", v)}
+                            value={formData.level_id}
+                            disabled={formData.type === "Programa Egresados"}
+                            onValueChange={(v) => setFormData("level_id", v)}
                         />
                         <SelectForm
                             options={teacherOptions}
                             label="Docente"
                             selectId="teacher_id"
                             placeholder="Selecciona un docente"
-                            value={data.teacher_id}
-                            onValueChange={(v) => setData("teacher_id", v)}
+                            value={formData.teacher_id}
+                            onValueChange={(v) => setFormData("teacher_id", v)}
                         />
                     </div>
                 </FieldSet>

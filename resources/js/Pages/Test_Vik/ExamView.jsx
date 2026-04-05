@@ -5,8 +5,8 @@ import { usePermission } from "@/Utils/auth";
 import ThemeButton from "@/Components/ThemeButton";
 import { Check, X, Save, Edit3 } from "lucide-react";
 import { router } from "@inertiajs/react";
-import EnrollStudentModal from "@/Pages/Test_MK2/FormModals/EnrollStudentModal";
-import ConfirmModal from '@/Components/ConfirmModal';
+import EnrollStudentModal from "@/Components/SharedModals/EnrollStudentModal";
+import ConfirmModal from "@/Components/ConfirmModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 
@@ -35,7 +35,8 @@ export default function ExamView({
     }, [enrolledStudents]);
 
     // Roles que pueden calificar
-    const canEditQualifications = hasRole("teacher") || hasRole("admin") || hasRole("coordinator");
+    const canEditQualifications =
+        hasRole("teacher") || hasRole("admin") || hasRole("coordinator");
 
     // ── Estados de Edición ──────────────────────────────────────────────────────────
     const [editingRowId, setEditingRowId] = useState(null);
@@ -52,12 +53,12 @@ export default function ExamView({
                 route("exams.qualifications.update", examen.id),
                 {
                     student_id: rowToSave.id,
-                    calificacion: rowToSave.calificacion
+                    calificacion: rowToSave.calificacion,
                 },
                 {
                     preserveScroll: true,
                     onSuccess: () => setEditingRowId(null),
-                }
+                },
             );
         } else {
             setEditingRowId(null);
@@ -70,9 +71,9 @@ export default function ExamView({
 
     const confirmDelete = () => {
         if (!itemToDelete) return;
-        router.delete(route('exams.unenroll', [examen.id, itemToDelete.id]), {
+        router.delete(route("exams.unenroll", [examen.id, itemToDelete.id]), {
             preserveScroll: true,
-            onSuccess: () => setItemToDelete(null)
+            onSuccess: () => setItemToDelete(null),
         });
     };
 
@@ -83,7 +84,7 @@ export default function ExamView({
                     return { ...row, [fieldKey]: newValue };
                 }
                 return row;
-            })
+            }),
         );
     };
 
@@ -94,7 +95,7 @@ export default function ExamView({
             {
                 preserveScroll: true,
                 onSuccess: () => setIsEditingMode(false),
-            }
+            },
         );
     };
 
@@ -105,7 +106,7 @@ export default function ExamView({
             {
                 preserveScroll: true,
                 onSuccess: () => setIsEnrollModalOpen(false),
-            }
+            },
         );
     };
 
@@ -122,7 +123,8 @@ export default function ExamView({
                 user={auth?.user}
                 header={
                     <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                        Gestión de Examen: {examen?.name || `Examen #${examen?.id}`}
+                        Gestión de Examen:{" "}
+                        {examen?.name || `Examen #${examen?.id}`}
                     </h2>
                 }
             >
@@ -148,18 +150,27 @@ export default function ExamView({
                             title={`Alumnos Inscritos: ${examen?.name || "N/A"}`}
                             dataMap={dataMap}
                             viewOptions={viewOptions}
-                            deleteRoute={route('exams.unenroll-bulk', examen?.id)}
+                            deleteRoute={route(
+                                "exams.unenroll-bulk",
+                                examen?.id,
+                            )}
                             onDeleteRow={handleDeleteRow}
                             editableColumns={editableColumns}
                             restrictedColumns={restrictedColumns}
                             hiddenColumns={{}}
-                            isTeacherMode={canEditQualifications && isEditingMode}
+                            isTeacherMode={
+                                canEditQualifications && isEditingMode
+                            }
                             onCellChange={handleCellChange}
                             editingRowId={editingRowId}
                             onEditRow={(item) => setEditingRowId(item.id)}
                             onSaveRow={handleSaveRow}
                             onCancelRow={() => setEditingRowId(null)}
-                            onNew={canEditQualifications ? () => setIsEnrollModalOpen(true) : undefined}
+                            onNew={
+                                canEditQualifications
+                                    ? () => setIsEnrollModalOpen(true)
+                                    : undefined
+                            }
                         />
                     </div>
                 </div>
@@ -168,10 +179,18 @@ export default function ExamView({
                 {isEditingMode && canEditQualifications && (
                     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-6 z-50">
                         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 flex justify-end gap-4">
-                            <ThemeButton theme="outline" icon={X} onClick={() => setIsEditingMode(false)}>
+                            <ThemeButton
+                                theme="outline"
+                                icon={X}
+                                onClick={() => setIsEditingMode(false)}
+                            >
                                 Cancelar
                             </ThemeButton>
-                            <ThemeButton theme="success" icon={Save} onClick={handleSaveGlobal}>
+                            <ThemeButton
+                                theme="success"
+                                icon={Save}
+                                onClick={handleSaveGlobal}
+                            >
                                 Guardar Cambios
                             </ThemeButton>
                         </div>
@@ -192,7 +211,7 @@ export default function ExamView({
                 onClose={() => setItemToDelete(null)}
                 onConfirm={confirmDelete}
                 title="Dar de baja alumno"
-                message={`¿Estás seguro de que deseas dar de baja a ${itemToDelete?.full_name || 'este alumno'} del examen?`}
+                message={`¿Estás seguro de que deseas dar de baja a ${itemToDelete?.full_name || "este alumno"} del examen?`}
                 confirmText="Sí, dar de baja"
                 variant="warning"
             />

@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-enum GroupStatus: string
+enum AcademicStatus: string
 {
     case ENROLLING = 'enrolling';
     case PENDING = 'pending';
@@ -12,7 +12,7 @@ enum GroupStatus: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::ENROLLING => 'Inscripciones Abiertas',
             self::PENDING => 'En Espera',
             self::ACTIVE => 'Activo',

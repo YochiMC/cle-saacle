@@ -203,17 +203,14 @@ export default function Groups({
             />
 
             <GroupModal
-                show={manager.modales.formulario}
-                title={manager.itemEditando ? `Editar grupo: ${manager.itemEditando.name}` : "Añadir grupo"}
-                onClose={() => manager.handleCloseModal("formulario")}
-                grupoToEdit={manager.itemEditando}
-                levels={levels}
-                teachers={teachers}
-                periods={periods}
-                statuses={statuses}
-                modes={modes}
-                types={types}
-            />
+                    manager={manager}
+                    levels={levels}
+                    teachers={teachers}
+                    periods={periods}
+                    statuses={statuses}
+                    modes={modes}
+                    types={types}
+                />
 
             {/* Modales Confirmaciones de Bulk */}
             <ConfirmModal
