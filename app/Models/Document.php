@@ -15,7 +15,9 @@ class Document extends Model
     protected $fillable = [
         'user_id',
         'type',
+        'original_name',
         'file_path',
+        'disk',
         'status',
         'comments'
     ];
@@ -27,8 +29,8 @@ class Document extends Model
         ];
     }
 
-    public function teacher(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->belongsTo(User::class);
     }
 }
