@@ -41,11 +41,6 @@ class Teacher extends Model
     }
 
     // Relaciones
-    public function documents(): HasMany
-    {
-        return $this->hasMany(Document::class);
-    }
-
     public function groups(): HasMany
     {
         return $this->hasMany(Group::class);
