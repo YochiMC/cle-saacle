@@ -161,7 +161,7 @@ export default function FileInputForm({
                 />
 
                 <p className="text-center text-base font-semibold text-slate-800">
-                    Drag & drop files here
+                    Arrastra y suelta tu archivo aquí
                 </p>
                 <p className="mt-1 text-center text-sm text-slate-500">
                     {helperText}

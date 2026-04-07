@@ -4,14 +4,16 @@ import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import ModalAlert from '@/Components/ui/ModalAlert';
 import useFlashAlert from '@/Hooks/useFlashAlert';
-import FileInputForm from '@/Components/Forms/FIleInputForm';
+import FileForm from './Partials/Forms/FileForm';
+import SecondaryButton from '@/Components/SecondaryButton';
+import { useState } from 'react';
 
 /**
  * Vista principal del perfil del usuario autenticado.
  *
  * Distribución:
  * - Columna izquierda: actualización de información del perfil.
- * - Columna derecha: acciones secundarias (contraseña y espacio reservado).
+ * - Columna derecha: acciones secundarias (contraseña y documentos).
  *
  * También integra el feedback global con ModalAlert a partir de mensajes flash.
  *
@@ -22,6 +24,10 @@ import FileInputForm from '@/Components/Forms/FIleInputForm';
 export default function Edit({ mustVerifyEmail, status }) {
     // Normaliza los mensajes flash del backend para mostrarlos en un modal consistente.
     const { flashModal, closeFlashModal } = useFlashAlert();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const openFileModal = () => setIsOpen(true);
+    const closeFileModal = () => setIsOpen(false);
 
     return (
         <AuthenticatedLayout
@@ -31,7 +37,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                 </h2>
             }
         >
-            <Head title="Profile" />
+            <Head title="Perfil de usuario" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -48,18 +54,24 @@ export default function Edit({ mustVerifyEmail, status }) {
                             <div className="bg-white p-4 shadow border border-blueTec/20 sm:rounded-lg sm:p-8">
                                 <UpdatePasswordForm className="w-full" />
                             </div>
-                            <FileInputForm
-                                name="file"
-                                label="Documento de identidad"
-                                accept=".pdf,.jpg,.jpeg,.png"
-                                helperText="Da clic aquí para buscar"
-                                buttonText="Seleccionar archivo"
-                                description="Sube tus documentos. Formatos permitidos: PDF, JPG, JPEG y PNG."
-                            />
+
+                            <div className="bg-white p-4 shadow border border-blueTec/20 sm:rounded-lg sm:p-6">
+                                <p className="text-sm font-semibold text-gray-800">Documentos de identidad</p>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Sube INE, RFC, CURP u otros documentos personales requeridos para validación.
+                                </p>
+                                <div className="mt-4">
+                                    <SecondaryButton onClick={openFileModal} className="w-full justify-center">
+                                        Subir documento
+                                    </SecondaryButton>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <FileForm show={isOpen} onClose={closeFileModal} title="Subir documento" />
 
             {/* Modal de notificaciones globales para éxito, error, warning o info */}
             <ModalAlert
