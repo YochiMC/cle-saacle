@@ -81,10 +81,9 @@ const SortIcon = ({ column }) => {
  *
  * @param {string|number} value    – Valor actual del campo.
  * @param {number|string} rowId   – ID del registro.
- * @param {string}        fieldKey – Clave del campo (determina tipo de input).
  * @param {Function}      onChange – Callback opcional: (fieldKey, rowId, value) => void
  */
-const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange }) => {
+const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange, selectOptions = {} }) => {
     const inputType = resolveInputType(fieldKey);
     const [value, setValue] = useState(initialValue);
 
@@ -120,7 +119,7 @@ const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange }) => {
 
     // OCP: Nueva rama para selector de nivel (examen de Ubicación)
     if (inputType === "select") {
-        const nivelOptions = [
+        const nivelOptions = selectOptions[fieldKey] || [
             "Básico 1", "Básico 2",
             "Intermedio 1", "Intermedio 2", "Intermedio 3", "Intermedio 4", "Intermedio 5",
             "Avanzado 1", "Avanzado 2",
@@ -193,6 +192,7 @@ export function useDynamicColumns(
     {
         editableColumns = [],
         restrictedColumns = [],
+        selectOptions = {},
         onCellChange,
         editingRowId = null,
         editAllRows = false,
@@ -239,6 +239,7 @@ export function useDynamicColumns(
                             rowId={row.original.id}
                             fieldKey={key}
                             onChange={onCellChange}
+                            selectOptions={selectOptions}
                         />
                     );
                 }

@@ -125,6 +125,7 @@ export default function ExamView({
     examen,
     enrolledStudents = [],
     availableStudents = [],
+    levelsTecnm = [],
 }) {
     const { hasRole } = usePermission();
 
@@ -168,10 +169,15 @@ export default function ExamView({
     );
 
     // Ocultar `final_average` globalmente en tipos de examen que no usan promedio.
-    // Ej: 4 habilidades, Convalidación (solo texto), Ubicación (select).
+    // Ej: 4 habilidades, Convalidación (solo texto), Ubicación (select), Planes anteriores (usa calificacion_final).
     const restrictedColumns = [];
     const examType = examen?.exam_type;
-    if (examType === "4 habilidades" || examType === "Convalidación" || examType === "Ubicación") {
+    if (
+        examType === "4 habilidades" ||
+        examType === "Convalidación" ||
+        examType === "Ubicación" ||
+        examType === "Planes anteriores"
+    ) {
         restrictedColumns.push("final_average");
     }
 
@@ -289,6 +295,7 @@ export default function ExamView({
                         onDeleteRow={handleDeleteRow}
                         editableColumns={editableColumns}
                         restrictedColumns={restrictedColumns}
+                        selectOptions={{ "nivel_asignado": levelsTecnm }}
                         editAllRows={isEditingMode}
                         hiddenColumns={{ exam_student_id: false }}
                         onCellChange={handleCellChange}

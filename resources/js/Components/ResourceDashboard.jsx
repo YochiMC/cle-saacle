@@ -54,6 +54,7 @@ export default function ResourceDashboard({
     editAllRows = false,
     onSaveRow,
     onCancelRow,
+    selectOptions = {},
 }) {
     const firstView = viewOptions[0]?.value ?? "";
     const [vistaActual, setVistaActual] = useState(firstView);
@@ -66,6 +67,7 @@ export default function ResourceDashboard({
     const columns = useDynamicColumns(currentData, onEditRow, onDeleteRow, {
         editableColumns,
         restrictedColumns,
+        selectOptions,
         onCellChange,
         editingRowId,
         editAllRows,

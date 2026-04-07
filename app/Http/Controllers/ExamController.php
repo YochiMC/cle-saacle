@@ -87,10 +87,16 @@ class ExamController extends Controller
             ->select('id', 'first_name', 'last_name', 'num_control')
             ->get();
 
+        $levelsTecnm = \App\Models\Level::where('level_tecnm', '!=', 'Programa Egresados')
+            ->pluck('level_tecnm')
+            ->unique()
+            ->values();
+
         return \Inertia\Inertia::render('Test_Vik/ExamView', [
             'examen'            => $exam,
             'enrolledStudents'  => $enrolledStudents,
             'availableStudents' => $availableStudents,
+            'levelsTecnm'       => $levelsTecnm,
         ]);
     }
 
