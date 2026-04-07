@@ -43,20 +43,22 @@ const resolveInputType = (fieldKey) => {
     if (lower.includes("email") || lower.includes("correo")) return "email";
     if (lower.includes("date") || lower.includes("fecha")) return "date";
 
-    // Campos de texto libre para exámenes (habilidades, niveles, oportunidad)
+    // Campos de texto libre para exámenes
     if (
-        lower.includes("listening") ||
-        lower.includes("reading") ||
-        lower.includes("writing") ||
-        lower.includes("speaking") ||
         lower.includes("promedio") ||
         lower.includes("oportunidad") ||
         lower.includes("nivel_certificado")
     )
         return "text";
 
-    // Selector de nivel asignado (examen de Ubicación)
-    if (lower.includes("nivel_asignado")) return "select";
+    // Selector de niveles y habilidades
+    if (
+        lower.includes("nivel_asignado") ||
+        lower.includes("listening") ||
+        lower.includes("reading") ||
+        lower.includes("writing") ||
+        lower.includes("speaking")
+    ) return "select";
 
     return "number"; // Default: calificación numérica
 };

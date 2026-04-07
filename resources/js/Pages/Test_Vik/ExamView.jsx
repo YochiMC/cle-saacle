@@ -181,7 +181,9 @@ export default function ExamView({
         restrictedColumns.push("final_average");
     }
 
-    const editableColumns = canEditQualifications ? unitKeys : [];
+    const editableColumns = canEditQualifications 
+        ? unitKeys.filter(k => k !== "promedio_habilidades") 
+        : [];
 
     // ── Handlers de Edición Individual ────────────────────────────────────────────
     const handleSaveRow = (item) => {
@@ -228,13 +230,50 @@ export default function ExamView({
 
                 const updatedRow = { ...row, [fieldKey]: newValue };
 
-                // Solo recalculamos el promedio si el campo modificado es numérico
-                // (no texto libre ni selector).
-                const isNumericField = !isNaN(Number(newValue)) && newValue !== "";
-                if (isNumericField) {
-                    const currentUnitKeys = getUnitKeysFromRows([updatedRow]);
-                    const breakdown = buildUnitsBreakdown(updatedRow, currentUnitKeys);
-                    updatedRow.final_average = calculateAverage(breakdown);
+                if (examType === "4 habilidades") {
+                    // Pesos para calcular el mínimo de los niveles
+                    const mcerWeights = { "A1": 1, "A2": 2, "B1": 3, "B2": 4, "C1": 5, "C2": 6 };
+                    const skills = ["listening", "reading", "writing", "speaking"];
+                    
+                    let lowestWeight = Infinity;
+                    let allSkillsValid = true;
+
+                    for (const skill of skills) {
+                        const val = updatedRow[skill]?.toString().toUpperCase().trim();
+                        // Si falta el valor, no es válido
+                        if (!val || !(val in mcerWeights)) {
+                            allSkillsValid = false;
+                            break;
+                        }
+                        
+                        const weight = mcerWeights[val];
+                        if (weight < lowestWeight) {
+                            lowestWeight = weight;
+                        }
+                        
+                        // Si cualquier habilidad es menor a B1 (peso 3), es NA
+                        if (weight < 3) {
+                            allSkillsValid = false;
+                            break;
+                        }
+                    }
+
+                    if (!allSkillsValid || lowestWeight < 3) {
+                        updatedRow.promedio_habilidades = "NA";
+                    } else {
+                        // Buscar el nombre del nivel a partir del peso más bajo
+                        const lowestKey = Object.keys(mcerWeights).find(k => mcerWeights[k] === lowestWeight);
+                        updatedRow.promedio_habilidades = lowestKey || "NA";
+                    }
+                } else {
+                    // Original logic for numeric average
+                    const isNumericField = !isNaN(Number(newValue)) && newValue !== "";
+                    // Solo recalcular final_average si la tabla espera usarlo
+                    if (isNumericField && !restrictedColumns.includes("final_average")) {
+                        const currentUnitKeys = getUnitKeysFromRows([updatedRow]);
+                        const breakdown = buildUnitsBreakdown(updatedRow, currentUnitKeys);
+                        updatedRow.final_average = calculateAverage(breakdown);
+                    }
                 }
 
                 return updatedRow;
@@ -295,7 +334,13 @@ export default function ExamView({
                         onDeleteRow={handleDeleteRow}
                         editableColumns={editableColumns}
                         restrictedColumns={restrictedColumns}
-                        selectOptions={{ "nivel_asignado": levelsTecnm }}
+                        selectOptions={{ 
+                            "nivel_asignado": levelsTecnm,
+                            "listening": ["A1", "A2", "B1", "B2", "C1", "C2"],
+                            "reading": ["A1", "A2", "B1", "B2", "C1", "C2"],
+                            "writing": ["A1", "A2", "B1", "B2", "C1", "C2"],
+                            "speaking": ["A1", "A2", "B1", "B2", "C1", "C2"],
+                        }}
                         editAllRows={isEditingMode}
                         hiddenColumns={{ exam_student_id: false }}
                         onCellChange={handleCellChange}
