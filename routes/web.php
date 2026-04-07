@@ -9,6 +9,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\Views\AdminViewsController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\DocumentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -53,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/groups/{group}/unenroll/{student}', [GroupController::class, 'unenroll'])->name('groups.unenroll');
     Route::post('/groups/{group}/unenroll-bulk', [GroupController::class, 'bulkUnenroll'])->name('groups.unenroll-bulk');
     Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::prefix('exams')->name('exams.')->controller(\App\Http\Controllers\ExamController::class)->group(function () {
         // 1. Rutas estáticas y acciones masivas (Prioridad Alta)
         Route::post('/bulk-status', 'bulkStatus')->name('bulk-status');

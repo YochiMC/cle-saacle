@@ -29,6 +29,16 @@ class ProfileController extends Controller
         return Inertia::render('Profile/User/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'documents' => $request->user()->documents()->latest()->get()->map(function ($doc) {
+                return [
+                    'id' => $doc->id,
+                    'type' => $doc->type,
+                    'original_name' => $doc->original_name,
+                    'file_path' => $doc->file_path,
+                    'status' => $doc->status,
+                    'uploaded_at' => $doc->created_at->toDateTimeString(),
+                ];
+            }),
         ]);
     }
 
