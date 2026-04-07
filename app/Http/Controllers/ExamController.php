@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\BulkDeleteExamsRequest;
 use App\Http\Requests\BulkUpdateExamsStatusRequest;
+use App\Http\Requests\BulkUpdateExamQualificationsRequest;
+use App\Http\Requests\EnrollStudentsRequest;
 use App\Models\Exam;
+use App\Models\ExamStudent;
 use App\Services\ExamNamingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ExamController extends Controller
 {
@@ -70,14 +74,14 @@ class ExamController extends Controller
 
     public function show(Exam $exam)
     {
-        // Alumnos inscritos (Traemos el pivot implícitamente por BelongsToMany)
+        // Cargamos alumnos con los datos completos del pivot (incluyendo units_breakdown).
         $students = $exam->students()->get();
 
-        $enrolledStudents = $students->map(function ($student) {
-            return new \App\Http\Resources\StudentExamResource($student);
-        });
+        $enrolledStudents = $students->map(
+            fn ($student) => new \App\Http\Resources\StudentExamQualificationResource($student)
+        );
 
-        // Alumnos disponibles
+        // Alumnos disponibles para inscripción
         $enrolledIds = $exam->students()->pluck('students.id');
         $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
             ->select('id', 'first_name', 'last_name', 'num_control')
@@ -90,14 +94,23 @@ class ExamController extends Controller
         ]);
     }
 
-    public function enroll(Request $request, Exam $exam)
+    public function enroll(EnrollStudentsRequest $request, Exam $exam)
     {
-        $request->validate([
-            'student_ids' => 'required|array',
-            'student_ids.*' => 'exists:students,id'
-        ]);
+        // Genera el JSON inicial según las reglas de negocio del ExamType.
+        $defaultBreakdown = $exam->exam_type->defaultUnitsBreakdown();
 
-        $exam->students()->syncWithoutDetaching($request->student_ids);
+        DB::transaction(function () use ($request, $exam, $defaultBreakdown) {
+            foreach ($request->validated('student_ids') as $studentId) {
+                // Usamos attach() en lugar de syncWithoutDetaching() para poder
+                // pasar los datos de pivot (units_breakdown) inicializados correctamente.
+                if (!$exam->students()->where('students.id', $studentId)->exists()) {
+                    $exam->students()->attach($studentId, [
+                        'units_breakdown' => json_encode($defaultBreakdown),
+                        'final_average'   => 0,
+                    ]);
+                }
+            }
+        });
 
         return redirect()->back()->with('success', 'Alumnos inscritos al examen.');
     }
@@ -161,20 +174,20 @@ class ExamController extends Controller
         return redirect()->back()->with('success', 'Calificación actualizada.');
     }
 
-    public function bulkUpdatePivot(Request $request, Exam $exam)
+    public function bulkUpdatePivot(BulkUpdateExamQualificationsRequest $request, Exam $exam)
     {
-        $request->validate([
-            'qualifications' => 'required|array',
-            'qualifications.*.id' => 'required|exists:students,id',
-            'qualifications.*.calificacion' => 'nullable|numeric|min:0|max:100'
-        ]);
+        DB::transaction(function () use ($request) {
+            $qualifications = $request->validated('qualifications');
 
-        foreach ($request->qualifications as $q) {
-            $exam->students()->updateExistingPivot($q['id'], [
-                'calificacion' => $q['calificacion'] ?? null
-            ]);
-        }
+            foreach ($qualifications as $item) {
+                // Actualizamos directamente el registro de la tabla pivot por su PK.
+                ExamStudent::where('id', $item['exam_student_id'])->update([
+                    'units_breakdown' => json_encode($item['units_breakdown'] ?? []),
+                    'final_average'   => $item['final_average'] ?? 0,
+                ]);
+            }
+        });
 
-        return redirect()->back()->with('success', 'Calificaciones guardadas masivamente.');
+        return redirect()->back()->with('success', 'Calificaciones guardadas exitosamente.');
     }
 }

@@ -1,30 +1,38 @@
 import { useState } from "react";
 import { Head } from "@inertiajs/react";
+import { PlusCircle } from "lucide-react";
 
 import { DataTable } from "@/Components/DataTable/DataTable";
 import DashboardHeader from "@/Components/DashboardHeader";
 import { useDynamicColumns } from "@/Hooks/useDynamicColumns";
 import { useBulkActions } from "@/Hooks/useBulkActions";
 import ConfirmModal from '@/Components/ConfirmModal';
+import ThemeButton from "@/Components/ThemeButton";
 
 const EMPTY_DATA = [];
 
 /**
  * ResourceDashboard — Super-componente de gestión de datos.
  *
- * @param {string}   title           - Título principal (ej: "Carreras").
- * @param {object}   dataMap         - Datos por vista: { carreras: [], alumnos: [] }
- * @param {Array}    viewOptions     - [{ value, label }] para el selector de vistas.
- * @param {string}   deleteRoute     - Ruta POST para eliminación masiva.
- * @param {object}   hiddenColumns   - Columnas ocultas por defecto.
- * @param {Function} onEditRow       - Callback opcional al pulsar Editar: (item) => void.
- * @param {Function} onDeleteRow     - Callback opcional al pulsar Eliminar: (item) => void.
- * @param {React.ReactNode} buttonSpace - Acciones opcionales para el toolbar de la tabla.
- * @param {number|null} editingRowId - ID de la fila actualmente en edición (para edición individual).
- * @param {boolean} editAllRows - Activa la edición global de todas las filas visibles.
- * @param {Function} onSaveRow       - Callback opcional al guardar fila individual: (item) => void.
- * @param {Function} onCancelRow     - Callback opcional al cancelar edición individual: () => void.
- * @param {string[]} editableColumns - Keys de columnas editables durante edición de fila.
+ * SRP aplicado: este componente orquesta la vista de datos y los controles
+ * globales. La tabla (DataTable) solo tiene responsabilidad de pintar datos.
+ * Los controles de acción (buttonSpace, onNew) viven en una Toolbar propia
+ * que se renderiza SIEMPRE, independientemente de si hay datos o no.
+ *
+ * @param {string}          title           - Título principal (ej: "Carreras").
+ * @param {object}          dataMap         - Datos por vista: { carreras: [], alumnos: [] }
+ * @param {Array}           viewOptions     - [{ value, label }] para el selector de vistas.
+ * @param {string}          deleteRoute     - Ruta POST para eliminación masiva.
+ * @param {object}          hiddenColumns   - Columnas ocultas por defecto.
+ * @param {Function}        onEditRow       - Callback al pulsar Editar: (item) => void.
+ * @param {Function}        onDeleteRow     - Callback al pulsar Eliminar: (item) => void.
+ * @param {React.ReactNode} buttonSpace     - Acciones extras para la toolbar (ej: "Capturar Calificaciones").
+ * @param {Function}        onNew           - Callback para el botón "+ Nuevo" siempre visible.
+ * @param {number|null}     editingRowId    - ID de la fila en edición individual.
+ * @param {boolean}         editAllRows     - Activa la edición global de todas las filas.
+ * @param {Function}        onSaveRow       - Callback al guardar fila individual.
+ * @param {Function}        onCancelRow     - Callback al cancelar edición individual.
+ * @param {string[]}        editableColumns - Keys de columnas editables durante edición de fila.
  */
 export default function ResourceDashboard({
     title,
@@ -104,6 +112,7 @@ export default function ResourceDashboard({
                 />
 
                 <div className="p-6 overflow-hidden bg-white rounded-sm shadow-sm">
+                    {/* ── Tabla de Datos o Estado Vacío ────── */}
                     {currentData.length > 0 ? (
                         <DataTable
                             key={`table-${vistaActual}-${currentData.length}`}
@@ -117,9 +126,23 @@ export default function ResourceDashboard({
                             onNew={onNew}
                         />
                     ) : (
-                        <div className="py-10 text-center text-slate-500">
-                            No hay registros almacenados en{" "}
-                            {currentViewLabel.toLowerCase()}.
+                        <div className="flex flex-col items-center justify-center p-12 text-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 mt-2">
+                            <h3 className="text-lg font-medium text-[#17365D] mb-2">
+                                No hay registros en {currentViewLabel.toLowerCase()}
+                            </h3>
+                            <p className="text-sm text-slate-500 mb-6 max-w-sm">
+                                Aún no hay registros para mostrar en esta vista.
+                                {onNew ? " Comienza agregando el primero para poder gestionar la información." : ""}
+                            </p>
+                            {onNew && (
+                                <ThemeButton
+                                    theme="institutional"
+                                    icon={PlusCircle}
+                                    onClick={onNew}
+                                >
+                                    Registrar Nuevo
+                                </ThemeButton>
+                            )}
                         </div>
                     )}
                 </div>
@@ -137,3 +160,4 @@ export default function ResourceDashboard({
         </div>
     );
 }
+

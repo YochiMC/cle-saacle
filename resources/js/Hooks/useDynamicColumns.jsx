@@ -30,7 +30,7 @@ const renderCellValue = (value) => {
 const resolveInputType = (fieldKey) => {
     const lower = fieldKey.toLowerCase();
 
-    // Extensión para valores booleanos (OCP)
+    // Campos booleanos → Checkbox (OCP)
     if (
         lower.startsWith("is_") ||
         lower.includes("aprobado") ||
@@ -42,6 +42,21 @@ const resolveInputType = (fieldKey) => {
     if (lower.includes("name") || lower.includes("nombre")) return "text";
     if (lower.includes("email") || lower.includes("correo")) return "email";
     if (lower.includes("date") || lower.includes("fecha")) return "date";
+
+    // Campos de texto libre para exámenes (habilidades, niveles, oportunidad)
+    if (
+        lower.includes("listening") ||
+        lower.includes("reading") ||
+        lower.includes("writing") ||
+        lower.includes("speaking") ||
+        lower.includes("promedio") ||
+        lower.includes("oportunidad") ||
+        lower.includes("nivel_certificado")
+    )
+        return "text";
+
+    // Selector de nivel asignado (examen de Ubicación)
+    if (lower.includes("nivel_asignado")) return "select";
 
     return "number"; // Default: calificación numérica
 };
@@ -100,6 +115,31 @@ const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange }) => {
                     className="border-gray-500 data-[state=checked]:bg-[#17365D]"
                 />
             </div>
+        );
+    }
+
+    // OCP: Nueva rama para selector de nivel (examen de Ubicación)
+    if (inputType === "select") {
+        const nivelOptions = [
+            "Básico 1", "Básico 2",
+            "Intermedio 1", "Intermedio 2", "Intermedio 3", "Intermedio 4", "Intermedio 5",
+            "Avanzado 1", "Avanzado 2",
+        ];
+        return (
+            <select
+                value={value ?? ""}
+                onChange={(e) => {
+                    setValue(e.target.value);
+                    if (onChange) onChange(fieldKey, rowId, e.target.value);
+                }}
+                aria-label={`${formatLabel(fieldKey)} — fila ${rowId}`}
+                className="w-36 text-sm text-center border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white"
+            >
+                <option value="" disabled>Seleccione nivel...</option>
+                {nivelOptions.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                ))}
+            </select>
         );
     }
 
@@ -315,6 +355,7 @@ export function useDynamicColumns(
         restrictedColumns,
         onCellChange,
         editingRowId,
+        editAllRows,
         onSaveRow,
         onCancelRow,
     ]);
