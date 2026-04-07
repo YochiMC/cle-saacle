@@ -4,6 +4,7 @@ import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import ModalAlert from '@/Components/ui/ModalAlert';
 import useFlashAlert from '@/Hooks/useFlashAlert';
+import FileInputForm from '@/Components/Forms/FIleInputForm';
 
 /**
  * Vista principal del perfil del usuario autenticado.
@@ -43,18 +44,18 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 className="w-full"
                             />
                         </div>
-
                         <div className="space-y-6">
                             <div className="bg-white p-4 shadow border border-blueTec/20 sm:rounded-lg sm:p-8">
                                 <UpdatePasswordForm className="w-full" />
                             </div>
-
-                            {/* Espacio reservado para DeleteUserForm cuando se decida activar. */}
-                            <div className="bg-white p-4 shadow border border-orangeTec/25 sm:rounded-lg sm:p-8">
-                                <p className="text-sm text-gray-500">
-                                    Sección de eliminación de cuenta pendiente de habilitar.
-                                </p>
-                            </div>
+                            <FileInputForm
+                                name="file"
+                                label="Documento de identidad"
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                helperText="Da clic aquí para buscar"
+                                buttonText="Seleccionar archivo"
+                                description="Sube tus documentos. Formatos permitidos: PDF, JPG, JPEG y PNG."
+                            />
                         </div>
                     </div>
                 </div>
