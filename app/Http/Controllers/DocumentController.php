@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Document;
 use App\Enums\DocumentStatus;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Document;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DocumentController extends Controller
 {
@@ -46,7 +47,7 @@ class DocumentController extends Controller
         $userId = Auth::id();
 
         // Generar nombre único para el archivo
-        $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $fileName = Str::uuid().'.'.$file->getClientOriginalExtension();
 
         // Almacenar archivo en la carpeta del usuario
         $path = $file->storeAs("documentos/user_{$userId}", $fileName, 'local');
@@ -91,9 +92,21 @@ class DocumentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Document $document): RedirectResponse
     {
-        //
+        // Verificar que el documento pertenece al usuario autenticado.
+        if ($document->user_id !== Auth::id()) {
+            abort(403, 'No autorizado para eliminar este documento.');
+        }
+
+        // Eliminar archivo físico antes de remover el registro en base de datos.
+        if (Storage::disk($document->disk)->exists($document->file_path)) {
+            Storage::disk($document->disk)->delete($document->file_path);
+        }
+
+        $document->delete();
+
+        return back()->with('success', 'Documento eliminado exitosamente.');
     }
 
     public function download(Document $document)
@@ -104,7 +117,7 @@ class DocumentController extends Controller
         }
 
         // Verificar que el archivo existe en el almacenamiento
-        if (!Storage::disk($document->disk)->exists($document->file_path)) {
+        if (! Storage::disk($document->disk)->exists($document->file_path)) {
             abort(404, 'Archivo no encontrado.');
         }
 

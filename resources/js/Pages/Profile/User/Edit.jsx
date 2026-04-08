@@ -1,8 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import Files from './Partials/Files';
+import ConfirmModal from '@/Components/ConfirmModal';
 import ModalAlert from '@/Components/ui/ModalAlert';
 import useFlashAlert from '@/Hooks/useFlashAlert';
 import FileForm from './Partials/Forms/FileForm';
@@ -27,9 +28,48 @@ export default function Edit({ mustVerifyEmail, status, documents }) {
     // Normaliza los mensajes flash del backend para mostrarlos en un modal consistente.
     const { flashModal, closeFlashModal } = useFlashAlert();
     const [isOpen, setIsOpen] = useState(false);
+    const [confirmingDocumentDelete, setConfirmingDocumentDelete] = useState(false);
+    const [documentToDelete, setDocumentToDelete] = useState(null);
+    const [isDeletingDocument, setIsDeletingDocument] = useState(false);
 
     const openFileModal = () => setIsOpen(true);
     const closeFileModal = () => setIsOpen(false);
+
+    const closeDeleteModal = () => {
+        if (isDeletingDocument) {
+            return;
+        }
+
+        setConfirmingDocumentDelete(false);
+        setDocumentToDelete(null);
+    };
+
+    const handleDeleteDocument = (document) => {
+        if (!document?.id) {
+            return;
+        }
+
+        setDocumentToDelete(document);
+        setConfirmingDocumentDelete(true);
+    };
+
+    const confirmDeleteDocument = () => {
+        if (!documentToDelete?.id || isDeletingDocument) {
+            return;
+        }
+
+        setIsDeletingDocument(true);
+
+        router.delete(route('documents.destroy', documentToDelete.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                closeDeleteModal();
+            },
+            onFinish: () => {
+                setIsDeletingDocument(false);
+            },
+        });
+    };
 
     return (
         <AuthenticatedLayout
@@ -73,12 +113,22 @@ export default function Edit({ mustVerifyEmail, status, documents }) {
 
                     {/* Bloque de expediente integrado en el mismo contexto visual del perfil */}
                     <div className="mt-6">
-                        <Files documents={documents} />
+                        <Files documents={documents} onDeleteDocument={handleDeleteDocument} />
                     </div>
                 </div>
             </div>
 
             <FileForm show={isOpen} onClose={closeFileModal} title="Subir documento" />
+
+            <ConfirmModal
+                isOpen={confirmingDocumentDelete}
+                onClose={closeDeleteModal}
+                onConfirm={confirmDeleteDocument}
+                title="¿Eliminar documento?"
+                message={`Se eliminará el documento "${documentToDelete?.original_name ?? ''}" de forma permanente.`}
+                confirmText={isDeletingDocument ? 'Eliminando...' : 'Eliminar documento'}
+                variant="warning"
+            />
 
             {/* Modal de notificaciones globales para éxito, error, warning o info */}
             <ModalAlert

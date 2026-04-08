@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+    Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     Route::prefix('exams')->name('exams.')->controller(\App\Http\Controllers\ExamController::class)->group(function () {
         // 1. Rutas estáticas y acciones masivas (Prioridad Alta)
         Route::post('/bulk-status', 'bulkStatus')->name('bulk-status');
