@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
+import Files from './Partials/Files';
 import ModalAlert from '@/Components/ui/ModalAlert';
 import useFlashAlert from '@/Hooks/useFlashAlert';
 import FileForm from './Partials/Forms/FileForm';
@@ -26,8 +27,6 @@ export default function Edit({ mustVerifyEmail, status, documents }) {
     // Normaliza los mensajes flash del backend para mostrarlos en un modal consistente.
     const { flashModal, closeFlashModal } = useFlashAlert();
     const [isOpen, setIsOpen] = useState(false);
-
-    console.table(documents)
 
     const openFileModal = () => setIsOpen(true);
     const closeFileModal = () => setIsOpen(false);
@@ -70,6 +69,11 @@ export default function Edit({ mustVerifyEmail, status, documents }) {
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Bloque de expediente integrado en el mismo contexto visual del perfil */}
+                    <div className="mt-6">
+                        <Files documents={documents} />
                     </div>
                 </div>
             </div>

@@ -43,7 +43,7 @@ class DocumentController extends Controller
         ]);
 
         $file = $request->file('file');
-        $userId = auth()->id();
+        $userId = Auth::id();
 
         // Generar nombre único para el archivo
         $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
@@ -94,5 +94,24 @@ class DocumentController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function download(Document $document)
+    {
+        // Verificar que el documento pertenece al usuario autenticado
+        if ($document->user_id !== Auth::id()) {
+            abort(403, 'No autorizado para descargar este documento.');
+        }
+
+        // Verificar que el archivo existe en el almacenamiento
+        if (!Storage::disk($document->disk)->exists($document->file_path)) {
+            abort(404, 'Archivo no encontrado.');
+        }
+
+        // Descargar el archivo con su nombre original desde la ruta física del disco local
+        return response()->download(
+            Storage::disk($document->disk)->path($document->file_path),
+            $document->original_name
+        );
     }
 }
