@@ -1,9 +1,9 @@
 import React from "react";
 import TextInput from "@/Components/TextInput";
 import InputLabel from "@/Components/InputLabel";
-import InputError from "@/Components/InputError";
 import DataFormModal from "@/Components/DataTable/DataFormModal";
 import SelectForm from "@/components/Forms/SelectForm";
+import FormErrors from "@/Components/ui/FormErrors";
 import {
     FieldDescription,
     FieldGroup,
@@ -23,6 +23,7 @@ export default function ExamFormModal({
     manager,
     periods = [],
     typeOptions = [],
+    modeOptions = [],
     teachers = [],
     statuses = [],
 }) {
@@ -46,11 +47,6 @@ export default function ExamFormModal({
         })),
     ];
 
-    const modeOptions = [
-        { value: "Presencial", label: "Presencial" },
-        { value: "Virtual", label: "Virtual" },
-    ];
-
     return (
         <DataFormModal
             isOpen={isOpen}
@@ -60,16 +56,8 @@ export default function ExamFormModal({
             processing={manager.processing}
             maxWidth="2xl"
         >
-            {Object.keys(manager.errors).length > 0 && (
-                <div className="p-4 mb-4 text-sm text-white bg-red-500 rounded-lg">
-                    <strong>Errores detectados:</strong>
-                    <ul className="ml-5 list-disc w-full">
-                        {Object.values(manager.errors).map((err, i) => (
-                            <li key={i}>{err}</li>
-                        ))}
-                    </ul>
-                </div>
-            )}
+            {/* Bloque de errores de validación — componente compartido */}
+            <FormErrors errors={manager.errors} />
 
             <FieldGroup>
                 <FieldSet>
@@ -85,7 +73,9 @@ export default function ExamFormModal({
                             selectId="exam_type"
                             placeholder="Ej. Convalidación"
                             value={manager.formData.exam_type}
-                            onValueChange={(v) => manager.setFormData("exam_type", v)}
+                            onValueChange={(v) =>
+                                manager.setFormData("exam_type", v)
+                            }
                         />
                         <SelectForm
                             options={modeOptions}
@@ -93,7 +83,9 @@ export default function ExamFormModal({
                             selectId="mode"
                             placeholder="Ej. Presencial"
                             value={manager.formData.mode}
-                            onValueChange={(v) => manager.setFormData("mode", v)}
+                            onValueChange={(v) =>
+                                manager.setFormData("mode", v)
+                            }
                         />
                         <SelectForm
                             options={statuses}
@@ -101,7 +93,9 @@ export default function ExamFormModal({
                             selectId="status"
                             placeholder="Selecciona el estado"
                             value={manager.formData.status}
-                            onValueChange={(v) => manager.setFormData("status", v)}
+                            onValueChange={(v) =>
+                                manager.setFormData("status", v)
+                            }
                         />
                     </div>
                 </FieldSet>

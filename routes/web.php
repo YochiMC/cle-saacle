@@ -8,6 +8,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\Views\AdminViewsController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -73,6 +74,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
     Route::delete('/roles/{id}', [RoleController::class, 'destroy'])->name('roles.destroy');
     Route::put('/roles/{id}', [RoleController::class, 'update'])->name('roles.update');
+
+    // ── Configuraciones del Sistema (sólo Administradores) ─────────────────
+    Route::prefix('settings')->name('settings.')->middleware('role:admin')->group(function () {
+        Route::get('/', [SettingController::class, 'index'])->name('index');
+        Route::put('/bulk', [SettingController::class, 'updateBulk'])->name('update-bulk');
+    });
 });
 
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');

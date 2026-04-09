@@ -14,7 +14,8 @@ export default function AuthenticatedLayout({ header, children }) {
         { route: "users", label: "Usuarios" },
         { route: "groups", label: "Grupos" },
         { route: "reports", label: "Reportes" },
-        { route: "exams.index", label: "Exámenes"}
+        { route: "exams.index", label: "Exámenes" },
+        { route: "settings.index", label: "Configuraciones" },
     ];
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =

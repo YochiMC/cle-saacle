@@ -27,7 +27,7 @@ class Exam extends Model
     ];
 
     protected $casts = [
-        'status'    => \App\Enums\GroupStatus::class,
+        'status'    => \App\Enums\AcademicStatus::class,
         'exam_type' => \App\Enums\ExamType::class,
     ];
 

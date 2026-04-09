@@ -4,9 +4,15 @@ import { useCatalogData } from "./useCatalogData";
 import { filterExams } from "@/Pages/Test_Vik/examFilters";
 
 /**
- * Hook Empresarial para la Gestión de Exámenes (Hook Composition).
- * Orquesta `useCatalogData` y le añade la lógica
- * específica de negocio de Modal, Peticiones y Manejo de Formulario.
+ * Hook Empresarial para la Gestión de Exámenes (Patrón Custom Hook - SRP).
+ * Actúa como orquestador de lógica de negocio para el módulo de exámenes:
+ * 1. Gestiona el Estado del catálogo (listado, filtros, selección).
+ * 2. Controla la visibilidad y datos de los Modales.
+ * 3. Maneja el estado local y validaciones del Formulario de exámenes.
+ * 4. Ejecuta las Peticiones de red (Bulk actions, inscripción).
+ *
+ * @param {Array} examenes - Colección inicial de exámenes desde el servidor.
+ * @returns {Object} API del hook para ser consumida por los componentes de UI.
  */
 export const useExamsManagement = (examenes = []) => {
     // 1. Estado Base
@@ -15,8 +21,8 @@ export const useExamsManagement = (examenes = []) => {
         filterFunction: filterExams,
         initialFilters: {
             estado: "",
-            period: "",
-            mode: "",
+            exam_type: "",
+            ordenCupo: null,
         },
     });
 
@@ -58,15 +64,17 @@ export const useExamsManagement = (examenes = []) => {
             if (type === "formulario") {
                 setItemEditando(payload);
                 if (payload) {
+                    // Extracción segura (Operador coalescencia nula / encadenamiento opcional)
+                    // Previene el bug de campos vacíos cuando el backend devuelve Enums/Objetos
                     setFormData({
-                        exam_type: payload.exam_type || "",
-                        status: payload.status || "enrolling",
+                        exam_type: payload.exam_type?.value ?? payload.exam_type ?? "",
+                        status: payload.status?.value ?? payload.status ?? "enrolling",
                         start_date: payload.start_date || "",
                         end_date: payload.end_date || "",
                         application_time: payload.application_time || "",
-                        mode: payload.mode || "",
-                        period_id: payload.period_id?.toString() || "",
-                        capacity: payload.capacity?.toString() || "",
+                        mode: payload.mode?.value ?? payload.mode ?? "",
+                        period_id: payload.period_id?.toString() ?? "",
+                        capacity: payload.capacity?.toString() ?? "",
                         classroom: payload.classroom || "",
                         teacher_id: payload.teacher_id
                             ? payload.teacher_id.toString()
