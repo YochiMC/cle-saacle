@@ -67,6 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/exams/{exam}/unenroll-bulk', [\App\Http\Controllers\ExamController::class, 'bulkUnenroll'])->name('exams.unenroll-bulk');
     Route::patch('/exams/{exam}/qualifications/bulk', [\App\Http\Controllers\ExamController::class, 'bulkUpdatePivot'])->name('exams.qualifications.bulk-update');
     Route::patch('/exams/{exam}/qualifications/{student}', [\App\Http\Controllers\ExamController::class, 'updatePivot'])->name('exams.qualifications.update');
+    Route::patch('/exams/{exam}/complete', [\App\Http\Controllers\ExamController::class, 'complete'])->name('exams.complete');
 
     Route::put('/password/{user}', [PasswordController::class, 'updatePassword'])->name('users.password.update');
     Route::delete('/profiles/{user}', [ProfileController::class, 'delete'])->name('profiles.delete');

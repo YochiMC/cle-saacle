@@ -318,6 +318,12 @@ export default function ExamView({
                     onError: (errors) => console.error("Error al guardar fila:", errors),
                 }
             );
+        } else if (confirmModal.type === 'close') {
+            router.patch(route('exams.complete', examen.id), {}, {
+                preserveScroll: true,
+                onSuccess: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
+                onError: (errors) => console.error("Error al cerrar el examen", errors),
+            });
         }
     };
 
@@ -376,16 +382,28 @@ export default function ExamView({
                         onSaveRow={handleSaveRow}
                         onCancelRow={handleCancelRow}
                         buttonSpace={
-                            canEditQualifications && !isEditingMode ? (
-                                <ThemeButton
-                                    theme="institutional"
-                                    icon={Edit3}
-                                    size="sm"
-                                    onClick={() => setIsEditingMode(true)}
-                                >
-                                    Capturar Calificaciones
-                                </ThemeButton>
-                            ) : null
+                            <div className="flex gap-2">
+                                {examen?.status !== 'completed' && canEditQualifications && !isEditingMode && (
+                                    <ThemeButton
+                                        theme="danger"
+                                        size="sm"
+                                        className="whitespace-nowrap"
+                                        onClick={() => setConfirmModal({ isOpen: true, type: 'close', itemData: null })}
+                                    >
+                                        Cerrar Examen
+                                    </ThemeButton>
+                                )}
+                                {canEditQualifications && !isEditingMode ? (
+                                    <ThemeButton
+                                        theme="institutional"
+                                        icon={Edit3}
+                                        size="sm"
+                                        onClick={() => setIsEditingMode(true)}
+                                    >
+                                        Capturar Calificaciones
+                                    </ThemeButton>
+                                ) : null}
+                            </div>
                         }
                         onNew={
                             canEditQualifications
@@ -448,13 +466,19 @@ export default function ExamView({
                 isOpen={confirmModal.isOpen}
                 onClose={() => setConfirmModal({ isOpen: false, type: null, itemData: null })}
                 onConfirm={confirmSave}
-                title={confirmModal.type === 'global' ? "Confirmar guardado masivo" : "Guardar calificación"}
-                message={
-                    confirmModal.type === 'global' 
-                    ? "¿Deseas guardar las calificaciones de todos los alumnos?"
-                    : "¿Estás seguro de guardar la calificación de este alumno?"
+                title={
+                    confirmModal.type === 'global' ? "Confirmar guardado masivo" : 
+                    confirmModal.type === 'close' ? "Cerrar Examen Definitivamente" :
+                    "Guardar calificación"
                 }
-                confirmText="Sí, guardar"
+                message={
+                    confirmModal.type === 'global' ? "¿Deseas guardar las calificaciones de todos los alumnos?" :
+                    confirmModal.type === 'close' ? "Asegúrate de que todas las calificaciones hayan sido capturadas y validadas correctamente. Al cerrar el examen, no podrás realizar más modificaciones y se dará por concluido. Esta acción es irreversible." :
+                    "¿Estás seguro de guardar la calificación de este alumno?"
+                }
+                confirmText={
+                    confirmModal.type === 'close' ? "Sí, cerrar examen" : "Sí, guardar"
+                }
                 cancelText="Cancelar"
                 variant="warning"
             />
