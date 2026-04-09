@@ -255,8 +255,47 @@ export function useDynamicColumns(
                         />
                     );
                 }
-                // Celda de solo-lectura (comportamiento original)
-                return <span>{renderCellValue(cellValue)}</span>;
+                // Renderizar celda normal para is_left
+                if (key.includes("is_left")) {
+                    return cellValue ? (
+                        <span className="px-2 py-0.5 text-xs font-semibold bg-red-500 text-white rounded-full">
+                            Baja
+                        </span>
+                    ) : (
+                        <span className="text-slate-400">-</span>
+                    );
+                }
+
+                let textColor = "text-slate-700"; // Color por defecto
+
+                // 1. Definir qué columnas SON calificaciones (Lista Blanca)
+                const gradeColumns = [
+                    "final_average", "calificacion", "calificacion_final", 
+                    "promedio", "listening", "reading", "writing", "speaking"
+                ];
+                const isGradeColumn = gradeColumns.some(col => key.includes(col));
+
+                // 2. Solo aplicar lógica de colores si es una columna de calificación
+                if (isGradeColumn) {
+                    const isNumericGrade = /^\d+$/.test(String(cellValue));
+                    const grade = isNumericGrade ? parseInt(cellValue, 10) : null;
+                    const failedNumeric = isNumericGrade && grade !== null && grade < 70;
+                    const approvedNumeric = isNumericGrade && grade !== null && grade >= 70;
+
+                    if (!row.original.is_left) {
+                        if (cellValue === "NA" || failedNumeric || ["A1", "A2"].includes(cellValue)) {
+                            textColor = "text-red-600 font-bold";
+                        } else if (approvedNumeric || ["B1", "B2", "C1", "C2"].includes(cellValue)) {
+                            textColor = "text-emerald-600 font-bold";
+                        }
+                    } else {
+                        // Forzar texto atenuado para bajas
+                        textColor = "text-slate-400";
+                    }
+                }
+
+                // Celda de solo-lectura
+                return <span className={textColor}>{renderCellValue(cellValue)}</span>;
             },
         }));
 

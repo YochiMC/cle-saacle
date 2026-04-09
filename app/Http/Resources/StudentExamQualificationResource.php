@@ -41,7 +41,7 @@ class StudentExamQualificationResource extends JsonResource
         // Es inválido si: (a) es nulo, (b) es vacío, (c) le faltan las claves del tipo.
         $unitsBreakdown = $this->resolveUnitsBreakdown($pivot, $storedBreakdown);
 
-        return [
+        $baseData = [
             // ── Datos básicos del alumno ─────────────────────────────────────
             'id'        => $this->id,
             'full_name' => $this->full_name,
@@ -58,6 +58,8 @@ class StudentExamQualificationResource extends JsonResource
 
             'final_average'   => $pivot?->final_average ?? 0,
         ];
+
+        return array_merge($baseData, $unitsBreakdown);
     }
 
     /**

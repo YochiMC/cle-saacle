@@ -41,6 +41,7 @@ export function DataTable({
     onPrint,
     buttonSpace,
     onNew,
+    getRowClassName,
 }) {
     const [sorting, setSorting] = useState([]);
     const [columnFilters, setColumnFilters] = useState([]);
@@ -114,7 +115,7 @@ export function DataTable({
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && 'selected'}
-                                    className={`border-b border-slate-200 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'} hover:bg-slate-100/70 data-[state=selected]:bg-blue-50`}
+                                    className={`border-b border-slate-200 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'} hover:bg-slate-100/70 data-[state=selected]:bg-blue-50 ${getRowClassName ? getRowClassName(row) : ''}`}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell

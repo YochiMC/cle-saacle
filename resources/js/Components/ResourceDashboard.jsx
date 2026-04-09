@@ -55,6 +55,7 @@ export default function ResourceDashboard({
     onSaveRow,
     onCancelRow,
     selectOptions = {},
+    getRowClassName,
 }) {
     const firstView = viewOptions[0]?.value ?? "";
     const [vistaActual, setVistaActual] = useState(firstView);
@@ -126,6 +127,7 @@ export default function ResourceDashboard({
                             onPrint={onPrint}
                             buttonSpace={buttonSpace}
                             onNew={onNew}
+                            getRowClassName={getRowClassName}
                         />
                     ) : (
                         <div className="flex flex-col items-center justify-center p-12 text-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 mt-2">

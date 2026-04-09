@@ -173,6 +173,13 @@ export default function GroupView({
         });
     };
 
+    const getRowClassName = (row) => {
+        // Si el alumno es baja, se atenúa visualmente (Ghost effect) en lugar de oscurecerse agresivamente.
+        return row.original.is_left 
+            ? "bg-slate-50/50 text-slate-400 opacity-75 hover:bg-slate-100 transition-colors" 
+            : "text-slate-700 bg-white"; 
+    };
+
     const handleCellChange = (fieldKey, rowId, newValue) => {
         setLocalData((prevData) =>
             prevData.map((row) => {
@@ -289,6 +296,7 @@ export default function GroupView({
                                 ? () => setIsEnrollModalOpen(true)
                                 : undefined
                         }
+                        getRowClassName={getRowClassName}
                     />
                 </div>
 
