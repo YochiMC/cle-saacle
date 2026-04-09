@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/Components/ui/button";
 import { Checkbox } from "@/Components/ui/checkbox";
 import { ThemeInput } from "@/Components/ThemeInput";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
 import {
     Edit,
     Trash2,
@@ -46,14 +47,14 @@ const resolveInputType = (fieldKey) => {
     // Campos de texto libre para exámenes
     if (
         lower.includes("promedio") ||
-        lower.includes("oportunidad") ||
-        lower.includes("nivel_certificado")
+        lower.includes("oportunidad")
     )
         return "text";
 
     // Selector de niveles y habilidades
     if (
         lower.includes("nivel_asignado") ||
+        lower.includes("nivel_certificado") ||
         lower.includes("listening") ||
         lower.includes("reading") ||
         lower.includes("writing") ||
@@ -119,28 +120,37 @@ const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange, selectOp
         );
     }
 
-    // OCP: Nueva rama para selector de nivel (examen de Ubicación)
+    // OCP: Nueva rama para selector de nivel (examen de Ubicación) y certificado
     if (inputType === "select") {
-        const nivelOptions = selectOptions[fieldKey] || [
-            "Básico 1", "Básico 2",
-            "Intermedio 1", "Intermedio 2", "Intermedio 3", "Intermedio 4", "Intermedio 5",
-            "Avanzado 1", "Avanzado 2",
-        ];
+        const fallbackOptions = fieldKey.includes("nivel_certificado")
+            ? ["A1", "A2", "B1", "B2", "C1", "C2"]
+            : [
+                "Básico 1", "Básico 2",
+                "Intermedio 1", "Intermedio 2", "Intermedio 3", "Intermedio 4", "Intermedio 5",
+                "Avanzado 1", "Avanzado 2",
+              ];
+              
+        const options = selectOptions[fieldKey] || fallbackOptions;
+
         return (
-            <select
-                value={value ?? ""}
-                onChange={(e) => {
-                    setValue(e.target.value);
-                    if (onChange) onChange(fieldKey, rowId, e.target.value);
+            <Select 
+                value={value ?? ""} 
+                onValueChange={(newValue) => {
+                    setValue(newValue);
+                    if (onChange) onChange(fieldKey, rowId, newValue);
                 }}
-                aria-label={`${formatLabel(fieldKey)} — fila ${rowId}`}
-                className="w-36 text-sm text-center border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white"
             >
-                <option value="" disabled>Seleccione nivel...</option>
-                {nivelOptions.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                ))}
-            </select>
+                <SelectTrigger className="w-[140px] mx-auto h-8 text-xs">
+                    <SelectValue placeholder="Seleccionar..." />
+                </SelectTrigger>
+                <SelectContent>
+                    {options.map(opt => (
+                        <SelectItem key={opt} value={opt} className="text-xs">
+                            {opt}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         );
     }
 

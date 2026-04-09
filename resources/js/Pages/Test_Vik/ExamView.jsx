@@ -90,17 +90,21 @@ const calculateAverage = (unitsBreakdown) => {
 
 /**
  * Serializa una fila para enviarla al backend.
- * Reconstruye el contrato que espera BulkUpdateExamQualificationsRequest.
+ * Reconstruye el contrato que espera el backend, separando campos base de las unidades.
  *
  * @param {Object} row - Fila aplanada (con campos de unidades individuales).
- * @param {string[]} unitKeys - Claves de las unidades de este examen.
  * @returns {Object} Item del array qualifications para el request.
  */
-const serializeQualification = (row, unitKeys) => ({
-    exam_student_id: row.exam_student_id,
-    units_breakdown: buildUnitsBreakdown(row, unitKeys),
-    final_average: row.final_average,
-});
+const serializeQualification = (row) => {
+    // Extraemos los campos que NO pertenecen al JSON dinámico
+    const { id, full_name, matricula, exam_student_id, final_average, qualification_id, gender, semester, ...dynamicUnits } = row;
+    
+    return {
+        student_id: id,
+        final_average: final_average || 0,
+        units_breakdown: dynamicUnits // Todo el resto se va al JSON (ej. reading, is_left, nivel_asignado)
+    };
+};
 
 /**
  * Vista de Gestión de Examen (Dashboard).
@@ -160,6 +164,12 @@ export default function ExamView({
     const [itemToDelete, setItemToDelete] = useState(null);
     const { flashModal, closeFlashModal } = useFlashAlert();
 
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        type: null, // 'global' | 'row'
+        itemData: null
+    });
+
     // ── Columnas dinámicas ────────────────────────────────────────────────────────
     // Las claves de unidades se detectan automáticamente desde los datos del backend.
     // Esto hace que la tabla se adapte al ExamType sin cambios en el frontend.
@@ -187,27 +197,7 @@ export default function ExamView({
 
     // ── Handlers de Edición Individual ────────────────────────────────────────────
     const handleSaveRow = (item) => {
-        const rowToSave = localData.find((row) => row.id === item.id);
-        const examStudentId = rowToSave?.exam_student_id;
-
-        if (rowToSave && examStudentId) {
-            router.patch(
-                route("exams.qualifications.update", examen.id),
-                {
-                    // Reusamos updatePivot para edición individual:
-                    // enviamos un array de 1 elemento con el formato de bulkUpdate
-                    qualifications: [serializeQualification(rowToSave, unitKeys)],
-                },
-                {
-                    preserveScroll: true,
-                    onSuccess: () => setEditingRowId(null),
-                    onError: (errors) => console.error("Error al guardar fila:", errors),
-                },
-            );
-        } else {
-            console.warn("No se encontró exam_student_id para la fila.");
-            setEditingRowId(null);
-        }
+        setConfirmModal({ isOpen: true, type: 'row', itemData: item });
     };
 
     const handleCancelRow = () => setEditingRowId(null);
@@ -283,15 +273,45 @@ export default function ExamView({
 
     // ── Handler de Guardado Global ────────────────────────────────────────────────
     const handleSaveGlobal = () => {
-        router.patch(
-            route("exams.qualifications.bulk-update", examen.id),
-            { qualifications: localData.map((row) => serializeQualification(row, unitKeys)) },
-            {
-                preserveScroll: true,
-                onSuccess: () => setIsEditingMode(false),
-                onError: (errors) => console.error("Errores al guardar:", errors),
-            },
-        );
+        setConfirmModal({ isOpen: true, type: 'global', itemData: null });
+    };
+
+    // ── Ejecutor Maestro (Llamado por el modal) ───────────────────────────────────
+    const confirmSave = () => {
+        if (confirmModal.type === 'global') {
+            const serializedData = localData.map(serializeQualification);
+            
+            router.patch(
+                route("exams.qualifications.bulk-update", examen.id),
+                { qualifications: serializedData },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => { 
+                        setIsEditingMode(false); 
+                        setConfirmModal({ isOpen: false, type: null, itemData: null }); 
+                    },
+                    onError: (errors) => console.error("Errores al guardar", errors),
+                }
+            );
+        } else if (confirmModal.type === 'row' && confirmModal.itemData) {
+            const rowToSave = localData.find((row) => row.id === confirmModal.itemData.id);
+            if (!rowToSave) return;
+
+            const serializedRow = serializeQualification(rowToSave);
+
+            router.patch(
+                route("exams.qualifications.update", [examen.id, confirmModal.itemData.id]),
+                serializedRow,
+                {
+                    preserveScroll: true,
+                    onSuccess: () => { 
+                        setEditingRowId(null); 
+                        setConfirmModal({ isOpen: false, type: null, itemData: null }); 
+                    },
+                    onError: (errors) => console.error("Error al guardar fila:", errors),
+                }
+            );
+        }
     };
 
     // ── Handler de Inscripción ────────────────────────────────────────────────────
@@ -414,6 +434,21 @@ export default function ExamView({
                 type={flashModal.type}
                 title={flashModal.title}
                 message={flashModal.message}
+            />
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false, type: null, itemData: null })}
+                onConfirm={confirmSave}
+                title={confirmModal.type === 'global' ? "Confirmar guardado masivo" : "Guardar calificación"}
+                message={
+                    confirmModal.type === 'global' 
+                    ? "¿Deseas guardar las calificaciones de todos los alumnos?"
+                    : "¿Estás seguro de guardar la calificación de este alumno?"
+                }
+                confirmText="Sí, guardar"
+                cancelText="Cancelar"
+                variant="warning"
             />
         </>
     );

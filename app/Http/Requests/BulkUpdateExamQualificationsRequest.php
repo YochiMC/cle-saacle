@@ -31,10 +31,10 @@ class BulkUpdateExamQualificationsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'qualifications'                        => 'required|array',
-            'qualifications.*.exam_student_id'      => 'required|exists:exam_student,id',
-            'qualifications.*.units_breakdown'      => 'required|array',
-            'qualifications.*.final_average'        => 'required|numeric|min:0|max:100',
+            'qualifications' => 'required|array',
+            'qualifications.*.student_id' => 'required|exists:students,id',
+            'qualifications.*.units_breakdown' => 'required|array',
+            'qualifications.*.final_average' => 'nullable|numeric',
         ];
     }
 }

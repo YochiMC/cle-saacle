@@ -28,11 +28,13 @@ enum ExamType: string
     {
         return match($this) {
             self::PLANES_ANTERIORES => [
+                'is_left'             => false,
                 'is_curso_nivelacion' => false,
                 'calificacion_final'  => 0,
             ],
 
             self::CUATRO_HABILIDADES => [
+                'is_left'             => false,
                 'oportunidad'         => 'Primera',
                 'listening'           => '',
                 'reading'             => '',
@@ -42,12 +44,14 @@ enum ExamType: string
             ],
 
             self::CONVALIDACION => [
-                'oportunidad'       => 'Primera',
-                'nivel_certificado' => '',
-                'speaking'          => '',
+                'is_left'             => false,
+                'oportunidad'         => 'Primera',
+                'nivel_certificado'   => '',
+                'speaking'            => '',
             ],
 
             self::UBICACION => [
+                'is_left'        => false,
                 'nivel_asignado' => '', // Renderizado como <select> en el frontend
             ],
         };

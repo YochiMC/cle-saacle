@@ -8,6 +8,7 @@ use App\Http\Requests\BulkUpdateExamQualificationsRequest;
 use App\Http\Requests\EnrollStudentsRequest;
 use App\Models\Exam;
 use App\Models\ExamStudent;
+use App\Models\Student;
 use App\Services\ExamNamingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -166,34 +167,32 @@ class ExamController extends Controller
         return redirect()->back()->with('success', 'Exámenes eliminados correctamente.');
     }
 
-    public function updatePivot(Request $request, Exam $exam)
+    public function updatePivot(Request $request, Exam $exam, Student $student)
     {
-        $request->validate([
-            'student_id' => 'required|exists:students,id',
-            'calificacion' => 'nullable|numeric|min:0|max:100'
+        $validated = $request->validate([
+            'units_breakdown' => 'required|array',
+            'final_average' => 'nullable|numeric'
         ]);
 
-        $exam->students()->updateExistingPivot($request->student_id, [
-            'calificacion' => $request->calificacion
+        $exam->students()->updateExistingPivot($student->id, [
+            'units_breakdown' => $validated['units_breakdown'],
+            'final_average' => $validated['final_average'] ?? 0,
         ]);
 
-        return redirect()->back()->with('success', 'Calificación actualizada.');
+        return redirect()->back()->with('success', 'La calificación del alumno ha sido guardada correctamente.');
     }
 
     public function bulkUpdatePivot(BulkUpdateExamQualificationsRequest $request, Exam $exam)
     {
-        DB::transaction(function () use ($request) {
-            $qualifications = $request->validated('qualifications');
-
-            foreach ($qualifications as $item) {
-                // Actualizamos directamente el registro de la tabla pivot por su PK.
-                ExamStudent::where('id', $item['exam_student_id'])->update([
-                    'units_breakdown' => json_encode($item['units_breakdown'] ?? []),
-                    'final_average'   => $item['final_average'] ?? 0,
+        DB::transaction(function () use ($request, $exam) {
+            foreach ($request->validated('qualifications') as $q) {
+                $exam->students()->updateExistingPivot($q['student_id'], [
+                    'units_breakdown' => $q['units_breakdown'],
+                    'final_average' => $q['final_average'] ?? 0,
                 ]);
             }
         });
-
-        return redirect()->back()->with('success', 'Calificaciones guardadas exitosamente.');
+        
+        return redirect()->back()->with('success', '¡Éxito! Las calificaciones de todos los alumnos han sido guardadas y calculadas correctamente.');
     }
 }
