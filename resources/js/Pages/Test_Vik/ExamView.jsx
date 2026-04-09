@@ -5,7 +5,7 @@ import { usePermission } from "@/Utils/auth";
 import ThemeButton from "@/Components/ThemeButton";
 import { X, Save, Edit3 } from "lucide-react";
 import { router } from "@inertiajs/react";
-import EnrollStudentModal from "@/Pages/Test_MK2/FormModals/EnrollStudentModal";
+import EnrollStudentModal from "@/Components/SharedModals/EnrollStudentModal";
 import ConfirmModal from "@/Components/ConfirmModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import useFlashAlert from "@/Hooks/useFlashAlert";
