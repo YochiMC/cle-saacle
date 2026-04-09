@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/Components/ui/button";
 import { Checkbox } from "@/Components/ui/checkbox";
 import { ThemeInput } from "@/Components/ThemeInput";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
 import {
     Edit,
     Trash2,
@@ -30,7 +31,7 @@ const renderCellValue = (value) => {
 const resolveInputType = (fieldKey) => {
     const lower = fieldKey.toLowerCase();
 
-    // Extensión para valores booleanos (OCP)
+    // Campos booleanos → Checkbox (OCP)
     if (
         lower.startsWith("is_") ||
         lower.includes("aprobado") ||
@@ -42,6 +43,23 @@ const resolveInputType = (fieldKey) => {
     if (lower.includes("name") || lower.includes("nombre")) return "text";
     if (lower.includes("email") || lower.includes("correo")) return "email";
     if (lower.includes("date") || lower.includes("fecha")) return "date";
+
+    // Campos de texto libre para exámenes
+    if (
+        lower.includes("promedio") ||
+        lower.includes("oportunidad")
+    )
+        return "text";
+
+    // Selector de niveles y habilidades
+    if (
+        lower.includes("nivel_asignado") ||
+        lower.includes("nivel_certificado") ||
+        lower.includes("listening") ||
+        lower.includes("reading") ||
+        lower.includes("writing") ||
+        lower.includes("speaking")
+    ) return "select";
 
     return "number"; // Default: calificación numérica
 };
@@ -66,10 +84,9 @@ const SortIcon = ({ column }) => {
  *
  * @param {string|number} value    – Valor actual del campo.
  * @param {number|string} rowId   – ID del registro.
- * @param {string}        fieldKey – Clave del campo (determina tipo de input).
  * @param {Function}      onChange – Callback opcional: (fieldKey, rowId, value) => void
  */
-const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange }) => {
+const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange, selectOptions = {} }) => {
     const inputType = resolveInputType(fieldKey);
     const [value, setValue] = useState(initialValue);
 
@@ -100,6 +117,40 @@ const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange }) => {
                     className="border-gray-500 data-[state=checked]:bg-[#17365D]"
                 />
             </div>
+        );
+    }
+
+    // OCP: Nueva rama para selector de nivel (examen de Ubicación) y certificado
+    if (inputType === "select") {
+        const fallbackOptions = fieldKey.includes("nivel_certificado")
+            ? ["A1", "A2", "B1", "B2", "C1", "C2"]
+            : [
+                "Básico 1", "Básico 2",
+                "Intermedio 1", "Intermedio 2", "Intermedio 3", "Intermedio 4", "Intermedio 5",
+                "Avanzado 1", "Avanzado 2",
+              ];
+              
+        const options = selectOptions[fieldKey] || fallbackOptions;
+
+        return (
+            <Select 
+                value={value ?? ""} 
+                onValueChange={(newValue) => {
+                    setValue(newValue);
+                    if (onChange) onChange(fieldKey, rowId, newValue);
+                }}
+            >
+                <SelectTrigger className="w-[140px] mx-auto h-8 text-xs">
+                    <SelectValue placeholder="Seleccionar..." />
+                </SelectTrigger>
+                <SelectContent>
+                    {options.map(opt => (
+                        <SelectItem key={opt} value={opt} className="text-xs">
+                            {opt}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         );
     }
 
@@ -153,8 +204,10 @@ export function useDynamicColumns(
     {
         editableColumns = [],
         restrictedColumns = [],
+        selectOptions = {},
         onCellChange,
         editingRowId = null,
+        editAllRows = false,
         onSaveRow,
         onCancelRow,
     } = {},
@@ -189,7 +242,7 @@ export function useDynamicColumns(
             // ISP: la celda solo sabe si ELLA es editable.
             cell: ({ row }) => {
                 const cellValue = row.original[key];
-                const isRowEditing = row.original.id === editingRowId;
+                const isRowEditing = editAllRows || row.original.id === editingRowId;
 
                 if (isRowEditing && editableSet.has(key)) {
                     return (
@@ -198,11 +251,51 @@ export function useDynamicColumns(
                             rowId={row.original.id}
                             fieldKey={key}
                             onChange={onCellChange}
+                            selectOptions={selectOptions}
                         />
                     );
                 }
-                // Celda de solo-lectura (comportamiento original)
-                return <span>{renderCellValue(cellValue)}</span>;
+                // Renderizar celda normal para is_left
+                if (key.includes("is_left")) {
+                    return cellValue ? (
+                        <span className="px-2 py-0.5 text-xs font-semibold bg-red-500 text-white rounded-full">
+                            Baja
+                        </span>
+                    ) : (
+                        <span className="text-slate-400">-</span>
+                    );
+                }
+
+                let textColor = "text-slate-700"; // Color por defecto
+
+                // 1. Definir qué columnas SON calificaciones (Lista Blanca)
+                const gradeColumns = [
+                    "final_average", "calificacion", "calificacion_final", 
+                    "promedio", "listening", "reading", "writing", "speaking"
+                ];
+                const isGradeColumn = gradeColumns.some(col => key.includes(col));
+
+                // 2. Solo aplicar lógica de colores si es una columna de calificación
+                if (isGradeColumn) {
+                    const isNumericGrade = /^\d+$/.test(String(cellValue));
+                    const grade = isNumericGrade ? parseInt(cellValue, 10) : null;
+                    const failedNumeric = isNumericGrade && grade !== null && grade < 70;
+                    const approvedNumeric = isNumericGrade && grade !== null && grade >= 70;
+
+                    if (!row.original.is_left) {
+                        if (cellValue === "NA" || failedNumeric || ["A1", "A2"].includes(cellValue)) {
+                            textColor = "text-red-600 font-bold";
+                        } else if (approvedNumeric || ["B1", "B2", "C1", "C2"].includes(cellValue)) {
+                            textColor = "text-emerald-600 font-bold";
+                        }
+                    } else {
+                        // Forzar texto atenuado para bajas
+                        textColor = "text-slate-400";
+                    }
+                }
+
+                // Celda de solo-lectura
+                return <span className={textColor}>{renderCellValue(cellValue)}</span>;
             },
         }));
 
@@ -239,7 +332,7 @@ export function useDynamicColumns(
                 const item = row.original;
                 const itemName =
                     item.name || item.nombre || item.matricula || item.id;
-                const isRowEditing = item.id === editingRowId;
+                const isRowEditing = editAllRows || item.id === editingRowId;
 
                 // Si esta fila está en edición, mostrar botones de Guardar/Cancelar
                 if (isRowEditing) {
@@ -314,6 +407,7 @@ export function useDynamicColumns(
         restrictedColumns,
         onCellChange,
         editingRowId,
+        editAllRows,
         onSaveRow,
         onCancelRow,
     ]);

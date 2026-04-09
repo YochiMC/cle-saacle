@@ -67,16 +67,16 @@ export default function EnrollStudentModal({
                 />
 
                 {/* Lista de alumnos con checkbox individual */}
-                <div className="max-h-80 overflow-y-auto border border-slate-200 rounded-md p-2 mt-4 flex flex-col gap-1">
+                <div className="flex flex-col gap-1 p-2 mt-4 overflow-y-auto border rounded-md max-h-80 border-slate-200">
                     {alumnosFiltrados.length === 0 ? (
-                        <p className="text-center text-slate-500 py-4 text-sm">
+                        <p className="py-4 text-sm text-center text-slate-500">
                             No se encontraron alumnos disponibles.
                         </p>
                     ) : (
                         alumnosFiltrados.map((alumno) => (
                             <label
                                 key={alumno.id}
-                                className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-md cursor-pointer border border-transparent select-none"
+                                className="flex items-center gap-3 p-2 border border-transparent rounded-md cursor-pointer select-none hover:bg-slate-50"
                             >
                                 <Checkbox
                                     checked={idsSeleccionados.includes(alumno.id)}
@@ -96,7 +96,7 @@ export default function EnrollStudentModal({
                 </div>
 
                 {/* Acciones del modal */}
-                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+                <div className="flex justify-end gap-3 pt-4 mt-6 border-t border-slate-100">
                     <ThemeButton theme="outline" onClick={handleClose}>
                         Cancelar
                     </ThemeButton>

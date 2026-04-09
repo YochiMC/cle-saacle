@@ -14,6 +14,50 @@ enum ExamType: string
     case UBICACION          = 'Ubicación';
 
     /**
+     * Devuelve la estructura inicial exacta del JSON de calificaciones
+     * para este tipo de examen.
+     *
+     * Los tipos de valor determinan cómo el frontend renderiza cada columna:
+     *   - bool  (false)  → Checkbox
+     *   - string ('')    → Input de texto libre / Selector
+     *   - int   (0)      → Input numérico
+     *
+     * @return array<string, mixed>
+     */
+    public function defaultUnitsBreakdown(): array
+    {
+        return match($this) {
+            self::PLANES_ANTERIORES => [
+                'is_left'             => false,
+                'is_curso_nivelacion' => false,
+                'calificacion_final'  => 0,
+            ],
+
+            self::CUATRO_HABILIDADES => [
+                'is_left'             => false,
+                'oportunidad'         => 'Primera',
+                'listening'           => '',
+                'reading'             => '',
+                'writing'             => '',
+                'speaking'            => '',
+                'promedio_habilidades'=> '',
+            ],
+
+            self::CONVALIDACION => [
+                'is_left'             => false,
+                'oportunidad'         => 'Primera',
+                'nivel_certificado'   => '',
+                'speaking'            => '',
+            ],
+
+            self::UBICACION => [
+                'is_left'        => false,
+                'nivel_asignado' => '', // Renderizado como <select> en el frontend
+            ],
+        };
+    }
+
+    /**
      * Devuelve las opciones formateadas para el frontend.
      * Compatible con la estructura que esperan los componentes SelectForm / select nativos.
      *

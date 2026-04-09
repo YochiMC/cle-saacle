@@ -41,8 +41,8 @@ class StudentQualificationResource extends JsonResource
 
             // Flatten de la calificación con manejo seguro de valores nulos o vacíos
             'qualification_id' => $qualification ? $qualification->id : null,
-            'unit_1'         => $qualification?->unit_1 ?? '',
-            'unit_2'         => $qualification?->unit_2 ?? '',
+            // Se entrega JSON crudo para permitir columnas dinámicas en frontend.
+            'units_breakdown' => $qualification?->units_breakdown ?? [],
             'final_average'  => $qualification?->final_average ?? 0,
             'is_approved'    => (bool) ($qualification?->is_approved ?? false),
             'is_left'        => (bool) ($qualification?->is_left ?? false),

@@ -151,13 +151,20 @@ class GroupController extends Controller
      */
     public function enroll(EnrollStudentsRequest $request, Group $group): RedirectResponse
     {
-        DB::transaction(function () use ($request, $group) {
+        // Reutiliza la misma estructura de unidades del grupo cuando ya existe,
+        // para evitar que el mismo grupo mezcle esquemas distintos.
+        $existingQualification = $group->qualifications()->first();
+        $existingUnitsBreakdown = $existingQualification?->units_breakdown ?? [];
+        $defaultUnitsBreakdown = !empty($existingUnitsBreakdown)
+            ? array_fill_keys(array_keys($existingUnitsBreakdown), 0)
+            : ['unit_1' => 0, 'unit_2' => 0];
+
+        DB::transaction(function () use ($request, $group, $defaultUnitsBreakdown) {
             foreach ($request->validated('student_ids') as $studentId) {
                 Qualification::create([
                     'group_id' => $group->id,
                     'student_id' => $studentId,
-                    'unit_1' => 0,
-                    'unit_2' => 0,
+                    'units_breakdown' => $defaultUnitsBreakdown,
                     'final_average' => 0,
                     'is_approved' => false,
                     'is_left' => false,

@@ -43,11 +43,12 @@ class Exam extends Model
         return $this->belongsTo(Teacher::class);
     }
 
-    /** Alumnos inscritos al examen (many-to-many con pivot de calificación). */
+    /** Alumnos inscritos al examen (many-to-many con pivot de calificación dinámica). */
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(Student::class, 'exam_student')
-            ->withPivot('calificacion')
+            ->using(ExamStudent::class)
+            ->withPivot('calificacion', 'units_breakdown', 'final_average')
             ->withTimestamps();
     }
 }

@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::create('qualifications', function (Blueprint $table) {
             $table->id();
-            $table->integer('unit_1');
-            $table->integer('unit_2');
+            $table->json('units_breakdown')->nullable();
             $table->integer('final_average');
             $table->boolean('is_approved')->default(false);
             $table->boolean('is_left')->default(false);

@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Qualification;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\UpdateQualificationsRequest;
 
@@ -24,18 +22,17 @@ class QualificationController extends Controller
      */
     public function createQualification(Request $request): void
     {
-        // 1. Validar los datos de entrada
+        // Para altas nuevas exigimos todas las unidades presentes y válidas.
         $validated = $request->validate([
-            'unit_1'        => 'required|numeric|min:0|max:100',
-            'unit_2'        => 'required|numeric|min:0|max:100',
-            'final_avarage' => 'required|numeric|min:0|max:100',
-            'is_approved'  => 'required|boolean',
-            'is_left'      => 'required|boolean',
-            'student_id'   => 'required|exists:students,id',
-            'group_id'     => 'required|exists:groups,id',
+            'units_breakdown' => 'required|array',
+            'units_breakdown.*' => 'required|numeric|min:0|max:100',
+            'final_average' => 'required|numeric|min:0|max:100',
+            'is_approved' => 'required|boolean',
+            'is_left' => 'required|boolean',
+            'student_id' => 'required|exists:students,id',
+            'group_id' => 'required|exists:groups,id',
         ]);
 
-        // 2. Crear el registro
         $qualification = Qualification::create($validated);
     }
 
@@ -44,12 +41,17 @@ class QualificationController extends Controller
      */
     public function update(Request $request, Qualification $qualification)
     {
-        $qualification->update([
-            'unit_1' => $request->input('unit_1'),
-            'unit_2' => $request->input('unit_2'),
-            'is_approved' => $request->boolean('is_approved'),
-            'is_left' => $request->boolean('is_left'),
+        // En edición permitimos vacíos temporales por UX (inputs en blur),
+        // pero conservamos validación numérica y rango cuando sí hay valor.
+        $validated = $request->validate([
+            'units_breakdown' => 'required|array',
+            'units_breakdown.*' => 'nullable|numeric|min:0|max:100',
+            'final_average' => 'required|numeric|min:0|max:100',
+            'is_approved' => 'required|boolean',
+            'is_left' => 'required|boolean',
         ]);
+
+        $qualification->update($validated);
 
         return redirect()->back()->with('success', 'Calificación individual guardada exitosamente.');
     }
@@ -68,12 +70,13 @@ class QualificationController extends Controller
     public function bulkUpdate(UpdateQualificationsRequest $request)
     {
         DB::transaction(function () use ($request) {
+            // Este contrato viene serializado desde GroupView (JSON de unidades por fila).
             $qualifications = $request->validated('qualifications');
-            
+
             foreach ($qualifications as $item) {
                 Qualification::where('id', $item['qualification_id'])->update([
-                    'unit_1' => $item['unit_1'] ?? null,
-                    'unit_2' => $item['unit_2'] ?? null,
+                    'units_breakdown' => $item['units_breakdown'] ?? [],
+                    'final_average' => $item['final_average'] ?? 0,
                     'is_approved' => $item['is_approved'] ?? false,
                     'is_left' => $item['is_left'] ?? false,
                 ]);
