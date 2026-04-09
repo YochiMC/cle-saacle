@@ -6,6 +6,7 @@ use App\Http\Requests\BulkDeleteExamsRequest;
 use App\Http\Requests\BulkUpdateExamsStatusRequest;
 use App\Http\Requests\BulkUpdateExamQualificationsRequest;
 use App\Http\Requests\EnrollStudentsRequest;
+use App\Enums\AcademicStatus;
 use App\Models\Exam;
 use App\Models\ExamStudent;
 use App\Models\Student;
@@ -79,7 +80,7 @@ class ExamController extends Controller
         $students = $exam->students()->get();
 
         $enrolledStudents = $students->map(
-            fn ($student) => new \App\Http\Resources\StudentExamQualificationResource($student)
+            fn($student) => new \App\Http\Resources\StudentExamQualificationResource($student)
         );
 
         // Alumnos disponibles para inscripción
@@ -192,14 +193,14 @@ class ExamController extends Controller
                 ]);
             }
         });
-        
+
         return redirect()->back()->with('success', '¡Éxito! Las calificaciones de todos los alumnos han sido guardadas y calculadas correctamente.');
     }
 
     public function complete(Exam $exam)
     {
-        $exam->update(['status' => \App\Enums\GroupStatus::COMPLETED]); 
-        
+        $exam->update(['status' => AcademicStatus::COMPLETED]);
+
         return redirect()->back()->with('success', 'El examen ha sido cerrado exitosamente. Ya no se permiten modificaciones.');
     }
 }
