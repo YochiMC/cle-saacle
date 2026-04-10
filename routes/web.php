@@ -9,6 +9,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\Views\AdminViewsController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\DocumentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -53,13 +54,17 @@ Route::middleware('auth')->group(function () {
     Route::delete('/groups/{group}/unenroll/{student}', [GroupController::class, 'unenroll'])->name('groups.unenroll');
     Route::post('/groups/{group}/unenroll-bulk', [GroupController::class, 'bulkUnenroll'])->name('groups.unenroll-bulk');
     Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+    Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
+    Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::get('/exams', [AdminViewsController::class, 'examsView'])->name('exams.index');
     Route::post('/exams', [\App\Http\Controllers\ExamController::class, 'store'])->name('exams.store');
     Route::put('/exams/{exam}', [App\Http\Controllers\ExamController::class, 'update'])->name('exams.update');
     Route::delete('/exams/{exam}', [App\Http\Controllers\ExamController::class, 'destroy'])->name('exams.destroy');
     Route::post('/exams/bulk-status', [\App\Http\Controllers\ExamController::class, 'bulkStatus'])->name('exams.bulk-status');
     Route::delete('/exams/bulk-delete', [\App\Http\Controllers\ExamController::class, 'bulkDelete'])->name('exams.bulk-delete');
-
+    
     // Rutas de gestión de un solo examen (clon de grupos)
     Route::get('/exams/{exam}/detalles', [\App\Http\Controllers\ExamController::class, 'show'])->name('exams.show');
     Route::post('/exams/{exam}/enroll', [\App\Http\Controllers\ExamController::class, 'enroll'])->name('exams.enroll');

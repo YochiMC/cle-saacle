@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class DocumentController extends Controller
 {
@@ -84,9 +85,23 @@ class DocumentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Document $document): RedirectResponse
     {
-        //
+        if (! Auth::user()->hasRole('admin') && ! Auth::user()->hasRole('coordinator')) {
+            abort(403, 'No autorizado para actualizar este documento.');
+        }
+
+        $validated = $request->validate([
+            'comments' => 'nullable|string|max:255',
+            'status' => ['required', Rule::in([DocumentStatus::APPROVED->value, DocumentStatus::REJECTED->value])],
+        ]);
+
+        $document->update([
+            'status' => $validated['status'],
+            'comments' => $validated['comments'] ?? null,
+        ]);
+
+        return back()->with('success', 'Documento actualizado exitosamente.');
     }
 
     /**
@@ -112,7 +127,7 @@ class DocumentController extends Controller
     public function download(Document $document)
     {
         // Verificar que el documento pertenece al usuario autenticado
-        if ($document->user_id !== Auth::id()) {
+        if ($document->user_id !== Auth::id() && !Auth::user()->hasRole('admin') && !Auth::user()->hasRole('coordinator')) {
             abort(403, 'No autorizado para descargar este documento.');
         }
 

@@ -23,9 +23,10 @@ import { useState } from 'react';
  * @param {Array} props.degrees Catálogo de grados académicos.
  * @param {Array} props.levels Catálogo de niveles académicos.
  * @param {Array} props.typeStudents Catálogo de tipos de estudiante.
+ * @param {Array} [props.documentStatuses=[]] Opciones de estatus para revisión de documentos.
  * @param {Array} [props.documents=[]] Documentos asociados al usuario.
  */
-export default function Profile({ roles, user, degrees, levels, typeStudents, documents = [] }) {
+export default function Profile({ roles, user, degrees, levels, typeStudents, documentStatuses = [], documents = [] }) {
     const { flashModal, closeFlashModal } = useFlashAlert();
     const userDocuments = documents.length > 0 ? documents : user?.documents ?? [];
     const [showFileForm, setShowFileForm] = useState(false);
@@ -84,6 +85,7 @@ export default function Profile({ roles, user, degrees, levels, typeStudents, do
                 onClose={closeDocumentForm}
                 title="Detalle del documento"
                 document={selectedDocument}
+                statusOptions={documentStatuses}
             />
 
             <ModalAlert

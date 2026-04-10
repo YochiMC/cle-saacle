@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\DeleteStudentWithUser;
 use App\Actions\DeleteTeacherWithUser;
+use App\Enums\DocumentStatus;
 use App\Http\Resources\UserResource;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Degree;
@@ -62,6 +63,7 @@ class ProfileController extends Controller
             'degrees' => Degree::all(['id', 'name']),
             'levels' => Level::all(['id', 'level_tecnm']),
             'typeStudents' => TypeStudent::all(['id', 'name']),
+            'documentStatuses' => DocumentStatus::reviewOptions(),
         ]);
     }
 

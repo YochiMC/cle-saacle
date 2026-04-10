@@ -8,6 +8,20 @@ enum DocumentStatus: string
     case APPROVED = 'approved';
     case REJECTED = 'rejected';
 
+    public static function reviewOptions(): array
+    {
+        return [
+            [
+                'value' => self::APPROVED->value,
+                'label' => 'Aprobado',
+            ],
+            [
+                'value' => self::REJECTED->value,
+                'label' => 'Rechazado',
+            ],
+        ];
+    }
+
     public static function toSelect(): array {
         return array_map(fn($case) => [
             'value' => $case->value,
