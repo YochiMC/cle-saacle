@@ -29,6 +29,19 @@ export default function FileCard({
     showMoreAction = false,
 }) {
     const rawDate = document?.uploaded_at ?? document?.created_at;
+    const status = document?.status ?? 'pending';
+
+    const statusStyles = {
+        approved: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+        rejected: 'border-rose-200 bg-rose-50 text-rose-700',
+        pending: 'border-amber-200 bg-amber-50 text-amber-700',
+    };
+
+    const statusLabels = {
+        approved: 'Aprobado',
+        rejected: 'Rechazado',
+        pending: 'Pendiente',
+    };
 
     const formattedDate = rawDate
         ? new Date(rawDate).toLocaleDateString('es-MX', {
@@ -66,6 +79,9 @@ export default function FileCard({
                     <p className="mt-1 text-sm text-slate-500">
                         {document?.type || 'Sin tipo'} • {formattedDate}
                     </p>
+                    <span className={`mt-2 inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${statusStyles[status] ?? statusStyles.pending}`}>
+                        {statusLabels[status] ?? statusLabels.pending}
+                    </span>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1">

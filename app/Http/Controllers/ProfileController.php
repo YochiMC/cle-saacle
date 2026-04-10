@@ -37,6 +37,7 @@ class ProfileController extends Controller
                     'original_name' => $doc->original_name,
                     'file_path' => $doc->file_path,
                     'status' => $doc->status,
+                    'comments' => $doc->comments,
                     'uploaded_at' => $doc->created_at->toDateTimeString(),
                 ];
             }),

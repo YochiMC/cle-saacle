@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import Files from './Partials/Files';
+import FileInfo from './Partials/FileInfo';
 import ConfirmModal from '@/Components/ConfirmModal';
 import ModalAlert from '@/Components/ui/ModalAlert';
 import useFlashAlert from '@/Hooks/useFlashAlert';
@@ -28,12 +29,24 @@ export default function Edit({ mustVerifyEmail, status, documents }) {
     // Normaliza los mensajes flash del backend para mostrarlos en un modal consistente.
     const { flashModal, closeFlashModal } = useFlashAlert();
     const [isOpen, setIsOpen] = useState(false);
+    const [isInfoOpen, setIsInfoOpen] = useState(false);
+    const [selectedDocument, setSelectedDocument] = useState(null);
     const [confirmingDocumentDelete, setConfirmingDocumentDelete] = useState(false);
     const [documentToDelete, setDocumentToDelete] = useState(null);
     const [isDeletingDocument, setIsDeletingDocument] = useState(false);
 
     const openFileModal = () => setIsOpen(true);
     const closeFileModal = () => setIsOpen(false);
+
+    const openDocumentInfo = (document) => {
+        setSelectedDocument(document ?? null);
+        setIsInfoOpen(true);
+    };
+
+    const closeDocumentInfo = () => {
+        setIsInfoOpen(false);
+        setSelectedDocument(null);
+    };
 
     const closeDeleteModal = () => {
         if (isDeletingDocument) {
@@ -113,12 +126,23 @@ export default function Edit({ mustVerifyEmail, status, documents }) {
 
                     {/* Bloque de expediente integrado en el mismo contexto visual del perfil */}
                     <div className="mt-6">
-                        <Files documents={documents} onDeleteDocument={handleDeleteDocument} />
+                        <Files
+                            documents={documents}
+                            onDeleteDocument={handleDeleteDocument}
+                            onOpenDocumentInfo={openDocumentInfo}
+                        />
                     </div>
                 </div>
             </div>
 
             <FileForm show={isOpen} onClose={closeFileModal} title="Subir documento" />
+
+            <FileInfo
+                show={isInfoOpen}
+                onClose={closeDocumentInfo}
+                document={selectedDocument}
+                title="Información del documento"
+            />
 
             <ConfirmModal
                 isOpen={confirmingDocumentDelete}

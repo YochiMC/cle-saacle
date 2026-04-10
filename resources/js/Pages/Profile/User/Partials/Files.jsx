@@ -10,8 +10,9 @@ import FileCard from '@/Components/FileCard';
  * @param {Object} props
  * @param {Array} props.documents Colección de documentos del perfil.
  * @param {Function} [props.onDeleteDocument] Callback para eliminar un documento.
+ * @param {Function} [props.onOpenDocumentInfo] Callback para abrir el modal de información.
  */
-export default function Files({ documents = [], onDeleteDocument }) {
+export default function Files({ documents = [], onDeleteDocument, onOpenDocumentInfo }) {
     return (
         <section className="rounded-lg border border-blueTec/20 bg-white p-6 shadow sm:p-8">
             <div className="mb-5 border-b border-slate-100 pb-4">
@@ -32,6 +33,8 @@ export default function Files({ documents = [], onDeleteDocument }) {
                             key={doc.id}
                             document={doc}
                             onDelete={onDeleteDocument}
+                            showMoreAction
+                            onMoreAction={onOpenDocumentInfo}
                         />
                     ))}
                 </div>
