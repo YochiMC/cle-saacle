@@ -36,7 +36,8 @@ const resolveInputType = (fieldKey) => {
         lower.startsWith("is_") ||
         lower.includes("aprobado") ||
         lower.includes("activo") ||
-        lower.includes("left")
+        lower.includes("left") ||
+        lower.includes("certificacion")
     )
         return "checkbox";
 
@@ -266,12 +267,23 @@ export function useDynamicColumns(
                     );
                 }
 
+                if (key.includes("certificacion")) {
+                    return cellValue ? (
+                        <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-600 text-white rounded-full">
+                            Sí
+                        </span>
+                    ) : (
+                        <span className="text-slate-400">-</span>
+                    );
+                }
+
                 let textColor = "text-slate-700"; // Color por defecto
 
                 // 1. Definir qué columnas SON calificaciones (Lista Blanca)
                 const gradeColumns = [
                     "final_average", "calificacion", "calificacion_final", 
-                    "promedio", "listening", "reading", "writing", "speaking"
+                    "promedio", "listening", "reading", "writing", "speaking",
+                    "unit_", "a1", "a2", "b1", "b2", "c1", "c2"
                 ];
                 const isGradeColumn = gradeColumns.some(col => key.includes(col));
 

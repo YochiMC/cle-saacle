@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateGroupRequest;
 use App\Http\Requests\BulkDeleteGroupsRequest;
 use App\Http\Requests\BulkUpdateGroupStatusRequest;
 use App\Http\Requests\EnrollStudentsRequest;
+use App\Enums\AcademicStatus;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -146,27 +147,37 @@ class GroupController extends Controller
         ]);
     }
 
-    /**
-     * Inscribe alumnos al grupo.
-     */
     public function enroll(EnrollStudentsRequest $request, Group $group): RedirectResponse
     {
-        // Reutiliza la misma estructura de unidades del grupo cuando ya existe,
-        // para evitar que el mismo grupo mezcle esquemas distintos.
         $existingQualification = $group->qualifications()->first();
         $existingUnitsBreakdown = $existingQualification?->units_breakdown ?? [];
+
         $defaultUnitsBreakdown = !empty($existingUnitsBreakdown)
             ? array_fill_keys(array_keys($existingUnitsBreakdown), 0)
-            : ['unit_1' => 0, 'unit_2' => 0];
+            : $group->type->defaultUnitsBreakdown($group->evaluable_units ?? 0);
 
-        DB::transaction(function () use ($request, $group, $defaultUnitsBreakdown) {
+        $initialAverage = 0;
+        $numericValues = [];
+        foreach ($defaultUnitsBreakdown as $key => $v) {
+            if ($key !== 'hizo_certificacion' && is_numeric($v)) {
+                $numericValues[] = (float) $v;
+            }
+        }
+        
+        if (!empty($numericValues)) {
+            $isFailing = collect($numericValues)->contains(function ($val) {
+                return $val < 70;
+            });
+            $initialAverage = $isFailing ? 'NA' : round(array_sum($numericValues) / count($numericValues));
+        }
+
+        DB::transaction(function () use ($request, $group, $defaultUnitsBreakdown, $initialAverage) {
             foreach ($request->validated('student_ids') as $studentId) {
                 Qualification::create([
                     'group_id' => $group->id,
                     'student_id' => $studentId,
                     'units_breakdown' => $defaultUnitsBreakdown,
-                    'final_average' => 0,
-                    'is_approved' => false,
+                    'final_average' => $initialAverage,
                     'is_left' => false,
                 ]);
             }
@@ -202,5 +213,72 @@ class GroupController extends Controller
             ->delete();
 
         return redirect()->back()->with('success', 'Alumnos seleccionados dados de baja.');
+    }
+
+    /**
+     * Define el número de unidades a evaluar de un grupo y actualiza el JSON de todos los alumnos.
+     */
+    public function updateUnits(\Illuminate\Http\Request $request, Group $group): \Illuminate\Http\RedirectResponse
+    {
+        $request->validate(['evaluable_units' => 'required|integer|min:1|max:8']);
+        $group->update(['evaluable_units' => $request->evaluable_units]);
+
+        $baseSchema = $group->type->defaultUnitsBreakdown($request->evaluable_units);
+
+        foreach ($group->qualifications as $qualification) {
+            $currentBreakdown = $qualification->units_breakdown ?? [];
+            
+            $newBreakdown = array_intersect_key(
+                array_merge($baseSchema, $currentBreakdown),
+                $baseSchema
+            );
+
+            // Re-calcular final_average con las nuevas unidades
+            $numericValues = [];
+            foreach ($newBreakdown as $key => $v) {
+                if ($key !== 'hizo_certificacion') {
+                    if (is_numeric($v)) {
+                        $numericValues[] = (float) $v;
+                    } elseif (is_string($v) && $v !== '') {
+                        $numericValues[] = (float) $v;
+                    }
+                }
+            }
+            
+            if (empty($numericValues)) {
+                $finalAverage = 0;
+            } else {
+                $isFailing = collect($numericValues)->contains(function($val) {
+                    return $val < 70;
+                });
+                
+                if ($isFailing) {
+                    $finalAverage = 'NA';
+                } else {
+                    $finalAverage = round(array_sum($numericValues) / count($numericValues));
+                }
+            }
+
+            $qualification->update([
+                'units_breakdown' => $newBreakdown,
+                'final_average' => $finalAverage
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Número de unidades actualizado.');
+    }
+
+    /**
+     * Cierra definitivamente un grupo marcando su estado como 'completado'.
+     * Una vez completado, no se permiten más modificaciones de calificaciones.
+     *
+     * @param Group $group Instancia del grupo a cerrar.
+     * @return RedirectResponse Redirección con mensaje de éxito.
+     */
+    public function complete(Group $group): RedirectResponse
+    {
+        $group->update(['status' => AcademicStatus::COMPLETED]);
+
+        return redirect()->back()->with('success', 'El grupo ha sido cerrado exitosamente. Ya no se permiten modificaciones.');
     }
 }

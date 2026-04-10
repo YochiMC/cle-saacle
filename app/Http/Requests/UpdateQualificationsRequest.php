@@ -27,9 +27,8 @@ class UpdateQualificationsRequest extends FormRequest
             'qualifications' => 'required|array',
             'qualifications.*.qualification_id' => 'required|exists:qualifications,id',
             'qualifications.*.units_breakdown' => 'required|array',
-            'qualifications.*.units_breakdown.*' => 'nullable|numeric|min:0|max:100',
-            'qualifications.*.final_average' => 'required|numeric|min:0|max:100',
-            'qualifications.*.is_approved' => 'nullable|boolean',
+            'qualifications.*.units_breakdown.*' => 'nullable',
+            'qualifications.*.final_average' => 'required',
             'qualifications.*.is_left' => 'nullable|boolean',
         ];
     }

@@ -38,6 +38,7 @@ class StoreGroupRequest extends FormRequest
             'period_id'    => 'required|exists:periods,id',
             'teacher_id'   => ['nullable', 'exists:teachers,id'],
             'level_id'     => 'required|exists:levels,id',
+            'evaluable_units' => 'nullable|integer|min:1',
         ];
     }
 
