@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { router, useForm } from "@inertiajs/react";
 import { useCatalogData } from "./useCatalogData";
-import { filterGroups } from "@/Pages/Test_MK2/groupFilters";
+import { filterGroups } from "@/Pages/Groups/groupFilters";
 
 /**
  * Hook Empresarial para la Gestión de Grupos (Patrón Custom Hook - SRP).

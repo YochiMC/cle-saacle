@@ -40,7 +40,7 @@ class AdminViewsController extends Controller
      */
     public function usersView()
     {
-        return Inertia::render('TestYochi/Users/Users', [
+        return Inertia::render('Users/Users', [
             'students' => StudentResource::collection(Student::with(['degree', 'level', 'typeStudent'])->get())->resolve(),
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
             'degrees' => Degree::all(),
@@ -69,7 +69,7 @@ class AdminViewsController extends Controller
             $grupos->each(fn($g) => $g->setRelation('teacher', null));
         }
 
-        return Inertia::render('Test_MK2/Groups', [
+        return Inertia::render('Groups/Groups', [
             'grupos' => GroupResource::collection($grupos)->resolve(),
             'levels' => LevelResource::collection(Level::orderBy('level_tecnm')->get())->resolve(),
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
@@ -99,7 +99,7 @@ class AdminViewsController extends Controller
             ['id' => 105, 'control_number' => '19000005', 'name' => 'Elena', 'last_name' => 'Rodríguez', 'status' => 'Activo'],
         ];
 
-        return Inertia::render('Test_MK2/GroupView', [
+        return Inertia::render('Groups/GroupView', [
             'grupo' => $group,
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(['id', 'name']),
@@ -146,7 +146,7 @@ class AdminViewsController extends Controller
         $levels = Level::all();
         $type_students = TypeStudent::all();
         $groups = Group::all();
-        return Inertia::render('Test_Vik/Reports', [
+        return Inertia::render('Exams/Reports', [
             'students' => $students,
             'teachers' => $teachers,
             'degrees' => $degrees,
@@ -200,7 +200,7 @@ class AdminViewsController extends Controller
         $periods  = Period::all();
         $students = Student::all();
 
-        return Inertia::render('Test_Vik/Examen', [
+        return Inertia::render('Exams/Examen', [
             'examenes'    => $examsData,
             'levels'      => $levels,
             'teachers'    => $teachers,

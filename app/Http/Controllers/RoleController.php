@@ -25,7 +25,7 @@ class RoleController extends Controller
         $users = User::with('roles')->get();
         $roles = Role::with('permissions')->get();
         $permissions = Permission::all();
-        return Inertia::render('TestYochi/RolesPermissions/Asignation', [
+        return Inertia::render('Roles/Asignation', [
             'users' => $users,
             'roles' => RoleResource::collection($roles)->resolve(),
             'permissions' => PermissionResource::collection($permissions)->resolve(),

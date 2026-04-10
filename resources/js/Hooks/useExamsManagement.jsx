@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { router, useForm } from "@inertiajs/react";
 import { useCatalogData } from "./useCatalogData";
-import { filterExams } from "@/Pages/Test_Vik/examFilters";
+import { filterExams } from "@/Pages/Exams/examFilters";
 
 /**
  * Hook Empresarial para la Gestión de Exámenes (Patrón Custom Hook - SRP).

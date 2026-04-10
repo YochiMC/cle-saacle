@@ -8,7 +8,7 @@ import GroupDetailsModal from "@/Components/Charts/GroupDetailsModal";
 import CardGroup from "@/Components/Charts/CardGroup";
 import ResourceFilterBar from "@/Components/Resource/ResourceFilterBar";
 import ResourceSelectFilter from "@/Components/Resource/ResourceSelectFilter";
-import GroupModal from "@/Pages/Test_MK2/FormModals/GroupModal";
+import GroupModal from "./FormModals/GroupModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import ConfirmModal from "@/Components/ConfirmModal";
 import useFlashAlert from "@/Hooks/useFlashAlert";

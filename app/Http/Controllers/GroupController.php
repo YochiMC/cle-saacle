@@ -140,7 +140,7 @@ class GroupController extends Controller
             ->get();
 
         // 3. Retornamos la vista enviando los datos limpios
-        return Inertia::render('Test_MK2/GroupView', [
+        return Inertia::render('Groups/GroupView', [
             'grupo'             => $group,
             'enrolledStudents'  => $enrolledStudents,
             'availableStudents' => $availableStudents,

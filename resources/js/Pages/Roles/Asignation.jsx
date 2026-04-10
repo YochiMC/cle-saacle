@@ -5,8 +5,8 @@ import { useState } from 'react';
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import ConfirmModal from '@/Components/ConfirmModal';
 import ModalAlert from "@/Components/ui/ModalAlert";
-import RoleModal from "@/Pages/TestYochi/RolesPermissions/FormModals/RoleModal";
-import UpdateRoleModal from "@/Pages/TestYochi/RolesPermissions/FormModals/UpdateRoleModal";
+import RoleModal from "./FormModals/RoleModal";
+import UpdateRoleModal from "./FormModals/UpdateRoleModal";
 
 // Definidas fuera del componente para mantener referencia estable entre renders.
 const VIEW_OPTIONS = [

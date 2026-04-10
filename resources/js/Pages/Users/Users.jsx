@@ -18,8 +18,8 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/ResourceDashboard";
 import { useState } from 'react';
-import StudentModal from "@/Pages/TestYochi/Users/FormModals/StudentModal";
-import TeacherModal from "@/Pages/TestYochi/Users/FormModals/TeacherModal";
+import StudentModal from "./FormModals/StudentModal";
+import TeacherModal from "./FormModals/TeacherModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import { Head, router } from '@inertiajs/react';
 import { usePermission } from '@/Utils/auth';
