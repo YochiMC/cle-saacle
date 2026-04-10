@@ -21,15 +21,25 @@ class UpdateQualificationsRequest extends FormRequest
      */
     public function rules(): array
     {
+        // El mismo FormRequest se usa para dos contratos:
+        // 1) Guardado masivo: { qualifications: [...] }
+        // 2) Guardado individual: { units_breakdown, final_average, is_left }
+        if ($this->has('qualifications')) {
+            return [
+                'qualifications' => 'required|array',
+                'qualifications.*.qualification_id' => 'required|exists:qualifications,id',
+                'qualifications.*.units_breakdown' => 'required|array',
+                'qualifications.*.units_breakdown.*' => 'nullable',
+                'qualifications.*.final_average' => 'required',
+                'qualifications.*.is_left' => 'nullable|boolean',
+            ];
+        }
+
         return [
-            // Contrato esperado desde el frontend:
-            // cada item trae id de calificación + units_breakdown + metadatos calculados.
-            'qualifications' => 'required|array',
-            'qualifications.*.qualification_id' => 'required|exists:qualifications,id',
-            'qualifications.*.units_breakdown' => 'required|array',
-            'qualifications.*.units_breakdown.*' => 'nullable',
-            'qualifications.*.final_average' => 'required',
-            'qualifications.*.is_left' => 'nullable|boolean',
+            'units_breakdown' => 'required|array',
+            'units_breakdown.*' => 'nullable',
+            'final_average' => 'required',
+            'is_left' => 'nullable|boolean',
         ];
     }
 }
