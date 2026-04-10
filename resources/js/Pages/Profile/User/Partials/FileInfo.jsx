@@ -1,4 +1,5 @@
 import FormModal from '@/Components/Forms/FormModal';
+import { formatDocumentDate, getDocumentStatusMeta } from '@/Utils/documentStatus';
 
 /**
  * FileInfo
@@ -14,25 +15,8 @@ import FormModal from '@/Components/Forms/FormModal';
  * @param {string} [props.title='Detalle del documento'] Título visible del modal.
  */
 export default function FileInfo({ show = false, onClose = () => {}, document = null, title = 'Detalle del documento' }) {
-    const statusLabels = {
-        approved: 'Aprobado',
-        rejected: 'Rechazado',
-        pending: 'Pendiente',
-    };
-
-    const statusStyles = {
-        approved: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-        rejected: 'border-rose-200 bg-rose-50 text-rose-700',
-        pending: 'border-amber-200 bg-amber-50 text-amber-700',
-    };
-
-    const formattedDate = document?.uploaded_at
-        ? new Date(document.uploaded_at).toLocaleDateString('es-MX', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        })
-        : 'Sin fecha';
+    const statusMeta = getDocumentStatusMeta(document?.status);
+    const formattedDate = formatDocumentDate(document?.uploaded_at);
 
     return (
         <FormModal title={title} show={show} onClose={onClose}>
@@ -55,8 +39,8 @@ export default function FileInfo({ show = false, onClose = () => {}, document = 
 
                         <div>
                             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Estatus</p>
-                            <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${statusStyles[document?.status] ?? statusStyles.pending}`}>
-                                {statusLabels[document?.status] ?? statusLabels.pending}
+                            <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${statusMeta.className}`}>
+                                {statusMeta.label}
                             </span>
                         </div>
 

@@ -1,5 +1,6 @@
 
 import { Download, EllipsisVertical, FileText, Trash2 } from 'lucide-react';
+import { formatDocumentDate, getDocumentStatusMeta } from '@/Utils/documentStatus';
 
 /**
  * FileCard
@@ -30,26 +31,8 @@ export default function FileCard({
 }) {
     const rawDate = document?.uploaded_at ?? document?.created_at;
     const status = document?.status ?? 'pending';
-
-    const statusStyles = {
-        approved: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-        rejected: 'border-rose-200 bg-rose-50 text-rose-700',
-        pending: 'border-amber-200 bg-amber-50 text-amber-700',
-    };
-
-    const statusLabels = {
-        approved: 'Aprobado',
-        rejected: 'Rechazado',
-        pending: 'Pendiente',
-    };
-
-    const formattedDate = rawDate
-        ? new Date(rawDate).toLocaleDateString('es-MX', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        })
-        : 'Sin fecha';
+    const statusMeta = getDocumentStatusMeta(status);
+    const formattedDate = formatDocumentDate(rawDate);
 
     const handleDelete = () => {
         if (onDelete) {
@@ -79,8 +62,8 @@ export default function FileCard({
                     <p className="mt-1 text-sm text-slate-500">
                         {document?.type || 'Sin tipo'} • {formattedDate}
                     </p>
-                    <span className={`mt-2 inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${statusStyles[status] ?? statusStyles.pending}`}>
-                        {statusLabels[status] ?? statusLabels.pending}
+                    <span className={`mt-2 inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${statusMeta.className}`}>
+                        {statusMeta.label}
                     </span>
                 </div>
 

@@ -8,24 +8,44 @@ enum DocumentStatus: string
     case APPROVED = 'approved';
     case REJECTED = 'rejected';
 
+    public function label(): string
+    {
+        return match ($this) {
+            self::PENDING => 'Pendiente',
+            self::APPROVED => 'Aprobado',
+            self::REJECTED => 'Rechazado',
+        };
+    }
+
+    /**
+     * Opciones de estatus destinadas al flujo de revisión.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
     public static function reviewOptions(): array
     {
         return [
             [
                 'value' => self::APPROVED->value,
-                'label' => 'Aprobado',
+                'label' => self::APPROVED->label(),
             ],
             [
                 'value' => self::REJECTED->value,
-                'label' => 'Rechazado',
+                'label' => self::REJECTED->label(),
             ],
         ];
     }
 
-    public static function toSelect(): array {
-        return array_map(fn($case) => [
+    /**
+     * Opciones completas del enum para selects generales.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    public static function toSelect(): array
+    {
+        return array_map(fn (self $case) => [
             'value' => $case->value,
-            'label' => $case->name, // O una traducción personalizada
+            'label' => $case->label(),
         ], self::cases());
     }
 }

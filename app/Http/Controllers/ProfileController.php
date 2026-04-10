@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\DeleteStudentWithUser;
 use App\Actions\DeleteTeacherWithUser;
 use App\Enums\DocumentStatus;
+use App\Http\Resources\DocumentResource;
 use App\Http\Resources\UserResource;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Degree;
@@ -30,17 +31,7 @@ class ProfileController extends Controller
         return Inertia::render('Profile/User/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
-            'documents' => $request->user()->documents()->latest()->get()->map(function ($doc) {
-                return [
-                    'id' => $doc->id,
-                    'type' => $doc->type,
-                    'original_name' => $doc->original_name,
-                    'file_path' => $doc->file_path,
-                    'status' => $doc->status,
-                    'comments' => $doc->comments,
-                    'uploaded_at' => $doc->created_at->toDateTimeString(),
-                ];
-            }),
+            'documents' => DocumentResource::collection($request->user()->documents()->latest()->get())->resolve(),
         ]);
     }
 
