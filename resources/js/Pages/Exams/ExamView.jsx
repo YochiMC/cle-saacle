@@ -297,7 +297,7 @@ export default function ExamView({
                         setIsEditingMode(false); 
                         setConfirmModal({ isOpen: false, type: null, itemData: null }); 
                     },
-                    onError: (errors) => console.error("Errores al guardar", errors),
+                    onError: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
                 }
             );
         } else if (confirmModal.type === 'row' && confirmModal.itemData) {
@@ -315,14 +315,14 @@ export default function ExamView({
                         setEditingRowId(null); 
                         setConfirmModal({ isOpen: false, type: null, itemData: null }); 
                     },
-                    onError: (errors) => console.error("Error al guardar fila:", errors),
+                    onError: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
                 }
             );
         } else if (confirmModal.type === 'close') {
             router.patch(route('exams.complete', examen.id), {}, {
                 preserveScroll: true,
                 onSuccess: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
-                onError: (errors) => console.error("Error al cerrar el examen", errors),
+                onError: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
             });
         }
     };

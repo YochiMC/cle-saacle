@@ -8,12 +8,11 @@ import GroupDetailsModal from "@/Components/Charts/GroupDetailsModal";
 import CardGroup from "@/Components/Charts/CardGroup";
 import ResourceFilterBar from "@/Components/Resource/ResourceFilterBar";
 import ResourceSelectFilter from "@/Components/Resource/ResourceSelectFilter";
-import GroupModal from "./FormModals/GroupModal";
+import GroupModal from "@/Components/Groups/GroupModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import ConfirmModal from "@/Components/ConfirmModal";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 
-// Nuevos componentes genéricos importados
 import DataGrid from "@/Components/DataTable/DataGrid";
 import BulkActionBar from "@/Components/DataTable/BulkActionBar";
 import { useGroupsManagement } from "@/Hooks/useGroupsManagement";
@@ -63,7 +62,7 @@ export default function Groups({
         if (!newStatus) return;
         setPendingStatus(newStatus);
         setIsStatusModalOpen(true);
-        e.target.value = ""; // reset for next selection
+        e.target.value = "";
     };
 
     return (

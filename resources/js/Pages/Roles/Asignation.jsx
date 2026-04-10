@@ -5,8 +5,8 @@ import { useState } from 'react';
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import ConfirmModal from '@/Components/ConfirmModal';
 import ModalAlert from "@/Components/ui/ModalAlert";
-import RoleModal from "./FormModals/RoleModal";
-import UpdateRoleModal from "./FormModals/UpdateRoleModal";
+import RoleModal from "@/Components/Roles/RoleModal";
+import UpdateRoleModal from "@/Components/Roles/UpdateRoleModal";
 
 // Definidas fuera del componente para mantener referencia estable entre renders.
 const VIEW_OPTIONS = [
@@ -58,7 +58,6 @@ export default function Asignation({ users, roles, permissions }) {
 
         const itemId = itemToDelete?.id;
         if (!itemId) {
-            console.error('No se pudo eliminar: id no disponible en el registro.', itemToDelete);
             setItemToDelete(null);
             return;
         }

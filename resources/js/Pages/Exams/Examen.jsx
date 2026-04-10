@@ -14,9 +14,9 @@ import {
 } from "lucide-react";
 import { usePermission } from "@/Utils/auth";
 
-import CardExam from "./CardExam";
-import ExamDetailsModal from "./ExamDetailsModal";
-import ExamFormModal from "./ExamFormModal";
+import CardExam from "@/Components/Exams/CardExam";
+import ExamDetailsModal from "@/Components/Exams/ExamDetailsModal";
+import ExamFormModal from "@/Components/Exams/ExamFormModal";
 import ResourceFilterBar from "@/Components/Resource/ResourceFilterBar";
 import ResourceSelectFilter from "@/Components/Resource/ResourceSelectFilter";
 import useFlashAlert from "@/Hooks/useFlashAlert";
