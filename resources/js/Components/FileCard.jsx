@@ -1,5 +1,5 @@
 
-import { Download, FileText, Trash2 } from 'lucide-react';
+import { Download, EllipsisVertical, FileText, Trash2 } from 'lucide-react';
 
 /**
  * FileCard
@@ -15,10 +15,23 @@ import { Download, FileText, Trash2 } from 'lucide-react';
  * @param {string} props.document.type Tipo de documento (INE, RFC, CURP, etc.).
  * @param {string|null} props.document.uploaded_at Fecha de subida.
  * @param {Function} [props.onDelete] Callback al solicitar eliminación: (document) => void.
+ * @param {Function} [props.onMoreAction] Callback para acción contextual: (document) => void.
+ * @param {boolean} [props.showDownload=true] Indica si se muestra acción de descarga.
+ * @param {boolean} [props.showDelete=true] Indica si se muestra acción de eliminación.
+ * @param {boolean} [props.showMoreAction=false] Indica si se muestra acción de menú contextual.
  */
-export default function FileCard({ document, onDelete }) {
-    const formattedDate = document?.uploaded_at
-        ? new Date(document.uploaded_at).toLocaleDateString('es-MX', {
+export default function FileCard({
+    document,
+    onDelete,
+    onMoreAction,
+    showDownload = true,
+    showDelete = true,
+    showMoreAction = false,
+}) {
+    const rawDate = document?.uploaded_at ?? document?.created_at;
+
+    const formattedDate = rawDate
+        ? new Date(rawDate).toLocaleDateString('es-MX', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -28,6 +41,12 @@ export default function FileCard({ document, onDelete }) {
     const handleDelete = () => {
         if (onDelete) {
             onDelete(document);
+        }
+    };
+
+    const handleMoreAction = () => {
+        if (onMoreAction) {
+            onMoreAction(document);
         }
     };
 
@@ -50,24 +69,40 @@ export default function FileCard({ document, onDelete }) {
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1">
-                    <a
-                        href={route('documents.download', document?.id)}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-600 transition-colors hover:bg-slate-100 hover:text-[#17365D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#17365D]/30"
-                        aria-label={`Descargar documento ${document?.original_name || ''}`.trim()}
-                        title="Descargar documento"
-                    >
-                        <Download className="h-4 w-4" aria-hidden="true" />
-                    </a>
+                    {showDownload && (
+                        <a
+                            href={route('documents.download', document?.id)}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-600 transition-colors hover:bg-slate-100 hover:text-[#17365D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#17365D]/30"
+                            aria-label={`Descargar documento ${document?.original_name || ''}`.trim()}
+                            title="Descargar documento"
+                        >
+                            <Download className="h-4 w-4" aria-hidden="true" />
+                        </a>
+                    )}
 
-                    <button
-                        type="button"
-                        onClick={handleDelete}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-md text-rose-500 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
-                        aria-label={`Eliminar documento ${document?.original_name || ''}`.trim()}
-                        title="Eliminar documento"
-                    >
-                        <Trash2 className="h-4 w-4" aria-hidden="true" />
-                    </button>
+                    {showDelete && (
+                        <button
+                            type="button"
+                            onClick={handleDelete}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-rose-500 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
+                            aria-label={`Eliminar documento ${document?.original_name || ''}`.trim()}
+                            title="Eliminar documento"
+                        >
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                    )}
+
+                    {showMoreAction && (
+                        <button
+                            type="button"
+                            onClick={handleMoreAction}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+                            aria-label={`Más acciones para ${document?.original_name || 'el documento'}`}
+                            title="Más acciones"
+                        >
+                            <EllipsisVertical className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                    )}
                 </div>
             </div>
         </article>

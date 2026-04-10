@@ -11,8 +11,9 @@ import FormModal from '@/Components/Forms/FormModal';
  * @param {boolean} [props.show=false] Controla la visibilidad del modal.
  * @param {Function} [props.onClose=() => {}] Callback para cerrar el modal.
  * @param {string} [props.title='Documentos'] Título visible del modal.
+ * @param {Object|null} [props.document=null] Documento seleccionado desde el expediente.
  */
-export default function FileForm({ show = false, onClose = () => {}, title = 'Documentos' }) {
+export default function FileForm({ show = false, onClose = () => {}, title = 'Documentos', document = null }) {
     return (
         <FormModal title={title} show={show} onClose={onClose}>
             <div className="space-y-4">
@@ -22,6 +23,13 @@ export default function FileForm({ show = false, onClose = () => {}, title = 'Do
                 <p className="text-sm text-slate-500">
                     Por ahora solo se muestra el expediente en modo lectura.
                 </p>
+
+                {document && (
+                    <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 text-sm text-slate-600">
+                        <p><span className="font-semibold text-slate-700">Documento:</span> {document?.original_name || 'Sin nombre'}</p>
+                        <p><span className="font-semibold text-slate-700">Tipo:</span> {document?.type || 'Sin tipo'}</p>
+                    </div>
+                )}
 
                 <div className="flex justify-end pt-2">
                     <button

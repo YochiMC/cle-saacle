@@ -6,6 +6,8 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 import ModalAlert from "@/Components/ui/ModalAlert";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import Files from './Partials/Files';
+import FileForm from './Partials/Forms/FileForm';
+import { useState } from 'react';
 
 /**
  * Profile
@@ -25,6 +27,20 @@ import Files from './Partials/Files';
  */
 export default function Profile({ roles, user, degrees, levels, typeStudents, documents = [] }) {
     const { flashModal, closeFlashModal } = useFlashAlert();
+    const userDocuments = documents.length > 0 ? documents : user?.documents ?? [];
+    const [showFileForm, setShowFileForm] = useState(false);
+    const [selectedDocument, setSelectedDocument] = useState(null);
+
+    const openDocumentForm = (document) => {
+        setSelectedDocument(document ?? null);
+        setShowFileForm(true);
+    };
+
+    const closeDocumentForm = () => {
+        setShowFileForm(false);
+        setSelectedDocument(null);
+    };
+
     return (
         <AuthenticatedLayout
             header={<h2 className="text-xl font-semibold leading-tight text-gray-800">
@@ -58,10 +74,17 @@ export default function Profile({ roles, user, degrees, levels, typeStudents, do
                     </div>
 
                     <div className="mt-6">
-                        <Files documents={documents} />
+                        <Files documents={userDocuments} onOpenDocumentForm={openDocumentForm} />
                     </div>
                 </div>
             </div>
+
+            <FileForm
+                show={showFileForm}
+                onClose={closeDocumentForm}
+                title="Detalle del documento"
+                document={selectedDocument}
+            />
 
             <ModalAlert
                 isOpen={flashModal.isOpen}
