@@ -25,9 +25,8 @@ class QualificationController extends Controller
         // Para altas nuevas exigimos todas las unidades presentes y válidas.
         $validated = $request->validate([
             'units_breakdown' => 'required|array',
-            'units_breakdown.*' => 'required|numeric|min:0|max:100',
-            'final_average' => 'required|numeric|min:0|max:100',
-            'is_approved' => 'required|boolean',
+            'units_breakdown.*' => 'nullable',
+            'final_average' => 'required',
             'is_left' => 'required|boolean',
             'student_id' => 'required|exists:students,id',
             'group_id' => 'required|exists:groups,id',
@@ -45,9 +44,8 @@ class QualificationController extends Controller
         // pero conservamos validación numérica y rango cuando sí hay valor.
         $validated = $request->validate([
             'units_breakdown' => 'required|array',
-            'units_breakdown.*' => 'nullable|numeric|min:0|max:100',
-            'final_average' => 'required|numeric|min:0|max:100',
-            'is_approved' => 'required|boolean',
+            'units_breakdown.*' => 'nullable',
+            'final_average' => 'required',
             'is_left' => 'required|boolean',
         ]);
 
@@ -77,7 +75,6 @@ class QualificationController extends Controller
                 Qualification::where('id', $item['qualification_id'])->update([
                     'units_breakdown' => $item['units_breakdown'] ?? [],
                     'final_average' => $item['final_average'] ?? 0,
-                    'is_approved' => $item['is_approved'] ?? false,
                     'is_left' => $item['is_left'] ?? false,
                 ]);
             }

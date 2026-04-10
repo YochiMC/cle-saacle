@@ -3,71 +3,90 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/ResourceDashboard";
 import { usePermission } from "@/Utils/auth";
 import ThemeButton from "@/Components/ThemeButton";
-import { X, Save, Edit3 } from "lucide-react";
+import Dropdown from "@/Components/Dropdown";
+import { X, Save, Edit3, Settings } from "lucide-react";
 import { router } from "@inertiajs/react";
 import EnrollStudentModal from "@/Components/SharedModals/EnrollStudentModal";
 import ConfirmModal from '@/Components/ConfirmModal';
 import ModalAlert from "@/Components/ui/ModalAlert";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 
-const UNIT_KEY_PATTERN = /^unit_\d+$/i;
+const METADATA_KEYS = new Set([
+    "id",
+    "full_name",
+    "matricula",
+    "gender",
+    "semester",
+    "qualification_id",
+    "final_average",
+    "is_approved",
+    "is_left",
+]);
 
-const normalizeQualificationRow = (row) => {
+const getUnitKeysFromRows = (grupo) => {
+    // Regla estricta para Egresados
+    if (grupo?.type === 'Programa Egresados') {
+        return ['hizo_certificacion', 'a1', 'a2', 'b1'];
+    }
+
+    // Regla dinámica basada en la configuración del maestro
+    const unitsCount = grupo?.evaluable_units || 0;
+    if (unitsCount > 0) {
+        return Array.from({ length: unitsCount }, (_, i) => `unit_${i + 1}`);
+    }
+
+    return [];
+};
+
+const normalizeQualificationRow = (row, grupo) => {
     // Convierte units_breakdown (objeto JSON) en columnas planas para la tabla dinámica.
-    const unitsBreakdown =
+    const rawBreakdown =
         row?.units_breakdown && typeof row.units_breakdown === "object" && !Array.isArray(row.units_breakdown)
             ? row.units_breakdown
             : {};
+            
+    const expectedKeys = getUnitKeysFromRows(grupo);
+    const unitsBreakdown = {};
+    expectedKeys.forEach((key) => {
+        unitsBreakdown[key] = rawBreakdown[key] ?? (key === "hizo_certificacion" ? 0 : 0);
+    });
 
-    const { units_breakdown, ...rest } = row;
-    const { final_average, is_approved, is_left, ...baseFields } = rest;
+    const { units_breakdown: _ignored, ...rest } = row;
+    const { final_average, is_approved: _unused1, is_left, ...baseFields } = rest;
 
     return {
         ...baseFields,
+        is_left: is_left ?? false,
         ...unitsBreakdown,
-        final_average,
-        is_approved,
-        is_left,
+        final_average: final_average !== undefined ? final_average : 0,
     };
 };
 
-const getUnitKeysFromRows = (rows) =>
-    Array.from(
-        new Set(
-            rows.flatMap((row) =>
-                Object.keys(row).filter((key) => UNIT_KEY_PATTERN.test(key)),
-            ),
-        ),
-    ).sort((left, right) => {
-        const leftNumber = Number(left.match(/\d+/)?.[0] ?? 0);
-        const rightNumber = Number(right.match(/\d+/)?.[0] ?? 0);
-
-        return leftNumber - rightNumber;
-    });
-
 const buildUnitsBreakdown = (row) =>
     Object.fromEntries(
-        Object.entries(row).filter(([key]) => UNIT_KEY_PATTERN.test(key)),
+        Object.entries(row).filter(([key]) => !METADATA_KEYS.has(key))
     );
 
 const calculateAverage = (unitsBreakdown) => {
-    const values = Object.values(unitsBreakdown)
-        .map((value) => Number(value))
-        .filter((value) => Number.isFinite(value));
+    const numericValues = Object.entries(unitsBreakdown)
+        .filter(([key, v]) => key !== 'hizo_certificacion' && (typeof v === 'number' || (typeof v === 'string' && v !== '' && !isNaN(Number(v)))))
+        .map(([, v]) => Number(v));
 
-    if (values.length === 0) {
-        return 0;
-    }
+    if (numericValues.length === 0) return 0;
 
-    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+    // Regla de Negocio: si alguna calificación es menor a 70, el promedio es 'NA'
+    const isFailing = numericValues.some(val => val < 70);
+    if (isFailing) return 'NA';
+
+    return Math.round(numericValues.reduce((sum, v) => sum + v, 0) / numericValues.length);
 };
 
 const serializeQualification = (row) => ({
     // Reconstruye el contrato que espera el backend antes de persistir.
+    // is_approved se omite: el backend lo calcula a partir de final_average.
     qualification_id: row.qualification_id,
     units_breakdown: buildUnitsBreakdown(row),
     final_average: row.final_average,
-    is_approved: !!row.is_approved,
     is_left: !!row.is_left,
 });
 
@@ -105,8 +124,8 @@ export default function GroupView({
           : [];
 
     const normalizedQualificationRows = useMemo(
-        () => normalizedEnrolledStudents.map(normalizeQualificationRow),
-        [normalizedEnrolledStudents],
+        () => normalizedEnrolledStudents.map((row) => normalizeQualificationRow(row, grupo)),
+        [normalizedEnrolledStudents, grupo]
     );
 
     // Estado local para los estudiantes y sus calificaciones
@@ -132,29 +151,15 @@ export default function GroupView({
     // Alertas globales flash
     const { flashModal, closeFlashModal } = useFlashAlert();
 
-    const handleSaveRow = (item) => {
-        console.log("Guardando fila", item);
-        const rowToSave = localData.find((row) => row.id === item.id);
-        const qualificationId = rowToSave?.qualification_id;
+    // Modal de confirmación unificado (save global | save row | cerrar grupo)
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        type: null, // 'global' | 'row' | 'close'
+        itemData: null,
+    });
 
-        if (rowToSave && qualificationId) {
-            router.patch(
-                route("qualifications.update", qualificationId),
-                serializeQualification(rowToSave),
-                {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        setEditingRowId(null);
-                    },
-                    onError: (errors) => {
-                        console.error("Error al guardar fila:", errors);
-                    },
-                },
-            );
-        } else {
-            console.warn("No se encontró el qualification_id para la fila.");
-            setEditingRowId(null);
-        }
+    const handleSaveRow = (item) => {
+        setConfirmModal({ isOpen: true, type: 'row', itemData: item });
     };
 
     const handleCancelRow = () => {
@@ -189,13 +194,11 @@ export default function GroupView({
 
                 const updatedRow = { ...row, [fieldKey]: newValue };
 
-                if (UNIT_KEY_PATTERN.test(fieldKey)) {
-                    // Regla local: cualquier cambio de unidad recalcula promedio y estatus.
+                if (!METADATA_KEYS.has(fieldKey)) {
+                    // Regla local: cualquier cambio de unidad recalcula el promedio.
+                    // is_approved es calculado por el backend; no se gestiona en cliente.
                     const unitsBreakdown = buildUnitsBreakdown(updatedRow);
-                    const average = calculateAverage(unitsBreakdown);
-
-                    updatedRow.final_average = average;
-                    updatedRow.is_approved = average >= 70;
+                    updatedRow.final_average = calculateAverage(unitsBreakdown);
                 }
 
                 return updatedRow;
@@ -204,20 +207,58 @@ export default function GroupView({
     };
 
     const handleSaveGlobal = () => {
-        console.log("Guardando cambios globales...");
-        router.patch(
-            route("qualifications.bulk-update"),
-            { qualifications: localData.map(serializeQualification) },
-            {
+        setConfirmModal({ isOpen: true, type: 'global', itemData: null });
+    };
+
+    // ── Ejecutor Maestro (Llamado por el modal de confirmación) ──────────────────
+    const confirmSave = () => {
+        if (confirmModal.type === 'global') {
+            router.patch(
+                route('qualifications.bulk-update'),
+                { qualifications: localData.map(serializeQualification) },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setIsEditingMode(false);
+                        setConfirmModal({ isOpen: false, type: null, itemData: null });
+                    },
+                    onError: (errors) => console.error('Errores al guardar', errors),
+                },
+            );
+        } else if (confirmModal.type === 'row' && confirmModal.itemData) {
+            const rowToSave = localData.find((row) => row.id === confirmModal.itemData.id);
+            const qualificationId = rowToSave?.qualification_id;
+
+            if (rowToSave && qualificationId) {
+                router.patch(
+                    route('qualifications.update', qualificationId),
+                    serializeQualification(rowToSave),
+                    {
+                        preserveScroll: true,
+                        onSuccess: () => {
+                            setEditingRowId(null);
+                            setConfirmModal({ isOpen: false, type: null, itemData: null });
+                        },
+                        onError: (errors) => console.error('Error al guardar fila:', errors),
+                    },
+                );
+            } else {
+                console.warn('No se encontró el qualification_id para la fila.');
+                setConfirmModal({ isOpen: false, type: null, itemData: null });
+            }
+        } else if (confirmModal.type === 'close') {
+            router.patch(route('groups.complete', grupo.id), {}, {
                 preserveScroll: true,
-                onSuccess: () => {
-                    setIsEditingMode(false);
-                },
-                onError: (errors) => {
-                    console.error("Errores al guardar", errors);
-                },
-            },
-        );
+                onSuccess: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
+                onError: (errors) => console.error('Error al cerrar el grupo:', errors),
+            });
+        } else if (confirmModal.type === 'units') {
+            router.patch(route('groups.update-units', grupo.id), { evaluable_units: Number(confirmModal.itemData) }, {
+                preserveScroll: true,
+                onSuccess: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
+                onError: (err) => console.error('Error actualizando unidades:', err),
+            });
+        }
     };
 
     const handleEnroll = (selectedIds) => {
@@ -231,15 +272,16 @@ export default function GroupView({
         );
     };
 
+
     // Lógica de Roles: Configuramos las columnas editables dinámicamente.
     // Usamos EXACTAMENTE las keys devueltas por el StudentQualificationResource.
     // Cuando una fila está en edición, todas sus columnas configuradas aquí se vuelven editables.
     const unitColumns = useMemo(
-        () => getUnitKeysFromRows(normalizedQualificationRows),
-        [normalizedQualificationRows],
+        () => getUnitKeysFromRows(grupo),
+        [grupo],
     );
     const editableColumns = canEditQualifications
-        ? [...unitColumns, "is_approved", "is_left"]
+        ? [...unitColumns, "is_left"]
         : [];
 
     // Formateamos las opciones de vista para el ResourceDashboard
@@ -280,16 +322,57 @@ export default function GroupView({
                         onSaveRow={handleSaveRow}
                         onCancelRow={handleCancelRow}
                         buttonSpace={
-                            canEditQualifications && !isEditingMode ? (
-                                <ThemeButton
-                                    theme="institutional"
-                                    icon={Edit3}
-                                    size="sm"
-                                    onClick={() => setIsEditingMode(true)}
-                                >
-                                    Capturar Calificaciones
-                                </ThemeButton>
-                            ) : null
+                            <div className="flex items-center gap-2">
+                                {/* 1. Botón Fantasma (Settings) — Dropdown de Unidades */}
+                                {grupo?.type !== "Programa Egresados" && canEditQualifications && !isEditingMode && (
+                                    <Dropdown>
+                                        <Dropdown.Trigger>
+                                            <button className="flex items-center gap-2 px-3 py-1.5 border border-slate-300 bg-white text-slate-700 rounded-md hover:bg-slate-50 focus:ring-2 focus:ring-[#1B396A] transition-all font-medium text-sm shadow-sm">
+                                                <Settings size={16} />
+                                                <span className="hidden sm:inline">Esquema</span>
+                                            </button>
+                                        </Dropdown.Trigger>
+                                        <Dropdown.Content align="right" width="48">
+                                            <div className="block px-4 py-2 text-xs text-gray-400 font-semibold uppercase tracking-wider">
+                                                Unidades a Evaluar
+                                            </div>
+                                            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+                                                <Dropdown.Button
+                                                    key={num}
+                                                    onClick={() => setConfirmModal({ isOpen: true, type: 'units', itemData: num })}
+                                                    className={grupo?.evaluable_units === num ? 'bg-slate-50 font-bold text-[#1B396A]' : ''}
+                                                >
+                                                    {num} {num === 1 ? 'Unidad' : 'Unidades'}
+                                                </Dropdown.Button>
+                                            ))}
+                                        </Dropdown.Content>
+                                    </Dropdown>
+                                )}
+
+                                {/* 2. Botón Cerrar Grupo */}
+                                {grupo?.status !== 'completed' && canEditQualifications && !isEditingMode && (
+                                    <ThemeButton
+                                        theme="danger"
+                                        size="sm"
+                                        className="whitespace-nowrap"
+                                        onClick={() => setConfirmModal({ isOpen: true, type: 'close', itemData: null })}
+                                    >
+                                        Cerrar Grupo
+                                    </ThemeButton>
+                                )}
+
+                                {/* 3. Botón Capturar Calificaciones */}
+                                {canEditQualifications && !isEditingMode && (
+                                    <ThemeButton
+                                        theme="institutional"
+                                        icon={Edit3}
+                                        size="sm"
+                                        onClick={() => setIsEditingMode(true)}
+                                    >
+                                        Capturar Calificaciones
+                                    </ThemeButton>
+                                )}
+                            </div>
                         }
                         onNew={
                             canEditQualifications
@@ -340,6 +423,32 @@ export default function GroupView({
                 variant="warning"
             />
 
+            {/* Modal de confirmación unificado: guardar global, guardar fila, cerrar grupo, cambiar unidades */}
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false, type: null, itemData: null })}
+                onConfirm={confirmSave}
+                title={
+                    confirmModal.type === 'global' ? 'Confirmar guardado masivo' :
+                    confirmModal.type === 'close'  ? 'Cerrar Grupo Definitivamente' :
+                    confirmModal.type === 'units'  ? 'Cambiar esquema de evaluación' :
+                    'Guardar calificación'
+                }
+                message={
+                    confirmModal.type === 'global' ? '¿Deseas guardar las calificaciones de todos los alumnos?' :
+                    confirmModal.type === 'close'  ? 'Asegúrate de que todas las calificaciones hayan sido capturadas y validadas correctamente. Al cerrar el grupo, no podrás realizar más modificaciones y se dará por concluido. Esta acción es irreversible.' :
+                    confirmModal.type === 'units'  ? `¿Estás seguro de que deseas evaluar ${confirmModal.itemData} ${confirmModal.itemData === 1 ? 'unidad' : 'unidades'}? Esto actualizará la tabla para todos los alumnos del grupo.` :
+                    '¿Estás seguro de guardar la calificación de este alumno?'
+                }
+                confirmText={
+                    confirmModal.type === 'close' ? 'Sí, cerrar grupo' :
+                    confirmModal.type === 'units' ? 'Sí, cambiar esquema' :
+                    'Sí, guardar'
+                }
+                cancelText="Cancelar"
+                variant="warning"
+            />
+
             <ModalAlert
                 isOpen={flashModal.isOpen}
                 onClose={closeFlashModal}
@@ -347,6 +456,7 @@ export default function GroupView({
                 title={flashModal.title}
                 message={flashModal.message}
             />
+
         </>
     );
 }

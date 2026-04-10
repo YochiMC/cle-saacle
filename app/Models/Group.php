@@ -24,12 +24,14 @@ class Group extends Model
         'period_id',
         'teacher_id',
         'level_id',
+        'evaluable_units',
     ];
 
     protected $casts = [
         'status' => AcademicStatus::class,
         'mode'   => \App\Enums\GroupMode::class,
         'type'   => \App\Enums\GroupType::class,
+        'evaluable_units' => 'integer',
     ];
 
 

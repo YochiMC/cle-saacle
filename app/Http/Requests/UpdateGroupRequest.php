@@ -35,6 +35,7 @@ class UpdateGroupRequest extends FormRequest
             'period_id'    => 'sometimes|required|exists:periods,id',
             'teacher_id'   => ['nullable', 'exists:teachers,id'],
             'level_id'     => 'sometimes|required|exists:levels,id',
+            'evaluable_units' => 'nullable|integer|min:1',
         ];
     }
 

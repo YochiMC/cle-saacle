@@ -52,6 +52,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/groups/{group}/enroll', [\App\Http\Controllers\GroupController::class, 'enroll'])->name('groups.enroll');
     Route::delete('/groups/{group}/unenroll/{student}', [GroupController::class, 'unenroll'])->name('groups.unenroll');
     Route::post('/groups/{group}/unenroll-bulk', [GroupController::class, 'bulkUnenroll'])->name('groups.unenroll-bulk');
+    Route::patch('/groups/{group}/update-units', [GroupController::class, 'updateUnits'])->name('groups.update-units');
+    Route::patch('/groups/{group}/complete', [GroupController::class, 'complete'])->name('groups.complete');
     Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
     Route::get('/exams', [AdminViewsController::class, 'examsView'])->name('exams.index');
     Route::post('/exams', [\App\Http\Controllers\ExamController::class, 'store'])->name('exams.store');
