@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
         Group::factory(5)->create()->each(function ($group) {
 
             // Magia: Para cada grupo, creamos entre 15 y 25 alumnos
-            $students = Student::factory(rand(15, 25))->create();
+            $students = Student::factory(rand(15, 25))->withRole()->create();
 
             // Inscribimos a cada alumno en el grupo creando su registro de calificaciones
             foreach ($students as $student) {

@@ -62,7 +62,7 @@ class ExamFactory extends Factory
 
             // Si no hay suficientes estudiantes en BD, crear algunos
             if (Student::count() < $quantityStudents) {
-                Student::factory($quantityStudents)->create();
+                Student::factory($quantityStudents)->withRole()->create();
             }
 
             // Obtener IDs de estudiantes aleatorios
