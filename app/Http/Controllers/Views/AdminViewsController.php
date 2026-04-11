@@ -124,6 +124,7 @@ class AdminViewsController extends Controller
         // Para el estudiante, cargamos sus relaciones para que StudentResource
         // pueda resolver los IDs de los selects correctamente.
         $user->loadMissing([
+            'documents',
             'teacher',
             'student.degree',
             'student.level',

@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Actions\DeleteStudentWithUser;
 use App\Actions\DeleteTeacherWithUser;
+use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
+use App\Http\Resources\DocumentResource;
 use App\Http\Resources\UserResource;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Degree;
@@ -22,13 +25,41 @@ use Inertia\Response;
 class ProfileController extends Controller
 {
     /**
+     * Resuelve los tipos de documento visibles según el rol principal del usuario.
+     *
+     * Regla:
+     * - Teacher/Docente: usa los tipos requeridos para docente.
+     * - Student/Alumno: usa los tipos requeridos para alumno.
+     * - Otros roles: usa catálogo completo para evitar bloquear la UI.
+     *
+     * @param User $user
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function resolveDocumentTypeOptions(User $user): array
+    {
+        if ($user->hasRole('teacher')) {
+            return DocumentType::requiredSelectFor('teacher');
+        }
+
+        if ($user->hasRole('student')) {
+            return DocumentType::requiredSelectFor('student');
+        }
+
+        return DocumentType::toSelect();
+    }
+
+    /**
      * Display the user's profile form.
      */
     public function edit(Request $request): Response
     {
+        $documentTypeOptions = $this->resolveDocumentTypeOptions($request->user());
+
         return Inertia::render('Profile/User/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'documents' => DocumentResource::collection($request->user()->documents()->latest()->get())->resolve(),
+            'documentTypes' => $documentTypeOptions,
         ]);
     }
 
@@ -39,11 +70,14 @@ class ProfileController extends Controller
     {
         // Cargamos las relaciones para mapear correctamente teacher/student en UserResource.
         $user->loadMissing([
+            'documents',
             'teacher',
             'student.degree',
             'student.level',
             'student.typeStudent',
         ]);
+
+        $documentTypeOptions = $this->resolveDocumentTypeOptions($user);
 
         return Inertia::render('Profile/Users/Edit', [
             'roles' => Role::all(),
@@ -51,6 +85,8 @@ class ProfileController extends Controller
             'degrees' => Degree::all(['id', 'name']),
             'levels' => Level::all(['id', 'level_tecnm']),
             'typeStudents' => TypeStudent::all(['id', 'name']),
+            'documentStatuses' => DocumentStatus::reviewOptions(),
+            'documentTypes' => $documentTypeOptions,
         ]);
     }
 

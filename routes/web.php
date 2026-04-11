@@ -9,6 +9,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\Views\AdminViewsController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\DocumentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -55,6 +56,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/groups/{group}/update-units', [GroupController::class, 'updateUnits'])->name('groups.update-units');
     Route::patch('/groups/{group}/complete', [GroupController::class, 'complete'])->name('groups.complete');
     Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+    Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
+    Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::get('/exams', [AdminViewsController::class, 'examsView'])->name('exams.index');
     Route::post('/exams', [\App\Http\Controllers\ExamController::class, 'store'])->name('exams.store');
     Route::put('/exams/{exam}', [App\Http\Controllers\ExamController::class, 'update'])->name('exams.update');
