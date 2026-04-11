@@ -6,6 +6,7 @@ use App\Actions\DeleteStudentWithUser;
 use App\Actions\DeleteTeacherWithUser;
 use App\Http\Resources\UserResource;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\DeleteProfileRequest;
 use App\Models\Degree;
 use App\Models\Level;
 use App\Models\TypeStudent;
@@ -73,12 +74,8 @@ class ProfileController extends Controller
     /**
      * Delete the user's account.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(DeleteProfileRequest $request): RedirectResponse
     {
-        $request->validate([
-            'password' => ['required', 'current_password'],
-        ]);
-
         $user = $request->user();
 
         Auth::logout();
