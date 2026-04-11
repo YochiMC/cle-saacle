@@ -1,4 +1,4 @@
-# Walkthrough: Refactorización Arquitectónica — Fases 1, 2 y 3
+# Walkthrough: Refactorización Arquitectónica — Fases 1 a 5
 
 ---
 
@@ -88,44 +88,75 @@ Cero referencias a Test_MK2, Test_Vik o TestYochi en resources/js/** y app/**
 
 ---
 
-## Estructura Final
+## FASE 3 — Back-End: Thin Controllers (Group, Exam, Qualification) ✅
 
-### `Pages/` — Solo vistas de enrutamiento
+Se aplicó el principio de Responsabilidad Única (SRP) para aligerar los controladores principales y aislar la lógica.
 
-```
-Pages/
-├── Auth/
-├── Dashboard.jsx
-├── Degrees.jsx
-├── Exams/          ← Solo vistas: Examen.jsx, ExamView.jsx, Kardex.jsx, Reports.jsx, examFilters.js
-├── Groups/         ← Solo vistas: Groups.jsx, GroupView.jsx, GroupDashboard.jsx, groupFilters.js
-├── Profile/
-├── RecursosYochi/  ← Aislados: Test.jsx, Yochi.jsx
-├── Roles/          ← Solo vista: Asignation.jsx
-├── Settings/
-├── Users/          ← Solo vista: Users.jsx
-└── Welcome.jsx
-```
+### 1. Form Requests Creados (5)
+- `StoreExamRequest`
+- `UpdateUnitsGroupRequest`
+- `BulkUnenrollRequest`
+- `BulkUpdateExamStatusRequest`
+- `UpdateExamPivotRequest`
 
-### `Components/` — Nuevas carpetas de dominio
+### 2. Actions Creadas (4) en `app/Actions/`
+- `EnrollStudentsInGroup`
+- `UpdateGroupEvaluableUnits`
+- `EnrollStudentsInExam`
+- `BulkUpdateExamQualifications`
 
-```
-Components/
-├── Charts/          (CardGroup, GroupDetailsModal — ya existían)
-├── DataTable/
-├── Exams/           ← NUEVO: CardExam, ExamDetailsModal, ExamFormModal
-├── Forms/
-├── Groups/          ← NUEVO: GroupModal
-├── Menus/
-├── Resource/
-├── Roles/           ← NUEVO: RoleModal, UpdateRoleModal
-├── SharedModals/
-├── ui/
-└── Users/           ← NUEVO: StudentModal, TeacherModal
-```
+### 3. Controladores Refactorizados
+- `GroupController.php`: Lógica pesada extraída a Actions. `enroll()`, `updateUnits()` ahora son delegadores.
+- `ExamController.php`: Validación eliminada, `store()`, `update()`, `enroll()` y masivos ahora delegan a Requests y Actions. Deuda técnica de `new_status` corregida.
+- `QualificationController.php`: Código muerto (métodos void) eliminado. Orquestación refactorizada.
 
 ---
 
-## Próximo Paso Recomendado
+## FASE 4 — Auditoría de Limpieza en `Components/` ✅
 
-Ejecutar `npm run dev` para confirmar que Vite compila sin errores.
+### 1. Eliminación de Código Muerto y Duplicado
+- Eliminado `Components/Charts/Modal.jsx` (duplicado funcional del modal de Breeze).
+- Eliminado `Components/ui/Alert.jsx` (componente sin consumidores).
+- Componente `ModalAlert.jsx` refactorizado para usar el modal oficial de Breeze (`@/Components/Modal`).
+
+### 2. Eliminación de debugs nativos en Hooks
+- Eliminados varios `alert()` nativos residuales en `Hooks/useBulkActions.jsx` y `Hooks/useDynamicColumns.jsx`. (Nota: previamente habían sido erradicados).
+
+### 3. Reagrupación Lógica (5 Archivos) y Actualización de Imports
+Componentes sueltos en la raíz de `Components/` se movieron a sus dominios lógicos:
+- `ConfirmModal.jsx` → `Components/ui/`
+- `ThemeButton.jsx` → `Components/ui/`
+- `ThemeInput.jsx` → `Components/ui/`
+- `ResourceDashboard.jsx` → `Components/Resource/`
+- `DashboardHeader.jsx` → `Components/Menus/`
+
+Se actualizaron **más de 30 rutas de importación** en `Pages/` y otros `Components/` satisfactoriamente.
+
+---
+
+## FASE 5 — Auditoría de Controladores Secundarios ✅
+
+Se evaluaron todos los controladores secundarios pendientes para identificar código muerto, validaciones inline y rutas huérfanas.
+
+### 1. Identificación de Grupo A (Controladores sin Rutas Activas)
+Se añadió un bloque `@todo` en los siguientes controladores advirtiendo que sus métodos void aún no están conectados a `web.php` y poseen validaciones inline a limpiar:
+- `LevelController.php`
+- `DocumentController.php`
+- `TypeStudentController.php`
+- `ServiceController.php`
+
+### 2. Limpieza en Grupo B (Limpieza Menor)
+- `DegreeController.php`: Documentados métodos void con `@todo`, se eliminaron comentarios basura. Conservó su ruta activa de sandbox (`getDegree`).
+- `ProfileController.php`: Extracción de validación inline en el método `destroy()` mediante la creación del FormRequest: `DeleteProfileRequest`.
+- `RoleController.php`: Se eliminaron los métodos vacíos / skeleton generados por defecto por Artisan que no tenían ruta activa (`create()`, `show()`, `edit()`).
+
+### 3. Corrección de Rutas en `web.php`
+- Se corrigió la ruta GET `/kardex` que estaba apuntando erróneamente a `Test_Vik/Kardex` (herencia obsoleta pre-Fase 1). Ahora renderiza correctamente `Exams/Kardex`.
+
+---
+
+## Estructura Final Conseguida
+El proyecto cumple ahora estrictamente con:
+- **Clean Architecture/SRP:** Vistas organizadas por dominios lógicos, componentes reusables bien ubicados limitando la duplicidad.
+- **Thin Controllers:** Los controladores principales delegan carga transaccional hacia el paquete `Actions` y las validaciones de entrada a `FormRequests`.
+- **Ausencia de Código Muerto Relevante:** Componentes y métodos inalcanzables o no utilizados han sido erradicados o bien identificados/documentados (`@todo`) de cara al futuro.
