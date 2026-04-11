@@ -16,6 +16,26 @@ import StatusBadge from "@/Components/ui/StatusBadge";
 const ExamDetailsModal = memo(({ examen, onClose }) => {
     if (!examen) return null;
 
+    /**
+     * Formatea una fecha ISO (YYYY-MM-DD) al formato legible en es-MX.
+     * Ej: "2026-04-14" → "14 abr 2026".
+     *
+     * @param {string} dateString - Fecha en formato ISO.
+     * @returns {string} Fecha formateada o cadena vacía si no hay valor.
+     */
+    const formatDate = (dateString) => {
+        if (!dateString) return "";
+
+        const date = new Date(`${dateString}T00:00:00`);
+        if (Number.isNaN(date.getTime())) return dateString;
+
+        return new Intl.DateTimeFormat("es-MX", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        }).format(date);
+    };
+
     const tipoDisplay = examen.exam_type?.value ?? examen.exam_type ?? null;
     const claveExamen = examen.name ?? "Sin Nomenclatura";
     const nombreDocente =
@@ -26,9 +46,14 @@ const ExamDetailsModal = memo(({ examen, onClose }) => {
         examen.period?.name ??
         null;
 
-    const startDateDisplay = examen.start_date ?? "Sin definir";
-    const endDateDisplay = examen.end_date ?? "Sin definir";
-    const rangoFechas = `Del ${startDateDisplay} al ${endDateDisplay}`;
+    const startDateDisplay = formatDate(examen.start_date);
+    const endDateDisplay = formatDate(examen.end_date);
+    const rangoFechas =
+        startDateDisplay && endDateDisplay
+            ? startDateDisplay === endDateDisplay
+                ? startDateDisplay
+                : `Del ${startDateDisplay} al ${endDateDisplay}`
+            : startDateDisplay || endDateDisplay || "Sin definir";
 
     const horaDisplay = examen.application_time ?? null;
     const modalidadDisplay = examen.mode ?? "Sin definir";
@@ -54,9 +79,13 @@ const ExamDetailsModal = memo(({ examen, onClose }) => {
                 {claveExamen}
             </h2>
             {nombreDocente ? (
-                <p className="text-sm font-semibold text-[#1B396A]">{nombreDocente}</p>
+                <p className="text-sm font-semibold text-[#1B396A]">
+                    {nombreDocente}
+                </p>
             ) : (
-                <p className="text-sm italic text-gray-400">Docente sin asignar</p>
+                <p className="text-sm italic text-gray-400">
+                    Docente sin asignar
+                </p>
             )}
         </>
     );

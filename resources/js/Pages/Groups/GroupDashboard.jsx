@@ -1,7 +1,7 @@
 import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
-import UsersTable from '@/Components/UsersTable';
+// import UsersTable from '@/Components/UsersTable';
 
 /**
  * Vista profunda de gestión del grupo.
@@ -73,13 +73,13 @@ export default function GroupDashboard({ auth, grupo }) {
                         </div>
 
                         {/* Rendering UsersTable with qualifications relation students */}
-                        <UsersTable 
+                        {/* <UsersTable 
                             data={grupo?.qualifications?.map(q => ({
                                 ...q.student,
                                 // Add additional useful properties if needed
                                 _qualification_id: q.id
                             })) || []} 
-                        />
+                        /> */}
                         
                     </div>
 
