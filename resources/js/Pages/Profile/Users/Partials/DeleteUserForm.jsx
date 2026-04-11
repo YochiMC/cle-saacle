@@ -1,5 +1,5 @@
 import DangerButton from '@/Components/DangerButton';
-import ConfirmModal from '@/Components/ConfirmModal';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 import {
     FieldDescription,
     FieldLegend,

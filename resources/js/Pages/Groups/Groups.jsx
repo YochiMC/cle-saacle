@@ -3,14 +3,14 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import { Layers3, Plus, ToggleRight, UsersRound, Trash2, Edit2 } from "lucide-react";
 
-import ThemeButton from "@/Components/ThemeButton";
+import ThemeButton from "@/Components/ui/ThemeButton";
 import GroupDetailsModal from "@/Components/Charts/GroupDetailsModal";
 import CardGroup from "@/Components/Charts/CardGroup";
 import ResourceFilterBar from "@/Components/Resource/ResourceFilterBar";
 import ResourceSelectFilter from "@/Components/Resource/ResourceSelectFilter";
 import GroupModal from "@/Components/Groups/GroupModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
-import ConfirmModal from "@/Components/ConfirmModal";
+import ConfirmModal from "@/Components/ui/ConfirmModal";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 
 import DataGrid from "@/Components/DataTable/DataGrid";

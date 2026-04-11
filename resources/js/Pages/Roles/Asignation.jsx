@@ -1,9 +1,9 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/ResourceDashboard";
+import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import useFlashAlert from "@/Hooks/useFlashAlert";
-import ConfirmModal from '@/Components/ConfirmModal';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 import ModalAlert from "@/Components/ui/ModalAlert";
 import RoleModal from "@/Components/Roles/RoleModal";
 import UpdateRoleModal from "@/Components/Roles/UpdateRoleModal";

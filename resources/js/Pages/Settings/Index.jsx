@@ -7,8 +7,8 @@ import { useSettingsManagement } from "@/Hooks/useSettingsManagement";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 
 import InputForm from "@/Components/Forms/InputForm";
-import ThemeButton from "@/Components/ThemeButton";
-import ConfirmModal from "@/Components/ConfirmModal";
+import ThemeButton from "@/Components/ui/ThemeButton";
+import ConfirmModal from "@/Components/ui/ConfirmModal";
 import FormErrors from "@/Components/ui/FormErrors";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import {

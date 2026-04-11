@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import Modal from "@/Components/Modal";
-import ThemeInput from "@/Components/ThemeInput";
-import ThemeButton from "@/Components/ThemeButton";
+import ThemeInput from "@/Components/ui/ThemeInput";
+import ThemeButton from "@/Components/ui/ThemeButton";
 import { Checkbox } from "@/Components/ui/checkbox";
 
 /**

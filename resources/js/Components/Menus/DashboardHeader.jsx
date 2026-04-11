@@ -1,4 +1,4 @@
-import { ThemeButton } from '@/Components/ThemeButton';
+import { ThemeButton } from '@/Components/ui/ThemeButton';
 import { Copy, Trash2 } from 'lucide-react';
 
 /**

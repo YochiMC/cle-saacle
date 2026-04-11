@@ -3,11 +3,11 @@ import { Head } from "@inertiajs/react";
 import { PlusCircle } from "lucide-react";
 
 import { DataTable } from "@/Components/DataTable/DataTable";
-import DashboardHeader from "@/Components/DashboardHeader";
+import DashboardHeader from "@/Components/Menus/DashboardHeader";
 import { useDynamicColumns } from "@/Hooks/useDynamicColumns";
 import { useBulkActions } from "@/Hooks/useBulkActions";
-import ConfirmModal from '@/Components/ConfirmModal';
-import ThemeButton from "@/Components/ThemeButton";
+import ConfirmModal from '@/Components/ui/ConfirmModal';
+import ThemeButton from "@/Components/ui/ThemeButton";
 
 const EMPTY_DATA = [];
 

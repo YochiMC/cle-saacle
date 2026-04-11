@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { Search } from "lucide-react";
-import { ThemeInput } from "@/Components/ThemeInput";
+import { ThemeInput } from "@/Components/ui/ThemeInput";
 
 /**
  * Barra genérica de busqueda y filtros por composicion.

@@ -16,7 +16,7 @@
  */
 
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/ResourceDashboard";
+import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
 import { useState } from 'react';
 import StudentModal from "@/Components/Users/StudentModal";
 import TeacherModal from "@/Components/Users/TeacherModal";
@@ -24,7 +24,7 @@ import ModalAlert from "@/Components/ui/ModalAlert";
 import { Head, router } from '@inertiajs/react';
 import { usePermission } from '@/Utils/auth';
 import useFlashAlert from "@/Hooks/useFlashAlert";
-import ConfirmModal from '@/Components/ConfirmModal';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 
 
 // Definidas fuera del componente para mantener referencia estable entre renders.

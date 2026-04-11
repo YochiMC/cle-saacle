@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/ResourceDashboard";
+import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
 import { usePermission } from "@/Utils/auth";
-import ThemeButton from "@/Components/ThemeButton";
+import ThemeButton from "@/Components/ui/ThemeButton";
 import Dropdown from "@/Components/Dropdown";
 import { X, Save, Edit3, Settings } from "lucide-react";
 import { router } from "@inertiajs/react";
 import EnrollStudentModal from "@/Components/SharedModals/EnrollStudentModal";
-import ConfirmModal from '@/Components/ConfirmModal';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 import ModalAlert from "@/Components/ui/ModalAlert";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 

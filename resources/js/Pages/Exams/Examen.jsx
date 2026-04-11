@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, usePage } from "@inertiajs/react";
-import ThemeButton from "@/Components/ThemeButton";
+import ThemeButton from "@/Components/ui/ThemeButton";
 import {
     CalendarX,
     ClipboardList,
@@ -21,7 +21,7 @@ import ResourceFilterBar from "@/Components/Resource/ResourceFilterBar";
 import ResourceSelectFilter from "@/Components/Resource/ResourceSelectFilter";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import ModalAlert from "@/Components/ui/ModalAlert";
-import ConfirmModal from "@/Components/ConfirmModal";
+import ConfirmModal from "@/Components/ui/ConfirmModal";
 
 import DataGrid from "@/Components/DataTable/DataGrid";
 import BulkActionBar from "@/Components/DataTable/BulkActionBar";
