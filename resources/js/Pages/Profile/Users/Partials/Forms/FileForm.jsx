@@ -105,7 +105,7 @@ export default function FileForm({
                 {document && (
                     <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 text-sm text-slate-600">
                         <p><span className="font-semibold text-slate-700">Documento:</span> {document?.original_name || 'Sin nombre'}</p>
-                        <p><span className="font-semibold text-slate-700">Tipo:</span> {document?.type || 'Sin tipo'}</p>
+                        <p><span className="font-semibold text-slate-700">Tipo:</span> {document?.type_label || document?.type || 'Sin tipo'}</p>
                     </div>
                 )}
 

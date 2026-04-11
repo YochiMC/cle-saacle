@@ -5,15 +5,6 @@ import SelectForm from '@/Components/Forms/SelectForm';
 import { FieldError } from '@/Components/ui/field';
 import { useForm } from '@inertiajs/react';
 
-const DOCUMENT_TYPE_OPTIONS = [
-    { value: 'INE', label: 'INE' },
-    { value: 'RFC', label: 'RFC' },
-    { value: 'CURP', label: 'CURP' },
-    { value: 'PASAPORTE', label: 'Pasaporte' },
-    { value: 'LICENCIA', label: 'Licencia de conducir' },
-    { value: 'OTRO', label: 'Otro' },
-];
-
 /**
  * FileForm
  *
@@ -24,11 +15,13 @@ const DOCUMENT_TYPE_OPTIONS = [
  * @param {boolean} [props.show=false] Controla visibilidad del modal.
  * @param {Function} props.onClose Callback para cerrar el modal.
  * @param {string} [props.title='Subir documento'] Título del encabezado del modal.
+ * @param {Array<{value: string, label: string}>} [props.typeOptions=[]] Opciones de tipos de documento.
  */
 export default function FileForm({
     show = false,
     onClose,
     title = 'Subir documento',
+    typeOptions = [],
 }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         file: null,
@@ -87,7 +80,7 @@ export default function FileForm({
                         label="Tipo de documento"
                         selectId="type"
                         placeholder="Selecciona un tipo"
-                        options={DOCUMENT_TYPE_OPTIONS}
+                        options={typeOptions}
                         value={data.type}
                         onValueChange={(value) => setData('type', value)}
                         description="Especifica el tipo de documento para facilitar la validación administrativa."

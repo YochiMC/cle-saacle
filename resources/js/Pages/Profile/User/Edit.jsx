@@ -24,8 +24,9 @@ import { useState } from 'react';
  * @param {boolean} props.mustVerifyEmail Indica si el usuario requiere verificación de correo.
  * @param {string|null} props.status Estado de operaciones relacionadas con verificación.
  * @param {Array} props.documents Lista de documentos del usuario.
+ * @param {Array} [props.documentTypes=[]] Tipos de documento permitidos para carga.
  */
-export default function Edit({ mustVerifyEmail, status, documents }) {
+export default function Edit({ mustVerifyEmail, status, documents, documentTypes = [] }) {
     // Normaliza los mensajes flash del backend para mostrarlos en un modal consistente.
     const { flashModal, closeFlashModal } = useFlashAlert();
     const [isOpen, setIsOpen] = useState(false);
@@ -135,7 +136,12 @@ export default function Edit({ mustVerifyEmail, status, documents }) {
                 </div>
             </div>
 
-            <FileForm show={isOpen} onClose={closeFileModal} title="Subir documento" />
+            <FileForm
+                show={isOpen}
+                onClose={closeFileModal}
+                title="Subir documento"
+                typeOptions={documentTypes}
+            />
 
             <FileInfo
                 show={isInfoOpen}

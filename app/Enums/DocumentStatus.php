@@ -37,6 +37,19 @@ enum DocumentStatus: string
     }
 
     /**
+     * Valores permitidos en el flujo de revisión administrativa.
+     *
+     * @return array<int, string>
+     */
+    public static function reviewValues(): array
+    {
+        return [
+            self::APPROVED->value,
+            self::REJECTED->value,
+        ];
+    }
+
+    /**
      * Opciones completas del enum para selects generales.
      *
      * @return array<int, array{value: string, label: string}>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
 use App\Models\Document;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,34 @@ use Illuminate\Validation\Rule;
 
 class DocumentController extends Controller
 {
+    /**
+     * Determina si el usuario autenticado puede revisar documentos de terceros.
+     */
+    private function canReviewDocuments(): bool
+    {
+        return Auth::user()->hasRole('admin') || Auth::user()->hasRole('coordinator');
+    }
+
+    /**
+     * Verifica si el usuario puede descargar el documento solicitado.
+     */
+    private function canDownloadDocument(Document $document): bool
+    {
+        return $document->user_id === Auth::id() || $this->canReviewDocuments();
+    }
+
+    /**
+     * Devuelve la ruta física del archivo y valida su existencia.
+     */
+    private function resolveDocumentAbsolutePath(Document $document): string
+    {
+        if (! Storage::disk($document->disk)->exists($document->file_path)) {
+            abort(404, 'Archivo no encontrado.');
+        }
+
+        return Storage::disk($document->disk)->path($document->file_path);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -41,7 +70,7 @@ class DocumentController extends Controller
         // Validar entrada del usuario sin espacios en los mimes
         $validated = $request->validate([
             'file' => 'required|mimes:pdf,doc,docx,jpg,png|max:10240',
-            'type' => 'required|string|max:100',
+            'type' => ['required', Rule::in(DocumentType::values())],
         ]);
 
         $file = $request->file('file');
@@ -87,13 +116,13 @@ class DocumentController extends Controller
      */
     public function update(Request $request, Document $document): RedirectResponse
     {
-        if (! Auth::user()->hasRole('admin') && ! Auth::user()->hasRole('coordinator')) {
+        if (! $this->canReviewDocuments()) {
             abort(403, 'No autorizado para actualizar este documento.');
         }
 
         $validated = $request->validate([
             'comments' => 'nullable|string|max:255',
-            'status' => ['required', Rule::in([DocumentStatus::APPROVED->value, DocumentStatus::REJECTED->value])],
+            'status' => ['required', Rule::in(DocumentStatus::reviewValues())],
         ]);
 
         $document->update([
@@ -126,20 +155,13 @@ class DocumentController extends Controller
 
     public function download(Document $document)
     {
-        // Verificar que el documento pertenece al usuario autenticado
-        if ($document->user_id !== Auth::id() && !Auth::user()->hasRole('admin') && !Auth::user()->hasRole('coordinator')) {
+        if (! $this->canDownloadDocument($document)) {
             abort(403, 'No autorizado para descargar este documento.');
         }
 
-        // Verificar que el archivo existe en el almacenamiento
-        if (! Storage::disk($document->disk)->exists($document->file_path)) {
-            abort(404, 'Archivo no encontrado.');
-        }
+        $absolutePath = $this->resolveDocumentAbsolutePath($document);
 
         // Descargar el archivo con su nombre original desde la ruta física del disco local
-        return response()->download(
-            Storage::disk($document->disk)->path($document->file_path),
-            $document->original_name
-        );
+        return response()->download($absolutePath, $document->original_name);
     }
 }

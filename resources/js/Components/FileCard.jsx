@@ -60,7 +60,7 @@ export default function FileCard({
                         {document?.original_name || 'Documento sin nombre'}
                     </p>
                     <p className="mt-1 text-sm text-slate-500">
-                        {document?.type || 'Sin tipo'} • {formattedDate}
+                        {document?.type_label || document?.type || 'Sin tipo'} • {formattedDate}
                     </p>
                     <span className={`mt-2 inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${statusMeta.className}`}>
                         {statusMeta.label}

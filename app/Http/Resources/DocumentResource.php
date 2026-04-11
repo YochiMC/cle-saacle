@@ -15,12 +15,16 @@ class DocumentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $type = $this->type;
+        $status = $this->status;
+
         return [
             'id' => $this->id,
-            'type' => $this->type,
+            'type' => is_object($type) ? $type->value : $type,
+            'type_label' => is_object($type) ? $type->label() : $type,
             'original_name' => $this->original_name,
             'file_path' => $this->file_path,
-            'status' => $this->status,
+            'status' => is_object($status) ? $status->value : $status,
             'comments' => $this->comments,
             'uploaded_at' => $this->created_at?->toDateTimeString(),
         ];

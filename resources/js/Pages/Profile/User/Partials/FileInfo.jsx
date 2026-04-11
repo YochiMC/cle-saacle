@@ -34,7 +34,7 @@ export default function FileInfo({ show = false, onClose = () => {}, document = 
 
                         <div>
                             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tipo</p>
-                            <p className="mt-1 text-slate-800">{document?.type || 'Sin tipo'}</p>
+                            <p className="mt-1 text-slate-800">{document?.type_label || document?.type || 'Sin tipo'}</p>
                         </div>
 
                         <div>

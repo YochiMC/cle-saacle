@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,6 +26,7 @@ class Document extends Model
     protected function casts(): array
     {
         return [
+            'type' => DocumentType::class,
             'status' => DocumentStatus::class,
         ];
     }
