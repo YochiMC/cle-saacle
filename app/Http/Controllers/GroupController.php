@@ -117,7 +117,7 @@ class GroupController extends Controller
             ->select('id', 'first_name', 'last_name', 'num_control')
             ->get();
 
-        return Inertia::render('Groups/GroupView', [
+        return Inertia::render('Groups/View', [
             'grupo'            => $group,
             'enrolledStudents' => $enrolledStudents,
             'availableStudents' => $availableStudents,

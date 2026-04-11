@@ -89,7 +89,7 @@ class ExamController extends Controller
             ->unique()
             ->values();
 
-        return \Inertia\Inertia::render('Exams/ExamView', [
+        return \Inertia\Inertia::render('Exams/View', [
             'examen'           => $exam,
             'enrolledStudents' => $enrolledStudents,
             'availableStudents' => $availableStudents,

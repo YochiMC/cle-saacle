@@ -24,7 +24,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/kardex', function () {
-    return Inertia::render('Exams/Kardex');
+    return Inertia::render('Academic/Kardex');
 })->middleware(['auth', 'verified'])->name('kardex');
 
 
