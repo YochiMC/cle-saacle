@@ -35,6 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
     Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
     Route::get('/profiles/{user}', [ProfileController::class, 'show'])->name('profiles');
+    Route::get('/profiles/{user}/kardex', [ProfileController::class, 'kardex'])->name('profiles.kardex');
     Route::post('/students', [StudentController::class, 'createStudent'])->name('students');
     Route::put('/students/{student}', [StudentController::class, 'updateStudent'])->name('students.update');
     Route::delete('/students/{student}', [StudentController::class, 'deleteStudent'])->name('students.delete');
