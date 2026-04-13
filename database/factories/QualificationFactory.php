@@ -41,7 +41,6 @@ class QualificationFactory extends Factory
             'group_id' => Group::factory(),
             'units_breakdown' => $unitsBreakdown,
             'final_average' => $average,
-            'is_approved' => $average >= 70,
             'is_left' => $this->faker->boolean(5), // 5% de probabilidad de haber abandonado
         ];
     }

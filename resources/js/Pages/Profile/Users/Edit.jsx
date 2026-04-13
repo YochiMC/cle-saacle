@@ -5,9 +5,9 @@ import UpdatePasswordForm from "./Partials/UpdatePasswordForm";
 import UpdateProfileInformationForm from "./Partials/UpdateProfileInformationForm";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import useFlashAlert from "@/Hooks/useFlashAlert";
-import Files from './Partials/Files';
-import FileForm from './Partials/Forms/FileForm';
-import { useState } from 'react';
+import Files from "./Partials/Files";
+import FileForm from "./Partials/Forms/FileForm";
+import { useState } from "react";
 
 /**
  * Profile
@@ -20,15 +20,29 @@ import { useState } from 'react';
  * @param {Object} props
  * @param {Array} props.roles Lista de roles disponibles para el usuario.
  * @param {Object} props.user Usuario que se está administrando.
+ * @param {boolean} [props.hasStudent=false] Si el usuario tiene perfil de alumno.
  * @param {Array} props.degrees Catálogo de grados académicos.
  * @param {Array} props.levels Catálogo de niveles académicos.
  * @param {Array} props.typeStudents Catálogo de tipos de estudiante.
  * @param {Array} [props.documentStatuses=[]] Opciones de estatus para revisión de documentos.
  * @param {Array} [props.documents=[]] Documentos asociados al usuario.
  */
-export default function Profile({ roles, user, degrees, levels, typeStudents, documentStatuses = [], documents = [] }) {
+export default function Profile({
+    roles,
+    user,
+    hasStudent = false,
+    degrees,
+    levels,
+    typeStudents,
+    documentStatuses = [],
+    documents = [],
+}) {
     const { flashModal, closeFlashModal } = useFlashAlert();
-    const userDocuments = documents.length > 0 ? documents : user?.documents ?? [];
+    const safeUser = user?.data ?? user;
+    const isStudentProfile =
+        Boolean(hasStudent) || safeUser?.profile?.type === "student";
+    const userDocuments =
+        documents.length > 0 ? documents : safeUser?.documents ?? [];
     const [showFileForm, setShowFileForm] = useState(false);
     const [selectedDocument, setSelectedDocument] = useState(null);
 
@@ -44,9 +58,11 @@ export default function Profile({ roles, user, degrees, levels, typeStudents, do
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">
-                Perfil de usuario
-            </h2>}
+            header={
+                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    Perfil de usuario
+                </h2>
+            }
         >
             <Head title="Perfil de usuario" />
             <div className="py-12">
@@ -88,11 +104,7 @@ export default function Profile({ roles, user, degrees, levels, typeStudents, do
                             )}
 
                             <div className="p-4 bg-white border shadow border-blueTec/20 sm:rounded-lg sm:p-8">
-                                <UpdatePasswordForm className="w-full" user={user} />
-                            </div>
-
-                            <div className="p-4 bg-white border shadow border-orangeTec/25 sm:rounded-lg sm:p-8">
-                                <DeleteUserForm className="w-full" user={user} />
+                                <UpdatePasswordForm className="w-full" user={safeUser} />
                             </div>
 
                             <div className="p-4 bg-white border shadow border-orangeTec/25 sm:rounded-lg sm:p-8">
