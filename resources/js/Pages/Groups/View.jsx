@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/ResourceDashboard";
+import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
 import { usePermission } from "@/Utils/auth";
-import ThemeButton from "@/Components/ThemeButton";
+import ThemeButton from "@/Components/ui/ThemeButton";
 import Dropdown from "@/Components/Dropdown";
 import { X, Save, Edit3, Settings } from "lucide-react";
 import { router } from "@inertiajs/react";
 import EnrollStudentModal from "@/Components/SharedModals/EnrollStudentModal";
-import ConfirmModal from '@/Components/ConfirmModal';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 import ModalAlert from "@/Components/ui/ModalAlert";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 
@@ -222,7 +222,7 @@ export default function GroupView({
                         setIsEditingMode(false);
                         setConfirmModal({ isOpen: false, type: null, itemData: null });
                     },
-                    onError: (errors) => console.error('Errores al guardar', errors),
+                    onError: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
                 },
             );
         } else if (confirmModal.type === 'row' && confirmModal.itemData) {
@@ -239,24 +239,23 @@ export default function GroupView({
                             setEditingRowId(null);
                             setConfirmModal({ isOpen: false, type: null, itemData: null });
                         },
-                        onError: (errors) => console.error('Error al guardar fila:', errors),
+                        onError: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
                     },
                 );
             } else {
-                console.warn('No se encontró el qualification_id para la fila.');
                 setConfirmModal({ isOpen: false, type: null, itemData: null });
             }
         } else if (confirmModal.type === 'close') {
             router.patch(route('groups.complete', grupo.id), {}, {
                 preserveScroll: true,
                 onSuccess: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
-                onError: (errors) => console.error('Error al cerrar el grupo:', errors),
+                onError: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
             });
         } else if (confirmModal.type === 'units') {
             router.patch(route('groups.update-units', grupo.id), { evaluable_units: Number(confirmModal.itemData) }, {
                 preserveScroll: true,
                 onSuccess: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
-                onError: (err) => console.error('Error actualizando unidades:', err),
+                onError: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
             });
         }
     };

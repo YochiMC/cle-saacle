@@ -3,79 +3,44 @@
 namespace App\Http\Controllers;
 
 use App\Models\Qualification;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Requests\UpdateQualificationsRequest;
+use Illuminate\Support\Facades\DB;
 
+/**
+ * Controlador de calificaciones individuales de Grupos.
+ *
+ * Thin Controller: delega validación a FormRequests y orquesta la persistencia.
+ * Los métodos sin rutas activas (getQualifications, createQualification, deleteQualification)
+ * han sido eliminados por ser código muerto.
+ */
 class QualificationController extends Controller
 {
     /**
-     * Obtener calificaciones de un estudiante.
+     * Actualiza una sola calificación de grupo.
+     *
+     * Usa UpdateQualificationsRequest que ya contempla la misma lógica de validación,
+     * eliminando la duplicación inline que tenía el método original.
      */
-    public function getQualifications($studentId): void
+    public function update(UpdateQualificationsRequest $request, Qualification $qualification)
     {
-        $qualifications = Qualification::where('student_id', $studentId)->get();
-    }
-
-    /**
-     * Crear una nueva calificación con validación.
-     */
-    public function createQualification(Request $request): void
-    {
-        // Para altas nuevas exigimos todas las unidades presentes y válidas.
-        $validated = $request->validate([
-            'units_breakdown' => 'required|array',
-            'units_breakdown.*' => 'nullable',
-            'final_average' => 'required',
-            'is_left' => 'required|boolean',
-            'student_id' => 'required|exists:students,id',
-            'group_id' => 'required|exists:groups,id',
-        ]);
-
-        $qualification = Qualification::create($validated);
-    }
-
-    /**
-     * Actualiza una sola calificación.
-     */
-    public function update(Request $request, Qualification $qualification)
-    {
-        // En edición permitimos vacíos temporales por UX (inputs en blur),
-        // pero conservamos validación numérica y rango cuando sí hay valor.
-        $validated = $request->validate([
-            'units_breakdown' => 'required|array',
-            'units_breakdown.*' => 'nullable',
-            'final_average' => 'required',
-            'is_left' => 'required|boolean',
-        ]);
-
-        $qualification->update($validated);
+        $qualification->update($request->validated());
 
         return redirect()->back()->with('success', 'Calificación individual guardada exitosamente.');
     }
 
     /**
-     * Eliminar una calificación.
-     */
-    public function deleteQualification(Qualification $qualification): void
-    {
-        $qualification->delete();
-    }
-
-    /**
-     * Actualiza masivamente un array de calificaciones proveniente de la vista de hoja de cálculo.
+     * Actualiza masivamente un array de calificaciones desde GroupView.
+     *
+     * El contrato viene serializado desde el frontend: units_breakdown + final_average + is_left.
      */
     public function bulkUpdate(UpdateQualificationsRequest $request)
     {
         DB::transaction(function () use ($request) {
-            // Este contrato viene serializado desde GroupView (JSON de unidades por fila).
-            $qualifications = $request->validated('qualifications');
-
-            foreach ($qualifications as $item) {
+            foreach ($request->validated('qualifications') as $item) {
                 Qualification::where('id', $item['qualification_id'])->update([
                     'units_breakdown' => $item['units_breakdown'] ?? [],
-                    'final_average' => $item['final_average'] ?? 0,
-                    'is_left' => $item['is_left'] ?? false,
+                    'final_average'   => $item['final_average'] ?? 0,
+                    'is_left'         => $item['is_left'] ?? false,
                 ]);
             }
         });

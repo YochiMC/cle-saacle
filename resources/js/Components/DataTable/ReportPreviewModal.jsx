@@ -8,7 +8,7 @@ import { useReactToPrint } from 'react-to-print';
 import { Printer, X } from 'lucide-react';
 
 // ── Componentes propios ─────────────────────────────────────────────────────
-import { ThemeButton } from '@/Components/ThemeButton';
+import { ThemeButton } from '@/Components/ui/ThemeButton';
 import PrintableReport from '@/Components/DataTable/PrintableReport';
 
 /**

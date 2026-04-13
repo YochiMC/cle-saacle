@@ -2,42 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\BulkDeleteExamsRequest;
-use App\Http\Requests\BulkUpdateExamsStatusRequest;
-use App\Http\Requests\BulkUpdateExamQualificationsRequest;
-use App\Http\Requests\EnrollStudentsRequest;
+use App\Actions\BulkUpdateExamQualifications;
+use App\Actions\EnrollStudentsInExam;
 use App\Enums\AcademicStatus;
+use App\Http\Requests\BulkDeleteExamsRequest;
+use App\Http\Requests\BulkUnenrollRequest;
+use App\Http\Requests\BulkUpdateExamStatusRequest;
+use App\Http\Requests\EnrollStudentsRequest;
+use App\Http\Requests\BulkUpdateExamQualificationsRequest;
+use App\Http\Requests\StoreExamRequest;
+use App\Http\Requests\UpdateExamPivotRequest;
 use App\Models\Exam;
-use App\Models\ExamStudent;
 use App\Models\Student;
 use App\Services\ExamNamingService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
+/**
+ * Thin Controller para la Gestión de Exámenes Académicos.
+ *
+ * Aplica estrictamente el Principio de Responsabilidad Única (SRP):
+ * - Las validaciones están aisladas en FormRequests.
+ * - La lógica de negocio (inscripción, bulk update de pivot) está en Actions.
+ * - El controlador solo orquesta: recibe, delega y redirige.
+ */
 class ExamController extends Controller
 {
-    private ExamNamingService $namingService;
+    public function __construct(private ExamNamingService $namingService) {}
 
-    public function __construct(ExamNamingService $namingService)
+    /**
+     * Crea un nuevo examen.
+     * Validación delegada a StoreExamRequest (elimina 12 líneas inline).
+     */
+    public function store(StoreExamRequest $request): RedirectResponse
     {
-        $this->namingService = $namingService;
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'exam_type' => 'required|string',
-            'status' => 'required|string',
-            'capacity' => 'required|integer|min:1',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'mode' => 'required|string',
-            'application_time' => 'nullable|string',
-            'classroom' => 'nullable|string|max:255',
-            'period_id' => 'required|exists:periods,id',
-            'teacher_id' => 'nullable|integer|exists:teachers,id',
-        ]);
-
+        $validated = $request->validated();
         $validated['name'] = $this->namingService->generateName($validated);
 
         Exam::create($validated);
@@ -45,21 +44,13 @@ class ExamController extends Controller
         return redirect()->back()->with('success', 'Examen agregado correctamente.');
     }
 
-    public function update(Request $request, Exam $exam)
+    /**
+     * Actualiza un examen existente.
+     * Reutiliza StoreExamRequest (reglas idénticas a store), eliminando duplicación.
+     */
+    public function update(StoreExamRequest $request, Exam $exam): RedirectResponse
     {
-        $validated = $request->validate([
-            'exam_type' => 'required|string',
-            'status' => 'required|string',
-            'capacity' => 'required|integer|min:1',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'mode' => 'required|string',
-            'application_time' => 'nullable|string',
-            'classroom' => 'nullable|string|max:255',
-            'period_id' => 'required|exists:periods,id',
-            'teacher_id' => 'nullable|integer|exists:teachers,id',
-        ]);
-
+        $validated = $request->validated();
         $validated['name'] = $this->namingService->generateName($validated);
 
         $exam->update($validated);
@@ -67,23 +58,27 @@ class ExamController extends Controller
         return redirect()->back()->with('success', 'Examen actualizado correctamente.');
     }
 
-    public function destroy(Exam $exam)
+    /**
+     * Elimina un examen.
+     */
+    public function destroy(Exam $exam): RedirectResponse
     {
         $exam->delete();
 
         return redirect()->back()->with('success', 'Examen eliminado correctamente.');
     }
 
+    /**
+     * Muestra el dashboard de un examen con sus alumnos inscritos y calificaciones.
+     */
     public function show(Exam $exam)
     {
-        // Cargamos alumnos con los datos completos del pivot (incluyendo units_breakdown).
         $students = $exam->students()->get();
 
         $enrolledStudents = $students->map(
             fn($student) => new \App\Http\Resources\StudentExamQualificationResource($student)
         );
 
-        // Alumnos disponibles para inscripción
         $enrolledIds = $exam->students()->pluck('students.id');
         $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
             ->select('id', 'first_name', 'last_name', 'num_control')
@@ -94,110 +89,100 @@ class ExamController extends Controller
             ->unique()
             ->values();
 
-        return \Inertia\Inertia::render('Test_Vik/ExamView', [
-            'examen'            => $exam,
-            'enrolledStudents'  => $enrolledStudents,
+        return \Inertia\Inertia::render('Exams/View', [
+            'examen'           => $exam,
+            'enrolledStudents' => $enrolledStudents,
             'availableStudents' => $availableStudents,
-            'levelsTecnm'       => $levelsTecnm,
+            'levelsTecnm'      => $levelsTecnm,
         ]);
     }
 
-    public function enroll(EnrollStudentsRequest $request, Exam $exam)
+    /**
+     * Inscribe alumnos en el examen.
+     *
+     * Toda la lógica (schema inicial desde ExamType, anti-duplicados, transacción)
+     * está encapsulada en EnrollStudentsInExam.
+     */
+    public function enroll(EnrollStudentsRequest $request, Exam $exam, EnrollStudentsInExam $action): RedirectResponse
     {
-        // Genera el JSON inicial según las reglas de negocio del ExamType.
-        $defaultBreakdown = $exam->exam_type->defaultUnitsBreakdown();
-
-        DB::transaction(function () use ($request, $exam, $defaultBreakdown) {
-            foreach ($request->validated('student_ids') as $studentId) {
-                // Usamos attach() en lugar de syncWithoutDetaching() para poder
-                // pasar los datos de pivot (units_breakdown) inicializados correctamente.
-                if (!$exam->students()->where('students.id', $studentId)->exists()) {
-                    $exam->students()->attach($studentId, [
-                        'units_breakdown' => json_encode($defaultBreakdown),
-                        'final_average'   => 0,
-                    ]);
-                }
-            }
-        });
+        $action->execute($exam, $request->validated('student_ids'));
 
         return redirect()->back()->with('success', 'Alumnos inscritos al examen.');
     }
 
-    public function unenroll(Exam $exam, \App\Models\Student $student)
+    /**
+     * Da de baja a un solo alumno del examen.
+     */
+    public function unenroll(Exam $exam, Student $student): RedirectResponse
     {
         $exam->students()->detach($student->id);
+
         return redirect()->back()->with('success', 'Alumno dado de baja del examen.');
     }
 
-    public function bulkUnenroll(Request $request, Exam $exam)
+    /**
+     * Da de baja masiva de alumnos del examen.
+     */
+    public function bulkUnenroll(BulkUnenrollRequest $request, Exam $exam): RedirectResponse
     {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:students,id'
-        ]);
+        $exam->students()->detach($request->validated('ids'));
 
-        $exam->students()->detach($request->ids);
         return redirect()->back()->with('success', 'Alumnos seleccionados dados de baja.');
     }
 
-    public function bulkStatus(Request $request)
+    /**
+     * Actualización masiva del estado de múltiples exámenes.
+     * La deuda técnica del campo new_status/status se resuelve en BulkUpdateExamStatusRequest
+     * mediante prepareForValidation().
+     */
+    public function bulkStatus(BulkUpdateExamStatusRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:exams,id',
-            'status' => 'required|string', // Wait, the frontend sends new_status. I'll support both to not break.
-        ]);
-
-        $newStatus = $request->input('new_status', $request->input('status'));
-
-        Exam::whereIn('id', $validated['ids'])
-            ->update(['status' => $newStatus]);
+        Exam::whereIn('id', $request->validated('ids'))
+            ->update(['status' => $request->validated('new_status')]);
 
         return redirect()->back()->with('success', 'Estados de exámenes actualizados exitosamente.');
     }
 
-    public function bulkDelete(Request $request)
+    /**
+     * Eliminación masiva de exámenes.
+     */
+    public function bulkDelete(BulkDeleteExamsRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:exams,id',
-        ]);
-
-        Exam::whereIn('id', $validated['ids'])->delete();
+        Exam::whereIn('id', $request->validated('ids'))->delete();
 
         return redirect()->back()->with('success', 'Exámenes eliminados correctamente.');
     }
 
-    public function updatePivot(Request $request, Exam $exam, Student $student)
+    /**
+     * Actualiza la calificación individual de un alumno en el pivot.
+     */
+    public function updatePivot(UpdateExamPivotRequest $request, Exam $exam, Student $student): RedirectResponse
     {
-        $validated = $request->validate([
-            'units_breakdown' => 'required|array',
-            'final_average' => 'nullable|numeric'
-        ]);
-
         $exam->students()->updateExistingPivot($student->id, [
-            'units_breakdown' => $validated['units_breakdown'],
-            'final_average' => $validated['final_average'] ?? 0,
+            'units_breakdown' => $request->validated('units_breakdown'),
+            'final_average'   => $request->validated('final_average') ?? 0,
         ]);
 
         return redirect()->back()->with('success', 'La calificación del alumno ha sido guardada correctamente.');
     }
 
-    public function bulkUpdatePivot(BulkUpdateExamQualificationsRequest $request, Exam $exam)
+    /**
+     * Actualiza masivamente las calificaciones del pivot exam_student.
+     *
+     * La transacción y el loop de actualización están encapsulados en
+     * BulkUpdateExamQualifications.
+     */
+    public function bulkUpdatePivot(BulkUpdateExamQualificationsRequest $request, Exam $exam, BulkUpdateExamQualifications $action): RedirectResponse
     {
-        DB::transaction(function () use ($request, $exam) {
-            foreach ($request->validated('qualifications') as $q) {
-                $exam->students()->updateExistingPivot($q['student_id'], [
-                    'units_breakdown' => $q['units_breakdown'],
-                    'final_average' => $q['final_average'] ?? 0,
-                ]);
-            }
-        });
+        $action->execute($exam, $request->validated('qualifications'));
 
         return redirect()->back()->with('success', '¡Éxito! Las calificaciones de todos los alumnos han sido guardadas y calculadas correctamente.');
     }
 
-    public function complete(Exam $exam)
+    /**
+     * Cierra definitivamente un examen.
+     */
+    public function complete(Exam $exam): RedirectResponse
     {
         $exam->update(['status' => AcademicStatus::COMPLETED]);
 

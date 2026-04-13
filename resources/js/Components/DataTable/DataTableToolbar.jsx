@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { useTableExport } from '@/Hooks/useTableExport';
 
 // ── Componentes de UI propios ───────────────────────────────────────────────
-import { ThemeButton } from '@/Components/ThemeButton';
-import { ThemeInput } from '@/Components/ThemeInput';
+import { ThemeButton } from '@/Components/ui/ThemeButton';
+import { ThemeInput } from '@/Components/ui/ThemeInput';
 import ReportPreviewModal from '@/Components/DataTable/ReportPreviewModal';
 
 // ── Íconos de lucide-react ──────────────────────────────────────────────────

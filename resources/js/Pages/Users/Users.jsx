@@ -16,15 +16,15 @@
  */
 
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/ResourceDashboard";
+import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
 import { useState } from 'react';
-import StudentModal from "@/Pages/TestYochi/Users/FormModals/StudentModal";
-import TeacherModal from "@/Pages/TestYochi/Users/FormModals/TeacherModal";
+import StudentModal from "@/Components/Users/StudentModal";
+import TeacherModal from "@/Components/Users/TeacherModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import { Head, router } from '@inertiajs/react';
 import { usePermission } from '@/Utils/auth';
 import useFlashAlert from "@/Hooks/useFlashAlert";
-import ConfirmModal from '@/Components/ConfirmModal';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 
 
 // Definidas fuera del componente para mantener referencia estable entre renders.
@@ -61,37 +61,29 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
 
     const handleEditRow = (item) => {
         const userId = item?.user_id;
-
-        if (!userId) {
-            console.error('No se pudo abrir el perfil: user_id no disponible en el registro.', item);
-            return;
-        }
-
+        if (!userId) return;
         router.get(route('profiles', userId));
     };
 
     const openDeleteModal = (item) => {
-        setItemToDelete(item); // Guardamos el usuario en el estado para que el modal sepa cuál es
+        setItemToDelete(item);
     };
 
     const handleDeleteRow = () => {
-        if (!itemToDelete) return; // Por seguridad
+        if (!itemToDelete) return;
 
         const itemId = itemToDelete?.id;
-        if (!itemId) {
-            console.error('No se pudo eliminar: id no disponible en el registro.', itemToDelete);
-            return;
-        }
+        if (!itemId) return;
 
         switch (currentView) {
             case 'alumnos':
                 router.delete(route('students.delete', itemId), {
-                    onSuccess: () => setItemToDelete(null), // Cerramos el modal si tiene éxito
+                    onSuccess: () => setItemToDelete(null),
                 });
                 break;
             case 'maestros':
                 router.delete(route('teachers.delete', itemId), {
-                    onSuccess: () => setItemToDelete(null), // Cerramos el modal si tiene éxito
+                    onSuccess: () => setItemToDelete(null),
                 });
                 break;
         }

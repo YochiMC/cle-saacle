@@ -1,5 +1,5 @@
 import React from "react";
-import ThemeButton from "@/Components/ThemeButton";
+import ThemeButton from "@/Components/ui/ThemeButton";
 import { X, CheckSquare } from "lucide-react";
 
 /**

@@ -1,14 +1,15 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
-import DeleteUserForm from './Partials/DeleteUserForm';
-import UpdatePasswordForm from './Partials/UpdatePasswordForm';
-import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
+import { Head, Link } from "@inertiajs/react";
+import DeleteUserForm from "./Partials/DeleteUserForm";
+import UpdatePasswordForm from "./Partials/UpdatePasswordForm";
+import UpdateProfileInformationForm from "./Partials/UpdateProfileInformationForm";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import Files from './Partials/Files';
 import FileForm from './Partials/Forms/FileForm';
 import { useState } from 'react';
 
+<<<<<<< HEAD
 /**
  * Profile
  *
@@ -47,6 +48,28 @@ export default function Profile({ roles, user, degrees, levels, typeStudents, do
             header={<h2 className="text-xl font-semibold leading-tight text-gray-800">
                 Perfil de usuario
             </h2>}
+=======
+export default function Profile({
+    roles,
+    user,
+    hasStudent,
+    degrees,
+    levels,
+    typeStudents,
+}) {
+    const { flashModal, closeFlashModal } = useFlashAlert();
+    const safeUser = user?.data ?? user;
+    const isStudentProfile =
+        Boolean(hasStudent) || safeUser?.profile?.type === "student";
+
+    return (
+        <AuthenticatedLayout
+            header={
+                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    Perfil
+                </h2>
+            }
+>>>>>>> 13b3c214f902014e815b9a52a90fca8d0d409d35
         >
             <Head title="Perfil de usuario" />
             <div className="py-12">
@@ -54,7 +77,7 @@ export default function Profile({ roles, user, degrees, levels, typeStudents, do
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                         <div className="p-4 bg-white border shadow border-blueTec/20 lg:col-span-2 sm:rounded-lg sm:p-8">
                             <UpdateProfileInformationForm
-                                user={user}
+                                user={safeUser}
                                 degrees={degrees}
                                 levels={levels}
                                 typeStudents={typeStudents}
@@ -63,14 +86,51 @@ export default function Profile({ roles, user, degrees, levels, typeStudents, do
                             />
                         </div>
                         <div className="space-y-6">
+                            {isStudentProfile && (
+                                <div className="p-4 bg-white border shadow border-blueTec/20 sm:rounded-lg sm:p-8">
+                                    <header>
+                                        <h2 className="text-lg font-medium text-gray-900">
+                                            Historial Académico
+                                        </h2>
+                                        <p className="mt-1 text-sm text-gray-600 mb-4">
+                                            Consulta el Kardex de calificaciones
+                                            ordinarias y acreditaciones de este
+                                            alumno.
+                                        </p>
+                                    </header>
+                                    <Link
+                                        href={route(
+                                            "profiles.kardex",
+                                            safeUser.id,
+                                        )}
+                                        className="inline-flex items-center px-4 py-2 bg-[#1B396A] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#142952] transition ease-in-out duration-150 shadow-sm"
+                                    >
+                                        Ver Kardex Académico
+                                    </Link>
+                                </div>
+                            )}
+
                             <div className="p-4 bg-white border shadow border-blueTec/20 sm:rounded-lg sm:p-8">
+<<<<<<< HEAD
                                 <UpdatePasswordForm className="w-full" user={user} />
                             </div>
 
                             <div className="p-4 bg-white border shadow border-orangeTec/25 sm:rounded-lg sm:p-8">
                                 <DeleteUserForm className="w-full" user={user} />
+=======
+                                <UpdatePasswordForm
+                                    className="w-full"
+                                    user={safeUser}
+                                />
+>>>>>>> 13b3c214f902014e815b9a52a90fca8d0d409d35
                             </div>
 
+                            <div className="p-4 bg-white border shadow border-orangeTec/25 sm:rounded-lg sm:p-8">
+                                <DeleteUserForm
+                                    className="w-full"
+                                    user={safeUser}
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -98,4 +158,3 @@ export default function Profile({ roles, user, degrees, levels, typeStudents, do
         </AuthenticatedLayout>
     );
 }
-
