@@ -4,7 +4,7 @@ import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import Files from './Partials/Files';
 import FileInfo from './Partials/FileInfo';
-import ConfirmModal from '@/Components/ConfirmModal';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 import ModalAlert from '@/Components/ui/ModalAlert';
 import useFlashAlert from '@/Hooks/useFlashAlert';
 import FileForm from './Partials/Forms/FileForm';

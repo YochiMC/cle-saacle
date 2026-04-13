@@ -15,18 +15,12 @@ use Illuminate\Validation\Rule;
 /**
  * Controlador de Documentos de Usuario.
  *
- * @todo PENDIENTE DE INTEGRACIÓN — Este controlador no tiene rutas activas en web.php.
- *       Antes de conectarlo, se deben realizar las siguientes mejoras:
- *
- *       1. Extraer validaciones inline (duplicadas entre create y update) a FormRequests:
- *          - createDocument()  → App\Http\Requests\StoreDocumentRequest
- *          - updateDocument()  → App\Http\Requests\UpdateDocumentRequest
- *
- *       2. Corregir los retornos: todos los métodos devuelven void.
- *          Deben retornar RedirectResponse o JsonResponse.
- *
- *       3. getDocuments() asigna $documents = Document::all() sin retornarla
- *          ni pasarla a ninguna vista — la variable queda en el limbo.
+ * Estado actual:
+ * - El módulo ya está integrado con rutas activas para crear, descargar,
+ *   actualizar estatus y eliminar documentos.
+ * - La actualización de documentos está restringida a roles de revisión
+ *   (admin/coordinator).
+ * - La descarga permite al propietario del documento o revisores autorizados.
  */
 class DocumentController extends Controller
 {

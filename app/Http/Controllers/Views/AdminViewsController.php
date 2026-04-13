@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Views;
 
+use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
 use App\Enums\StudentStatus;
 use App\Enums\GroupMode;
 use App\Http\Controllers\Controller;
@@ -23,6 +25,7 @@ use App\Models\Exam;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
 
 /**
  * Controlador para la gestión de las vistas administrativas.
@@ -30,6 +33,26 @@ use Inertia\Inertia;
  */
 class AdminViewsController extends Controller
 {
+    /**
+     * Resuelve los tipos de documento visibles según el rol principal del usuario.
+     * Mantiene el mismo contrato de datos usado en la vista administrativa del perfil.
+     *
+     * @param User $user
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function resolveDocumentTypeOptions(User $user): array
+    {
+        if ($user->hasRole('teacher')) {
+            return DocumentType::requiredSelectFor('teacher');
+        }
+
+        if ($user->hasRole('student')) {
+            return DocumentType::requiredSelectFor('student');
+        }
+
+        return DocumentType::toSelect();
+    }
+
     /**
      * Renderiza la vista de gestión de usuarios (Alumnos y Docentes).
      *
@@ -131,11 +154,17 @@ class AdminViewsController extends Controller
             'student.typeStudent',
         ]);
 
+        $documentTypeOptions = $this->resolveDocumentTypeOptions($user);
+
         return Inertia::render('Profile/Users/Edit', [
+            'roles' => Role::all(),
             'user'         => UserResource::make($user),
+            'hasStudent' => (bool) $user->student,
             'degrees'      => Degree::all(['id', 'name']),
             'levels'       => Level::all(['id', 'level_tecnm']),
             'typeStudents' => TypeStudent::all(['id', 'name']),
+            'documentStatuses' => DocumentStatus::reviewOptions(),
+            'documentTypes' => $documentTypeOptions,
         ]);
     }
 
