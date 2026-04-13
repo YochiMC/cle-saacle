@@ -5,10 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
 use App\Models\Document;
-<<<<<<< HEAD
 use Illuminate\Http\RedirectResponse;
-=======
->>>>>>> 13b3c214f902014e815b9a52a90fca8d0d409d35
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -38,7 +35,6 @@ class DocumentController extends Controller
      */
     private function canReviewDocuments(): bool
     {
-<<<<<<< HEAD
         return Auth::user()->hasRole('admin') || Auth::user()->hasRole('coordinator');
     }
 
@@ -91,20 +87,11 @@ class DocumentController extends Controller
         $validated = $request->validate([
             'file' => 'required|mimes:pdf,doc,docx,jpg,png|max:10240',
             'type' => ['required', Rule::in(DocumentType::values())],
-=======
-        $validate = $request->validate([
-            'user_id'   => 'required|integer|exists:users,id',
-            'type'      => 'required|string|max:100',
-            'file_path' => 'required|string|max:255',
-            'status'    => 'required|string|max:100',
-            'comments'  => 'nullable|string|max:255',
->>>>>>> 13b3c214f902014e815b9a52a90fca8d0d409d35
         ]);
 
         $file = $request->file('file');
         $userId = Auth::id();
 
-<<<<<<< HEAD
         // Generar nombre único para el archivo
         $fileName = Str::uuid().'.'.$file->getClientOriginalExtension();
 
@@ -119,16 +106,6 @@ class DocumentController extends Controller
             'file_path' => $path,
             'disk' => 'local',
             'status' => DocumentStatus::PENDING,
-=======
-    public function updateDocument(Document $document, Request $request): void
-    {
-        $validate = $request->validate([
-            'user_id'   => 'required|integer|exists:users,id',
-            'type'      => 'required|string|max:100',
-            'file_path' => 'required|string|max:255',
-            'status'    => 'required|string|max:100',
-            'comments'  => 'nullable|string|max:255',
->>>>>>> 13b3c214f902014e815b9a52a90fca8d0d409d35
         ]);
 
         return back()->with('success', 'Documento subido exitosamente.');

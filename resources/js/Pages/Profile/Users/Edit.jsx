@@ -9,7 +9,6 @@ import Files from './Partials/Files';
 import FileForm from './Partials/Forms/FileForm';
 import { useState } from 'react';
 
-<<<<<<< HEAD
 /**
  * Profile
  *
@@ -48,28 +47,6 @@ export default function Profile({ roles, user, degrees, levels, typeStudents, do
             header={<h2 className="text-xl font-semibold leading-tight text-gray-800">
                 Perfil de usuario
             </h2>}
-=======
-export default function Profile({
-    roles,
-    user,
-    hasStudent,
-    degrees,
-    levels,
-    typeStudents,
-}) {
-    const { flashModal, closeFlashModal } = useFlashAlert();
-    const safeUser = user?.data ?? user;
-    const isStudentProfile =
-        Boolean(hasStudent) || safeUser?.profile?.type === "student";
-
-    return (
-        <AuthenticatedLayout
-            header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Perfil
-                </h2>
-            }
->>>>>>> 13b3c214f902014e815b9a52a90fca8d0d409d35
         >
             <Head title="Perfil de usuario" />
             <div className="py-12">
@@ -111,18 +88,11 @@ export default function Profile({
                             )}
 
                             <div className="p-4 bg-white border shadow border-blueTec/20 sm:rounded-lg sm:p-8">
-<<<<<<< HEAD
                                 <UpdatePasswordForm className="w-full" user={user} />
                             </div>
 
                             <div className="p-4 bg-white border shadow border-orangeTec/25 sm:rounded-lg sm:p-8">
                                 <DeleteUserForm className="w-full" user={user} />
-=======
-                                <UpdatePasswordForm
-                                    className="w-full"
-                                    user={safeUser}
-                                />
->>>>>>> 13b3c214f902014e815b9a52a90fca8d0d409d35
                             </div>
 
                             <div className="p-4 bg-white border shadow border-orangeTec/25 sm:rounded-lg sm:p-8">
