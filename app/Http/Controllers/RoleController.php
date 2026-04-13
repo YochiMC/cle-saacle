@@ -25,20 +25,13 @@ class RoleController extends Controller
         $users = User::with('roles')->get();
         $roles = Role::with('permissions')->get();
         $permissions = Permission::all();
-        return Inertia::render('TestYochi/RolesPermissions/Asignation', [
+        return Inertia::render('Roles/Asignation', [
             'users' => $users,
             'roles' => RoleResource::collection($roles)->resolve(),
             'permissions' => PermissionResource::collection($permissions)->resolve(),
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -74,21 +67,6 @@ class RoleController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.

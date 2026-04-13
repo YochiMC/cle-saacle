@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/ResourceDashboard";
+import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
 import { usePermission } from "@/Utils/auth";
-import ThemeButton from "@/Components/ThemeButton";
+import ThemeButton from "@/Components/ui/ThemeButton";
 import { X, Save, Edit3 } from "lucide-react";
 import { router } from "@inertiajs/react";
 import EnrollStudentModal from "@/Components/SharedModals/EnrollStudentModal";
-import ConfirmModal from "@/Components/ConfirmModal";
+import ConfirmModal from "@/Components/ui/ConfirmModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 
@@ -297,7 +297,7 @@ export default function ExamView({
                         setIsEditingMode(false); 
                         setConfirmModal({ isOpen: false, type: null, itemData: null }); 
                     },
-                    onError: (errors) => console.error("Errores al guardar", errors),
+                    onError: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
                 }
             );
         } else if (confirmModal.type === 'row' && confirmModal.itemData) {
@@ -315,14 +315,14 @@ export default function ExamView({
                         setEditingRowId(null); 
                         setConfirmModal({ isOpen: false, type: null, itemData: null }); 
                     },
-                    onError: (errors) => console.error("Error al guardar fila:", errors),
+                    onError: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
                 }
             );
         } else if (confirmModal.type === 'close') {
             router.patch(route('exams.complete', examen.id), {}, {
                 preserveScroll: true,
                 onSuccess: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
-                onError: (errors) => console.error("Error al cerrar el examen", errors),
+                onError: () => setConfirmModal({ isOpen: false, type: null, itemData: null }),
             });
         }
     };

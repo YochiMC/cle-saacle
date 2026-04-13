@@ -25,7 +25,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/kardex', function () {
-    return Inertia::render('Test_Vik/Kardex');
+    return Inertia::render('Academic/Kardex');
 })->middleware(['auth', 'verified'])->name('kardex');
 
 
@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
     Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
     Route::get('/profiles/{user}', [ProfileController::class, 'show'])->name('profiles');
+    Route::get('/profiles/{user}/kardex', [ProfileController::class, 'kardex'])->name('profiles.kardex');
     Route::post('/students', [StudentController::class, 'createStudent'])->name('students');
     Route::put('/students/{student}', [StudentController::class, 'updateStudent'])->name('students.update');
     Route::delete('/students/{student}', [StudentController::class, 'deleteStudent'])->name('students.delete');
@@ -93,7 +94,7 @@ Route::middleware('auth')->group(function () {
 Route::get('/Test', [DegreeController::class, 'getDegree'])->name('Test');
 
 Route::get('/yochi', function () {
-    return Inertia::render('Yochi');
+    return Inertia::render('RecursosYochi/Yochi');
 })->name('Yochi');
 
 require __DIR__ . '/auth.php';

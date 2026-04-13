@@ -1,12 +1,12 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/ResourceDashboard";
+import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import useFlashAlert from "@/Hooks/useFlashAlert";
-import ConfirmModal from '@/Components/ConfirmModal';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 import ModalAlert from "@/Components/ui/ModalAlert";
-import RoleModal from "@/Pages/TestYochi/RolesPermissions/FormModals/RoleModal";
-import UpdateRoleModal from "@/Pages/TestYochi/RolesPermissions/FormModals/UpdateRoleModal";
+import RoleModal from "@/Components/Roles/RoleModal";
+import UpdateRoleModal from "@/Components/Roles/UpdateRoleModal";
 
 // Definidas fuera del componente para mantener referencia estable entre renders.
 const VIEW_OPTIONS = [
@@ -58,7 +58,6 @@ export default function Asignation({ users, roles, permissions }) {
 
         const itemId = itemToDelete?.id;
         if (!itemId) {
-            console.error('No se pudo eliminar: id no disponible en el registro.', itemToDelete);
             setItemToDelete(null);
             return;
         }

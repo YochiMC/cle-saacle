@@ -114,7 +114,7 @@ class Student extends Model
     public function exams(): BelongsToMany
     {
         return $this->belongsToMany(Exam::class, 'exam_student')
-            ->withPivot('calificacion')
+            ->withPivot('calificacion', 'units_breakdown', 'final_average')
             ->withTimestamps();
     }
 }

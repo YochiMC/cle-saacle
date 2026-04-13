@@ -1,6 +1,6 @@
 import React, { memo, useState } from "react";
 import { X, Edit2, Trash2 } from "lucide-react";
-import ConfirmModal from "@/Components/ConfirmModal";
+import ConfirmModal from "@/Components/ui/ConfirmModal";
 
 /**
  * Barra flotante de acciones masivas desacoplada de Inertia.

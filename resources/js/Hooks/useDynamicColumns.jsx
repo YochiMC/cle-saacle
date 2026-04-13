@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/Components/ui/button";
 import { Checkbox } from "@/Components/ui/checkbox";
-import { ThemeInput } from "@/Components/ThemeInput";
+import { ThemeInput } from "@/Components/ui/ThemeInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
 import {
     Edit,
