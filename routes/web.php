@@ -9,6 +9,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\Views\AdminViewsController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\AccreditationController;
 use App\Http\Controllers\DocumentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -34,6 +35,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
+    Route::get('/acreditaciones', [AccreditationController::class, 'index'])->name('accreditations');
+    Route::patch('/acreditaciones/{student}/status', [AccreditationController::class, 'updateStatus'])->name('accreditations.update-status');
+    Route::post('/acreditaciones/bulk-suspend', [AccreditationController::class, 'bulkSuspend'])->name('accreditations.bulk-suspend');
     Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
     Route::get('/profiles/{user}', [ProfileController::class, 'show'])->name('profiles');
     Route::get('/profiles/{user}/kardex', [ProfileController::class, 'kardex'])->name('profiles.kardex');
@@ -67,7 +71,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/exams/{exam}', [App\Http\Controllers\ExamController::class, 'destroy'])->name('exams.destroy');
     Route::post('/exams/bulk-status', [\App\Http\Controllers\ExamController::class, 'bulkStatus'])->name('exams.bulk-status');
     Route::delete('/exams/bulk-delete', [\App\Http\Controllers\ExamController::class, 'bulkDelete'])->name('exams.bulk-delete');
-    
+
     // Rutas de gestión de un solo examen (clon de grupos)
     Route::get('/exams/{exam}/detalles', [\App\Http\Controllers\ExamController::class, 'show'])->name('exams.show');
     Route::post('/exams/{exam}/enroll', [\App\Http\Controllers\ExamController::class, 'enroll'])->name('exams.enroll');

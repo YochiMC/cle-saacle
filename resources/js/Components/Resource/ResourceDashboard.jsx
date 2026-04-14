@@ -6,7 +6,7 @@ import { DataTable } from "@/Components/DataTable/DataTable";
 import DashboardHeader from "@/Components/Menus/DashboardHeader";
 import { useDynamicColumns } from "@/Hooks/useDynamicColumns";
 import { useBulkActions } from "@/Hooks/useBulkActions";
-import ConfirmModal from '@/Components/ui/ConfirmModal';
+import ConfirmModal from "@/Components/ui/ConfirmModal";
 import ThemeButton from "@/Components/ui/ThemeButton";
 
 const EMPTY_DATA = [];
@@ -50,22 +50,26 @@ export default function ResourceDashboard({
     restrictedColumns = [],
     onCellChange,
     customActions,
+    customRowActions,
     editingRowId = null,
     editAllRows = false,
     onSaveRow,
     onCancelRow,
     selectOptions = {},
     getRowClassName,
+    bulkDeleteModal,
+    baseDataMap, // NUEVO: Permite saber si hay datos antes de filtrar
 }) {
     const firstView = viewOptions[0]?.value ?? "";
     const [vistaActual, setVistaActual] = useState(firstView);
 
     const currentData = dataMap[vistaActual] || EMPTY_DATA;
+    const currentBaseData = baseDataMap ? (baseDataMap[vistaActual] || EMPTY_DATA) : currentData;
     const currentViewLabel =
         viewOptions.find((o) => o.value === vistaActual)?.label ?? title;
 
-    // Generación reactiva de columnas — reacciona a columnas editables/restringidas.
-    const columns = useDynamicColumns(currentData, onEditRow, onDeleteRow, {
+    // Generación reactiva de columnas basado en currentBaseData para que los encabezados no desaparezcan al filtrar
+    const columns = useDynamicColumns(currentBaseData, onEditRow, onDeleteRow, {
         editableColumns,
         restrictedColumns,
         selectOptions,
@@ -74,6 +78,7 @@ export default function ResourceDashboard({
         editAllRows,
         onSaveRow,
         onCancelRow,
+        customRowActions,
     });
 
     // Estado y handlers de acciones masivas
@@ -85,7 +90,7 @@ export default function ResourceDashboard({
         resetSelection,
         isConfirmingBulkDelete,
         setIsConfirmingBulkDelete,
-        executeBulkDelete
+        executeBulkDelete,
     } = useBulkActions(deleteRoute, vistaActual);
 
     const handleViewChange = (newView) => {
@@ -96,6 +101,14 @@ export default function ResourceDashboard({
             onViewChange(newView);
         }
     };
+
+    const bulkModalTitle = bulkDeleteModal?.title ?? "Acción masiva";
+    const bulkModalMessage =
+        bulkDeleteModal?.message ??
+        `¿Estás seguro de que deseas aplicar esta acción a los ${filasSeleccionadas.length} registros seleccionados?`;
+    const bulkModalConfirmText =
+        bulkDeleteModal?.confirmText ?? "Sí, continuar";
+    const bulkModalVariant = bulkDeleteModal?.variant ?? "warning";
 
     return (
         <div className="min-h-screen py-12 bg-gray-100">
@@ -116,7 +129,7 @@ export default function ResourceDashboard({
 
                 <div className="p-6 overflow-hidden bg-white rounded-sm shadow-sm">
                     {/* ── Tabla de Datos o Estado Vacío ────── */}
-                    {currentData.length > 0 ? (
+                    {currentBaseData.length > 0 ? (
                         <DataTable
                             key={`table-${vistaActual}-${currentData.length}`}
                             columns={columns}
@@ -132,11 +145,14 @@ export default function ResourceDashboard({
                     ) : (
                         <div className="flex flex-col items-center justify-center p-12 text-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 mt-2">
                             <h3 className="text-lg font-medium text-[#17365D] mb-2">
-                                No hay registros en {currentViewLabel.toLowerCase()}
+                                No hay registros en{" "}
+                                {currentViewLabel.toLowerCase()}
                             </h3>
                             <p className="text-sm text-slate-500 mb-6 max-w-sm">
                                 Aún no hay registros para mostrar en esta vista.
-                                {onNew ? " Comienza agregando el primero para poder gestionar la información." : ""}
+                                {onNew
+                                    ? " Comienza agregando el primero para poder gestionar la información."
+                                    : ""}
                             </p>
                             {onNew && (
                                 <ThemeButton
@@ -156,12 +172,11 @@ export default function ResourceDashboard({
                 isOpen={isConfirmingBulkDelete}
                 onClose={() => setIsConfirmingBulkDelete(false)}
                 onConfirm={executeBulkDelete}
-                title="Baja Masiva"
-                message={`¿Estás seguro de que deseas dar de baja a los ${filasSeleccionadas.length} alumnos seleccionados del grupo? Esta acción puede deshacerse volviendo a inscribirlos.`}
-                confirmText="Sí, dar de baja"
-                variant="warning"
+                title={bulkModalTitle}
+                message={bulkModalMessage}
+                confirmText={bulkModalConfirmText}
+                variant={bulkModalVariant}
             />
         </div>
     );
 }
-

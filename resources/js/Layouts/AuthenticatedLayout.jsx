@@ -15,6 +15,7 @@ export default function AuthenticatedLayout({ header, children }) {
         { route: "groups", label: "Grupos" },
         { route: "reports", label: "Reportes" },
         { route: "exams.index", label: "Exámenes" },
+        { route: "accreditations", label: "Acreditaciones" },
         { route: "settings.index", label: "Configuraciones" },
     ];
 
@@ -33,7 +34,6 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <ApplicationLogo className="block h-9 w-auto fill-white text-white" />
                                 </Link>
                             </div>
-
                         </div>
                         <Navbar links={links} />
                         <div className="hidden sm:ms-6 sm:flex sm:items-center">

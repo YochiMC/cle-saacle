@@ -9,7 +9,9 @@ enum StudentStatus: string
     case CURRENT = 'current';
 
     case SUSPENDED = 'suspended';
+    case IN_REVIEW = 'in_review';
     case ACCREDITED = 'accredited';
+    case RELEASED = 'released';
 
     public function label(): string
     {
@@ -17,7 +19,9 @@ enum StudentStatus: string
             self::WAITING => 'En Espera',
             self::CURRENT => 'Vigente',
             self::SUSPENDED => 'Suspendido',
+            self::IN_REVIEW => 'En Revisión',
             self::ACCREDITED => 'Acreditado',
+            self::RELEASED => 'Liberado',
         };
     }
 }

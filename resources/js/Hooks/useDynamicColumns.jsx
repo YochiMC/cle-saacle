@@ -2,7 +2,14 @@ import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/Components/ui/button";
 import { Checkbox } from "@/Components/ui/checkbox";
 import { ThemeInput } from "@/Components/ui/ThemeInput";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
+import StatusBadge from "@/Components/ui/StatusBadge";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/Components/ui/select";
 import {
     Edit,
     Trash2,
@@ -46,10 +53,7 @@ const resolveInputType = (fieldKey) => {
     if (lower.includes("date") || lower.includes("fecha")) return "date";
 
     // Campos de texto libre para exámenes
-    if (
-        lower.includes("promedio") ||
-        lower.includes("oportunidad")
-    )
+    if (lower.includes("promedio") || lower.includes("oportunidad"))
         return "text";
 
     // Selector de niveles y habilidades
@@ -59,8 +63,10 @@ const resolveInputType = (fieldKey) => {
         lower.includes("listening") ||
         lower.includes("reading") ||
         lower.includes("writing") ||
-        lower.includes("speaking")
-    ) return "select";
+        lower.includes("speaking") ||
+        lower.includes("status")
+    )
+        return "select";
 
     return "number"; // Default: calificación numérica
 };
@@ -87,7 +93,13 @@ const SortIcon = ({ column }) => {
  * @param {number|string} rowId   – ID del registro.
  * @param {Function}      onChange – Callback opcional: (fieldKey, rowId, value) => void
  */
-const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange, selectOptions = {} }) => {
+const EditableCell = ({
+    value: initialValue,
+    rowId,
+    fieldKey,
+    onChange,
+    selectOptions = {},
+}) => {
     const inputType = resolveInputType(fieldKey);
     const [value, setValue] = useState(initialValue);
 
@@ -126,16 +138,22 @@ const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange, selectOp
         const fallbackOptions = fieldKey.includes("nivel_certificado")
             ? ["A1", "A2", "B1", "B2", "C1", "C2"]
             : [
-                "Básico 1", "Básico 2",
-                "Intermedio 1", "Intermedio 2", "Intermedio 3", "Intermedio 4", "Intermedio 5",
-                "Avanzado 1", "Avanzado 2",
+                  "Básico 1",
+                  "Básico 2",
+                  "Intermedio 1",
+                  "Intermedio 2",
+                  "Intermedio 3",
+                  "Intermedio 4",
+                  "Intermedio 5",
+                  "Avanzado 1",
+                  "Avanzado 2",
               ];
-              
+
         const options = selectOptions[fieldKey] || fallbackOptions;
 
         return (
-            <Select 
-                value={value ?? ""} 
+            <Select
+                value={String(value ?? "")}
                 onValueChange={(newValue) => {
                     setValue(newValue);
                     if (onChange) onChange(fieldKey, rowId, newValue);
@@ -145,11 +163,23 @@ const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange, selectOp
                     <SelectValue placeholder="Seleccionar..." />
                 </SelectTrigger>
                 <SelectContent>
-                    {options.map(opt => (
-                        <SelectItem key={opt} value={opt} className="text-xs">
-                            {opt}
-                        </SelectItem>
-                    ))}
+                    {options.map((opt) => {
+                        const val =
+                            typeof opt === "object"
+                                ? String(opt.value)
+                                : String(opt);
+                        const lbl = typeof opt === "object" ? opt.label : opt;
+
+                        return (
+                            <SelectItem
+                                key={val}
+                                value={val}
+                                className="text-xs"
+                            >
+                                {lbl}
+                            </SelectItem>
+                        );
+                    })}
                 </SelectContent>
             </Select>
         );
@@ -172,7 +202,9 @@ const EditableCell = ({ value: initialValue, rowId, fieldKey, onChange, selectOp
                 if (onChange) {
                     onChange(fieldKey, rowId, value);
                 } else {
-                    console.log(`[Edicion Tabla] campo="${fieldKey}" alumno_id=${rowId} valor=${value}`);
+                    console.log(
+                        `[Edicion Tabla] campo="${fieldKey}" alumno_id=${rowId} valor=${value}`,
+                    );
                 }
             }}
             {...extraNumericProps}
@@ -211,11 +243,13 @@ export function useDynamicColumns(
         editAllRows = false,
         onSaveRow,
         onCancelRow,
+        customRowActions,
     } = {},
 ) {
     // Generar una firma de las llaves para evitar recrear columnas cuando el array `data`
     // cambia su valor interno pero no su estructura (evita perder el foco en inputs)
-    const dataKeys = data && data.length > 0 ? Object.keys(data[0]).join(",") : "";
+    const dataKeys =
+        data && data.length > 0 ? Object.keys(data[0]).join(",") : "";
 
     return useMemo(() => {
         if (!dataKeys) return [];
@@ -243,7 +277,8 @@ export function useDynamicColumns(
             // ISP: la celda solo sabe si ELLA es editable.
             cell: ({ row }) => {
                 const cellValue = row.original[key];
-                const isRowEditing = editAllRows || row.original.id === editingRowId;
+                const isRowEditing =
+                    editAllRows || row.original.id === editingRowId;
 
                 if (isRowEditing && editableSet.has(key)) {
                     return (
@@ -256,6 +291,15 @@ export function useDynamicColumns(
                         />
                     );
                 }
+
+                if (key === "status") {
+                    return (
+                        <div className="flex justify-center w-full">
+                            <StatusBadge status={cellValue} />
+                        </div>
+                    );
+                }
+
                 // Renderizar celda normal para is_left
                 if (key.includes("is_left")) {
                     return cellValue ? (
@@ -281,23 +325,48 @@ export function useDynamicColumns(
 
                 // 1. Definir qué columnas SON calificaciones (Lista Blanca)
                 const gradeColumns = [
-                    "final_average", "calificacion", "calificacion_final", 
-                    "promedio", "listening", "reading", "writing", "speaking",
-                    "unit_", "a1", "a2", "b1", "b2", "c1", "c2"
+                    "final_average",
+                    "calificacion",
+                    "calificacion_final",
+                    "promedio",
+                    "listening",
+                    "reading",
+                    "writing",
+                    "speaking",
+                    "unit_",
+                    "a1",
+                    "a2",
+                    "b1",
+                    "b2",
+                    "c1",
+                    "c2",
                 ];
-                const isGradeColumn = gradeColumns.some(col => key.includes(col));
+                const isGradeColumn = gradeColumns.some((col) =>
+                    key.includes(col),
+                );
 
                 // 2. Solo aplicar lógica de colores si es una columna de calificación
                 if (isGradeColumn) {
                     const isNumericGrade = /^\d+$/.test(String(cellValue));
-                    const grade = isNumericGrade ? parseInt(cellValue, 10) : null;
-                    const failedNumeric = isNumericGrade && grade !== null && grade < 70;
-                    const approvedNumeric = isNumericGrade && grade !== null && grade >= 70;
+                    const grade = isNumericGrade
+                        ? parseInt(cellValue, 10)
+                        : null;
+                    const failedNumeric =
+                        isNumericGrade && grade !== null && grade < 70;
+                    const approvedNumeric =
+                        isNumericGrade && grade !== null && grade >= 70;
 
                     if (!row.original.is_left) {
-                        if (cellValue === "NA" || failedNumeric || ["A1", "A2"].includes(cellValue)) {
+                        if (
+                            cellValue === "NA" ||
+                            failedNumeric ||
+                            ["A1", "A2"].includes(cellValue)
+                        ) {
                             textColor = "text-red-600 font-bold";
-                        } else if (approvedNumeric || ["B1", "B2", "C1", "C2"].includes(cellValue)) {
+                        } else if (
+                            approvedNumeric ||
+                            ["B1", "B2", "C1", "C2"].includes(cellValue)
+                        ) {
                             textColor = "text-emerald-600 font-bold";
                         }
                     } else {
@@ -307,7 +376,11 @@ export function useDynamicColumns(
                 }
 
                 // Celda de solo-lectura
-                return <span className={textColor}>{renderCellValue(cellValue)}</span>;
+                return (
+                    <span className={textColor}>
+                        {renderCellValue(cellValue)}
+                    </span>
+                );
             },
         }));
 
@@ -345,6 +418,12 @@ export function useDynamicColumns(
                 const itemName =
                     item.name || item.nombre || item.matricula || item.id;
                 const isRowEditing = editAllRows || item.id === editingRowId;
+
+                // OCP: si existe una acción personalizada, tiene prioridad sobre acciones por defecto
+                // (incluyendo estado de edición global) para no acoplar el comportamiento al core de la tabla.
+                if (customRowActions) {
+                    return customRowActions(item);
+                }
 
                 // Si esta fila está en edición, mostrar botones de Guardar/Cancelar
                 if (isRowEditing) {
@@ -406,11 +485,7 @@ export function useDynamicColumns(
             },
         };
 
-        return [
-            selectionColumn,
-            ...baseColumns,
-            actionsColumn,
-        ];
+        return [selectionColumn, ...baseColumns, actionsColumn];
     }, [
         dataKeys,
         onEditRow,
@@ -422,5 +497,6 @@ export function useDynamicColumns(
         editAllRows,
         onSaveRow,
         onCancelRow,
+        customRowActions,
     ]);
 }

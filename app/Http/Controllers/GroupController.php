@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\EnrollStudentsInGroup;
 use App\Actions\UpdateGroupEvaluableUnits;
+use App\Actions\AutoQueueAccreditationCandidates;
 use App\Enums\AcademicStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BulkDeleteGroupsRequest;
@@ -177,9 +178,12 @@ class GroupController extends Controller
     /**
      * Cierra definitivamente un grupo.
      */
-    public function complete(Group $group): RedirectResponse
+    public function complete(Group $group, AutoQueueAccreditationCandidates $action): RedirectResponse
     {
         $group->update(['status' => AcademicStatus::COMPLETED]);
+
+        // Automatización del flujo de acreditación
+        $action->executeForGroup($group);
 
         return redirect()->back()->with('success', 'El grupo ha sido cerrado exitosamente. Ya no se permiten modificaciones.');
     }

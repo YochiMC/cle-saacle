@@ -14,6 +14,12 @@ const ESTADO_MAP = {
     completed: { etiqueta: "Completado",             cls: "bg-gray-100 text-gray-800" },
     closed:    { etiqueta: "Cerrado",                cls: "bg-red-100 text-red-800" },
     inactive:  { etiqueta: "Cerrado",                cls: "bg-red-100 text-red-800" },
+    
+    // Acreditaciones
+    in_review: { etiqueta: "En Revisión",            cls: "bg-orange-100 text-orange-800" },
+    accredited:{ etiqueta: "Acreditado",             cls: "bg-emerald-100 text-emerald-800" },
+    released:  { etiqueta: "Liberado",               cls: "bg-indigo-100 text-indigo-800" },
+    suspended: { etiqueta: "Suspendido",             cls: "bg-gray-200 text-gray-600" },
 };
 
 /**

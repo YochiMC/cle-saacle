@@ -1,27 +1,36 @@
-import { useState } from 'react';
-import Sidebar from '@/components/Menus/Sidebar';
-import ApplicationLogo from '@/Components/ApplicationLogo';
+import { useState } from "react";
+import Sidebar from "@/components/Menus/Sidebar";
+import ApplicationLogo from "@/Components/ApplicationLogo";
 
 export default function SessionLayout({ children, header }) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
     const menuLinks = [
         {
-            title: 'Panel de Control',
-            url: route('dashboard'),
-            active: route().current('dashboard')
+            title: "Panel de Control",
+            url: route("dashboard"),
+            active: route().current("dashboard"),
         },
         {
-            title: 'Perfil',
-            url: route('profile.edit'),
-            active: route().current('profile.edit')
+            title: "Acreditaciones",
+            url: route("accreditations"),
+            active: route().current("accreditations"),
+        },
+        {
+            title: "Perfil",
+            url: route("profile.edit"),
+            active: route().current("profile.edit"),
         },
     ];
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
             {/* Sidebar */}
-            <Sidebar links={menuLinks} isOpen={sidebarOpen} onToggle={setSidebarOpen} />
+            <Sidebar
+                links={menuLinks}
+                isOpen={sidebarOpen}
+                onToggle={setSidebarOpen}
+            />
 
             {/* Contenido Principal */}
             <div className="flex-1 flex flex-col md:ml-64">
@@ -44,21 +53,21 @@ export default function SessionLayout({ children, header }) {
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
                                         strokeWidth={2}
-                                        d={sidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
+                                        d={
+                                            sidebarOpen
+                                                ? "M6 18L18 6M6 6l12 12"
+                                                : "M4 6h16M4 12h16M4 18h16"
+                                        }
                                     />
                                 </svg>
                             </button>
-                            <div>
-                                {header}
-                            </div>
+                            <div>{header}</div>
                         </div>
                     </header>
                 )}
 
                 {/* Main Content */}
-                <main className="flex-1 p-6">
-                    {children}
-                </main>
+                <main className="flex-1 p-6">{children}</main>
             </div>
         </div>
     );

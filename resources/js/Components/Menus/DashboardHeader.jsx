@@ -67,7 +67,7 @@ export default function DashboardHeader({
                 </div>
             </div>
 
-            {customActions && <div className="flex items-center gap-2">{customActions}</div>}
+            {customActions && <div className="flex items-center gap-2 mt-4 mb-2">{customActions}</div>}
 
             {/* Barra de acciones masivas */}
             {selectionCount > 0 && (
