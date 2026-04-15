@@ -5,6 +5,9 @@ import SelectForm from '@/Components/Forms/SelectForm';
 import { FieldError } from '@/Components/ui/field';
 import { useForm } from '@inertiajs/react';
 
+const MAX_FILE_SIZE_MB = 10;
+const ACCEPTED_FILE_TYPES = '.pdf,.doc,.docx,.jpg,.jpeg,.png';
+
 /**
  * FileForm
  *
@@ -23,18 +26,42 @@ export default function FileForm({
     title = 'Subir documento',
     typeOptions = [],
 }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
         file: null,
         type: '',
     });
+    const hasFormErrors = Boolean(errors.file || errors.type);
 
     const handleFileChange = (event) => {
         const selectedFile = event.target.files?.[0] ?? null;
+
         setData('file', selectedFile);
+
+        if (selectedFile) {
+            clearErrors('file');
+        }
+    };
+
+    /**
+     * Recibe errores de validación del input reutilizable y los refleja en la UI del formulario.
+     */
+    const handleFileValidationError = (message) => {
+        if (!message) {
+            clearErrors('file');
+
+            return;
+        }
+
+        setData('file', null);
+        setError('file', message);
     };
 
     const handleSubmit = (event) => {
         event.preventDefault();
+
+        if (hasFormErrors) {
+            return;
+        }
 
         post(route('documents.store'), {
             forceFormData: true,
@@ -52,6 +79,7 @@ export default function FileForm({
         }
 
         reset('file', 'type');
+        clearErrors();
         onClose?.();
     };
 
@@ -66,10 +94,12 @@ export default function FileForm({
                     name="file"
                     label="Documento de identidad"
                     onChange={handleFileChange}
-                    accept=".pdf,.jpg,.jpeg,.png"
+                    onValidationError={handleFileValidationError}
+                    accept={ACCEPTED_FILE_TYPES}
+                    maxFileSizeMb={MAX_FILE_SIZE_MB}
                     helperText="Da clic aquí para buscar"
                     buttonText="Seleccionar archivo"
-                    description="Sube tus documentos. Formatos permitidos: PDF, JPG, JPEG y PNG."
+                    description="Sube tus documentos. Formatos permitidos: PDF, DOC, DOCX, JPG, JPEG y PNG. Tamaño máximo: 10 MB."
                     required
                     disabled={processing}
                 />
@@ -82,7 +112,10 @@ export default function FileForm({
                         placeholder="Selecciona un tipo"
                         options={typeOptions}
                         value={data.type}
-                        onValueChange={(value) => setData('type', value)}
+                        onValueChange={(value) => {
+                            setData('type', value);
+                            clearErrors('type');
+                        }}
                         description="Especifica el tipo de documento para facilitar la validación administrativa."
                         disabled={processing}
                     />
@@ -94,6 +127,7 @@ export default function FileForm({
                     cancelLabel="Cancelar"
                     onCancel={handleClose}
                     isLoading={processing}
+                    submitDisabled={hasFormErrors}
                     tone="institutional"
                 />
             </form>

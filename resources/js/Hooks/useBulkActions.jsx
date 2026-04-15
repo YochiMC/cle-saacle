@@ -7,8 +7,9 @@ import { router } from "@inertiajs/react";
  * Encapsula todo el estado y los manejadores de las acciones masivas:
  * selección de filas, copiado WYSIWYG a portapapeles y eliminación masiva.
  *
- * @param {string} deleteRoute  - Ruta POST de Inertia para eliminación masiva.
+ * @param {string|Object} deleteRoute - Ruta de eliminación masiva (string) o mapa por vista.
  * @param {string} vistaActual  - Clave de la vista activa (se envía al servidor junto con los ids).
+ * @param {"post"|"delete"|"put"|"patch"} bulkDeleteMethod - Método HTTP para la operación masiva.
  * @returns {{
  *   filasSeleccionadas: Array,
  *   columnasVisibles:   Array,
@@ -18,10 +19,12 @@ import { router } from "@inertiajs/react";
  *   resetSelection:        Function,
  * }}
  */
-export function useBulkActions(deleteRoute, vistaActual) {
+export function useBulkActions(deleteRoute, vistaActual, bulkDeleteMethod = "post") {
     const [filasSeleccionadas, setFilasSeleccionadas] = useState([]);
     const [columnasVisibles, setColumnasVisibles] = useState([]);
     const [isConfirmingBulkDelete, setIsConfirmingBulkDelete] = useState(false);
+    const resolvedDeleteRoute =
+        typeof deleteRoute === "string" ? deleteRoute : deleteRoute?.[vistaActual];
 
     /** Recibe los datos del callback onSelectionChange de <DataTable />. */
     const handleSelectionChange = useCallback((datos, columnas) => {
@@ -54,27 +57,56 @@ export function useBulkActions(deleteRoute, vistaActual) {
 
     const handleBulkDelete = useCallback(() => {
         if (filasSeleccionadas.length === 0) return;
-        if (!deleteRoute) {
+        if (!resolvedDeleteRoute) {
             console.error("No se configuró una ruta de eliminación masiva para esta vista.");
             return;
         }
         setIsConfirmingBulkDelete(true);
-    }, [filasSeleccionadas, deleteRoute]);
+    }, [filasSeleccionadas, resolvedDeleteRoute]);
 
     const executeBulkDelete = useCallback(() => {
         const ids = filasSeleccionadas.map((row) => row.id || row.matricula);
-        router.post(
-            deleteRoute,
-            { ids, tipo: vistaActual },
-            {
+        const payload = { ids, tipo: vistaActual };
+        const onSuccess = () => {
+            resetSelection();
+            setIsConfirmingBulkDelete(false);
+        };
+
+        if (!resolvedDeleteRoute) {
+            console.error("No se configuró una ruta de eliminación masiva para esta vista.");
+            return;
+        }
+
+        if (bulkDeleteMethod === "delete") {
+            router.delete(resolvedDeleteRoute, {
+                data: payload,
                 preserveScroll: true,
-                onSuccess: () => {
-                    resetSelection();
-                    setIsConfirmingBulkDelete(false);
-                },
-            }
-        );
-    }, [filasSeleccionadas, deleteRoute, vistaActual, resetSelection]);
+                onSuccess,
+            });
+            return;
+        }
+
+        if (bulkDeleteMethod === "put") {
+            router.put(resolvedDeleteRoute, payload, {
+                preserveScroll: true,
+                onSuccess,
+            });
+            return;
+        }
+
+        if (bulkDeleteMethod === "patch") {
+            router.patch(resolvedDeleteRoute, payload, {
+                preserveScroll: true,
+                onSuccess,
+            });
+            return;
+        }
+
+        router.post(resolvedDeleteRoute, payload, {
+            preserveScroll: true,
+            onSuccess,
+        });
+    }, [filasSeleccionadas, resolvedDeleteRoute, vistaActual, bulkDeleteMethod, resetSelection]);
 
     return {
         filasSeleccionadas,

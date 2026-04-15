@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DocumentStatus;
-use App\Enums\DocumentType;
+use App\Actions\UploadFile;
 use App\Models\Document;
+use App\Http\Requests\StoreDocumentRequest;
+use App\Http\Requests\UpdateDocumentRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Controlador de Documentos de Usuario.
@@ -29,7 +29,7 @@ class DocumentController extends Controller
      */
     private function canReviewDocuments(): bool
     {
-        return Auth::user()->hasRole('admin') || Auth::user()->hasRole('coordinator');
+        return Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('coordinator');
     }
 
     /**
@@ -75,30 +75,21 @@ class DocumentController extends Controller
      * El archivo se guarda en storage local con un nombre único y se crea
      * un registro en la base de datos con estado pendiente de revisión.
      */
-    public function store(Request $request)
+    public function store(StoreDocumentRequest $request, UploadFile $uploadFile): RedirectResponse
     {
-        // Validar entrada del usuario sin espacios en los mimes
-        $validated = $request->validate([
-            'file' => 'required|mimes:pdf,doc,docx,jpg,png|max:10240',
-            'type' => ['required', Rule::in(DocumentType::values())],
-        ]);
-
+        $validated = $request->validated();
         $file = $request->file('file');
         $userId = Auth::id();
 
-        // Generar nombre único para el archivo
-        $fileName = Str::uuid().'.'.$file->getClientOriginalExtension();
-
-        // Almacenar archivo en la carpeta del usuario
-        $path = $file->storeAs("documentos/user_{$userId}", $fileName, 'local');
+        $fileInfo = $uploadFile->execute($file, "documentos/user_{$userId}");
 
         // Crear registro del documento en la base de datos
         Document::create([
             'user_id' => $userId,
             'type' => $validated['type'],
-            'original_name' => $file->getClientOriginalName(),
-            'file_path' => $path,
-            'disk' => 'local',
+            'original_name' => $fileInfo['original_name'],
+            'file_path' => $fileInfo['path'],
+            'disk' => $fileInfo['disk'],
             'status' => DocumentStatus::PENDING,
         ]);
 
@@ -124,16 +115,13 @@ class DocumentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Document $document): RedirectResponse
+    public function update(UpdateDocumentRequest $request, Document $document): RedirectResponse
     {
         if (! $this->canReviewDocuments()) {
             abort(403, 'No autorizado para actualizar este documento.');
         }
 
-        $validated = $request->validate([
-            'comments' => 'nullable|string|max:255',
-            'status' => ['required', Rule::in(DocumentStatus::reviewValues())],
-        ]);
+        $validated = $request->validated();     
 
         $document->update([
             'status' => $validated['status'],
@@ -163,7 +151,10 @@ class DocumentController extends Controller
         return back()->with('success', 'Documento eliminado exitosamente.');
     }
 
-    public function download(Document $document)
+    /**
+     * Descarga un documento autorizado conservando su nombre original.
+     */
+    public function download(Document $document): BinaryFileResponse
     {
         if (! $this->canDownloadDocument($document)) {
             abort(403, 'No autorizado para descargar este documento.');

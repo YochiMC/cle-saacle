@@ -22,7 +22,8 @@ const EMPTY_DATA = [];
  * @param {string}          title           - Título principal (ej: "Carreras").
  * @param {object}          dataMap         - Datos por vista: { carreras: [], alumnos: [] }
  * @param {Array}           viewOptions     - [{ value, label }] para el selector de vistas.
- * @param {string}          deleteRoute     - Ruta POST para eliminación masiva.
+ * @param {string|object}   deleteRoute     - Ruta de eliminación masiva (string) o mapa por vista.
+ * @param {"post"|"delete"|"put"|"patch"} bulkDeleteMethod - Método HTTP para eliminación masiva.
  * @param {object}          hiddenColumns   - Columnas ocultas por defecto.
  * @param {Function}        onEditRow       - Callback al pulsar Editar: (item) => void.
  * @param {Function}        onDeleteRow     - Callback al pulsar Eliminar: (item) => void.
@@ -39,6 +40,7 @@ export default function ResourceDashboard({
     dataMap = {},
     viewOptions = [],
     deleteRoute,
+    bulkDeleteMethod = "post",
     hiddenColumns = { created_at: false, updated_at: false },
     onEditRow,
     onDeleteRow,
@@ -90,8 +92,8 @@ export default function ResourceDashboard({
         resetSelection,
         isConfirmingBulkDelete,
         setIsConfirmingBulkDelete,
-        executeBulkDelete,
-    } = useBulkActions(deleteRoute, vistaActual);
+        executeBulkDelete
+    } = useBulkActions(deleteRoute, vistaActual, bulkDeleteMethod);
 
     const handleViewChange = (newView) => {
         setVistaActual(newView);
@@ -172,10 +174,10 @@ export default function ResourceDashboard({
                 isOpen={isConfirmingBulkDelete}
                 onClose={() => setIsConfirmingBulkDelete(false)}
                 onConfirm={executeBulkDelete}
-                title={bulkModalTitle}
-                message={bulkModalMessage}
-                confirmText={bulkModalConfirmText}
-                variant={bulkModalVariant}
+                title="Eliminación Masiva"
+                message={`¿Estás seguro de que deseas eliminar ${filasSeleccionadas.length} registros seleccionados de ${currentViewLabel.toLowerCase()}? Esta acción no se puede deshacer.`}
+                confirmText="Sí, eliminar"
+                variant="warning"
             />
         </div>
     );

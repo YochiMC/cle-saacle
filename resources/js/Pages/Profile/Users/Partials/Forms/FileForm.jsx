@@ -9,9 +9,8 @@ import { useEffect, useMemo } from 'react';
 /**
  * FileForm
  *
- * Modal informativo reservado para el flujo de documentos en la vista de
- * administradores. Por ahora no envía datos al backend y funciona como apoyo
- * visual para conservar la estructura del módulo mientras se habilita la carga.
+ * Modal de revisión administrativa para actualizar estatus y comentarios
+ * de documentos dentro del expediente de usuarios.
  *
  * @param {Object} props
  * @param {boolean} [props.show=false] Controla la visibilidad del modal.
@@ -27,10 +26,11 @@ export default function FileForm({
     document = null,
     statusOptions = [],
 }) {
-    const { data, setData, put, processing, errors, reset } = useForm({
+    const { data, setData, put, processing, errors, reset, clearErrors } = useForm({
         status: '',
         comments: '',
     });
+    const hasFormErrors = Boolean(errors.status || errors.comments);
 
     const allowedStatuses = useMemo(
         () => statusOptions.map((option) => option.value),
@@ -58,7 +58,7 @@ export default function FileForm({
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        if (!document?.id) {
+        if (!document?.id || hasFormErrors) {
             return;
         }
 
@@ -75,10 +75,10 @@ export default function FileForm({
         <FormModal title={title} show={show} onClose={handleClose}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <p className="text-sm text-slate-600">
-                    Esta vista queda reservada para la carga y revisión de documentos en el perfil de administradores.
+                    Esta vista permite actualizar el estatus de revisión del documento seleccionado.
                 </p>
                 <p className="text-sm text-slate-500">
-                    Deja un comentario en caso de rechazar el documento.
+                    Si rechazas el documento, debes registrar un comentario para justificar la decisión.
                 </p>
                 <SelectForm
                     label="Estatus del documento"
@@ -86,7 +86,14 @@ export default function FileForm({
                     placeholder="Selecciona un estatus"
                     options={statusOptions}
                     value={data.status}
-                    onValueChange={(value) => setData('status', value)}
+                    onValueChange={(value) => {
+                        setData('status', value);
+                        clearErrors('status');
+
+                        if (value !== 'rejected') {
+                            clearErrors('comments');
+                        }
+                    }}
                     description="Solo se permiten estatus de aprobación o rechazo para esta revisión."
                     disabled={processing}
                 />
@@ -97,7 +104,10 @@ export default function FileForm({
                     placeholder="Agrega un comentario opcional para el usuario..."
                     description="Usa este espacio para justificar el cambio de estatus."
                     value={data.comments}
-                    onChange={(event) => setData('comments', event.target.value)}
+                    onChange={(event) => {
+                        setData('comments', event.target.value);
+                        clearErrors('comments');
+                    }}
                     rows={5}
                     disabled={processing}
                 />
@@ -114,6 +124,7 @@ export default function FileForm({
                     cancelLabel="Cerrar"
                     onCancel={handleClose}
                     isLoading={processing}
+                    submitDisabled={!document?.id || hasFormErrors}
                     tone="institutional"
                 />
             </form>
