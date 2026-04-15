@@ -130,7 +130,7 @@ export default function UpdateRoleModal({ permissions = [], title, show, onClose
                             cancelLabel="Cancelar"
                             onCancel={onClose}
                             isLoading={processing}
-                            disabled={isSystemRole}
+                            submitDisabled={isSystemRole}
                             tone="institutional"
                         />
                     </FieldSet>

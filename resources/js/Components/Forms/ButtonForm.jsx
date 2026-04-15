@@ -10,6 +10,7 @@
  * @param {string}   [cancelLabel="Cancel"]  - Texto del botón de cancelar.
  * @param {Function} [onCancel]              - Callback que se ejecuta al presionar Cancelar.
  * @param {boolean}  [isLoading=false]       - Deshabilita ambos botones mientras se procesa.
+ * @param {boolean}  [disabled=false]        - Deshabilita ambos botones (compatibilidad global).
  * @param {boolean}  [submitDisabled=false]  - Deshabilita solo el botón de envío.
  * @param {boolean}  [cancelDisabled=false]  - Deshabilita solo el botón de cancelar.
  * @param {string}   [className]             - Clases CSS adicionales para el Field contenedor.
@@ -23,8 +24,8 @@
  * />
  */
 
-import { Field } from '@/components/ui/field';
-import { Button } from '@/components/ui/button';
+import { Field } from '@/Components/ui/field';
+import { Button } from '@/Components/ui/button';
 
 export default function ButtonForm({
     submitLabel = 'Submit',
