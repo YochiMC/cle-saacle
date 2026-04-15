@@ -23,13 +23,31 @@ export default function FileForm({
     title = 'Subir documento',
     typeOptions = [],
 }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
         file: null,
         type: '',
     });
 
     const handleFileChange = (event) => {
         const selectedFile = event.target.files?.[0] ?? null;
+
+        if (selectedFile) {
+            // 2. Definimos el tamaño máximo (10 MB en bytes)
+            const maxSizeInBytes = 10 * 1024 * 1024; 
+
+            if (selectedFile.size > maxSizeInBytes) {
+                // 3. Si es muy pesado, lanzamos el error a la UI y evitamos guardarlo en el estado
+                setError('file', 'El archivo es demasiado pesado. El límite máximo es de 10MB.');
+                setData('file', null);
+                clearErrors('file');
+                // Limpiamos el input físico (opcional, dependiendo de cómo maneje el estado interno tu FileInputForm)
+                event.target.value = ''; 
+                return;
+            }
+        }
+
+        // 4. Si el archivo es válido, limpiamos cualquier error previo y lo guardamos
+        clearErrors('file');
         setData('file', selectedFile);
     };
 
@@ -52,6 +70,7 @@ export default function FileForm({
         }
 
         reset('file', 'type');
+        clearErrors();
         onClose?.();
     };
 

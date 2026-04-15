@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DocumentStatus;
-use App\Enums\DocumentType;
 use App\Actions\UploadFile;
 use App\Models\Document;
+use App\Http\Requests\StoreDocumentRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -76,15 +76,10 @@ class DocumentController extends Controller
      * El archivo se guarda en storage local con un nombre único y se crea
      * un registro en la base de datos con estado pendiente de revisión.
      */
-    public function store(Request $request, UploadFile $uploadFile): RedirectResponse
+    public function store(StoreDocumentRequest $request, UploadFile $uploadFile): RedirectResponse
     {
-        // Validar entrada del usuario sin espacios en los mimes
-        $validated = $request->validate([
-            'file' => 'required|mimes:pdf,doc,docx,jpg,png|max:10240',
-            'type' => ['required', Rule::in(DocumentType::values())],
-        ]);
-
-        $file = $validated['file'];
+        $validated = $request->validated();
+        $file = $request->file('file');
         $userId = Auth::id();
 
         $fileInfo = $uploadFile->execute($file, "documentos/user_{$userId}");
