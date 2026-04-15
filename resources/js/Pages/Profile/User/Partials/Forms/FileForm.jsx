@@ -5,6 +5,9 @@ import SelectForm from '@/Components/Forms/SelectForm';
 import { FieldError } from '@/Components/ui/field';
 import { useForm } from '@inertiajs/react';
 
+const MAX_FILE_SIZE_MB = 10;
+const ACCEPTED_FILE_TYPES = '.pdf,.doc,.docx,.jpg,.jpeg,.png';
+
 /**
  * FileForm
  *
@@ -27,28 +30,30 @@ export default function FileForm({
         file: null,
         type: '',
     });
+    const hasFormErrors = Boolean(errors.file || errors.type);
 
     const handleFileChange = (event) => {
         const selectedFile = event.target.files?.[0] ?? null;
 
-        if (selectedFile) {
-            // 2. Definimos el tamaño máximo (10 MB en bytes)
-            const maxSizeInBytes = 10 * 1024 * 1024; 
+        setData('file', selectedFile);
 
-            if (selectedFile.size > maxSizeInBytes) {
-                // 3. Si es muy pesado, lanzamos el error a la UI y evitamos guardarlo en el estado
-                setError('file', 'El archivo es demasiado pesado. El límite máximo es de 10MB.');
-                setData('file', null);
-                clearErrors('file');
-                // Limpiamos el input físico (opcional, dependiendo de cómo maneje el estado interno tu FileInputForm)
-                event.target.value = ''; 
-                return;
-            }
+        if (selectedFile) {
+            clearErrors('file');
+        }
+    };
+
+    /**
+     * Recibe errores de validación del input reutilizable y los refleja en la UI del formulario.
+     */
+    const handleFileValidationError = (message) => {
+        if (!message) {
+            clearErrors('file');
+
+            return;
         }
 
-        // 4. Si el archivo es válido, limpiamos cualquier error previo y lo guardamos
-        clearErrors('file');
-        setData('file', selectedFile);
+        setData('file', null);
+        setError('file', message);
     };
 
     const handleSubmit = (event) => {
@@ -85,10 +90,12 @@ export default function FileForm({
                     name="file"
                     label="Documento de identidad"
                     onChange={handleFileChange}
-                    accept=".pdf,.jpg,.jpeg,.png"
+                    onValidationError={handleFileValidationError}
+                    accept={ACCEPTED_FILE_TYPES}
+                    maxFileSizeMb={MAX_FILE_SIZE_MB}
                     helperText="Da clic aquí para buscar"
                     buttonText="Seleccionar archivo"
-                    description="Sube tus documentos. Formatos permitidos: PDF, JPG, JPEG y PNG."
+                    description="Sube tus documentos. Formatos permitidos: PDF, DOC, DOCX, JPG, JPEG y PNG. Tamaño máximo: 10 MB."
                     required
                     disabled={processing}
                 />
@@ -113,6 +120,7 @@ export default function FileForm({
                     cancelLabel="Cancelar"
                     onCancel={handleClose}
                     isLoading={processing}
+                    disabled={hasFormErrors}
                     tone="institutional"
                 />
             </form>

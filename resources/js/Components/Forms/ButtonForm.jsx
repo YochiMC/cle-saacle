@@ -65,7 +65,7 @@ export default function ButtonForm({
                 disabled={isBusy}
                 className={`${currentTone.submit} ${submitClassName}`.trim()}
             >
-                {isBusy ? 'Cargando...' : submitLabel}
+                {submitLabel}
             </Button>
             {showCancel && (
                 <Button

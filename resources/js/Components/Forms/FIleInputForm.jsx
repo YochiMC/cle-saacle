@@ -9,18 +9,21 @@ import { Input } from '@/Components/ui/input';
  * Campo de carga de archivos con estilo consistente para el proyecto.
  * Incluye zona de drag & drop, botón para explorador y resumen del archivo
  * seleccionado. Está pensado para documentos de identidad (INE, RFC, CURP, etc.).
+ * También valida tipo de archivo y tamaño máximo para evitar envíos inválidos.
  *
  * @param {Object} props
  * @param {string} props.name Identificador del input y nombre del campo.
  * @param {string} props.label Texto visible de la etiqueta.
  * @param {Function} props.onChange Callback que recibe el evento de cambio.
- * @param {string} [props.accept='.pdf,.jpg,.jpeg,.png'] Tipos de archivo permitidos.
+ * @param {string} [props.accept='.pdf,.jpg,.jpeg,.png'] Tipos de archivo permitidos (extensiones).
  * @param {boolean} [props.multiple=false] Habilita selección múltiple.
  * @param {boolean} [props.required=false] Indica si el campo es obligatorio.
  * @param {boolean} [props.disabled=false] Deshabilita el campo cuando es true.
  * @param {string} [props.helperText] Texto secundario mostrado en el dropzone.
  * @param {string} [props.buttonText='Browse files'] Texto del botón de exploración.
  * @param {string} [props.description] Texto de ayuda bajo el input.
+ * @param {number} [props.maxFileSizeMb=10] Límite máximo de tamaño por archivo en MB.
+ * @param {Function} [props.onValidationError] Callback para reportar errores de validación del archivo.
  * @param {string} [props.className] Clases adicionales para el contenedor del dropzone.
  */
 export default function FileInputForm({
@@ -34,12 +37,61 @@ export default function FileInputForm({
     helperText = 'Or click to browse files',
     buttonText = 'Browse files',
     description = 'Selecciona un archivo para subir. Formatos permitidos: PDF, JPG, JPEG y PNG. Tamaño máximo sugerido: 10MB.',
+    maxFileSizeMb = 10,
+    onValidationError,
     className = '',
 }) {
     const describedById = `${name}-description`;
     const inputRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
+    const maxFileSizeBytes = maxFileSizeMb * 1024 * 1024;
+    const acceptedExtensions = useMemo(() => {
+        return accept
+            .split(',')
+            .map((value) => value.trim().toLowerCase())
+            .filter((value) => value.startsWith('.'));
+    }, [accept]);
+
+    const notifyValidationError = (message = null) => {
+        onValidationError?.(message);
+    };
+
+    const validateFiles = (files) => {
+        if (files.length === 0) {
+            notifyValidationError(null);
+
+            return true;
+        }
+
+        const fileWithInvalidMime = files.find((file) => {
+            if (acceptedExtensions.length === 0) {
+                return false;
+            }
+
+            const extension = `.${(file.name.split('.').pop() ?? '').toLowerCase()}`;
+
+            return !acceptedExtensions.includes(extension);
+        });
+
+        if (fileWithInvalidMime) {
+            notifyValidationError('El formato del archivo no es válido. Verifica que cumpla con los tipos permitidos.');
+
+            return false;
+        }
+
+        const fileExceedingLimit = files.find((file) => file.size > maxFileSizeBytes);
+
+        if (fileExceedingLimit) {
+            notifyValidationError(`El archivo supera el tamaño permitido. El límite máximo es de ${maxFileSizeMb} MB.`);
+
+            return false;
+        }
+
+        notifyValidationError(null);
+
+        return true;
+    };
 
     const emitChange = (files, nativeEvent = null) => {
         if (!onChange) {
@@ -55,6 +107,15 @@ export default function FileInputForm({
 
     const handleFileChange = (event) => {
         const files = Array.from(event.target.files || []);
+
+        if (!validateFiles(files)) {
+            setSelectedFiles([]);
+            event.target.value = '';
+            emitChange([], event.nativeEvent ?? null);
+
+            return;
+        }
+
         setSelectedFiles(files);
 
         if (onChange) {
@@ -84,6 +145,19 @@ export default function FileInputForm({
 
         const droppedFiles = Array.from(event.dataTransfer.files || []);
         const normalizedFiles = multiple ? droppedFiles : droppedFiles.slice(0, 1);
+
+        if (!validateFiles(normalizedFiles)) {
+            setSelectedFiles([]);
+
+            if (inputRef.current) {
+                inputRef.current.value = '';
+            }
+
+            emitChange([], event.nativeEvent ?? null);
+
+            return;
+        }
+
         setSelectedFiles(normalizedFiles);
 
         // Sincroniza el input nativo para mantener compatibilidad con formularios.
