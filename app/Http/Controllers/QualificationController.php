@@ -4,24 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Models\Qualification;
 use App\Http\Requests\UpdateQualificationsRequest;
-use Illuminate\Support\Facades\DB;
+use App\Http\Requests\BulkUpdateGroupQualificationsRequest;
+use App\Actions\BulkUpdateGroupQualifications;
+use Illuminate\Http\RedirectResponse;
 
 /**
- * Controlador de calificaciones individuales de Grupos.
- *
- * Thin Controller: delega validación a FormRequests y orquesta la persistencia.
- * Los métodos sin rutas activas (getQualifications, createQualification, deleteQualification)
- * han sido eliminados por ser código muerto.
+ * Controlador para la Gestión de Calificaciones de Grupos Académicos.
+ * 
+ * Implementa el patrón Thin Controller:
+ * - Validación delegada a FormRequests.
+ * - Lógica de persistencia compleja delegada a Actions.
  */
 class QualificationController extends Controller
 {
     /**
-     * Actualiza una sola calificación de grupo.
-     *
-     * Usa UpdateQualificationsRequest que ya contempla la misma lógica de validación,
-     * eliminando la duplicación inline que tenía el método original.
+     * Actualiza una sola calificación de forma individual.
+     * 
+     * @param UpdateQualificationsRequest $request
+     * @param Qualification $qualification
+     * @return RedirectResponse
      */
-    public function update(UpdateQualificationsRequest $request, Qualification $qualification)
+    public function update(UpdateQualificationsRequest $request, Qualification $qualification): RedirectResponse
     {
         $qualification->update($request->validated());
 
@@ -29,22 +32,19 @@ class QualificationController extends Controller
     }
 
     /**
-     * Actualiza masivamente un array de calificaciones desde GroupView.
-     *
-     * El contrato viene serializado desde el frontend: units_breakdown + final_average + is_left.
+     * Actualiza masivamente un lote de calificaciones de un grupo.
+     * 
+     * Delegamos la transacción y el bucle de persistencia a la acción 
+     * BulkUpdateGroupQualifications para mantener el controlador "delgado".
+     * 
+     * @param BulkUpdateGroupQualificationsRequest $request
+     * @param BulkUpdateGroupQualifications $action
+     * @return RedirectResponse
      */
-    public function bulkUpdate(UpdateQualificationsRequest $request)
+    public function bulkUpdate(BulkUpdateGroupQualificationsRequest $request, BulkUpdateGroupQualifications $action): RedirectResponse
     {
-        DB::transaction(function () use ($request) {
-            foreach ($request->validated('qualifications') as $item) {
-                Qualification::where('id', $item['qualification_id'])->update([
-                    'units_breakdown' => $item['units_breakdown'] ?? [],
-                    'final_average'   => $item['final_average'] ?? 0,
-                    'is_left'         => $item['is_left'] ?? false,
-                ]);
-            }
-        });
+        $action->execute($request->validated('qualifications'));
 
-        return redirect()->back()->with('success', 'Calificaciones guardadas exitosamente.');
+        return redirect()->back()->with('success', 'Calificaciones del grupo guardadas exitosamente.');
     }
 }

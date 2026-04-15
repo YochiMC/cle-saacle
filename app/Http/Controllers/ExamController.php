@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Actions\BulkUpdateExamQualifications;
 use App\Actions\EnrollStudentsInExam;
 use App\Actions\AutoQueueAccreditationCandidates;
+use App\Actions\BulkDeleteExams;
+use App\Actions\BulkUpdateExamStatus;
+use App\Actions\BulkDetachStudentsFromExam;
 use App\Enums\AcademicStatus;
 use App\Http\Requests\BulkDeleteExamsRequest;
 use App\Http\Requests\BulkUnenrollRequest;
@@ -33,7 +36,6 @@ class ExamController extends Controller
 
     /**
      * Crea un nuevo examen.
-     * Validación delegada a StoreExamRequest (elimina 12 líneas inline).
      */
     public function store(StoreExamRequest $request): RedirectResponse
     {
@@ -47,7 +49,6 @@ class ExamController extends Controller
 
     /**
      * Actualiza un examen existente.
-     * Reutiliza StoreExamRequest (reglas idénticas a store), eliminando duplicación.
      */
     public function update(StoreExamRequest $request, Exam $exam): RedirectResponse
     {
@@ -122,34 +123,34 @@ class ExamController extends Controller
     }
 
     /**
-     * Da de baja masiva de alumnos del examen.
+     * Da de baja masiva de alumnos del examen delegada a la capa de Acción.
      */
-    public function bulkUnenroll(BulkUnenrollRequest $request, Exam $exam): RedirectResponse
+    public function bulkUnenroll(BulkUnenrollRequest $request, Exam $exam, BulkDetachStudentsFromExam $action): RedirectResponse
     {
-        $exam->students()->detach($request->validated('ids'));
+        $action->execute($exam, $request->validated('ids'));
 
-        return redirect()->back()->with('success', 'Alumnos seleccionados dados de baja.');
+        return redirect()->back()->with('success', 'Alumnos seleccionados desmatriculados correctamente.');
     }
 
     /**
-     * Actualización masiva del estado de múltiples exámenes.
-     * La deuda técnica del campo new_status/status se resuelve en BulkUpdateExamStatusRequest
-     * mediante prepareForValidation().
+     * Actualización masiva del estado de múltiples exámenes delegada a la capa de Acción.
      */
-    public function bulkStatus(BulkUpdateExamStatusRequest $request): RedirectResponse
+    public function bulkStatus(BulkUpdateExamStatusRequest $request, BulkUpdateExamStatus $action): RedirectResponse
     {
-        Exam::whereIn('id', $request->validated('ids'))
-            ->update(['status' => $request->validated('new_status')]);
+        $action->execute(
+            $request->validated('ids'),
+            $request->validated('new_status')
+        );
 
         return redirect()->back()->with('success', 'Estados de exámenes actualizados exitosamente.');
     }
 
     /**
-     * Eliminación masiva de exámenes.
+     * Eliminación masiva de exámenes delegada a la capa de Acción.
      */
-    public function bulkDelete(BulkDeleteExamsRequest $request): RedirectResponse
+    public function bulkDelete(BulkDeleteExamsRequest $request, BulkDeleteExams $action): RedirectResponse
     {
-        Exam::whereIn('id', $request->validated('ids'))->delete();
+        $action->execute($request->validated('ids'));
 
         return redirect()->back()->with('success', 'Exámenes eliminados correctamente.');
     }

@@ -2,49 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\TypeStudent;
+use App\Http\Requests\StoreTypeStudentRequest;
+use App\Http\Requests\UpdateTypeStudentRequest;
+use Illuminate\Http\RedirectResponse;
 
 /**
- * Controlador de Tipos de Alumno (Regular, Egresado, Trabajador, etc.).
- *
- * @todo PENDIENTE DE INTEGRACIÓN — Este controlador no tiene rutas activas en web.php.
- *       Antes de conectarlo, se deben realizar las siguientes mejoras:
- *
- *       1. Extraer validaciones inline a FormRequests:
- *          - createTypeStudent()  → App\Http\Requests\StoreTypeStudentRequest
- *          - updateTypeStudent()  → App\Http\Requests\UpdateTypeStudentRequest
- *
- *       2. Corregir los retornos: todos los métodos devuelven void.
- *          Deben retornar RedirectResponse o JsonResponse.
- *
- *       3. getTypeStudent() no retorna ni pasa los datos a ninguna vista.
+ * Controlador para la Gestión del Catálogo de Tipos de Alumnos.
  */
 class TypeStudentController extends Controller
 {
-    public function createTypeStudent(Request $request): void
+    /**
+     * Lista todos los tipos de alumnos registrados.
+     */
+    public function index()
     {
-        $validate = $request->validate([
-            'name' => 'required|string|max:20'
-        ]);
-        $typeStudent = TypeStudent::create($validate);
+        return TypeStudent::all();
     }
 
-    public function getTypeStudent(): void
+    /**
+     * Almacena un nuevo tipo de alumno.
+     */
+    public function store(StoreTypeStudentRequest $request): RedirectResponse
     {
-        $typeStudent = TypeStudent::all();
+        TypeStudent::create($request->validated());
+
+        return redirect()->back()->with('success', 'Tipo de alumno creado correctamente.');
     }
 
-    public function updateTypeStudent(Request $request, TypeStudent $typeStudent): void
+    /**
+     * Actualiza un tipo de alumno existente.
+     */
+    public function update(UpdateTypeStudentRequest $request, TypeStudent $typeStudent): RedirectResponse
     {
-        $validate = $request->validate([
-            'name' => 'required|string|max:20'
-        ]);
-        $typeStudent->update($validate);
+        $typeStudent->update($request->validated());
+
+        return redirect()->back()->with('success', 'Tipo de alumno actualizado correctamente.');
     }
 
-    public function deleteTypeStudent(TypeStudent $typeStudent): void
+    /**
+     * Elimina un tipo de alumno.
+     */
+    public function destroy(TypeStudent $typeStudent): RedirectResponse
     {
         $typeStudent->delete();
+
+        return redirect()->back()->with('success', 'Tipo de alumno eliminado correctamente.');
     }
 }
