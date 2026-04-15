@@ -17,6 +17,7 @@ export default function AuthenticatedLayout({ header, children }) {
         { route: "exams.index", label: "Exámenes" },
         { route: "accreditations", label: "Acreditaciones" },
         { route: "settings.index", label: "Configuraciones" },
+        { route: "pagos", label: "Pagos"},
     ];
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
