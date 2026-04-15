@@ -59,6 +59,10 @@ export default function FileForm({
     const handleSubmit = (event) => {
         event.preventDefault();
 
+        if (hasFormErrors) {
+            return;
+        }
+
         post(route('documents.store'), {
             forceFormData: true,
             preserveScroll: true,
@@ -108,7 +112,10 @@ export default function FileForm({
                         placeholder="Selecciona un tipo"
                         options={typeOptions}
                         value={data.type}
-                        onValueChange={(value) => setData('type', value)}
+                        onValueChange={(value) => {
+                            setData('type', value);
+                            clearErrors('type');
+                        }}
                         description="Especifica el tipo de documento para facilitar la validación administrativa."
                         disabled={processing}
                     />
@@ -120,7 +127,7 @@ export default function FileForm({
                     cancelLabel="Cancelar"
                     onCancel={handleClose}
                     isLoading={processing}
-                    disabled={hasFormErrors}
+                    submitDisabled={hasFormErrors}
                     tone="institutional"
                 />
             </form>

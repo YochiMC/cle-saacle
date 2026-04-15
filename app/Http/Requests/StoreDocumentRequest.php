@@ -14,6 +14,9 @@ use Illuminate\Validation\Rule;
  */
 class StoreDocumentRequest extends FormRequest
 {
+    private const ALLOWED_MIMES = 'pdf,doc,docx,jpg,jpeg,png';
+    private const MAX_FILE_SIZE_KB = 10240;
+
     /**
      * Determina si el usuario autenticado puede enviar esta solicitud.
      */
@@ -30,8 +33,22 @@ class StoreDocumentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => 'required|mimes:pdf,doc,docx,jpg,png|max:100',
+            'file' => 'required|mimes:' . self::ALLOWED_MIMES . '|max:' . self::MAX_FILE_SIZE_KB,
             'type' => ['required', Rule::in(DocumentType::values())],
+        ];
+    }
+
+    /**
+     * Devuelve mensajes de validacion para mantener consistencia con el frontend.
+     */
+    public function messages(): array
+    {
+        return [
+            'file.required' => 'Debes seleccionar un archivo para continuar.',
+            'file.mimes' => 'El formato del archivo no es válido. Verifica que cumpla con los tipos permitidos.',
+            'file.max' => 'El archivo supera el tamaño permitido. El límite máximo es de 10 MB.',
+            'type.required' => 'Debes seleccionar un tipo de documento.',
+            'type.in' => 'El tipo de documento seleccionado no es válido.',
         ];
     }
 }

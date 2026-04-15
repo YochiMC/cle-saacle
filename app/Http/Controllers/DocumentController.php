@@ -6,11 +6,10 @@ use App\Enums\DocumentStatus;
 use App\Actions\UploadFile;
 use App\Models\Document;
 use App\Http\Requests\StoreDocumentRequest;
+use App\Http\Requests\UpdateDocumentRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -116,16 +115,13 @@ class DocumentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Document $document): RedirectResponse
+    public function update(UpdateDocumentRequest $request, Document $document): RedirectResponse
     {
         if (! $this->canReviewDocuments()) {
             abort(403, 'No autorizado para actualizar este documento.');
         }
 
-        $validated = $request->validate([
-            'comments' => 'nullable|string|max:255',
-            'status' => ['required', Rule::in(DocumentStatus::reviewValues())],
-        ]);
+        $validated = $request->validated();     
 
         $document->update([
             'status' => $validated['status'],
