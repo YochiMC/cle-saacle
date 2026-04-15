@@ -38,9 +38,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profiles/{user}', [ProfileController::class, 'show'])->name('profiles');
     Route::get('/profiles/{user}/kardex', [ProfileController::class, 'kardex'])->name('profiles.kardex');
     Route::post('/students', [StudentController::class, 'createStudent'])->name('students');
+    Route::delete('/students/bulk-delete', [StudentController::class, 'bulkDeleteStudents'])->name('students.bulk-delete');
     Route::put('/students/{student}', [StudentController::class, 'updateStudent'])->name('students.update');
     Route::delete('/students/{student}', [StudentController::class, 'deleteStudent'])->name('students.delete');
     Route::post('/teachers', [TeacherController::class, 'createTeacher'])->name('teachers');
+    Route::delete('/teachers/bulk-delete', [TeacherController::class, 'bulkDeleteTeachers'])->name('teachers.bulk-delete');
     Route::put('/teachers/{teacher}', [TeacherController::class, 'updateTeacher'])->name('teachers.update');
     Route::delete('/teachers/{teacher}', [TeacherController::class, 'deleteTeacher'])->name('teachers.delete');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');

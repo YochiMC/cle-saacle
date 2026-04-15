@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Student;
+use App\Enums\StudentStatus;
 use Illuminate\Support\Facades\DB;
 
 class DeleteStudentWithUser
@@ -19,7 +20,7 @@ class DeleteStudentWithUser
         DB::transaction(function () use ($student) {
 
             // 1. Marcar el estudiante como inactivo antes de eliminarlo
-            $student->status = 'inactive';
+            $student->status = StudentStatus::SUSPENDED;
             $student->save();
 
             // 2. Soft-delete del perfil del estudiante

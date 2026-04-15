@@ -22,7 +22,6 @@ import StudentModal from "@/Components/Users/StudentModal";
 import TeacherModal from "@/Components/Users/TeacherModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import { Head, router } from '@inertiajs/react';
-import { usePermission } from '@/Utils/auth';
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import ConfirmModal from '@/Components/ui/ConfirmModal';
 
@@ -34,8 +33,6 @@ const VIEW_OPTIONS = [
 ];
 
 export default function Users({ degrees, students, teachers, levels, typeStudents }) {
-    const { can, hasRole } = usePermission();
-
     // Centraliza el estado del modal de alertas de feedback (flash messages).
     const { flashModal, closeFlashModal } = useFlashAlert();
 
@@ -96,7 +93,11 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
                 title="Gestión de usuarios"
                 dataMap={{ alumnos: studentsForTable, maestros: teachers }}
                 viewOptions={VIEW_OPTIONS}
-                deleteRoute="/carreras/eliminar-masivo"
+                deleteRoute={{
+                    alumnos: route('students.bulk-delete'),
+                    maestros: route('teachers.bulk-delete'),
+                }}
+                bulkDeleteMethod="delete"
                 onNew={() => setIsModalOpen(true)}
                 onEditRow={handleEditRow}
                 onDeleteRow={openDeleteModal}
