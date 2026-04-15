@@ -21,9 +21,10 @@ return new class extends Migration
             $table->string('classroom')->nullable();
             $table->string('meeting_link')->nullable();
             $table->string('status')->default('active');
-            $table->foreignId('period_id')->constrained()->onDelete('cascade');
-            $table->foreignId('teacher_id')->constrained()->onDelete('cascade');
+            $table->foreignId('period_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('teacher_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('level_id')->constrained()->onDelete('cascade');
+            $table->unsignedInteger('evaluable_units')->nullable()->default(8);
             $table->timestamps();
             $table->softDeletes();
         });
