@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
+use App\Actions\UploadFile;
 use App\Models\Document;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Controlador de Documentos de Usuario.
@@ -29,7 +30,7 @@ class DocumentController extends Controller
      */
     private function canReviewDocuments(): bool
     {
-        return Auth::user()->hasRole('admin') || Auth::user()->hasRole('coordinator');
+        return Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('coordinator');
     }
 
     /**
@@ -75,7 +76,7 @@ class DocumentController extends Controller
      * El archivo se guarda en storage local con un nombre único y se crea
      * un registro en la base de datos con estado pendiente de revisión.
      */
-    public function store(Request $request)
+    public function store(Request $request, UploadFile $uploadFile): RedirectResponse
     {
         // Validar entrada del usuario sin espacios en los mimes
         $validated = $request->validate([
@@ -83,22 +84,18 @@ class DocumentController extends Controller
             'type' => ['required', Rule::in(DocumentType::values())],
         ]);
 
-        $file = $request->file('file');
+        $file = $validated['file'];
         $userId = Auth::id();
 
-        // Generar nombre único para el archivo
-        $fileName = Str::uuid().'.'.$file->getClientOriginalExtension();
-
-        // Almacenar archivo en la carpeta del usuario
-        $path = $file->storeAs("documentos/user_{$userId}", $fileName, 'local');
+        $fileInfo = $uploadFile->execute($file, "documentos/user_{$userId}");
 
         // Crear registro del documento en la base de datos
         Document::create([
             'user_id' => $userId,
             'type' => $validated['type'],
-            'original_name' => $file->getClientOriginalName(),
-            'file_path' => $path,
-            'disk' => 'local',
+            'original_name' => $fileInfo['original_name'],
+            'file_path' => $fileInfo['path'],
+            'disk' => $fileInfo['disk'],
             'status' => DocumentStatus::PENDING,
         ]);
 
@@ -163,7 +160,10 @@ class DocumentController extends Controller
         return back()->with('success', 'Documento eliminado exitosamente.');
     }
 
-    public function download(Document $document)
+    /**
+     * Descarga un documento autorizado conservando su nombre original.
+     */
+    public function download(Document $document): BinaryFileResponse
     {
         if (! $this->canDownloadDocument($document)) {
             abort(403, 'No autorizado para descargar este documento.');
