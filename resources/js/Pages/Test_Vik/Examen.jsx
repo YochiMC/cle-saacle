@@ -194,6 +194,19 @@ export default function Examen({ auth, examenes = [], students = [], levels = []
                         />
                         <InputError message={errors.horario} className="mt-2" />
                     </div>
+                    
+                        <div className="mb-4">
+                        <InputLabel htmlFor="Aula" value="Aula" />
+                        <TextInput
+                            id="Aula"
+                            type="text"
+                            className="mt-1 block w-full"
+                            value={data.Aula}
+                            onChange={(e) => setData('Aula', e.target.value)}
+                            required
+                        />
+                        <InputError message={errors.Aula} className="mt-2" />
+                    </div>
 
                     <div className="mb-6">
                         <InputLabel htmlFor="fecha_aplicacion" value="Fecha de Aplicación" />
@@ -207,7 +220,7 @@ export default function Examen({ auth, examenes = [], students = [], levels = []
                         />
                         <InputError message={errors.fecha_aplicacion} className="mt-2" />
                     </div>
-
+                    
                     <div className="flex items-center justify-end gap-4">
                         <SecondaryButton onClick={closeModal} disabled={processing}>Cancelar</SecondaryButton>
                         <PrimaryButton disabled={processing}>Guardar</PrimaryButton>

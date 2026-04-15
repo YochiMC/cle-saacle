@@ -46,19 +46,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Grupos
                                 </NavLink>
+
                                 <NavLink
-                                    href={route("reports")}
-                                    active={route().current("reports")}
+                                    href={route("pagos")}
+                                    active={route().current("pagos")}
                                     className="text-white hover:text-orangeTec"
                                 >
-                                    Reportes
-                                </NavLink>
-                                <NavLink
-                                    href={route("exams.index")}
-                                    active={route().current("exams.index")}
-                                    className="text-white hover:text-orangeTec"
-                                >
-                                    Examen 4H
+                                    Pagos
                                 </NavLink>
                             </div>
                         </div>
@@ -164,6 +158,13 @@ export default function AuthenticatedLayout({ header, children }) {
                             className="text-white hover:text-orangeTec"
                         >
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route("pagos")}
+                            active={route().current("pagos")}
+                            className="text-white hover:text-orangeTec"
+                        >
+                            Pagos
                         </ResponsiveNavLink>
                     </div>
 

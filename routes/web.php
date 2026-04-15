@@ -18,12 +18,30 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    $students = \App\Http\Resources\StudentResource::collection(\App\Models\Student::with(['degree', 'level', 'typeStudent'])->get())->resolve();
+    $teachers = \App\Http\Resources\TeacherResource::collection(\App\Models\Teacher::all())->resolve();
+    $degrees = \App\Models\Degree::all();
+    $levels = \App\Models\Level::all();
+    $type_students = \App\Models\TypeStudent::all();
+    $groups = \App\Models\Group::all();
+    
+    return Inertia::render('Dashboard', [
+        'students' => $students,
+        'teachers' => $teachers,
+        'degrees' => $degrees,
+        'levels' => $levels,
+        'groups' => $groups,
+        'typeStudents' => $type_students
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/kardex', function () {
     return Inertia::render('Test_Vik/Kardex');
 })->middleware(['auth', 'verified'])->name('kardex');
+
+Route::get('/pagos', function () {
+    return Inertia::render('Test_Vik/Pagos');
+})->middleware(['auth', 'verified'])->name('pagos');
 
 
 Route::middleware('auth')->group(function () {
