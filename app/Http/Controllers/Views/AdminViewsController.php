@@ -122,11 +122,16 @@ class AdminViewsController extends Controller
             ['id' => 105, 'control_number' => '19000005', 'name' => 'Elena', 'last_name' => 'Rodríguez', 'status' => 'Activo'],
         ];
 
+        $availableStudents = Student::whereDoesntHave('qualifications', function ($query) use ($id) {
+            $query->where('group_id', $id);
+        })->get();
+
         return Inertia::render('Groups/View', [
             'grupo' => $group,
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(['id', 'name']),
             'enrolledStudents' => $mockStudents,
+            'availableStudents' => StudentResource::collection($availableStudents)->resolve(),
         ]);
     }
 
@@ -225,17 +230,13 @@ class AdminViewsController extends Controller
             ];
         });
 
-        $levels   = Level::all();
         $teachers = Teacher::all();
         $periods  = Period::all();
-        $students = Student::all();
 
         return Inertia::render('Exams/Index', [
             'examenes'    => $examsData,
-            'levels'      => $levels,
             'teachers'    => $teachers,
             'periods'     => $periods,
-            'students'    => $students,
             'statuses'    => array_map(fn($s) => ['value' => $s->value, 'label' => $s->label()], \App\Enums\AcademicStatus::cases()),
             'typeOptions' => \App\Enums\ExamType::getOptions(),
             'modeOptions' => GroupMode::getOptions(),

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
 import { Head } from "@inertiajs/react";
