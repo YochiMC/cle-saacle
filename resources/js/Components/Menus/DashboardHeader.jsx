@@ -33,13 +33,13 @@ export default function DashboardHeader({
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
                     <div className="flex items-center gap-3">
-                        <span className="w-1.5 h-8 bg-orange-500 rounded-full inline-block" />
-                        <h2 className="text-3xl font-extrabold text-[#17365D]">
+                        <span className="w-1.5 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-sm inline-block" />
+                        <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#17365D] to-[#2b5999] tracking-tight drop-shadow-sm">
                             {currentViewLabel || title}
                         </h2>
                     </div>
-                    <p className="mt-2 ml-5 text-sm text-gray-600">
-                        Administracion general de los registros del sistema.
+                    <p className="mt-2 ml-5 text-sm font-medium text-slate-500">
+                        Administración general de los registros del sistema.
                     </p>
                 </div>
 

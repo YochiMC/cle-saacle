@@ -12,13 +12,7 @@ import {
     FieldSet,
 } from "@/Components/ui/field";
 
-/**
- * Modal de Creación/Edición para Exámenes.
- * Componente "Tonto" que delega su estado y submisión a su manager provisto.
- * Hace uso de `DataFormModal` (Wrapper Contenedor).
- *
- * @param {Object} props
- */
+import ConfirmModal from "@/Components/ui/ConfirmModal";
 export default function ExamFormModal({
     manager,
     periods = [],
@@ -48,204 +42,216 @@ export default function ExamFormModal({
     ];
 
     return (
-        <DataFormModal
-            isOpen={isOpen}
-            onClose={() => manager.handleCloseModal("formulario")}
-            title={title}
-            onSubmit={manager.submitForm}
-            processing={manager.processing}
-            maxWidth="2xl"
-        >
-            {/* Bloque de errores de validación — componente compartido */}
-            <FormErrors errors={manager.errors} />
+        <>
+            <DataFormModal
+                isOpen={isOpen}
+                onClose={() => manager.handleCloseModal("formulario")}
+                title={title}
+                onSubmit={manager.submitForm}
+                processing={manager.processing}
+                maxWidth="2xl"
+            >
+                {/* Bloque de errores de validación — componente compartido */}
+                <FormErrors errors={manager.errors} />
 
-            <FieldGroup>
-                <FieldSet>
-                    <FieldLegend>Clasificación del Examen</FieldLegend>
-                    <FieldDescription>
-                        Define el tipo, modalidad y lugar.
-                    </FieldDescription>
+                <FieldGroup>
+                    <FieldSet>
+                        <FieldLegend>Clasificación del Examen</FieldLegend>
+                        <FieldDescription>
+                            Define el tipo, modalidad y lugar.
+                        </FieldDescription>
 
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <SelectForm
-                            options={typeOptions}
-                            label="Tipo de Examen"
-                            selectId="exam_type"
-                            placeholder="Ej. Convalidación"
-                            value={manager.formData.exam_type}
-                            onValueChange={(v) =>
-                                manager.setFormData("exam_type", v)
-                            }
-                        />
-                        <SelectForm
-                            options={modeOptions}
-                            label="Modalidad"
-                            selectId="mode"
-                            placeholder="Ej. Presencial"
-                            value={manager.formData.mode}
-                            onValueChange={(v) =>
-                                manager.setFormData("mode", v)
-                            }
-                        />
-                        <SelectForm
-                            options={statuses}
-                            label="Estado del Examen"
-                            selectId="status"
-                            placeholder="Selecciona el estado"
-                            value={manager.formData.status}
-                            onValueChange={(v) =>
-                                manager.setFormData("status", v)
-                            }
-                        />
-                    </div>
-                </FieldSet>
-
-                <FieldSeparator />
-
-                <FieldSet>
-                    <FieldLegend>Horario y Apertura</FieldLegend>
-                    <FieldDescription>
-                        Configura las fechas exactas, el periodo escolar y el
-                        horario de aplicación.
-                    </FieldDescription>
-
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                            <InputLabel
-                                htmlFor="start_date"
-                                value="Fecha de Inicio"
-                            />
-                            <TextInput
-                                id="start_date"
-                                type="date"
-                                className="mt-1 block w-full"
-                                value={manager.formData.start_date}
-                                onChange={(e) =>
-                                    manager.setFormData(
-                                        "start_date",
-                                        e.target.value,
-                                    )
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <SelectForm
+                                options={typeOptions}
+                                label="Tipo de Examen"
+                                selectId="exam_type"
+                                placeholder="Ej. Convalidación"
+                                value={manager.formData.exam_type}
+                                onValueChange={(v) =>
+                                    manager.setFormData("exam_type", v)
                                 }
-                                required
+                            />
+                            <SelectForm
+                                options={modeOptions}
+                                label="Modalidad"
+                                selectId="mode"
+                                placeholder="Ej. Presencial"
+                                value={manager.formData.mode}
+                                onValueChange={(v) =>
+                                    manager.setFormData("mode", v)
+                                }
+                            />
+                            <SelectForm
+                                options={statuses}
+                                label="Estado del Examen"
+                                selectId="status"
+                                placeholder="Selecciona el estado"
+                                value={manager.formData.status}
+                                onValueChange={(v) =>
+                                    manager.setFormData("status", v)
+                                }
                             />
                         </div>
+                    </FieldSet>
 
-                        <div>
-                            <InputLabel
-                                htmlFor="end_date"
-                                value="Fecha de Fin"
-                            />
-                            <TextInput
-                                id="end_date"
-                                type="date"
-                                className="mt-1 block w-full"
-                                value={manager.formData.end_date}
-                                onChange={(e) =>
-                                    manager.setFormData(
-                                        "end_date",
-                                        e.target.value,
-                                    )
-                                }
-                                required
-                            />
-                        </div>
-                    </div>
+                    <FieldSeparator />
 
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mt-4">
-                        <SelectForm
-                            options={periodOptions}
-                            label="Periodo Escolar"
-                            selectId="period_id"
-                            placeholder="Selecciona el Periodo"
-                            value={manager.formData.period_id}
-                            onValueChange={(v) =>
-                                manager.setFormData("period_id", v)
-                            }
-                        />
-                        <div>
-                            <InputLabel
-                                htmlFor="application_time"
-                                value="Hora (Opcional)"
-                            />
-                            <TextInput
-                                id="application_time"
-                                type="text"
-                                className="mt-1 block w-full"
-                                value={manager.formData.application_time}
-                                onChange={(e) =>
-                                    manager.setFormData(
-                                        "application_time",
-                                        e.target.value,
-                                    )
-                                }
-                                placeholder="10:00"
-                            />
-                        </div>
-                        <div>
-                            <InputLabel
-                                htmlFor="capacity"
-                                value="Cupo (Plazas)"
-                            />
-                            <TextInput
-                                id="capacity"
-                                type="number"
-                                className="mt-1 block w-full"
-                                value={manager.formData.capacity}
-                                onChange={(e) =>
-                                    manager.setFormData(
-                                        "capacity",
-                                        e.target.value,
-                                    )
-                                }
-                                placeholder="Ej. 10"
-                                required
-                            />
-                        </div>
-                    </div>
-                </FieldSet>
+                    <FieldSet>
+                        <FieldLegend>Horario y Apertura</FieldLegend>
+                        <FieldDescription>
+                            Configura las fechas exactas, el periodo escolar y el
+                            horario de aplicación.
+                        </FieldDescription>
 
-                <FieldSeparator />
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                                <InputLabel
+                                    htmlFor="start_date"
+                                    value="Fecha de Inicio"
+                                />
+                                <TextInput
+                                    id="start_date"
+                                    type="date"
+                                    className="mt-1 block w-full"
+                                    value={manager.formData.start_date}
+                                    onChange={(e) =>
+                                        manager.setFormData(
+                                            "start_date",
+                                            e.target.value,
+                                        )
+                                    }
+                                    required
+                                />
+                            </div>
 
-                <FieldSet>
-                    <FieldLegend>Sede y Docente Evaluador</FieldLegend>
-                    <FieldDescription>
-                        Asigna sala y supervisor (opcionales).
-                    </FieldDescription>
-
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                            <InputLabel
-                                htmlFor="classroom"
-                                value="Aula / Link"
-                            />
-                            <TextInput
-                                id="classroom"
-                                type="text"
-                                className="mt-1 block w-full"
-                                value={manager.formData.classroom}
-                                onChange={(e) =>
-                                    manager.setFormData(
-                                        "classroom",
-                                        e.target.value,
-                                    )
-                                }
-                                placeholder="A-101 / Zoom Link"
-                            />
+                            <div>
+                                <InputLabel
+                                    htmlFor="end_date"
+                                    value="Fecha de Fin"
+                                />
+                                <TextInput
+                                    id="end_date"
+                                    type="date"
+                                    className="mt-1 block w-full"
+                                    value={manager.formData.end_date}
+                                    onChange={(e) =>
+                                        manager.setFormData(
+                                            "end_date",
+                                            e.target.value,
+                                        )
+                                    }
+                                    required
+                                />
+                            </div>
                         </div>
 
-                        <SelectForm
-                            options={teacherOptions}
-                            label="Docente a cargo"
-                            selectId="teacher_id"
-                            placeholder="Selecciona Especialista"
-                            value={manager.formData.teacher_id}
-                            onValueChange={(v) =>
-                                manager.setFormData("teacher_id", v)
-                            }
-                        />
-                    </div>
-                </FieldSet>
-            </FieldGroup>
-        </DataFormModal>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mt-4">
+                            <SelectForm
+                                options={periodOptions}
+                                label="Periodo Escolar"
+                                selectId="period_id"
+                                placeholder="Selecciona el Periodo"
+                                value={manager.formData.period_id}
+                                onValueChange={(v) =>
+                                    manager.setFormData("period_id", v)
+                                }
+                            />
+                            <div>
+                                <InputLabel
+                                    htmlFor="application_time"
+                                    value="Hora (Opcional)"
+                                />
+                                <TextInput
+                                    id="application_time"
+                                    type="text"
+                                    className="mt-1 block w-full"
+                                    value={manager.formData.application_time}
+                                    onChange={(e) =>
+                                        manager.setFormData(
+                                            "application_time",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="10:00"
+                                />
+                            </div>
+                            <div>
+                                <InputLabel
+                                    htmlFor="capacity"
+                                    value="Cupo (Plazas)"
+                                />
+                                <TextInput
+                                    id="capacity"
+                                    type="number"
+                                    className="mt-1 block w-full"
+                                    value={manager.formData.capacity}
+                                    onChange={(e) =>
+                                        manager.setFormData(
+                                            "capacity",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Ej. 10"
+                                    required
+                                />
+                            </div>
+                        </div>
+                    </FieldSet>
+
+                    <FieldSeparator />
+
+                    <FieldSet>
+                        <FieldLegend>Sede y Docente Evaluador</FieldLegend>
+                        <FieldDescription>
+                            Asigna sala y supervisor (opcionales).
+                        </FieldDescription>
+
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                                <InputLabel
+                                    htmlFor="classroom"
+                                    value="Aula / Link"
+                                />
+                                <TextInput
+                                    id="classroom"
+                                    type="text"
+                                    className="mt-1 block w-full"
+                                    value={manager.formData.classroom}
+                                    onChange={(e) =>
+                                        manager.setFormData(
+                                            "classroom",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="A-101 / Zoom Link"
+                                />
+                            </div>
+
+                            <SelectForm
+                                options={teacherOptions}
+                                label="Docente a cargo"
+                                selectId="teacher_id"
+                                placeholder="Selecciona Especialista"
+                                value={manager.formData.teacher_id}
+                                onValueChange={(v) =>
+                                    manager.setFormData("teacher_id", v)
+                                }
+                            />
+                        </div>
+                    </FieldSet>
+                </FieldGroup>
+            </DataFormModal>
+
+            <ConfirmModal
+                isOpen={manager.modales.confirmTypeChange}
+                onClose={() => manager.setModales(prev => ({ ...prev, confirmTypeChange: false }))}
+                onConfirm={manager.confirmSubmit}
+                title="Atención: Cambio de Tipo de Examen"
+                message="Has cambiado el tipo de examen. Si confirmas este cambio, se reiniciarán a cero TODAS las calificaciones de los alumnos inscritos para adaptarse a las nuevas unidades de evaluación. ¿Deseas continuar y guardar de todos modos?"
+                confirmText="Sí, reiniciar y guardar"
+                variant="warning"
+            />
+        </>
     );
 }

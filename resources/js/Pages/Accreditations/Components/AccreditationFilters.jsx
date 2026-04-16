@@ -13,7 +13,7 @@ const AccreditationFilters = ({
     accreditationTypeOptions = [] 
 }) => {
     return (
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-end gap-4">
             <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Estatus

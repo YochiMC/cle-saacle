@@ -60,12 +60,20 @@ class GroupController extends Controller
     /**
      * Actualiza los datos de un grupo existente.
      */
-    public function update(UpdateGroupRequest $request, Group $group, GroupNamingService $namingService): RedirectResponse
-    {
+    public function update(
+        UpdateGroupRequest $request, 
+        Group $group, 
+        GroupNamingService $namingService,
+        \App\Actions\ResetModelQualifications $resetAction
+    ): RedirectResponse {
         $validated = $request->validated();
 
         $mergedAttributes = array_merge($group->toArray(), $validated);
         $validated['name'] = $namingService->generateName($mergedAttributes);
+
+        if (isset($validated['type']) && $validated['type'] !== $group->type->value) {
+            $resetAction->execute($group);
+        }
 
         $group->update($validated);
 

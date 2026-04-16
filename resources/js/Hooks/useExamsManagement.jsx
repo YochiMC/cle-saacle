@@ -107,15 +107,33 @@ export const useExamsManagement = (examenes = []) => {
     // Lógica de Envío de Formulario
     const submitForm = useCallback(
         (e) => {
-            e.preventDefault();
+            if (e) e.preventDefault();
 
+            const isTypeChanged = itemEditando && 
+                formData.exam_type !== (itemEditando.exam_type?.value ?? itemEditando.exam_type);
+
+            if (isTypeChanged) {
+                setModales((prev) => ({ ...prev, confirmTypeChange: true }));
+                return;
+            }
+
+            confirmSubmit();
+        },
+        [itemEditando, formData.exam_type]
+    );
+
+    const confirmSubmit = useCallback(
+        () => {
             transform((data) => ({
                 ...data,
                 capacity: parseInt(data.capacity) || 0,
                 teacher_id: data.teacher_id === "none" ? null : data.teacher_id,
             }));
 
-            const onSuccess = () => handleCloseModal("formulario");
+            const onSuccess = () => {
+                handleCloseModal("formulario");
+                setModales((prev) => ({ ...prev, confirmTypeChange: false }));
+            };
 
             if (itemEditando) {
                 put(route("exams.update", itemEditando.id), { onSuccess });
@@ -123,7 +141,7 @@ export const useExamsManagement = (examenes = []) => {
                 post(route("exams.store"), { onSuccess });
             }
         },
-        [post, put, transform, handleCloseModal, itemEditando],
+        [post, put, transform, handleCloseModal, itemEditando]
     );
 
     // 4. Peticiones Bulk / Acciones
@@ -158,6 +176,7 @@ export const useExamsManagement = (examenes = []) => {
 
         // Modales
         modales,
+        setModales,
         itemEditando,
         itemViendo,
         handleOpenModal,
@@ -167,6 +186,7 @@ export const useExamsManagement = (examenes = []) => {
         formData,
         setFormData,
         submitForm,
+        confirmSubmit,
         processing,
         errors,
 

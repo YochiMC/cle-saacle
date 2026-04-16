@@ -50,10 +50,17 @@ class ExamController extends Controller
     /**
      * Actualiza un examen existente.
      */
-    public function update(StoreExamRequest $request, Exam $exam): RedirectResponse
-    {
+    public function update(
+        StoreExamRequest $request, 
+        Exam $exam,
+        \App\Actions\ResetModelQualifications $resetAction
+    ): RedirectResponse {
         $validated = $request->validated();
         $validated['name'] = $this->namingService->generateName($validated);
+
+        if (isset($validated['exam_type']) && $validated['exam_type'] !== $exam->exam_type->value) {
+            $resetAction->execute($exam);
+        }
 
         $exam->update($validated);
 

@@ -81,7 +81,7 @@ export default function View({
                     // Edición Individual
                     editingRowId={state.editingRowId}
                     onEditRow={(item) => handlers.setEditingRowId(item.id)}
-                    onSaveRow={actions.confirmSave} // Se remapea directamente para ahorro de código si es necesario
+                    onSaveRow={(item) => handlers.setConfirmModal({ isOpen: true, type: 'row', itemData: item })}
                     onCancelRow={() => handlers.setEditingRowId(null)}
                     
                     // Inyección de Controles Fragmentados (Upper Toolbar)

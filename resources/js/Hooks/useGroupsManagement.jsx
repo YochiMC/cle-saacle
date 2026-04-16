@@ -124,8 +124,23 @@ export const useGroupsManagement = (grupos = []) => {
      */
     const submitForm = useCallback(
         (e) => {
-            e.preventDefault();
+            if (e) e.preventDefault();
 
+            const isTypeChanged = itemEditando && 
+                formData.type !== (itemEditando.type?.value ?? itemEditando.type);
+
+            if (isTypeChanged) {
+                setModales((prev) => ({ ...prev, confirmTypeChange: true }));
+                return;
+            }
+
+            confirmSubmit();
+        },
+        [itemEditando, formData.type]
+    );
+
+    const confirmSubmit = useCallback(
+        () => {
             transform((data) => ({
                 ...data,
                 capacity: parseInt(data.capacity) || 0,
@@ -133,7 +148,10 @@ export const useGroupsManagement = (grupos = []) => {
                     data.teacher_id === "none" ? null : data.teacher_id,
             }));
 
-            const onSuccess = () => handleCloseModal("formulario");
+            const onSuccess = () => {
+                handleCloseModal("formulario");
+                setModales((prev) => ({ ...prev, confirmTypeChange: false }));
+            };
 
             if (itemEditando) {
                 put(route("groups.update", itemEditando.id), { onSuccess });
@@ -141,7 +159,7 @@ export const useGroupsManagement = (grupos = []) => {
                 post(route("groups.store"), { onSuccess });
             }
         },
-        [post, put, transform, handleCloseModal, itemEditando],
+        [post, put, transform, handleCloseModal, itemEditando]
     );
 
     // ── 5. Peticiones Bulk / Acciones ─────────────────────────────────────────
@@ -174,6 +192,7 @@ export const useGroupsManagement = (grupos = []) => {
 
         // Modales
         modales,
+        setModales,
         itemEditando,
         itemViendo,
         handleOpenModal,
@@ -183,6 +202,7 @@ export const useGroupsManagement = (grupos = []) => {
         formData,
         setFormData,
         submitForm,
+        confirmSubmit,
         processing,
         errors,
 

@@ -24,7 +24,7 @@ export default function View({
     auth, 
     grupo, 
     enrolledStudents = [], 
-    available_students = [] // Ajustado según contrato del backend
+    availableStudents = [] // Ajustado según contrato del backend
 }) {
     // 1. Invocación del Controlador Lógico (Custom Hook)
     const { 
@@ -102,7 +102,7 @@ export default function View({
             <GroupModals 
                 isEnrollModalOpen={state.isEnrollModalOpen}
                 setIsEnrollModalOpen={handlers.setIsEnrollModalOpen}
-                availableStudents={available_students}
+                availableStudents={availableStudents}
                 handleEnroll={actions.handleEnroll}
                 itemToDelete={state.itemToDelete}
                 setItemToDelete={handlers.setItemToDelete}

@@ -7,14 +7,15 @@ use App\Actions\StoreStudentDocument;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
 use App\Models\Document;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Controlador de Documentos de Usuario.
- * 
+ *
  * Este controlador actúa como un orquestador ligero (Thin Controller),
  * delegando la validación a FormRequests y el manejo físico/lógico de archivos a Actions.
  */
@@ -25,10 +26,15 @@ class DocumentController extends Controller
      */
     public function store(StoreDocumentRequest $request, StoreStudentDocument $action): RedirectResponse
     {
+        $userId = Auth::id();
+        if ($userId === null) {
+            abort(403, 'Usuario no autenticado.');
+        }
+
         $action->execute(
             $request->file('file'),
             $request->validated('type'),
-            Auth::id()
+            (int) $userId
         );
 
         return back()->with('success', 'Documento subido exitosamente.');
@@ -62,24 +68,27 @@ class DocumentController extends Controller
     /**
      * Descarga el documento solicitado de forma segura.
      */
-    public function download(Document $document): StreamedResponse
+    public function download(Document $document): BinaryFileResponse
     {
+        $user = Auth::user();
+
         // Regla de seguridad: Propietario o Revisores autorizados
-        $canDownload = $document->user_id === Auth::id() || Auth::user()->hasAnyRole(['admin', 'coordinator']);
+        $canDownload =
+            $document->user_id === Auth::id()
+            || ($user instanceof User && $user->hasAnyRole(['admin', 'coordinator']));
 
         if (!$canDownload) {
             abort(403, 'No autorizado para descargar este documento.');
         }
 
         // Verificar existencia en el disco privado
-        if (!Storage::disk($document->disk)->exists($document->file_path)) {
+        if (!Storage::disk('local')->exists($document->file_path)) {
             abort(404, 'Archivo físico no encontrado en el servidor.');
         }
 
         // Servir descarga desde el disco local restringido
-        return Storage::disk($document->disk)->download(
-            $document->file_path, 
-            $document->original_name
-        );
+        $absolutePath = storage_path('app/' . ltrim($document->file_path, '/'));
+
+        return response()->download($absolutePath, $document->original_name);
     }
 }
