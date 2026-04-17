@@ -4,55 +4,53 @@ namespace App\Http\Requests;
 
 use App\Enums\DocumentStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 /**
  * Solicitud para actualizar la revisión administrativa de un documento.
- *
- * Este request valida exclusivamente el flujo de revisión, permitiendo solo
- * estatus aprobados por el módulo y exigiendo comentarios cuando el
- * documento sea rechazado.
  */
 class UpdateDocumentRequest extends FormRequest
 {
     private const MAX_COMMENTS_LENGTH = 255;
 
     /**
-     * Determina si el usuario autenticado puede enviar esta solicitud.
+     * Determina si el usuario está autorizado para realizar esta solicitud.
      */
     public function authorize(): bool
     {
-        return true;
+        return Auth::user()?->hasAnyRole(['admin', 'coordinator']) ?? false;
     }
 
     /**
-     * Devuelve las reglas de validación aplicables al flujo de revisión.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * Obtiene las reglas de validación aplicables a la solicitud.
      */
     public function rules(): array
     {
         return [
+            'status' => [
+                'required',
+                Rule::in(DocumentStatus::reviewValues()),
+            ],
             'comments' => [
                 'nullable',
                 'string',
                 'max:' . self::MAX_COMMENTS_LENGTH,
                 'required_if:status,' . DocumentStatus::REJECTED->value,
             ],
-            'status' => ['required', Rule::in(DocumentStatus::reviewValues())],
         ];
     }
 
     /**
-     * Mensajes de validación para mantener consistencia en la experiencia.
+     * Mensajes de error personalizados para la validación.
      */
     public function messages(): array
     {
         return [
-            'status.required' => 'Debes seleccionar un estatus de revisión.',
-            'status.in' => 'El estatus seleccionado no es válido para este flujo.',
+            'status.required' => 'El estatus de revisión es obligatorio.',
+            'status.in'       => 'El estatus seleccionado no es válido para una revisión.',
             'comments.required_if' => 'Debes agregar un comentario cuando rechazas el documento.',
-            'comments.max' => 'El comentario no puede superar los 255 caracteres.',
+            'comments.max'    => 'El comentario no debe exceder los 255 caracteres.',
         ];
     }
 }

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Actions\EnrollStudentsInGroup;
 use App\Actions\UpdateGroupEvaluableUnits;
 use App\Actions\AutoQueueAccreditationCandidates;
+use App\Actions\BulkDeleteGroups;
+use App\Actions\BulkUpdateGroupStatus;
+use App\Actions\BulkUnenrollStudentsFromGroup;
 use App\Enums\AcademicStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BulkDeleteGroupsRequest;
@@ -57,12 +60,20 @@ class GroupController extends Controller
     /**
      * Actualiza los datos de un grupo existente.
      */
-    public function update(UpdateGroupRequest $request, Group $group, GroupNamingService $namingService): RedirectResponse
-    {
+    public function update(
+        UpdateGroupRequest $request, 
+        Group $group, 
+        GroupNamingService $namingService,
+        \App\Actions\ResetModelQualifications $resetAction
+    ): RedirectResponse {
         $validated = $request->validated();
 
         $mergedAttributes = array_merge($group->toArray(), $validated);
         $validated['name'] = $namingService->generateName($mergedAttributes);
+
+        if (isset($validated['type']) && $validated['type'] !== $group->type->value) {
+            $resetAction->execute($group);
+        }
 
         $group->update($validated);
 
@@ -80,22 +91,24 @@ class GroupController extends Controller
     }
 
     /**
-     * Eliminación masiva de grupos.
+     * Eliminación masiva de grupos delegada a la capa de Acción.
      */
-    public function bulkDestroy(BulkDeleteGroupsRequest $request): RedirectResponse
+    public function bulkDestroy(BulkDeleteGroupsRequest $request, BulkDeleteGroups $action): RedirectResponse
     {
-        Group::whereIn('id', $request->validated('ids'))->delete();
+        $action->execute($request->validated('ids'));
 
-        return redirect()->back()->with('success', 'Grupos eliminados');
+        return redirect()->back()->with('success', 'Grupos eliminados exitosamente.');
     }
 
     /**
-     * Actualización masiva de estado de grupos.
+     * Actualización masiva de estado de grupos delegada a la capa de Acción.
      */
-    public function bulkUpdateStatus(BulkUpdateGroupStatusRequest $request): RedirectResponse
+    public function bulkUpdateStatus(BulkUpdateGroupStatusRequest $request, BulkUpdateGroupStatus $action): RedirectResponse
     {
-        Group::whereIn('id', $request->validated('ids'))
-            ->update(['status' => $request->validated('new_status')]);
+        $action->execute(
+            $request->validated('ids'),
+            $request->validated('new_status')
+        );
 
         return redirect()->back()->with('success', 'Estados de grupos actualizados exitosamente.');
     }
@@ -151,15 +164,13 @@ class GroupController extends Controller
     }
 
     /**
-     * Da de baja masiva de alumnos del grupo.
+     * Da de baja masiva de alumnos del grupo delegada a la capa de Acción.
      */
-    public function bulkUnenroll(BulkUnenrollRequest $request, Group $group): RedirectResponse
+    public function bulkUnenroll(BulkUnenrollRequest $request, Group $group, BulkUnenrollStudentsFromGroup $action): RedirectResponse
     {
-        Qualification::where('group_id', $group->id)
-            ->whereIn('student_id', $request->validated('ids'))
-            ->delete();
+        $action->execute($group, $request->validated('ids'));
 
-        return redirect()->back()->with('success', 'Alumnos seleccionados dados de baja.');
+        return redirect()->back()->with('success', 'Alumnos seleccionados dados de baja correctamente.');
     }
 
     /**

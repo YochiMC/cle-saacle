@@ -12,9 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('exam_student', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('exam_id')->constrained('exams')->cascadeOnDelete();
             $table->foreignId('student_id')->constrained('students')->cascadeOnDelete();
             $table->decimal('calificacion', 5, 2)->nullable();
+            $table->json('units_breakdown')->nullable();
+            $table->integer('final_average')->default(0);
             $table->timestamps();
 
             $table->unique(['exam_id', 'student_id']);

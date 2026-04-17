@@ -23,6 +23,8 @@ import InputForm from "@/components/Forms/InputForm";
 import DataFormModal from "@/Components/DataTable/DataFormModal";
 import FormErrors from "@/Components/ui/FormErrors";
 
+import ConfirmModal from "@/Components/ui/ConfirmModal";
+
 /**
  * @param {Object}   props
  * @param {Object}   props.manager    - Objeto completo del hook `useGroupsManagement`.
@@ -105,14 +107,15 @@ export default function GroupModal({
     }, [formData.mode]);
 
     return (
-        <DataFormModal
-            isOpen={isOpen}
-            onClose={() => handleCloseModal("formulario")}
-            title={titulo}
-            onSubmit={submitForm}
-            processing={processing}
-            maxWidth="2xl"
-        >
+        <>
+            <DataFormModal
+                isOpen={isOpen}
+                onClose={() => handleCloseModal("formulario")}
+                title={titulo}
+                onSubmit={submitForm}
+                processing={processing}
+                maxWidth="2xl"
+            >
             {/* Bloque de errores de validación — componente compartido */}
             <FormErrors errors={errors} />
 
@@ -247,5 +250,16 @@ export default function GroupModal({
                 </FieldSet>
             </FieldGroup>
         </DataFormModal>
+
+        <ConfirmModal
+            isOpen={modales.confirmTypeChange}
+            onClose={() => manager.setModales(prev => ({ ...prev, confirmTypeChange: false }))}
+            onConfirm={manager.confirmSubmit}
+            title="Atención: Cambio de Tipo de Grupo"
+            message="Has cambiado el tipo de grupo. Si confirmas este cambio, se reiniciarán a cero TODAS las calificaciones de los alumnos inscritos para adaptarse a las nuevas unidades de evaluación. ¿Deseas continuar y guardar de todos modos?"
+            confirmText="Sí, reiniciar y guardar"
+            variant="warning"
+        />
+        </>
     );
 }

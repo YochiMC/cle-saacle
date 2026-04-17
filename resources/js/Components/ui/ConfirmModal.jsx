@@ -34,7 +34,7 @@ export default function ConfirmModal({
     const confirmButtonClass = confirmColor ? `${confirmColor} hover:brightness-110` : style.confirmButton;
 
     return (
-        <Transition appear show={isOpen} as={Fragment}>
+        <Transition appear show={!!isOpen} as={Fragment}>
             <Dialog as="div" className="relative z-50" onClose={onClose}>
                 <Transition.Child
                     as={Fragment}

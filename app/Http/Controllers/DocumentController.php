@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\DocumentStatus;
-use App\Actions\UploadFile;
-use App\Models\Document;
+use App\Actions\DeleteStudentDocument;
+use App\Actions\StoreStudentDocument;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
+use App\Models\Document;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -15,12 +15,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 /**
  * Controlador de Documentos de Usuario.
  *
- * Estado actual:
- * - El módulo ya está integrado con rutas activas para crear, descargar,
- *   actualizar estatus y eliminar documentos.
- * - La actualización de documentos está restringida a roles de revisión
- *   (admin/coordinator).
- * - La descarga permite al propietario del documento o revisores autorizados.
+ * Este controlador actúa como un orquestador ligero (Thin Controller),
+ * delegando la validación a FormRequests y el manejo físico/lógico de archivos a Actions.
  */
 class DocumentController extends Controller
 {
@@ -29,7 +25,7 @@ class DocumentController extends Controller
      */
     private function canReviewDocuments(): bool
     {
-        return Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('coordinator');
+        return Auth::user()?->hasAnyRole(['admin', 'coordinator']) ?? false;
     }
 
     /**
@@ -53,100 +49,45 @@ class DocumentController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Almacena un nuevo documento para el usuario autenticado.
      */
-    public function index()
+    public function store(StoreDocumentRequest $request, StoreStudentDocument $action): RedirectResponse
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * Valida y almacena un nuevo documento para el usuario autenticado.
-     * El archivo se guarda en storage local con un nombre único y se crea
-     * un registro en la base de datos con estado pendiente de revisión.
-     */
-    public function store(StoreDocumentRequest $request, UploadFile $uploadFile): RedirectResponse
-    {
-        $validated = $request->validated();
-        $file = $request->file('file');
         $userId = Auth::id();
+        if ($userId === null) {
+            abort(403, 'Usuario no autenticado.');
+        }
 
-        $fileInfo = $uploadFile->execute($file, "documentos/user_{$userId}");
-
-        // Crear registro del documento en la base de datos
-        Document::create([
-            'user_id' => $userId,
-            'type' => $validated['type'],
-            'original_name' => $fileInfo['original_name'],
-            'file_path' => $fileInfo['path'],
-            'disk' => $fileInfo['disk'],
-            'status' => DocumentStatus::PENDING,
-        ]);
+        $action->execute(
+            $request->file('file'),
+            $request->validated('type'),
+            (int) $userId
+        );
 
         return back()->with('success', 'Documento subido exitosamente.');
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Actualiza el estatus y comentarios de un documento (Revisión Administrativa).
      */
     public function update(UpdateDocumentRequest $request, Document $document): RedirectResponse
     {
-        if (! $this->canReviewDocuments()) {
-            abort(403, 'No autorizado para actualizar este documento.');
-        }
-
-        $validated = $request->validated();     
-
-        $document->update([
-            'status' => $validated['status'],
-            'comments' => $validated['comments'] ?? null,
-        ]);
+        $document->update($request->validated());
 
         return back()->with('success', 'Documento actualizado exitosamente.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un documento del sistema (Físico y Lógico).
      */
-    public function destroy(Document $document): RedirectResponse
+    public function destroy(Document $document, DeleteStudentDocument $action): RedirectResponse
     {
-        // Verificar que el documento pertenece al usuario autenticado.
+        // Regla de seguridad: Solo el propietario puede eliminar su documento
         if ($document->user_id !== Auth::id()) {
             abort(403, 'No autorizado para eliminar este documento.');
         }
 
-        // Eliminar archivo físico antes de remover el registro en base de datos.
-        if (Storage::disk($document->disk)->exists($document->file_path)) {
-            Storage::disk($document->disk)->delete($document->file_path);
-        }
-
-        $document->delete();
+        $action->execute($document);
 
         return back()->with('success', 'Documento eliminado exitosamente.');
     }
@@ -162,7 +103,6 @@ class DocumentController extends Controller
 
         $absolutePath = $this->resolveDocumentAbsolutePath($document);
 
-        // Descargar el archivo con su nombre original desde la ruta física del disco local
         return response()->download($absolutePath, $document->original_name);
     }
 }

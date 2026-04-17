@@ -4,7 +4,6 @@ import { Head, usePage } from "@inertiajs/react";
 import ThemeButton from "@/Components/ui/ThemeButton";
 import {
     CalendarX,
-    ClipboardList,
     Plus,
     ToggleRight,
     Trash2,

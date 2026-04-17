@@ -76,7 +76,7 @@ export default function DataTableToolbar({
     const showLegacyNewButton = Boolean(onNew);
 
     return (
-        <div className="flex items-center py-4 gap-2">
+        <div className="flex items-end py-4 gap-2">
 
             {/* ── BUSCADOR GLOBAL ──────────────────────────────────────────── */}
             {/*
@@ -93,7 +93,7 @@ export default function DataTableToolbar({
             />
 
             {/* ── ACCIONES (lado derecho) ───────────────────────────────────── */}
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-end gap-2">
 
                 {/* Acciones personalizadas: se muestran como extensión del toolbar */}
                 {hasCustomButtons && buttonSpace}

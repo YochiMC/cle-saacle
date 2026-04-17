@@ -16,7 +16,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('exam_type'); // 'Convalidación', 'Planes anteriores', '4 habilidades', 'Ubicación'
             $table->integer('capacity');
-            $table->date('application_date');
+            $table->string('mode')->nullable(); // Presencial, Virtual, etc.
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->string('application_time')->nullable();
             $table->string('classroom')->nullable();
             $table->string('status')->default('active');

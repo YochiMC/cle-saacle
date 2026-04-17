@@ -33,8 +33,16 @@ class StoreDocumentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => 'required|mimes:' . self::ALLOWED_MIMES . '|max:' . self::MAX_FILE_SIZE_KB,
-            'type' => ['required', Rule::in(DocumentType::values())],
+            'file' => [
+                'required',
+                'file',
+                'mimes:' . self::ALLOWED_MIMES,
+                'max:' . self::MAX_FILE_SIZE_KB,
+            ],
+            'type' => [
+                'required',
+                Rule::in(DocumentType::values()),
+            ],
         ];
     }
 
