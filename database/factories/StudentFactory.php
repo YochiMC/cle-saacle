@@ -7,7 +7,7 @@ use App\Models\Level;
 use App\Models\TypeStudent;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Enums\GroupStatus;
+ use App\Enums\StudentStatus;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Student>
@@ -29,7 +29,8 @@ class StudentFactory extends Factory
             'gender' => $this->faker->randomElement(['M', 'F']),
             'birthdate' => $this->faker->dateTimeBetween('-25 years', '-18 years')->format('Y-m-d'),
             'semester' => $this->faker->numberBetween(1, 13),
-            'status' => $this->faker->randomElement(GroupStatus::cases())->value,
+            // Se generan estados válidos del dominio de estudiantes.
+            'status' => $this->faker->randomElement(StudentStatus::cases())->value,
             'degree_id' => Degree::inRandomOrder()->value('id') ?? Degree::factory(),
             'type_student_id' => TypeStudent::inRandomOrder()->value('id') ?? TypeStudent::factory(),
             'level_id' => Level::inRandomOrder()->value('id') ?? Level::factory(),

@@ -25,13 +25,24 @@ class UpdateStudentRequest extends FormRequest
             'email' => [
                 'required',
                 'email',
+                'string',
+                'lowercase',
                 'max:255',
                 Rule::unique('users', 'email')
                     ->whereNull('deleted_at')
                     ->ignore($student->user_id),
             ],
             'phone'          => 'nullable|string|max:20',
-            'email_recovery' => 'nullable|email|max:255',
+            'email_recovery' => [
+                'nullable',
+                'email',
+                'string',
+                'lowercase',
+                'max:255',
+                Rule::unique('users', 'email_recovery')
+                    ->whereNull('deleted_at')
+                    ->ignore($student->user_id),
+            ],
 
             // ── Campos del Estudiante ───────────────────────────────────────
             'first_name' => 'required|string|max:255',

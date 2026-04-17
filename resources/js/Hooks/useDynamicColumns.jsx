@@ -1,8 +1,24 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/Components/ui/button";
 import { Checkbox } from "@/Components/ui/checkbox";
-import { ThemeInput } from "@/Components/ThemeInput";
-import { Edit, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { ThemeInput } from "@/Components/ui/ThemeInput";
+import StatusBadge from "@/Components/ui/StatusBadge";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/Components/ui/select";
+import {
+    Edit,
+    Trash2,
+    ArrowUp,
+    ArrowDown,
+    ArrowUpDown,
+    Check,
+    X,
+} from "lucide-react";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -21,9 +37,37 @@ const renderCellValue = (value) => {
 /** Devuelve el tipo de <input> adecuado basándose en el nombre del campo. */
 const resolveInputType = (fieldKey) => {
     const lower = fieldKey.toLowerCase();
+
+    // Campos booleanos → Checkbox (OCP)
+    if (
+        lower.startsWith("is_") ||
+        lower.includes("aprobado") ||
+        lower.includes("activo") ||
+        lower.includes("left") ||
+        lower.includes("certificacion")
+    )
+        return "checkbox";
+
     if (lower.includes("name") || lower.includes("nombre")) return "text";
     if (lower.includes("email") || lower.includes("correo")) return "email";
     if (lower.includes("date") || lower.includes("fecha")) return "date";
+
+    // Campos de texto libre para exámenes
+    if (lower.includes("promedio") || lower.includes("oportunidad"))
+        return "text";
+
+    // Selector de niveles y habilidades
+    if (
+        lower.includes("nivel_asignado") ||
+        lower.includes("nivel_certificado") ||
+        lower.includes("listening") ||
+        lower.includes("reading") ||
+        lower.includes("writing") ||
+        lower.includes("speaking") ||
+        lower.includes("status")
+    )
+        return "select";
+
     return "number"; // Default: calificación numérica
 };
 
@@ -37,7 +81,7 @@ const SortIcon = ({ column }) => {
 // ── EditableCell ───────────────────────────────────────────────────────────────
 
 /**
- * Celda editable para el Modo Docente.
+ * Celda editable para edición en línea.
  *
  * OCP: extiende el comportamiento de la celda sin tocar la definición base.
  * ISP: este componente solo conoce SU campo — no el modo global.
@@ -47,11 +91,99 @@ const SortIcon = ({ column }) => {
  *
  * @param {string|number} value    – Valor actual del campo.
  * @param {number|string} rowId   – ID del registro.
- * @param {string}        fieldKey – Clave del campo (determina tipo de input).
  * @param {Function}      onChange – Callback opcional: (fieldKey, rowId, value) => void
  */
-const EditableCell = ({ value, rowId, fieldKey, onChange }) => {
+const EditableCell = ({
+    value: initialValue,
+    rowId,
+    fieldKey,
+    onChange,
+    selectOptions = {},
+}) => {
     const inputType = resolveInputType(fieldKey);
+    const [value, setValue] = useState(initialValue);
+
+    useEffect(() => {
+        setValue(initialValue);
+    }, [initialValue]);
+
+    // OCP: Nueva rama de renderizado para checkboxes (sin tocar inputs de texto/número)
+    if (inputType === "checkbox") {
+        return (
+            <div className="flex justify-center w-full">
+                <Checkbox
+                    checked={!!value}
+                    onCheckedChange={(checked) => {
+                        // Enviamos 1 o 0 (Laravel acepta ambos boolean/tinyint idealmente)
+                        const next = checked ? 1 : 0;
+                        setValue(next);
+                        if (onChange) {
+                            onChange(fieldKey, rowId, next);
+                        } else {
+                            console.log(
+                                `[Edicion Tabla] campo="${fieldKey}" alumno_id=${rowId} valor=${next}`,
+                            );
+                        }
+                    }}
+                    aria-label={`${formatLabel(fieldKey)} — fila ${rowId}`}
+                    // Consistencia UI usando las clases base en tu sistema (asumiendo que Checkbox las maneje. Puedes ajustar colores)
+                    className="border-gray-500 data-[state=checked]:bg-[#17365D]"
+                />
+            </div>
+        );
+    }
+
+    // OCP: Nueva rama para selector de nivel (examen de Ubicación) y certificado
+    if (inputType === "select") {
+        const fallbackOptions = fieldKey.includes("nivel_certificado")
+            ? ["A1", "A2", "B1", "B2", "C1", "C2"]
+            : [
+                  "Básico 1",
+                  "Básico 2",
+                  "Intermedio 1",
+                  "Intermedio 2",
+                  "Intermedio 3",
+                  "Intermedio 4",
+                  "Intermedio 5",
+                  "Avanzado 1",
+                  "Avanzado 2",
+              ];
+
+        const options = selectOptions[fieldKey] || fallbackOptions;
+
+        return (
+            <Select
+                value={String(value ?? "")}
+                onValueChange={(newValue) => {
+                    setValue(newValue);
+                    if (onChange) onChange(fieldKey, rowId, newValue);
+                }}
+            >
+                <SelectTrigger className="w-[140px] mx-auto h-8 text-xs">
+                    <SelectValue placeholder="Seleccionar..." />
+                </SelectTrigger>
+                <SelectContent>
+                    {options.map((opt) => {
+                        const val =
+                            typeof opt === "object"
+                                ? String(opt.value)
+                                : String(opt);
+                        const lbl = typeof opt === "object" ? opt.label : opt;
+
+                        return (
+                            <SelectItem
+                                key={val}
+                                value={val}
+                                className="text-xs"
+                            >
+                                {lbl}
+                            </SelectItem>
+                        );
+                    })}
+                </SelectContent>
+            </Select>
+        );
+    }
 
     const extraNumericProps =
         inputType === "number" ? { min: 0, max: 100, step: 0.1 } : {};
@@ -59,17 +191,19 @@ const EditableCell = ({ value, rowId, fieldKey, onChange }) => {
     return (
         <ThemeInput
             type={inputType}
-            defaultValue={value ?? ""}
+            value={value ?? ""}
             aria-label={`${formatLabel(fieldKey)} — fila ${rowId}`}
             wrapperClassName="w-28"
             className="text-sm text-center"
             onChange={(e) => {
-                const next = e.target.value;
+                setValue(e.target.value);
+            }}
+            onBlur={() => {
                 if (onChange) {
-                    onChange(fieldKey, rowId, next);
+                    onChange(fieldKey, rowId, value);
                 } else {
                     console.log(
-                        `[Modo Docente] campo="${fieldKey}" alumno_id=${rowId} valor=${next}`,
+                        `[Edicion Tabla] campo="${fieldKey}" alumno_id=${rowId} valor=${value}`,
                     );
                 }
             }}
@@ -83,17 +217,16 @@ const EditableCell = ({ value, rowId, fieldKey, onChange }) => {
  *
  * Genera columnas TanStack Table a partir de las claves del primer registro.
  * Incluye columna de selección, columnas de datos con sort y, opcionalmente,
- * columna de acciones (solo en Modo Administrador).
+ * columna de acciones.
  *
  * @param {Array}    data             - Array de registros del que se extraen las claves.
- * @param {Function} onEditRow        - Callback al pulsar Editar: (item) => void. Solo Modo Admin.
- * @param {object}   modeOptions      - Opciones de modo de usuario:
- * @param {boolean}  modeOptions.isTeacherMode     - true = Modo Docente.
- * @param {string[]} modeOptions.editableColumns   - Keys de columnas que serán inputs en Modo Docente.
- * @param {string[]} modeOptions.restrictedColumns - Keys ELIMINADAS en Modo Docente
+ * @param {Function} onEditRow        - Callback al pulsar Editar: (item) => void.
+ * @param {object}   modeOptions      - Opciones de edición:
+ * @param {string[]} modeOptions.editableColumns   - Keys de columnas que serán inputs en edición.
+ * @param {string[]} modeOptions.restrictedColumns - Keys ELIMINADAS de la tabla
  *                                                   (no llegan a TanStack ni al menú Toggle Columns).
  * @param {Function} modeOptions.onCellChange      - (fieldKey, rowId, value) => void
- *                                                   Callback cuando el docente edita una celda.
+ *                                                   Callback cuando se edita una celda.
  *                                                   Si no se provee se usa console.log.
  * @returns {Array} Definición de columnas lista para pasar a <DataTable />.
  */
@@ -102,20 +235,28 @@ export function useDynamicColumns(
     onEditRow,
     onDeleteRow,
     {
-        isTeacherMode = false,
         editableColumns = [],
         restrictedColumns = [],
+        selectOptions = {},
         onCellChange,
+        editingRowId = null,
+        editAllRows = false,
+        onSaveRow,
+        onCancelRow,
+        customRowActions,
     } = {},
 ) {
-    return useMemo(() => {
-        if (!data || data.length === 0) return [];
+    // Generar una firma de las llaves para evitar recrear columnas cuando el array `data`
+    // cambia su valor interno pero no su estructura (evita perder el foco en inputs)
+    const dataKeys =
+        data && data.length > 0 ? Object.keys(data[0]).join(",") : "";
 
-        const allKeys = Object.keys(data[0]);
+    return useMemo(() => {
+        if (!dataKeys) return [];
+
+        const allKeys = dataKeys.split(",");
         const editableSet = new Set(editableColumns);
-        // SRP: el filtrado de privacidad ocurre en un único lugar, antes de cualquier
-        // lógica de renderizado. Las columnas restringidas nunca llegan a TanStack Table.
-        const restrictedSet = new Set(isTeacherMode ? restrictedColumns : []);
+        const restrictedSet = new Set(restrictedColumns);
         const keys = allKeys.filter((k) => !restrictedSet.has(k));
 
         // ── Columnas de datos (con lógica de celda condicional) ───────────────
@@ -133,22 +274,113 @@ export function useDynamicColumns(
                     <SortIcon column={column} />
                 </Button>
             ),
-            // ISP: la celda solo sabe si ELLA es editable, no conoce el modo global.
-            cell: ({ row, getValue }) => {
-                const cellValue = getValue();
+            // ISP: la celda solo sabe si ELLA es editable.
+            cell: ({ row }) => {
+                const cellValue = row.original[key];
+                const isRowEditing =
+                    editAllRows || row.original.id === editingRowId;
 
-                if (isTeacherMode && editableSet.has(key)) {
+                if (isRowEditing && editableSet.has(key)) {
                     return (
                         <EditableCell
                             value={cellValue}
                             rowId={row.original.id}
                             fieldKey={key}
                             onChange={onCellChange}
+                            selectOptions={selectOptions}
                         />
                     );
                 }
-                // Celda de solo-lectura (comportamiento original)
-                return <span>{renderCellValue(cellValue)}</span>;
+
+                if (key === "status") {
+                    return (
+                        <div className="flex justify-center w-full">
+                            <StatusBadge status={cellValue} />
+                        </div>
+                    );
+                }
+
+                // Renderizar celda normal para is_left
+                if (key.includes("is_left")) {
+                    return cellValue ? (
+                        <span className="px-2 py-0.5 text-xs font-semibold bg-red-500 text-white rounded-full">
+                            Baja
+                        </span>
+                    ) : (
+                        <span className="text-slate-400">-</span>
+                    );
+                }
+
+                if (key.includes("certificacion")) {
+                    return cellValue ? (
+                        <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-600 text-white rounded-full">
+                            Sí
+                        </span>
+                    ) : (
+                        <span className="text-slate-400">-</span>
+                    );
+                }
+
+                let textColor = "text-slate-700"; // Color por defecto
+
+                // 1. Definir qué columnas SON calificaciones (Lista Blanca)
+                const gradeColumns = [
+                    "final_average",
+                    "calificacion",
+                    "calificacion_final",
+                    "promedio",
+                    "listening",
+                    "reading",
+                    "writing",
+                    "speaking",
+                    "unit_",
+                    "a1",
+                    "a2",
+                    "b1",
+                    "b2",
+                    "c1",
+                    "c2",
+                ];
+                const isGradeColumn = gradeColumns.some((col) =>
+                    key.includes(col),
+                );
+
+                // 2. Solo aplicar lógica de colores si es una columna de calificación
+                if (isGradeColumn) {
+                    const isNumericGrade = /^\d+$/.test(String(cellValue));
+                    const grade = isNumericGrade
+                        ? parseInt(cellValue, 10)
+                        : null;
+                    const failedNumeric =
+                        isNumericGrade && grade !== null && grade < 70;
+                    const approvedNumeric =
+                        isNumericGrade && grade !== null && grade >= 70;
+
+                    if (!row.original.is_left) {
+                        if (
+                            cellValue === "NA" ||
+                            failedNumeric ||
+                            ["A1", "A2"].includes(cellValue)
+                        ) {
+                            textColor = "text-red-600 font-bold";
+                        } else if (
+                            approvedNumeric ||
+                            ["B1", "B2", "C1", "C2"].includes(cellValue)
+                        ) {
+                            textColor = "text-emerald-600 font-bold";
+                        }
+                    } else {
+                        // Forzar texto atenuado para bajas
+                        textColor = "text-slate-400";
+                    }
+                }
+
+                // Celda de solo-lectura
+                return (
+                    <span className={textColor}>
+                        {renderCellValue(cellValue)}
+                    </span>
+                );
             },
         }));
 
@@ -175,7 +407,7 @@ export function useDynamicColumns(
             enableHiding: false,
         };
 
-        // ── Columna de acciones: solo en Modo Administrador ───────────────────
+        // ── Columna de acciones ────────────────────────────────────────────────
         // SRP: la decisión de incluir esta columna está aislada aquí, no dispersa.
         const actionsColumn = {
             id: "actions",
@@ -185,17 +417,64 @@ export function useDynamicColumns(
                 const item = row.original;
                 const itemName =
                     item.name || item.nombre || item.matricula || item.id;
+                const isRowEditing = editAllRows || item.id === editingRowId;
+
+                // OCP: si existe una acción personalizada, tiene prioridad sobre acciones por defecto
+                // (incluyendo estado de edición global) para no acoplar el comportamiento al core de la tabla.
+                if (customRowActions) {
+                    return customRowActions(item);
+                }
+
+                // Si esta fila está en edición, mostrar botones de Guardar/Cancelar
+                if (isRowEditing) {
+                    return (
+                        <div className="flex items-center justify-center gap-2">
+                            <Button
+                                onClick={() =>
+                                    onSaveRow
+                                        ? onSaveRow(item)
+                                        : alert(`Guardar: ${itemName}`)
+                                }
+                                className="w-8 h-8 p-0 text-white bg-green-600 rounded-md hover:bg-green-700"
+                                title="Guardar"
+                            >
+                                <Check className="w-4 h-4" />
+                            </Button>
+                            <Button
+                                onClick={() =>
+                                    onCancelRow
+                                        ? onCancelRow()
+                                        : alert(`Cancelar edición`)
+                                }
+                                className="w-8 h-8 p-0 text-white bg-gray-500 rounded-md hover:bg-gray-600"
+                                title="Cancelar"
+                            >
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    );
+                }
+
+                // Botones normales de Editar y Eliminar
                 return (
                     <div className="flex items-center justify-center gap-2">
                         <Button
-                            onClick={() => (onEditRow ? onEditRow(item) : alert(`Editar: ${itemName}`))}
+                            onClick={() =>
+                                onEditRow
+                                    ? onEditRow(item)
+                                    : alert(`Editar: ${itemName}`)
+                            }
                             className="w-8 h-8 p-0 text-white bg-orange-500 rounded-md hover:bg-orange-600"
                             title="Editar"
                         >
                             <Edit className="w-4 h-4" />
                         </Button>
                         <Button
-                            onClick={() => (onDeleteRow ? onDeleteRow(item) : alert(`Eliminar: ${itemName}`))}
+                            onClick={() =>
+                                onDeleteRow
+                                    ? onDeleteRow(item)
+                                    : alert(`Eliminar: ${itemName}`)
+                            }
                             className="w-8 h-8 p-0 text-white bg-red-600 rounded-md hover:bg-red-700"
                             title="Eliminar"
                         >
@@ -206,20 +485,18 @@ export function useDynamicColumns(
             },
         };
 
-        return [
-            // SRP: en Modo Docente no hay acciones masivas → la columna de
-            // selección no tiene utilidad y se omite para mantener la UI limpia.
-            ...(isTeacherMode ? [] : [selectionColumn]),
-            ...baseColumns,
-            // OCP: añadimos/quitamos la columna sin tocar su definición interna.
-            ...(isTeacherMode ? [] : [actionsColumn]),
-        ];
+        return [selectionColumn, ...baseColumns, actionsColumn];
     }, [
-        data,
+        dataKeys,
         onEditRow,
-        isTeacherMode,
+        onDeleteRow,
         editableColumns,
         restrictedColumns,
         onCellChange,
+        editingRowId,
+        editAllRows,
+        onSaveRow,
+        onCancelRow,
+        customRowActions,
     ]);
 }

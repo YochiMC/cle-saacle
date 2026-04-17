@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Actions\CreateStudentWithUser;
 use App\Actions\DeleteStudentWithUser;
 use App\Actions\UpdateStudentWithUser;
+use App\Actions\BulkDeleteUser;
+use App\Http\Requests\BulkDeleteStudentsRequest;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Student;
@@ -45,5 +47,28 @@ class StudentController extends Controller
         $action->execute($student);
 
         return redirect()->back()->with('success', 'Estudiante eliminado correctamente.');
+    }
+
+    /**
+     * Elimina masivamente alumnos y sus usuarios asociados.
+     *
+     * La lógica de borrado transaccional se delega a BulkDeleteUser.
+     */
+    public function bulkDeleteStudents(
+        BulkDeleteStudentsRequest $request,
+        BulkDeleteUser $action
+    ) {
+        $students = Student::with('user')
+            ->whereIn('id', $request->validated('ids'))
+            ->get();
+
+        $users = $students
+            ->pluck('user')
+            ->filter()
+            ->all();
+
+        $action->execute($users);
+
+        return redirect()->back()->with('success', 'Estudiantes eliminados correctamente.');
     }
 }

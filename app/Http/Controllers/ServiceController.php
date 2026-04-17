@@ -2,49 +2,54 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Service;
+use App\Http\Requests\StoreServiceRequest;
+use App\Http\Requests\UpdateServiceRequest;
+use Illuminate\Http\RedirectResponse;
 
+/**
+ * Controlador para la Gestión de Servicios / Pagos de Alumnos.
+ * 
+ * Implementa el patrón Thin Controller para asegurar un flujo de datos limpio
+ * y compatible con el ciclo de vida de Inertia.js.
+ */
 class ServiceController extends Controller
 {
-    //
-    public function createService(Request $request): void
+    /**
+     * Lista todos los servicios registrados.
+     */
+    public function index()
     {
-        $validate = $request->validate([
-            'type' => 'required|string|max:255',
-            'amount' => 'required|numeric',
-            'status' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'reference_number' => 'nullable|string|max:255',
-            'file_path' => 'nullable|string|max:255',
-            'student_id' => 'required|exists:students,id',
-        ]);
-
-        $service = Service::create($validate);
+        return Service::with('student')->get();
     }
 
-    public function getServices(): void
+    /**
+     * Almacena un nuevo servicio o pago.
+     */
+    public function store(StoreServiceRequest $request): RedirectResponse
     {
-        $services = Service::all();
+        Service::create($request->validated());
+
+        return redirect()->back()->with('success', 'Servicio registrado correctamente.');
     }
 
-    public function updateService(Service $service, Request $request): void
+    /**
+     * Actualiza un registro de servicio existente.
+     */
+    public function update(UpdateServiceRequest $request, Service $service): RedirectResponse
     {
-        $validate = $request->validate([
-            'type' => 'required|string|max:255',
-            'amount' => 'required|numeric',
-            'status' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'reference_number' => 'nullable|string|max:255',
-            'file_path' => 'nullable|string|max:255',
-            'student_id' => 'required|exists:students,id',
-        ]);
+        $service->update($request->validated());
 
-        $service->update($validate);
+        return redirect()->back()->with('success', 'Servicio actualizado correctamente.');
     }
 
-    public function deleteService(Service $service): void
+    /**
+     * Elimina un registro de servicio.
+     */
+    public function destroy(Service $service): RedirectResponse
     {
         $service->delete();
+
+        return redirect()->back()->with('success', 'Servicio eliminado correctamente.');
     }
 }

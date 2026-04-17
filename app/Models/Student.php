@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Enums\StudentStatus;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -12,6 +14,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Student extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected $appends = ['full_name'];
+
     protected $fillable = [
         'user_id',
         'first_name',
@@ -24,7 +29,17 @@ class Student extends Model
         'degree_id',
         'type_student_id',
         'level_id',
+        'accreditation_source',
+        'accreditation_date',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => StudentStatus::class,
+            'accreditation_date' => 'datetime',
+        ];
+    }
 
     public function user(): BelongsTo
     {
@@ -98,13 +113,11 @@ class Student extends Model
         }
     }
 
-    public function exams(): HasOne // Es mejor usar el nombre en inglés si el modelo es Exam
+    /** Exámenes en los que está inscrito el alumno (many-to-many con pivot de calificación). */
+    public function exams(): BelongsToMany
     {
-        return $this->HasOne(exams::class);
-    }
-
-    public function validations(): HasOne // Cambiado a plural para consistencia
-    {
-        return $this->HasOne(validations::class);
+        return $this->belongsToMany(Exam::class, 'exam_student')
+            ->withPivot('calificacion', 'units_breakdown', 'final_average')
+            ->withTimestamps();
     }
 }

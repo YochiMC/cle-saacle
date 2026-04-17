@@ -32,6 +32,18 @@ class TestDataBaseSeeder extends Seeder
             'password' => bcrypt('password'),
         ]);
         $yskm->assignRole('admin');
+
+        $viux = User::create([
+            'name' => 'viux',
+            'email' => 'viux@correo.com',
+            'email_recovery' => 'email@temp_t.com',
+            'phone' => '1234567898',
+            'password' => bcrypt('password'),
+        ]);
+        $viux->assignRole('teacher');
         Teacher::factory(10)->withRole()->create();
+
+        // Crear exámenes de prueba
+        \App\Models\Exam::factory(5)->withStudents()->create();
     }
 }

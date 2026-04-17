@@ -15,6 +15,9 @@
  * @param {string}   [defaultValue=""]                       - Valor inicial cuando no se controla externamente.
  * @param {boolean}  [disabled=false]                        - Deshabilita el select.
  * @param {string}   [description]                           - Texto de ayuda opcional bajo el select.
+ * @param {string}   [fieldClassName]                        - Clases adicionales para el contenedor Field.
+ * @param {string}   [triggerClassName]                      - Clases adicionales para SelectTrigger.
+ * @param {string}   [contentClassName]                      - Clases adicionales para SelectContent.
  * @param {...any}   props                                    - Props adicionales pasadas al componente Select.
  *
  * @example
@@ -51,10 +54,15 @@ export default function SelectForm({
     defaultValue = '',
     disabled = false,
     description,
+    fieldClassName = '',
+    triggerClassName = '',
+    contentClassName = '',
+    allowEmpty = false,
+    emptyLabel = '',
     ...props
 }) {
     return (
-        <Field>
+        <Field className={fieldClassName}>
             <FieldLabel htmlFor={selectId}>
                 {label}
             </FieldLabel>
@@ -65,11 +73,21 @@ export default function SelectForm({
                 disabled={disabled}
                 {...props}
             >
-                <SelectTrigger id={selectId}>
+                <SelectTrigger
+                    id={selectId}
+                    className={`w-full min-w-0 text-left ${triggerClassName}`.trim()}
+                >
                     <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                    className={`max-w-[calc(100vw-2rem)] sm:max-w-[36rem] ${contentClassName}`.trim()}
+                >
                     <SelectGroup>
+                        {allowEmpty && (
+                            <SelectItem value="">
+                                {emptyLabel || placeholder || "Sin asignar"}
+                            </SelectItem>
+                        )}
                         {options.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                                 {option.label}

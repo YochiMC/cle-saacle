@@ -20,6 +20,7 @@
 
 import {
     FieldDescription,
+    FieldError,
     FieldGroup,
     FieldLegend,
     FieldSet,
@@ -28,7 +29,7 @@ import InputForm from "@/Components/Forms/InputForm";
 import SelectForm from "@/Components/Forms/SelectForm";
 import CheckboxForm from "@/Components/Forms/CheckboxForm";
 
-export default function TeacherForm({ data, setData }) {
+export default function TeacherForm({ data, setData, errors = {} }) {
     // ── Opciones del select de categoría ────────────────────────────────────
     const categoryOptions = [
         { value: "A", label: "A" },
@@ -52,6 +53,7 @@ export default function TeacherForm({ data, setData }) {
                     value={data.first_name}
                     onChange={(e) => setData("first_name", e.target.value)}
                 />
+                <FieldError>{errors.first_name}</FieldError>
                 <InputForm
                     label="Apellidos"
                     inputId="teacher-last-name"
@@ -59,6 +61,7 @@ export default function TeacherForm({ data, setData }) {
                     value={data.last_name}
                     onChange={(e) => setData("last_name", e.target.value)}
                 />
+                <FieldError>{errors.last_name}</FieldError>
 
                 {/* ── Documentos de identidad ── */}
                 <InputForm
@@ -71,6 +74,7 @@ export default function TeacherForm({ data, setData }) {
                         setData("rfc", e.target.value.toUpperCase())
                     }
                 />
+                <FieldError>{errors.rfc}</FieldError>
                 <InputForm
                     label="CURP"
                     inputId="teacher-curp"
@@ -81,6 +85,7 @@ export default function TeacherForm({ data, setData }) {
                         setData("curp", e.target.value.toUpperCase())
                     }
                 />
+                <FieldError>{errors.curp}</FieldError>
 
                 <InputForm
                     label="Correo electrónico"
@@ -91,6 +96,7 @@ export default function TeacherForm({ data, setData }) {
                     value={data.email}
                     onChange={(e) => setData("email", e.target.value)}
                 />
+                <FieldError>{errors.email}</FieldError>
                 <InputForm
                     label="Teléfono"
                     inputId="teacher-phone"
@@ -98,6 +104,7 @@ export default function TeacherForm({ data, setData }) {
                     value={data.phone}
                     onChange={(e) => setData("phone", e.target.value)}
                 />
+                <FieldError>{errors.phone}</FieldError>
 
                 {/* ── Datos bancarios ── */}
                 <FieldLegend>Perfil Académico</FieldLegend>
@@ -112,6 +119,7 @@ export default function TeacherForm({ data, setData }) {
                     value={data.category}
                     onValueChange={(val) => setData("category", val)}
                 />
+                <FieldError>{errors.category}</FieldError>
                 <InputForm
                     label="Nivel"
                     inputId="teacher-level"
@@ -119,6 +127,7 @@ export default function TeacherForm({ data, setData }) {
                     value={data.level}
                     onChange={(e) => setData("level", e.target.value)}
                 />
+                <FieldError>{errors.level}</FieldError>
                 <InputForm
                     label="Grado académico (ej. Mtro., Dr.)"
                     inputId="teacher-grade"
@@ -126,6 +135,7 @@ export default function TeacherForm({ data, setData }) {
                     value={data.grade}
                     onChange={(e) => setData("grade", e.target.value)}
                 />
+                <FieldError>{errors.grade}</FieldError>
                 <InputForm
                     label="Horas TTC"
                     inputId="teacher-ttc-hours"
@@ -135,6 +145,7 @@ export default function TeacherForm({ data, setData }) {
                     value={data.ttc_hours}
                     onChange={(e) => setData("ttc_hours", e.target.value)}
                 />
+                <FieldError>{errors.ttc_hours}</FieldError>
 
                 {/* ── Docente nativo ── */}
                 <CheckboxForm
@@ -145,6 +156,7 @@ export default function TeacherForm({ data, setData }) {
                     onCheckedChange={(checked) =>
                         setData("is_native", Boolean(checked))
                     }
+                    tone='institutional'
                 />
 
                 <FieldLegend>Datos de Pago</FieldLegend>
@@ -158,6 +170,7 @@ export default function TeacherForm({ data, setData }) {
                     value={data.bank_name}
                     onChange={(e) => setData("bank_name", e.target.value)}
                 />
+                <FieldError>{errors.bank_name}</FieldError>
                 <InputForm
                     label="CLABE Interbancaria"
                     inputId="teacher-clabe"
@@ -166,6 +179,7 @@ export default function TeacherForm({ data, setData }) {
                     value={data.clabe}
                     onChange={(e) => setData("clabe", e.target.value)}
                 />
+                <FieldError>{errors.clabe}</FieldError>
             </FieldGroup>
         </FieldSet>
     );

@@ -2,47 +2,58 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Degree;
 use App\Models\Student;
 use App\Models\Teacher;
+use App\Http\Requests\StoreDegreeRequest;
+use App\Http\Requests\UpdateDegreeRequest;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 
+/**
+ * Controlador para la Gestión del Catálogo de Carreras / Programas Académicos.
+ */
 class DegreeController extends Controller
 {
-    //
-    public function createDegree(Request $request): void
+    /**
+     * Muestra la vista de catálogo o sandbox con datos base.
+     */
+    public function index()
     {
-        $validate = $request->validate([
-            'name' => 'required|string|max:100|unique:degrees,name',
-            'curriculum' => 'required|string|max:30|unique:degrees,curriculum'
-        ]);
-        $degree = Degree::create($validate);
-    }
-
-    public function getDegree()
-    {
-        $degrees = Degree::all();
-        $students = Student::all();
-        $teachers = Teacher::all();
-        return Inertia::render('Test', [
-            'degrees' => $degrees,
-            'students' => $students,
-            'teachers' => $teachers
+        return Inertia::render('RecursosYochi/Test', [
+            'degrees'  => Degree::all(),
+            'students' => Student::all(),
+            'teachers' => Teacher::all(),
         ]);
     }
 
-    public function updateDegree(Degree $degree, Request $request): void
+    /**
+     * Almacena una nueva carrera.
+     */
+    public function store(StoreDegreeRequest $request): RedirectResponse
     {
-        $validate = $request->validate([
-            'name' => 'required|string|max:100|unique:degrees,name',
-            'curriculum' => 'required|string|max:30|unique:degrees,curriculum'
-        ]);
-        $degree->update($validate);
+        Degree::create($request->validated());
+
+        return redirect()->back()->with('success', 'Carrera creada correctamente.');
     }
 
-    public function deleteDegree(Degree $degree): void
+    /**
+     * Actualiza una carrera existente.
+     */
+    public function update(UpdateDegreeRequest $request, Degree $degree): RedirectResponse
+    {
+        $degree->update($request->validated());
+
+        return redirect()->back()->with('success', 'Carrera actualizada correctamente.');
+    }
+
+    /**
+     * Elimina una carrera.
+     */
+    public function destroy(Degree $degree): RedirectResponse
     {
         $degree->delete();
+
+        return redirect()->back()->with('success', 'Carrera eliminada correctamente.');
     }
 }

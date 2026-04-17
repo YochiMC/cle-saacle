@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\DocumentResource;
 
 class UserResource extends JsonResource
 {
@@ -22,7 +23,10 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'email_recovery' => $this->email_recovery,
             'phone' => $this->phone,
-            'roles' => $this->getRoleNames(),
+            'roles' => $this->roles->pluck('id')->toArray(),
+            'documents' => $this->relationLoaded('documents')
+                ? DocumentResource::collection($this->documents->sortByDesc('created_at')->values())->resolve()
+                : [],
             'profile' => match (true) {
                 $this->hasRole('teacher') => $this->whenLoaded(
                     'teacher',

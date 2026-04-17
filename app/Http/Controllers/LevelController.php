@@ -2,40 +2,55 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Level;
+use App\Http\Requests\StoreLevelRequest;
+use App\Http\Requests\UpdateLevelRequest;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
+/**
+ * Controlador para la Gestión del Catálogo de Niveles de Idioma.
+ * 
+ * Implementa el patrón Thin Controller con validación delegada y
+ * retornos compatibles con el ciclo de vida de Inertia.js.
+ */
 class LevelController extends Controller
 {
-    //
-    public function createLevel(Request $request): void
+    /**
+     * Lista todos los niveles registrados.
+     */
+    public function index()
     {
-        $validate = $request->validate([
-            'level_tecnm' => 'required|string|max:20|unique:levels,level_tecnm',
-            'level_mcer' => 'required|string|max:20',
-            'hours' => 'required|integer|min:0',
-        ]);
-        $level = Level::create($validate);
+        return Level::all();
     }
 
-    public function getLevels(): void
+    /**
+     * Almacena un nuevo nivel de idioma.
+     */
+    public function store(StoreLevelRequest $request): RedirectResponse
     {
-        $levels = Level::all();
+        Level::create($request->validated());
+
+        return redirect()->back()->with('success', 'Nivel creado correctamente.');
     }
 
-    public function updateLevel(Level $level, Request $request): void
+    /**
+     * Actualiza un nivel de idioma existente.
+     */
+    public function update(UpdateLevelRequest $request, Level $level): RedirectResponse
     {
-        $validate = $request->validate([
-            'level_tecnm' => 'required|string|max:20|unique:levels,level_tecnm',
-            'level_mcer' => 'required|string|max:20',
-            'hours' => 'required|integer|min:0',
-        ]);
+        $level->update($request->validated());
 
-        $level->update($validate);
+        return redirect()->back()->with('success', 'Nivel actualizado correctamente.');
     }
 
-    public function deleteLevel(Level $level): void
+    /**
+     * Elimina un nivel de idioma.
+     */
+    public function destroy(Level $level): RedirectResponse
     {
         $level->delete();
+
+        return redirect()->back()->with('success', 'Nivel eliminado correctamente.');
     }
 }

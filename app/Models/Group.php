@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Enums\GroupStatus;
+use App\Enums\AcademicStatus;
 
 class Group extends Model
 {
@@ -23,10 +23,15 @@ class Group extends Model
         'status',
         'period_id',
         'teacher_id',
+        'level_id',
+        'evaluable_units',
     ];
 
     protected $casts = [
-        'status' => GroupStatus::class,
+        'status' => AcademicStatus::class,
+        'mode'   => \App\Enums\GroupMode::class,
+        'type'   => \App\Enums\GroupType::class,
+        'evaluable_units' => 'integer',
     ];
 
 

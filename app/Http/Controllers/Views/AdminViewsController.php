@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Views;
 
+use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
+use App\Enums\StudentStatus;
+use App\Enums\GroupMode;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\LevelResource;
@@ -21,6 +25,7 @@ use App\Models\Exam;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
 
 /**
  * Controlador para la gestión de las vistas administrativas.
@@ -29,18 +34,42 @@ use Inertia\Inertia;
 class AdminViewsController extends Controller
 {
     /**
+     * Resuelve los tipos de documento visibles según el rol principal del usuario.
+     * Mantiene el mismo contrato de datos usado en la vista administrativa del perfil.
+     *
+     * @param User $user
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function resolveDocumentTypeOptions(User $user): array
+    {
+        if ($user->hasRole('teacher')) {
+            return DocumentType::requiredSelectFor('teacher');
+        }
+
+        if ($user->hasRole('student')) {
+            return DocumentType::requiredSelectFor('student');
+        }
+
+        return DocumentType::toSelect();
+    }
+
+    /**
      * Renderiza la vista de gestión de usuarios (Alumnos y Docentes).
+     *
+     * Incluye el catálogo de estados de estudiante para que la UI use etiquetas
+     * oficiales del enum y no dependa de strings hardcodeados.
      *
      * @return \Inertia\Response
      */
     public function usersView()
     {
-        return Inertia::render('TestYochi/Users', [
+        return Inertia::render('Users/Users', [
             'students' => StudentResource::collection(Student::with(['degree', 'level', 'typeStudent'])->get())->resolve(),
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
             'degrees' => Degree::all(),
             'levels' => Level::all(),
             'typeStudents' => TypeStudent::all(),
+            'studentStatuses' => array_map(fn($status) => ['value' => $status->value, 'label' => $status->label()], StudentStatus::cases()),
         ]);
     }
 
@@ -54,21 +83,23 @@ class AdminViewsController extends Controller
     {
         $esEstudiante = $request->user()?->hasRole('student') ?? false;
 
-        $grupos = Group::with(['teacher', 'level', 'period'])
+        $grupos = Group::with(['teacher', 'level', 'period', 'qualifications.student'])
             ->withCount('qualifications')
-            ->when($esEstudiante, fn ($q) => $q->whereIn('status', ['active', 'waiting']))
+            ->when($esEstudiante, fn($q) => $q->whereIn('status', ['active', 'waiting']))
             ->get();
 
         if ($esEstudiante && $this->debeOcultarDocentes()) {
-            $grupos->each(fn ($g) => $g->setRelation('teacher', null));
+            $grupos->each(fn($g) => $g->setRelation('teacher', null));
         }
 
-        return Inertia::render('Test_MK2/Groups', [
+        return Inertia::render('Groups/Index', [
             'grupos' => GroupResource::collection($grupos)->resolve(),
             'levels' => LevelResource::collection(Level::orderBy('level_tecnm')->get())->resolve(),
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(),
-            'statuses' => array_map(fn ($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\GroupStatus::cases()),
+            'statuses' => array_map(fn($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\AcademicStatus::cases()),
+            'modes' => \App\Enums\GroupMode::getOptions(),
+            'types' => \App\Enums\GroupType::getOptions(),
         ]);
     }
 
@@ -91,11 +122,16 @@ class AdminViewsController extends Controller
             ['id' => 105, 'control_number' => '19000005', 'name' => 'Elena', 'last_name' => 'Rodríguez', 'status' => 'Activo'],
         ];
 
-        return Inertia::render('Test_MK2/GroupView', [
+        $availableStudents = Student::whereDoesntHave('qualifications', function ($query) use ($id) {
+            $query->where('group_id', $id);
+        })->get();
+
+        return Inertia::render('Groups/View', [
             'grupo' => $group,
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(['id', 'name']),
             'enrolledStudents' => $mockStudents,
+            'availableStudents' => StudentResource::collection($availableStudents)->resolve(),
         ]);
     }
 
@@ -116,17 +152,24 @@ class AdminViewsController extends Controller
         // Para el estudiante, cargamos sus relaciones para que StudentResource
         // pueda resolver los IDs de los selects correctamente.
         $user->loadMissing([
+            'documents',
             'teacher',
             'student.degree',
             'student.level',
             'student.typeStudent',
         ]);
 
-        return Inertia::render('Profile/Users/Profile', [
+        $documentTypeOptions = $this->resolveDocumentTypeOptions($user);
+
+        return Inertia::render('Profile/Users/Edit', [
+            'roles' => Role::all(),
             'user'         => UserResource::make($user),
+            'hasStudent' => (bool) $user->student,
             'degrees'      => Degree::all(['id', 'name']),
             'levels'       => Level::all(['id', 'level_tecnm']),
             'typeStudents' => TypeStudent::all(['id', 'name']),
+            'documentStatuses' => DocumentStatus::reviewOptions(),
+            'documentTypes' => $documentTypeOptions,
         ]);
     }
 
@@ -138,7 +181,7 @@ class AdminViewsController extends Controller
         $levels = Level::all();
         $type_students = TypeStudent::all();
         $groups = Group::all();
-        return Inertia::render('Test_Vik/Reports', [
+        return Inertia::render('Academic/Reports', [
             'students' => $students,
             'teachers' => $teachers,
             'degrees' => $degrees,
@@ -150,21 +193,53 @@ class AdminViewsController extends Controller
 
     public function examsView(Request $request)
     {
-        $exams = Exam::with('student')->get(); // Opcional, si tienes relación definida (para mostrar nombre)
-        $levels = Level::all();
-        $teachers = Teacher::all();
-        $periods = Period::all();
-        $students = StudentResource::collection(Student::all())->resolve();
-        
-        return Inertia::render('Test_Vik/Examen', [
-            'examenes' => $exams,
-            'levels' => $levels,
-            'teachers' => $teachers,
-            'periods' => $periods,
-            'students' => $students
+        $esEstudiante = $request->user()?->hasRole('student') ?? false;
+        $ocultarDocentes = $esEstudiante && $this->debeOcultarDocentes();
 
-            
+        $exams = Exam::with(['students', 'teacher', 'period'])->get();
+
+        // Aplanamos los datos y calculamos campos derivados para el frontend
+        $examsData = $exams->map(function ($exam) use ($ocultarDocentes) {
+            $enrolledCount   = $exam->students->count();
+            $availableSeats  = max(0, ($exam->capacity ?? 0) - $enrolledCount);
+
+            return [
+                'id'               => $exam->id,
+                'name'             => $exam->name,
+                'exam_type'        => $exam->exam_type?->value ?? $exam->exam_type,
+                'capacity'         => $exam->capacity,
+                'start_date'       => $exam->start_date,
+                'end_date'         => $exam->end_date,
+                'mode'             => $exam->mode,
+                'application_time' => $exam->application_time,
+                'classroom'        => $exam->classroom,
+                'status'           => $exam->status?->value ?? $exam->status,
+                'period_id'        => $exam->period_id,
+                'teacher_id'       => $ocultarDocentes ? null : $exam->teacher_id,
+                'teacher_name'     => $ocultarDocentes ? 'Por asignar' : $exam->teacher?->full_name,
+                'teacher'          => $ocultarDocentes || !$exam->teacher ? null : [
+                    'name' => $exam->teacher->first_name,
+                    'last_name' => $exam->teacher->last_name,
+                ],
+                'period_name'      => $exam->period?->name,
+                'period'           => $exam->period ? ['id' => $exam->period->id, 'name' => $exam->period->name] : null,
+                'registered'       => $enrolledCount,
+                'enrolled_count'   => $enrolledCount,
+                'available_seats'  => $availableSeats,
+                'students_string'  => collect($exam->students)->map(fn($s) => ($s->first_name ?? '') . ' ' . ($s->last_name ?? ''))->join(' '),
+            ];
+        });
+
+        $teachers = Teacher::all();
+        $periods  = Period::all();
+
+        return Inertia::render('Exams/Index', [
+            'examenes'    => $examsData,
+            'teachers'    => $teachers,
+            'periods'     => $periods,
+            'statuses'    => array_map(fn($s) => ['value' => $s->value, 'label' => $s->label()], \App\Enums\AcademicStatus::cases()),
+            'typeOptions' => \App\Enums\ExamType::getOptions(),
+            'modeOptions' => GroupMode::getOptions(),
         ]);
     }
 }
-

@@ -14,6 +14,7 @@ class Level extends Model
         'level_tecnm',
         'level_mcer',
         'hours',
+        'program_type',
     ];
 
     public function students(): HasMany

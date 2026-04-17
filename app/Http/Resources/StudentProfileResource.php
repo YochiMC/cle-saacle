@@ -2,13 +2,17 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\StudentStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class StudentProfileResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
+    * Transforma el perfil del estudiante al contrato consumido por Inertia.
+    *
+    * Se envía el estado técnico (`status`) junto con su etiqueta humana
+    * (`status_label`) para mantener la presentación desacoplada del dominio.
      *
      * @return array<string, mixed>
      */
@@ -23,7 +27,8 @@ class StudentProfileResource extends JsonResource
             'gender' => $this->gender,
             'birthdate' => $this->birthdate,
             'semester' => $this->semester,
-            'status' => $this->status,
+            'status' => $this->status instanceof StudentStatus ? $this->status->value : $this->status,
+            'status_label' => $this->status instanceof StudentStatus ? $this->status->label() : 'Desconocido',
             'degree_id' => $this->degree_id,
             'type_student_id' => $this->type_student_id,
             'level_id' => $this->level_id,

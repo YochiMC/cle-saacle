@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { useTableExport } from '@/Hooks/useTableExport';
 
 // ── Componentes de UI propios ───────────────────────────────────────────────
-import { ThemeButton } from '@/Components/ThemeButton';
-import { ThemeInput } from '@/Components/ThemeInput';
+import { ThemeButton } from '@/Components/ui/ThemeButton';
+import { ThemeInput } from '@/Components/ui/ThemeInput';
 import ReportPreviewModal from '@/Components/DataTable/ReportPreviewModal';
 
 // ── Íconos de lucide-react ──────────────────────────────────────────────────
@@ -38,7 +38,8 @@ import {
  *
  * Responsabilidades de este componente:
  *  - Búsqueda global (controlada: `globalFilter` / `onGlobalFilterChange`).
- *  - Botón de alta de nuevos registros (`onNew`).
+ *  - Espacio de acciones personalizadas (`buttonSpace`) para inyectar acciones extra.
+ *  - Compatibilidad hacia atrás: `onNew` se mantiene y puede convivir con `buttonSpace`.
  *  - Menú de exportación: PDF (modal), Excel (.xlsx), CSV.
  *  - Menú de visibilidad de columnas.
  *  - Estado local `isPreviewOpen` para el modal de vista previa.
@@ -47,6 +48,7 @@ import {
  * @param {string}   globalFilter         - Valor actual del filtro global.
  * @param {Function} onGlobalFilterChange - Setter del filtro global (controlled input).
  * @param {string}   searchPlaceholder    - Placeholder del buscador.
+ * @param {React.ReactNode} buttonSpace   - Contenido opcional de acciones personalizadas.
  * @param {Function} onNew                - Handler para registrar un nuevo elemento.
  */
 export default function DataTableToolbar({
@@ -54,8 +56,8 @@ export default function DataTableToolbar({
     globalFilter,
     onGlobalFilterChange,
     searchPlaceholder = 'Buscar en cualquier columna...',
+    buttonSpace,
     onNew,
-    isTeacherMode = false,
 }) {
     /*
      * Separación de capas (Clean Architecture):
@@ -70,9 +72,11 @@ export default function DataTableToolbar({
      * Si fuera necesario en múltiples lugares, se elevaría al componente padre.
      */
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const hasCustomButtons = Boolean(buttonSpace);
+    const showLegacyNewButton = Boolean(onNew);
 
     return (
-        <div className="flex items-center py-4 gap-2">
+        <div className="flex items-end py-4 gap-2">
 
             {/* ── BUSCADOR GLOBAL ──────────────────────────────────────────── */}
             {/*
@@ -89,10 +93,13 @@ export default function DataTableToolbar({
             />
 
             {/* ── ACCIONES (lado derecho) ───────────────────────────────────── */}
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-end gap-2">
 
-                {/* Alta de nuevo registro — solo visible en Modo Administrador */}
-                {!isTeacherMode && (
+                {/* Acciones personalizadas: se muestran como extensión del toolbar */}
+                {hasCustomButtons && buttonSpace}
+
+                {/* Compatibilidad hacia atrás: onNew convive con buttonSpace */}
+                {showLegacyNewButton && (
                     <ThemeButton
                         theme="institutional"
                         icon={Plus}

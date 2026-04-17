@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\GroupStatus;
+use App\Enums\AcademicStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,17 +25,17 @@ class UpdateGroupRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'         => 'sometimes|required|string|max:255',
             'mode'         => 'sometimes|required|string|max:255',
             'type'         => 'sometimes|required|string|max:255',
             'capacity'     => 'sometimes|required|integer|min:1',
             'schedule'     => 'sometimes|required|string|max:255',
-            'classroom'    => 'nullable|string|max:255',
-            'meeting_link' => 'nullable|url|max:255',
-            'status'       => ['sometimes', 'required', 'string', Rule::enum(GroupStatus::class)],
+            'classroom'    => ['nullable', 'string', 'max:255'],
+            'meeting_link' => ['nullable', 'url', 'max:255'],
+            'status'       => ['sometimes', 'required', 'string', Rule::enum(AcademicStatus::class)],
             'period_id'    => 'sometimes|required|exists:periods,id',
-            'teacher_id'   => 'sometimes|required|exists:teachers,id',
+            'teacher_id'   => ['nullable', 'exists:teachers,id'],
             'level_id'     => 'sometimes|required|exists:levels,id',
+            'evaluable_units' => 'nullable|integer|min:1',
         ];
     }
 
@@ -45,7 +45,6 @@ class UpdateGroupRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required'      => 'El nombre del grupo es obligatorio.',
             'capacity.integer'   => 'La capacidad debe ser un número entero.',
             'period_id.exists'   => 'El periodo seleccionado no existe.',
         ];

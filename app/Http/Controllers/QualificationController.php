@@ -3,61 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Models\Qualification;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\UpdateQualificationsRequest;
+use App\Http\Requests\BulkUpdateGroupQualificationsRequest;
+use App\Actions\BulkUpdateGroupQualifications;
+use Illuminate\Http\RedirectResponse;
 
+/**
+ * Controlador para la Gestión de Calificaciones de Grupos Académicos.
+ * 
+ * Implementa el patrón Thin Controller:
+ * - Validación delegada a FormRequests.
+ * - Lógica de persistencia compleja delegada a Actions.
+ */
 class QualificationController extends Controller
 {
     /**
-     * Obtener calificaciones de un estudiante.
+     * Actualiza una sola calificación de forma individual.
+     * 
+     * @param UpdateQualificationsRequest $request
+     * @param Qualification $qualification
+     * @return RedirectResponse
      */
-    public function getQualifications($studentId): void
+    public function update(UpdateQualificationsRequest $request, Qualification $qualification): RedirectResponse
     {
-        $qualifications = Qualification::where('student_id', $studentId)->get();
+        $qualification->update($request->validated());
+
+        return redirect()->back()->with('success', 'Calificación individual guardada exitosamente.');
     }
 
     /**
-     * Crear una nueva calificación con validación.
+     * Actualiza masivamente un lote de calificaciones de un grupo.
+     * 
+     * Delegamos la transacción y el bucle de persistencia a la acción 
+     * BulkUpdateGroupQualifications para mantener el controlador "delgado".
+     * 
+     * @param BulkUpdateGroupQualificationsRequest $request
+     * @param BulkUpdateGroupQualifications $action
+     * @return RedirectResponse
      */
-    public function createQualification(Request $request): void
+    public function bulkUpdate(BulkUpdateGroupQualificationsRequest $request, BulkUpdateGroupQualifications $action): RedirectResponse
     {
-        // 1. Validar los datos de entrada
-        $validated = $request->validate([
-            'unit_1'        => 'required|numeric|min:0|max:100',
-            'unit_2'        => 'required|numeric|min:0|max:100',
-            'final_avarage' => 'required|numeric|min:0|max:100',
-            'is_approved'  => 'required|boolean',
-            'is_left'      => 'required|boolean',
-            'student_id'   => 'required|exists:students,id',
-            'group_id'     => 'required|exists:groups,id',
-        ]);
+        $action->execute($request->validated('qualifications'));
 
-        // 2. Crear el registro
-        $qualification = Qualification::create($validated);
-    }
-
-    /**
-     * Actualizar usando Route Model Binding.
-     */
-    public function updateQualification(Request $request, Qualification $qualification): void
-    {
-        $validated = $request->validate([
-            'unit_1'        => 'sometimes|numeric|min:0|max:100',
-            'unit_2'        => 'sometimes|numeric|min:0|max:100',
-            'final_average' => 'sometimes|numeric|min:0|max:100',
-            'is_approved'  => 'sometimes|boolean',
-            'is_left'      => 'sometimes|boolean',
-        ]);
-
-        $qualification->update($validated);
-    }
-
-    /**
-     * Eliminar una calificación.
-     */
-    public function deleteQualification(Qualification $qualification): void
-    {
-        $qualification->delete();
+        return redirect()->back()->with('success', 'Calificaciones del grupo guardadas exitosamente.');
     }
 }

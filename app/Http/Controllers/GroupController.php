@@ -2,57 +2,86 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\EnrollStudentsInGroup;
+use App\Actions\UpdateGroupEvaluableUnits;
+use App\Actions\AutoQueueAccreditationCandidates;
+use App\Actions\BulkDeleteGroups;
+use App\Actions\BulkUpdateGroupStatus;
+use App\Actions\BulkUnenrollStudentsFromGroup;
+use App\Enums\AcademicStatus;
 use App\Http\Controllers\Controller;
-use App\Models\Group;
+use App\Http\Requests\BulkDeleteGroupsRequest;
+use App\Http\Requests\BulkUnenrollRequest;
+use App\Http\Requests\BulkUpdateGroupStatusRequest;
+use App\Http\Requests\EnrollStudentsRequest;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
-use App\Http\Requests\BulkDeleteGroupsRequest;
-use App\Http\Requests\BulkUpdateGroupStatusRequest;
+use App\Http\Requests\UpdateUnitsGroupRequest;
+use App\Http\Resources\StudentQualificationResource;
+use App\Models\Group;
+use App\Models\Qualification;
+use App\Services\GroupNamingService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Http\Resources\StudentQualificationResource;
 
 /**
- * Controlador de Alto Nivel para la Gestión de Grupos Académicos.
+ * Thin Controller para la Gestión de Grupos Académicos.
  *
- * Sigue el principio de Responsabilidad Única (SRP) delegando validaciones a Form Requests
- * y concentrándose en la orquestación de la persistencia y redirección.
+ * Aplica estrictamente el Principio de Responsabilidad Única (SRP):
+ * - Las validaciones están aisladas en FormRequests.
+ * - La lógica de negocio compleja (inscripción, recalculo de schema) está en Actions.
+ * - El controlador solo orquesta: recibe, delega y redirige.
  */
 class GroupController extends Controller
 {
     /**
-     * Persiste un nuevo grupo en el sistema.
-     *
-     * @param StoreGroupRequest $request Datos validados de creación.
-     * @return RedirectResponse Redirección con mensaje de éxito.
+     * Lista todos los grupos con sus relaciones (Eager Loading anti N+1).
      */
-    public function store(StoreGroupRequest $request): RedirectResponse
+    public function index()
     {
-        Group::create($request->validated());
+        $groups = Group::with(['level', 'teacher', 'period'])->get();
+        return \App\Http\Resources\GroupResource::collection($groups);
+    }
+
+    /**
+     * Crea un nuevo grupo.
+     */
+    public function store(StoreGroupRequest $request, GroupNamingService $namingService): RedirectResponse
+    {
+        $validated = $request->validated();
+        $validated['name'] = $namingService->generateName($validated);
+
+        Group::create($validated);
 
         return redirect()->back()->with('success', 'Grupo creado exitosamente.');
     }
 
     /**
      * Actualiza los datos de un grupo existente.
-     *
-     * @param UpdateGroupRequest $request Datos validados de actualización.
-     * @param Group $group Instancia del modelo a modificar.
-     * @return RedirectResponse Redirección con mensaje de éxito.
      */
-    public function update(UpdateGroupRequest $request, Group $group): RedirectResponse
-    {
-        $group->update($request->validated());
+    public function update(
+        UpdateGroupRequest $request, 
+        Group $group, 
+        GroupNamingService $namingService,
+        \App\Actions\ResetModelQualifications $resetAction
+    ): RedirectResponse {
+        $validated = $request->validated();
+
+        $mergedAttributes = array_merge($group->toArray(), $validated);
+        $validated['name'] = $namingService->generateName($mergedAttributes);
+
+        if (isset($validated['type']) && $validated['type'] !== $group->type->value) {
+            $resetAction->execute($group);
+        }
+
+        $group->update($validated);
 
         return redirect()->back()->with('success', 'Grupo actualizado exitosamente.');
     }
 
     /**
-     * Elimina físicamente un grupo de la base de datos.
-     *
-     * @param Group $group Instancia del modelo a eliminar.
-     * @return RedirectResponse Redirección con mensaje de éxito.
+     * Elimina un grupo.
      */
     public function destroy(Group $group): RedirectResponse
     {
@@ -62,57 +91,111 @@ class GroupController extends Controller
     }
 
     /**
-     * Realiza una eliminación masiva de grupos basada en un array de identificadores.
-     *
-     * @param BulkDeleteGroupsRequest $request Contiene el array 'ids' ya validado contra la existencia en BD.
-     * @return RedirectResponse Redirección con mensaje de éxito.
+     * Eliminación masiva de grupos delegada a la capa de Acción.
      */
-    public function bulkDestroy(BulkDeleteGroupsRequest $request): RedirectResponse
+    public function bulkDestroy(BulkDeleteGroupsRequest $request, BulkDeleteGroups $action): RedirectResponse
     {
-        Group::whereIn('id', $request->validated('ids'))->delete();
+        $action->execute($request->validated('ids'));
 
-        return redirect()->back()->with('success', 'Grupos eliminados');
+        return redirect()->back()->with('success', 'Grupos eliminados exitosamente.');
     }
 
     /**
-     * Actualiza el estado de múltiples grupos de manera atómica.
-     *
-     * @param BulkUpdateGroupStatusRequest $request Contiene 'ids' y 'new_status' validados.
-     * @return RedirectResponse Redirección con mensaje de éxito.
+     * Actualización masiva de estado de grupos delegada a la capa de Acción.
      */
-    public function bulkUpdateStatus(BulkUpdateGroupStatusRequest $request): RedirectResponse
+    public function bulkUpdateStatus(BulkUpdateGroupStatusRequest $request, BulkUpdateGroupStatus $action): RedirectResponse
     {
-        Group::whereIn('id', $request->validated('ids'))
-            ->update(['status' => $request->validated('new_status')]);
+        $action->execute(
+            $request->validated('ids'),
+            $request->validated('new_status')
+        );
 
         return redirect()->back()->with('success', 'Estados de grupos actualizados exitosamente.');
     }
 
-    public function show(Group $group)
+    /**
+     * Muestra el dashboard de un grupo con sus alumnos inscritos y calificaciones.
+     */
+    public function show(Group $group): Response
     {
-        // 1. Eager Loading: Traemos las calificaciones y de paso cargamos al alumno de cada una.
-        // El ->get() es vital porque ejecuta la consulta en la base de datos.
         $qualifications = $group->qualifications()->with('student')->get();
 
-        // 2. Transformación: Recorremos las calificaciones para "aplanar" los datos
-        // usando el Resource que creaste.
         $enrolledStudents = $qualifications->map(function ($qualification) {
-
-            // Extraemos el modelo del estudiante
             $student = $qualification->student;
-
-            // Le asignamos dinámicamente la calificación al estudiante
-            // para que tu Resource la detecte y la aplane
             $student->qualification = $qualification;
-
-            // Pasamos el estudiante por el Resource
             return new StudentQualificationResource($student);
         });
 
-        // 3. Retornamos la vista enviando los datos limpios
-        return Inertia::render('Test_MK2/GroupView', [
-            'grupo' => $group,
-            'enrolledStudents' => $enrolledStudents
+        $enrolledIds = $group->qualifications()->pluck('student_id');
+        $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
+            ->select('id', 'first_name', 'last_name', 'num_control')
+            ->get();
+
+        return Inertia::render('Groups/View', [
+            'grupo'            => $group,
+            'enrolledStudents' => $enrolledStudents,
+            'availableStudents' => $availableStudents,
         ]);
+    }
+
+    /**
+     * Inscribe alumnos en el grupo.
+     *
+     * Toda la lógica de negocio (schema de unidades, cálculo inicial de promedio,
+     * transacción) está encapsulada en EnrollStudentsInGroup.
+     */
+    public function enroll(EnrollStudentsRequest $request, Group $group, EnrollStudentsInGroup $action): RedirectResponse
+    {
+        $action->execute($group, $request->validated('student_ids'));
+
+        return redirect()->back()->with('success', 'Alumnos inscritos correctamente.');
+    }
+
+    /**
+     * Da de baja a un solo alumno del grupo.
+     */
+    public function unenroll(Group $group, \App\Models\Student $student): RedirectResponse
+    {
+        Qualification::where('group_id', $group->id)
+            ->where('student_id', $student->id)
+            ->delete();
+
+        return redirect()->back()->with('success', 'Alumno dado de baja del grupo.');
+    }
+
+    /**
+     * Da de baja masiva de alumnos del grupo delegada a la capa de Acción.
+     */
+    public function bulkUnenroll(BulkUnenrollRequest $request, Group $group, BulkUnenrollStudentsFromGroup $action): RedirectResponse
+    {
+        $action->execute($group, $request->validated('ids'));
+
+        return redirect()->back()->with('success', 'Alumnos seleccionados dados de baja correctamente.');
+    }
+
+    /**
+     * Actualiza el número de unidades evaluables y reconcilia el JSON de calificaciones.
+     *
+     * Toda la lógica de negocio (recálculo de schema, regla isFailing, loop de actualización)
+     * está encapsulada en UpdateGroupEvaluableUnits.
+     */
+    public function updateUnits(UpdateUnitsGroupRequest $request, Group $group, UpdateGroupEvaluableUnits $action): RedirectResponse
+    {
+        $action->execute($group, $request->validated('evaluable_units'));
+
+        return redirect()->back()->with('success', 'Número de unidades actualizado.');
+    }
+
+    /**
+     * Cierra definitivamente un grupo.
+     */
+    public function complete(Group $group, AutoQueueAccreditationCandidates $action): RedirectResponse
+    {
+        $group->update(['status' => AcademicStatus::COMPLETED]);
+
+        // Automatización del flujo de acreditación
+        $action->executeForGroup($group);
+
+        return redirect()->back()->with('success', 'El grupo ha sido cerrado exitosamente. Ya no se permiten modificaciones.');
     }
 }

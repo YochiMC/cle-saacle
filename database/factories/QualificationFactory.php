@@ -26,17 +26,21 @@ class QualificationFactory extends Factory
      */
     public function definition(): array
     {
-        $unit1 = $this->faker->numberBetween(0, 100);
-        $unit2 = $this->faker->numberBetween(0, 100);
-        $average = (int) round(($unit1 + $unit2) / 2);
-        
+        // Simula grupos con distinta cantidad de unidades evaluables.
+        $unitsCount = 3;
+        $unitsBreakdown = [];
+
+        for ($i = 1; $i <= $unitsCount; $i++) {
+            $unitsBreakdown["unit_{$i}"] = $this->faker->numberBetween(0, 100);
+        }
+
+        $average = (int) round(array_sum($unitsBreakdown) / count($unitsBreakdown));
+
         return [
             'student_id' => Student::factory(),
             'group_id' => Group::factory(),
-            'unit_1' => $unit1,
-            'unit_2' => $unit2,
+            'units_breakdown' => $unitsBreakdown,
             'final_average' => $average,
-            'is_approved' => $average >= 70,
             'is_left' => $this->faker->boolean(5), // 5% de probabilidad de haber abandonado
         ];
     }

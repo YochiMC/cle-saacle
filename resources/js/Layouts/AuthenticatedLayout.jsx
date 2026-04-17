@@ -1,12 +1,50 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import Dropdown from "@/Components/Dropdown";
-import NavLink from "@/Components/NavLink";
-import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
+import Navbar from "@/Components/Menus/Navbar/Navbar";
+import ResponsiveNavbar from "@/Components/Menus/Navbar/ResponsiveNavbar";
+import ResponsiveNavLink from "@/Components/Menus/Navbar/Links/ResponsiveNavLink";
 import { Link, usePage } from "@inertiajs/react";
 import { useState } from "react";
 
+/**
+ * Layout autenticado con barra de navegación integrada.
+ *
+ * @component
+ * @description
+ * Layout de envoltura para páginas protegidas después de la autenticación.
+ * Incluye barra de navegación (Navbar y ResponsiveNavbar), menú de usuario
+ * con opciones de perfil y cierre de sesión, y espacios para header dinámico
+ * y contenido principal.
+ *
+ * @param {Object} props - Props del componente.
+ * @param {React.ReactNode} [props.header] - Contenido opcional para el header (encima del main).
+ * @param {React.ReactNode} props.children - Contenido principal de la página.
+ *
+ * @returns {React.ReactElement} Estructura completa de layout autenticado.
+ *
+ * @example
+ * <AuthenticatedLayout header={<h1>Mi Página</h1>}>
+ *   <div>Contenido de la página</div>
+ * </AuthenticatedLayout>
+ */
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+
+    /**
+     * Configuración de links de navegación con protección por roles.
+     * Cada link especifica qué roles tienen permiso para verlo.
+     *
+     * @type {Array<Object>}
+     */
+    const links = [
+        { route: "dashboard", label: "Dashboard", allowedRoles: ["admin", "teacher", "student"] },
+        { route: "users", label: "Usuarios", allowedRoles: ["admin"] },
+        { route: "groups", label: "Grupos", allowedRoles: ["admin", "teacher", "student"] },
+        { route: "reports", label: "Reportes", allowedRoles: ["admin", "teacher"] },
+        { route: "exams.index", label: "Exámenes", allowedRoles: ["admin", "teacher", "student"] },
+        { route: "settings.index", label: "Configuraciones", allowedRoles: ["admin"] },
+        { route: "pagos", label: "Pagos", allowedRoles: ["admin", "student"] },
+    ];
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
@@ -15,48 +53,16 @@ export default function AuthenticatedLayout({ header, children }) {
         <div className="min-h-screen bg-background">
             {/* NavBar Azul TEC */}
             <nav className="border-b border-blueTec/30 bg-blueTec">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
+                <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <div className="flex justify-between h-16">
                         <div className="flex">
-                            <div className="flex shrink-0 items-center">
+                            <div className="flex items-center shrink-0">
                                 <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-white text-white" />
+                                    <ApplicationLogo className="block w-auto text-white h-9 fill-white" />
                                 </Link>
                             </div>
-
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route("dashboard")}
-                                    active={route().current("dashboard")}
-                                    className="text-white hover:text-orangeTec"
-                                >
-                                    Dashboard
-                                </NavLink>
-                                <NavLink
-                                    href={route("users")}
-                                    active={route().current("users")}
-                                    className="text-white hover:text-orangeTec"
-                                >
-                                    Usuarios
-                                </NavLink>
-                                <NavLink
-                                    href={route("groups")}
-                                    active={route().current("groups")}
-                                    className="text-white hover:text-orangeTec"
-                                >
-                                    Grupos
-                                </NavLink>
-
-                                <NavLink
-                                    href={route("pagos")}
-                                    active={route().current("pagos")}
-                                    className="text-white hover:text-orangeTec"
-                                >
-                                    Pagos
-                                </NavLink>
-                            </div>
                         </div>
-
+                        <Navbar links={links} />
                         <div className="hidden sm:ms-6 sm:flex sm:items-center">
                             <div className="relative ms-3">
                                 <Dropdown>
@@ -64,7 +70,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <span className="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                className="inline-flex items-center rounded-md border border-blueTec/50 bg-blueTec/80 px-3 py-2 text-sm font-medium leading-4 text-white transition duration-150 ease-in-out hover:bg-blueTec hover:text-orangeTec focus:outline-none"
+                                                className="inline-flex items-center px-3 py-2 text-sm font-medium leading-4 text-white transition duration-150 ease-in-out border rounded-md border-blueTec/50 bg-blueTec/80 hover:bg-blueTec hover:text-orangeTec focus:outline-none"
                                             >
                                                 {user.name}
 
@@ -88,33 +94,33 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <Dropdown.Link
                                             href={route("profile.edit")}
                                         >
-                                            Profile
+                                            Perfil
                                         </Dropdown.Link>
                                         <Dropdown.Link
                                             href={route("logout")}
                                             method="post"
                                             as="button"
                                         >
-                                            Log Out
+                                            Cerrar Sesión
                                         </Dropdown.Link>
                                     </Dropdown.Content>
                                 </Dropdown>
                             </div>
                         </div>
 
-                        <div className="-me-2 flex items-center sm:hidden">
+                        <div className="flex items-center -me-2 sm:hidden">
                             <button
                                 onClick={() =>
                                     setShowingNavigationDropdown(
                                         (previousState) => !previousState,
                                     )
                                 }
-                                className="inline-flex items-center justify-center rounded-md p-2 text-white transition duration-150 ease-in-out hover:bg-blueTec/80 hover:text-orangeTec focus:bg-blueTec/80 focus:text-orangeTec focus:outline-none"
+                                className="inline-flex items-center justify-center p-2 text-white transition duration-150 ease-in-out rounded-md hover:bg-blueTec/80 hover:text-orangeTec focus:bg-blueTec/80 focus:text-orangeTec focus:outline-none"
                             >
                                 <svg
                                     fill="none"
                                     stroke="currentColor"
-                                    className="h-6 w-6"
+                                    className="w-6 h-6"
                                     viewBox="0 0 24 24"
                                 >
                                     <path
@@ -151,24 +157,9 @@ export default function AuthenticatedLayout({ header, children }) {
                         " sm:hidden"
                     }
                 >
-                    <div className="space-y-1 bg-blueTec/80 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route("dashboard")}
-                            active={route().current("dashboard")}
-                            className="text-white hover:text-orangeTec"
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route("pagos")}
-                            active={route().current("pagos")}
-                            className="text-white hover:text-orangeTec"
-                        >
-                            Pagos
-                        </ResponsiveNavLink>
-                    </div>
+                    <ResponsiveNavbar links={links} />
 
-                    <div className="border-t border-blueTec/30 bg-blueTec/80 pb-1 pt-4">
+                    <div className="pt-4 pb-1 border-t border-blueTec/30 bg-blueTec/80">
                         <div className="px-4">
                             <div className="text-base font-medium text-white">
                                 {user.name}
@@ -183,7 +174,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 href={route("profile.edit")}
                                 className="text-white hover:text-orangeTec"
                             >
-                                Profile
+                                Perfil
                             </ResponsiveNavLink>
                             <ResponsiveNavLink
                                 method="post"
@@ -191,7 +182,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 as="button"
                                 className="text-white hover:text-orangeTec"
                             >
-                                Log Out
+                                Cerrar Sesión
                             </ResponsiveNavLink>
                         </div>
                     </div>
@@ -200,7 +191,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
             {header && (
                 <header className="bg-white shadow">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                    <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
                         {header}
                     </div>
                 </header>
