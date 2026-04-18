@@ -7,7 +7,7 @@ use App\Http\Resources\PeriodResource;
 
 /**
  * Action: GetPeriodConfigAction
- * 
+ *
  * Inyecta en el Frontend la estructura y los datos necesarios para
  * renderizar el catálogo de "Periodos".
  */
@@ -31,12 +31,6 @@ class GetPeriodConfigAction
                 ['accessorKey' => 'status', 'header' => 'Estado'],
             ],
             'formFields' => [
-                [
-                    'name' => 'name',
-                    'label' => 'Nombre del Periodo',
-                    'type' => 'text',
-                    'required' => true,
-                ],
                 [
                     'name' => 'start_date',
                     'label' => 'Fecha de Inicio',

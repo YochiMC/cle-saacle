@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Period;
 use App\Http\Requests\StorePeriodRequest;
 use App\Http\Requests\UpdatePeriodRequest;
 use App\Http\Requests\BulkDeletePeriodsRequest;
+use App\Models\Period;
+use App\Services\PeriodNamingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Database\QueryException;
 
@@ -20,9 +21,12 @@ class PeriodController extends Controller
     /**
      * Almacena un nuevo periodo.
      */
-    public function store(StorePeriodRequest $request): RedirectResponse
+    public function store(StorePeriodRequest $request, PeriodNamingService $periodNamingService): RedirectResponse
     {
-        Period::create($request->validated());
+        $validated = $request->validated();
+        $validated['name'] = $periodNamingService->generate($validated['start_date'], $validated['end_date']);
+
+        Period::create($validated);
 
         return redirect()->back()->with('success', 'Periodo creado correctamente.');
     }
@@ -30,9 +34,12 @@ class PeriodController extends Controller
     /**
      * Actualiza un periodo existente.
      */
-    public function update(UpdatePeriodRequest $request, Period $period): RedirectResponse
+    public function update(UpdatePeriodRequest $request, Period $period, PeriodNamingService $periodNamingService): RedirectResponse
     {
-        $period->update($request->validated());
+        $validated = $request->validated();
+        $validated['name'] = $periodNamingService->generate($validated['start_date'], $validated['end_date']);
+
+        $period->update($validated);
 
         return redirect()->back()->with('success', 'Periodo actualizado correctamente.');
     }

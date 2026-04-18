@@ -7,6 +7,7 @@ use App\Actions\StoreStudentDocument;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
 use App\Models\Document;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -25,7 +26,10 @@ class DocumentController extends Controller
      */
     private function canReviewDocuments(): bool
     {
-        return Auth::user()?->hasAnyRole(['admin', 'coordinator']) ?? false;
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        return $user?->hasAnyRole(['admin', 'coordinator']) ?? false;
     }
 
     /**
