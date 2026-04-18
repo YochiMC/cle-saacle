@@ -5,11 +5,13 @@ namespace App\Actions\Students;
 use App\Models\Group;
 use App\Models\Level;
 use App\Models\Student;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
  * Action: AdvanceStudentsLevelAction
- * 
+ *
  * Gestiona el avance automático de nivel para alumnos que aprobaron su curso regular.
  * No aplica para niveles terminales (Intermedio 5 o Programa Egresados).
  */
@@ -45,10 +47,20 @@ class AdvanceStudentsLevelAction
             ->orderBy('id')
             ->first();
 
-        if ($nextLevel) {
+        if (!$nextLevel) {
+            Log::info('No next level found for group.', [
+                'group_id' => $group->id,
+                'current_level_id' => $group->level_id,
+                'approved_count' => $approvedStudentIds->count(),
+            ]);
+
+            return;
+        }
+
+        DB::transaction(function () use ($approvedStudentIds, $nextLevel): void {
             // 3. Actualización masiva de la tabla students (evitamos bug de tabla pivote)
             Student::whereIn('id', $approvedStudentIds)
                 ->update(['level_id' => $nextLevel->id]);
-        }
+        });
     }
 }

@@ -1,33 +1,49 @@
-import React, { useEffect } from 'react';
-import { useForm } from '@inertiajs/react';
-import DataFormModal from '@/Components/DataTable/DataFormModal';
-import InputForm from '@/Components/Forms/InputForm';
-import InputError from '@/Components/InputError';
+import React, { useEffect } from "react";
+import { useForm } from "@inertiajs/react";
+import DataFormModal from "@/Components/DataTable/DataFormModal";
+import InputForm from "@/Components/Forms/InputForm";
+import InputError from "@/Components/InputError";
 
 /**
  * CatalogFormModal
- * 
+ *
  * Componente especializado que encapsula la lógica de creación y edición
  * de registros para cualquier catálogo dinámico.
- * 
+ *
  * @param {boolean} isOpen - Controla la visibilidad del modal.
  * @param {function} onClose - Callback para cerrar el modal.
  * @param {object} activeCatalog - Configuración del catálogo actual.
  * @param {object|null} editingRecord - Registro en edición (null para nuevo).
  */
-export default function CatalogFormModal({ isOpen, onClose, activeCatalog, editingRecord }) {
-    
+export default function CatalogFormModal({
+    isOpen,
+    onClose,
+    activeCatalog,
+    editingRecord,
+}) {
     // 1. Helper para inicializar el formulario dinámicamente según los campos configurados
     const getInitialValues = () => {
         if (!activeCatalog) return {};
         return activeCatalog.formFields.reduce((acc, field) => {
-            acc[field.name] = editingRecord ? (editingRecord[field.name] ?? '') : '';
+            acc[field.name] = editingRecord
+                ? (editingRecord[field.name] ?? "")
+                : "";
             return acc;
         }, {});
     };
 
     // 2. Hook de Inertia: Gestionado internamente para SRP
-    const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm(getInitialValues());
+    const {
+        data,
+        setData,
+        post,
+        put,
+        processing,
+        errors,
+        setError,
+        reset,
+        clearErrors,
+    } = useForm(getInitialValues());
 
     // 3. Ciclo de Vida: Reiniciar estado al cambiar de contexto o abrir el modal
     useEffect(() => {
@@ -43,6 +59,33 @@ export default function CatalogFormModal({ isOpen, onClose, activeCatalog, editi
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        clearErrors();
+
+        const requiredFields = activeCatalog.formFields.filter(
+            (field) => field.required,
+        );
+        const emptyRequiredFields = requiredFields.filter((field) => {
+            const value = data[field.name];
+
+            if (value === null || value === undefined) {
+                return true;
+            }
+
+            if (typeof value === "string") {
+                return value.trim() === "";
+            }
+
+            return value === "";
+        });
+
+        if (emptyRequiredFields.length > 0) {
+            emptyRequiredFields.forEach((field) => {
+                setError(field.name, `El campo ${field.label} es obligatorio.`);
+            });
+
+            return;
+        }
 
         const options = {
             preserveScroll: true,
@@ -60,7 +103,11 @@ export default function CatalogFormModal({ isOpen, onClose, activeCatalog, editi
         <DataFormModal
             isOpen={isOpen}
             onClose={onClose}
-            title={editingRecord ? `Editar ${activeCatalog.title}` : `Nuevo ${activeCatalog.title}`}
+            title={
+                editingRecord
+                    ? `Editar ${activeCatalog.title}`
+                    : `Nuevo ${activeCatalog.title}`
+            }
             onSubmit={handleSubmit}
             processing={processing}
             submitText={editingRecord ? "Actualizar" : "Guardar"}
@@ -74,12 +121,17 @@ export default function CatalogFormModal({ isOpen, onClose, activeCatalog, editi
                             inputId={field.name}
                             type={field.type}
                             value={data[field.name]}
-                            onChange={(e) => setData(field.name, e.target.value)}
+                            onChange={(e) =>
+                                setData(field.name, e.target.value)
+                            }
                             required={field.required}
                             disabled={processing}
                         />
                         {/* Manejo de errores visuales de Inertia */}
-                        <InputError message={errors[field.name]} className="mt-1.5" />
+                        <InputError
+                            message={errors[field.name]}
+                            className="mt-1.5"
+                        />
                     </div>
                 ))}
             </div>

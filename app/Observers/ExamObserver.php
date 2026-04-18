@@ -42,6 +42,8 @@ class ExamObserver
      */
     public function deleted(Exam $exam): void
     {
-        $this->resetStatusAction->execute($exam->students());
+        if ($exam->students()->exists()) {
+            $this->resetStatusAction->execute($exam->students());
+        }
     }
 }

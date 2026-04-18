@@ -43,6 +43,8 @@ class GroupObserver
      */
     public function deleted(Group $group): void
     {
-        $this->resetStatusAction->execute($group->students());
+        if ($group->students()->exists()) {
+            $this->resetStatusAction->execute($group->students());
+        }
     }
 }
