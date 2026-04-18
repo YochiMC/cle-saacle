@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\BulkUpdateExamQualifications;
 use App\Actions\EnrollStudentsInExam;
-use App\Actions\AutoQueueAccreditationCandidates;
 use App\Actions\BulkDeleteExams;
 use App\Actions\BulkUpdateExamStatus;
 use App\Actions\BulkDetachStudentsFromExam;
@@ -191,12 +190,9 @@ class ExamController extends Controller
     /**
      * Cierra definitivamente un examen.
      */
-    public function complete(Exam $exam, AutoQueueAccreditationCandidates $action): RedirectResponse
+    public function complete(Exam $exam): RedirectResponse
     {
         $exam->update(['status' => AcademicStatus::COMPLETED]);
-
-        // Automatización del flujo de acreditación
-        $action->executeForExam($exam);
 
         return redirect()->back()->with('success', 'El examen ha sido cerrado exitosamente. Ya no se permiten modificaciones.');
     }

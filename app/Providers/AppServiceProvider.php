@@ -21,5 +21,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        // Registro de Observers para Sincronización de Estado de Alumnos
+        \App\Models\Group::observe(\App\Observers\GroupObserver::class);
+        \App\Models\Exam::observe(\App\Observers\ExamObserver::class);
     }
 }
