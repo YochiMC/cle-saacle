@@ -10,6 +10,11 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\Views\AdminViewsController;
+use App\Http\Controllers\PeriodController;
+use App\Http\Controllers\LevelController;
+use App\Http\Controllers\DegreeController;
+use App\Http\Controllers\TypeStudentController;
+use App\Http\Controllers\CatalogUIController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -177,7 +182,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('settings')->name('settings.')->group(function () {
             Route::get('/', [SettingController::class, 'index'])->name('index');
             Route::put('/bulk', [SettingController::class, 'updateBulk'])->name('update-bulk');
+            
+            // UI Centralizada de Catálogos
+            Route::get('/catalogs', [CatalogUIController::class, 'index'])->name('catalogs');
         });
+
+        // Rutas Bulk Delete para Catálogos
+        Route::delete('periods/bulk', [PeriodController::class, 'bulkDestroy'])->name('periods.bulk-delete');
+        Route::delete('levels/bulk', [LevelController::class, 'bulkDestroy'])->name('levels.bulk-delete');
+        Route::delete('degrees/bulk', [DegreeController::class, 'bulkDestroy'])->name('degrees.bulk-delete');
+        Route::delete('type-students/bulk', [TypeStudentController::class, 'bulkDestroy'])->name('type-students.bulk-delete');
+
+        // Mutaciones de Catálogos (Thin Controllers)
+        Route::apiResource('periods', PeriodController::class)->only(['store', 'update', 'destroy']);
+        Route::apiResource('levels', LevelController::class)->only(['store', 'update', 'destroy']);
+        Route::apiResource('degrees', DegreeController::class)->only(['store', 'update', 'destroy']);
+        Route::apiResource('type-students', TypeStudentController::class)->only(['store', 'update', 'destroy'])->parameters([
+            'type-students' => 'typeStudent'
+        ]);
     });
 });
 

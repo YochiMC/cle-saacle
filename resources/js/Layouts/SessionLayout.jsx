@@ -21,6 +21,11 @@ export default function SessionLayout({ children, header }) {
             url: route("profile.edit"),
             active: route().current("profile.edit"),
         },
+        {
+            title: "Catálogos",
+            url: route("settings.catalogs"),
+            active: route().current("settings.catalogs"),
+        },
     ];
 
     return (
