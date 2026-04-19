@@ -4,15 +4,16 @@ namespace App\Policies;
 
 use App\Models\Teacher;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class TeacherPolicy
 {
-    public function before(User $user, string $ability)
+    public function before(User $user, string $ability): ?bool
     {
         if ($user->hasRole('admin')) {
             return true;
         }
+
+        return null;
     }
 
     /**
@@ -28,7 +29,8 @@ class TeacherPolicy
      */
     public function view(User $user, Teacher $teacher): bool
     {
-        return false;
+        return $user->hasRole('teacher') && $teacher->user_id === $user->id
+            || $user->hasRole('coordinator');
     }
 
     /**
@@ -36,7 +38,7 @@ class TeacherPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->hasRole('coordinator');
     }
 
     /**
@@ -44,7 +46,8 @@ class TeacherPolicy
      */
     public function update(User $user, Teacher $teacher): bool
     {
-        return false;
+        return $user->hasRole('teacher') && $teacher->user_id === $user->id
+            || $user->hasRole('coordinator');
     }
 
     /**
@@ -52,7 +55,15 @@ class TeacherPolicy
      */
     public function delete(User $user, Teacher $teacher): bool
     {
-        return false;
+        return $user->hasRole('coordinator');
+    }
+
+    /**
+     * Determina si el usuario puede eliminar docentes de forma masiva.
+     */
+    public function bulkDelete(User $user): bool
+    {
+        return $user->hasRole('coordinator');
     }
 
     /**

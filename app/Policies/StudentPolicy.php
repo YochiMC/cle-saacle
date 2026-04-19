@@ -7,11 +7,13 @@ use App\Models\User;
 
 class StudentPolicy
 {
-    public function before(User $user, string $ability)
+    public function before(User $user, string $ability): ?bool
     {
         if ($user->hasRole('admin')) {
             return true;
         }
+
+        return null;
     }
 
     /**
@@ -57,8 +59,13 @@ class StudentPolicy
     }
 
     /**
-     * Determine whether the user can restore the model.
+     * Determina si el usuario puede eliminar alumnos de forma masiva.
      */
+    public function bulkDelete(User $user): bool
+    {
+        return $user->hasRole('coordinator');
+    }
+
     public function restore(User $user, Student $student): bool
     {
         return false;
