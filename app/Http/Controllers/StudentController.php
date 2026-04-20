@@ -65,7 +65,7 @@ class StudentController extends Controller
         BulkDeleteStudentsRequest $request,
         BulkDeleteUser $action
     ) {
-        Gate::authorize('bulkDelete', Student::class);
+        Gate::authorize('deleteAny', Student::class);
         $students = Student::with('user')
             ->whereIn('id', $request->validated('ids'))
             ->get();

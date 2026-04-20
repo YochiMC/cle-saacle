@@ -54,7 +54,7 @@ class TeacherController extends Controller
         BulkDeleteTeachersRequest $request,
         BulkDeleteUser $action
     ) {
-        Gate::authorize('bulkDelete', Teacher::class);
+        Gate::authorize('deleteAny', Teacher::class);
         $teachers = Teacher::with('user')
             ->whereIn('id', $request->validated('ids'))
             ->get();

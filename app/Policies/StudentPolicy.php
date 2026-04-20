@@ -61,7 +61,7 @@ class StudentPolicy
     /**
      * Determina si el usuario puede eliminar alumnos de forma masiva.
      */
-    public function bulkDelete(User $user): bool
+    public function deleteAny(User $user): bool
     {
         return $user->hasRole('coordinator');
     }

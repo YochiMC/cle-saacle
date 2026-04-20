@@ -4,12 +4,11 @@ namespace App\Policies;
 
 use App\Models\Degree;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class DegreePolicy
 {
     public function before(User $user, string $ability): ?bool{
-        if ($user->hasRole('admin')) {
+        if ($user->hasAnyRole('admin')) {
             return true;
         }
         return null;
@@ -51,6 +50,11 @@ class DegreePolicy
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, Degree $degree): bool
+    {
+        return $user->hasRole('coordinator');
+    }
+
+    public function deleteAny(User $user): bool
     {
         return $user->hasRole('coordinator');
     }

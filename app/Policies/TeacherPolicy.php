@@ -61,7 +61,7 @@ class TeacherPolicy
     /**
      * Determina si el usuario puede eliminar docentes de forma masiva.
      */
-    public function bulkDelete(User $user): bool
+    public function deleteAny(User $user): bool
     {
         return $user->hasRole('coordinator');
     }
