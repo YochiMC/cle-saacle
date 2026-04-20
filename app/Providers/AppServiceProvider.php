@@ -23,10 +23,9 @@ class AppServiceProvider extends ServiceProvider
         Vite::prefetch(concurrency: 3);
 
         // Define la ruta a donde enviar si ya está autenticado
-    if (!defined('HOME')) {
-        define('HOME', '/dashboard');
-    }
-
+        if (! defined('HOME')) {
+            define('HOME', '/dashboard');
+        }
 
         // Registro de Observers para Sincronización de Estado de Alumnos
         \App\Models\Group::observe(\App\Observers\GroupObserver::class);

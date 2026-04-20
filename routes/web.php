@@ -2,29 +2,29 @@
 
 use App\Http\Controllers\AccreditationController;
 use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\CatalogUIController;
+use App\Http\Controllers\DegreeController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\LevelController;
+use App\Http\Controllers\PeriodController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
-use App\Http\Controllers\Views\AdminViewsController;
-use App\Http\Controllers\PeriodController;
-use App\Http\Controllers\LevelController;
-use App\Http\Controllers\DegreeController;
 use App\Http\Controllers\TypeStudentController;
-use App\Http\Controllers\CatalogUIController;
+use App\Http\Controllers\Views\AdminViewsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', function () {
-    return Inertia::render('Auth/Login', [
-        'canResetPassword' => Route::has('password.request'),
-        'status' => session('status'),
-    ]);
-});
+        return Inertia::render('Auth/Login', [
+            'canResetPassword' => Route::has('password.request'),
+            'status' => session('status'),
+        ]);
+    });
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -184,7 +184,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('settings')->name('settings.')->group(function () {
             Route::get('/', [SettingController::class, 'index'])->name('index');
             Route::put('/bulk', [SettingController::class, 'updateBulk'])->name('update-bulk');
-            
+
             // UI Centralizada de Catálogos
             Route::get('/catalogs', [CatalogUIController::class, 'index'])->name('catalogs');
         });
@@ -200,7 +200,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::apiResource('levels', LevelController::class)->only(['store', 'update', 'destroy']);
         Route::apiResource('degrees', DegreeController::class)->only(['store', 'update', 'destroy']);
         Route::apiResource('type-students', TypeStudentController::class)->only(['store', 'update', 'destroy'])->parameters([
-            'type-students' => 'typeStudent'
+            'type-students' => 'typeStudent',
         ]);
     });
 });
