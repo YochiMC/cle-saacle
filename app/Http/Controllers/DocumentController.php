@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Gate;
 use App\Actions\DeleteStudentDocument;
 use App\Actions\StoreStudentDocument;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
 use App\Models\Document;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -21,25 +21,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class DocumentController extends Controller
 {
-    /**
-     * Determina si el usuario autenticado puede revisar documentos de terceros.
-     */
-    private function canReviewDocuments(): bool
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        return $user?->hasAnyRole(['admin', 'coordinator']) ?? false;
-    }
-
-    /**
-     * Verifica si el usuario puede descargar el documento solicitado.
-     */
-    private function canDownloadDocument(Document $document): bool
-    {
-        return $document->user_id === Auth::id() || $this->canReviewDocuments();
-    }
-
     /**
      * Devuelve la ruta física del archivo y valida su existencia.
      */
@@ -57,15 +38,11 @@ class DocumentController extends Controller
      */
     public function store(StoreDocumentRequest $request, StoreStudentDocument $action): RedirectResponse
     {
-        $userId = Auth::id();
-        if ($userId === null) {
-            abort(403, 'Usuario no autenticado.');
-        }
-
+        Gate::authorize('create', Document::class);
         $action->execute(
             $request->file('file'),
             $request->validated('type'),
-            (int) $userId
+            (int) Auth::id()
         );
 
         return back()->with('success', 'Documento subido exitosamente.');
@@ -76,6 +53,7 @@ class DocumentController extends Controller
      */
     public function update(UpdateDocumentRequest $request, Document $document): RedirectResponse
     {
+        Gate::authorize('update', $document);
         $document->update($request->validated());
 
         return back()->with('success', 'Documento actualizado exitosamente.');
@@ -86,11 +64,7 @@ class DocumentController extends Controller
      */
     public function destroy(Document $document, DeleteStudentDocument $action): RedirectResponse
     {
-        // Regla de seguridad: Solo el propietario puede eliminar su documento
-        if ($document->user_id !== Auth::id()) {
-            abort(403, 'No autorizado para eliminar este documento.');
-        }
-
+        Gate::authorize('delete', $document);
         $action->execute($document);
 
         return back()->with('success', 'Documento eliminado exitosamente.');
@@ -101,9 +75,7 @@ class DocumentController extends Controller
      */
     public function download(Document $document): BinaryFileResponse
     {
-        if (! $this->canDownloadDocument($document)) {
-            abort(403, 'No autorizado para descargar este documento.');
-        }
+        Gate::authorize('view', $document);    
 
         $absolutePath = $this->resolveDocumentAbsolutePath($document);
 
