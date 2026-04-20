@@ -29,7 +29,7 @@ class StudentPolicy
      */
     public function view(User $user, Student $student): bool
     {
-        return $user->hasRole('student') && $student->user_id === $user->id
+        return ($user->hasRole('student') && $student->user_id === $user->id)
             || $user->hasRole('coordinator');
     }
 
@@ -46,7 +46,7 @@ class StudentPolicy
      */
     public function update(User $user, Student $student): bool
     {
-        return $user->hasRole('student') && $student->user_id === $user->id
+        return ($user->hasRole('student') && $student->user_id === $user->id)
             || $user->hasRole('coordinator');
     }
 
@@ -77,5 +77,10 @@ class StudentPolicy
     public function forceDelete(User $user, Student $student): bool
     {
         return false;
+    }
+
+    public function viewKardex(User $user, Student $student): bool{
+        return ($user->id === $student-> user_id && $user->hasRole('student'))
+        || $user->hasRole('coordinator');
     }
 }

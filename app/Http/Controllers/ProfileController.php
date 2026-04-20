@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Gate;
 use App\Actions\DeleteStudentWithUser;
 use App\Actions\DeleteTeacherWithUser;
 use App\Enums\DocumentStatus;
@@ -54,6 +55,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        Gate::authorize('view', $request->user());
         $documentTypeOptions = $this->resolveDocumentTypeOptions($request->user());
 
         return Inertia::render('Profile/User/Edit', [
@@ -69,6 +71,8 @@ class ProfileController extends Controller
      */
     public function show(User $user): Response
     {
+        Gate::authorize('view', $user);
+
         // Cargamos las relaciones para mapear correctamente teacher/student en UserResource.
         $user->loadMissing([
             'documents',
@@ -97,6 +101,7 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+        Gate::authorize('update', $request->user());
         $request->user()->fill($request->validated());
 
         if ($request->user()->isDirty('email')) {
@@ -113,6 +118,7 @@ class ProfileController extends Controller
      */
     public function destroy(DeleteProfileRequest $request): RedirectResponse
     {
+        Gate::authorize('delete', $request->user());
         $user = $request->user();
 
         Auth::logout();
@@ -134,6 +140,8 @@ class ProfileController extends Controller
         if ($user->id === Auth::id()) {
             return Redirect::back()->with('error', 'No puedes eliminar tu propio usuario desde esta vista.');
         }
+
+        Gate::authorize('delete', $user);
 
         // Usamos relaciones reales del modelo para decidir la estrategia de borrado.
         $user->loadMissing(['student', 'teacher']);
@@ -162,6 +170,8 @@ class ProfileController extends Controller
         ]);
 
         $student = $user->student;
+
+        Gate::authorize('viewKardex', $student);
 
         $studentInfo = [
             'name' => $student->full_name,
