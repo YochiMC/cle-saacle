@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Gate;
 use App\Models\Level;
 use App\Http\Requests\StoreLevelRequest;
 use App\Http\Requests\UpdateLevelRequest;
@@ -18,6 +19,7 @@ class LevelController extends Controller
 
     public function store(StoreLevelRequest $request): RedirectResponse
     {
+        Gate::authorize('create', Level::class);
         Level::create($request->validated());
 
         return redirect()->back()->with('success', 'Nivel creado correctamente.');
@@ -25,6 +27,7 @@ class LevelController extends Controller
 
     public function update(UpdateLevelRequest $request, Level $level): RedirectResponse
     {
+        Gate::authorize('update', $level);
         $level->update($request->validated());
 
         return redirect()->back()->with('success', 'Nivel actualizado correctamente.');
@@ -32,6 +35,7 @@ class LevelController extends Controller
 
     public function destroy(Level $level): RedirectResponse
     {
+        Gate::authorize('delete', $level);
         return $this->handleDeletion(
             fn() => $level->delete(),
             'Nivel eliminado correctamente.',
@@ -41,6 +45,7 @@ class LevelController extends Controller
 
     public function bulkDestroy(BulkDeleteLevelsRequest $request): RedirectResponse
     {
+        Gate::authorize('deleteAny', Level::class);
         return $this->handleBulkDeletion(
             fn() => Level::whereIn('id', $request->validated()['ids'])->delete(),
             'Niveles eliminados correctamente.',

@@ -2,75 +2,75 @@
 
 namespace App\Policies;
 
-use App\Models\Degree;
+use App\Models\Level;
 use App\Models\User;
 
 /**
- * Policy para autorización del catálogo de carreras.
+ * Policy para autorización del catálogo de niveles.
  *
  * Reglas generales:
  * - Administrador: acceso total mediante `before`.
  * - Coordinador: puede gestionar catálogo (ver, crear, actualizar y eliminar).
  * - Resto de roles: sin acceso.
  */
-class DegreePolicy
+class LevelPolicy
 {
     /**
      * Otorga acceso total al administrador antes de evaluar habilidades específicas.
      */
     public function before(User $user, string $ability): ?bool
     {
-        if ($user->hasAnyRole('admin')) {
+        if ($user->hasRole('admin')) {
             return true;
         }
 
         return null;
     }
 
-    /** Permite listar carreras en el catálogo. */
+    /** Permite listar niveles en el catálogo. */
     public function viewAny(User $user): bool
     {
         return $user->hasRole('coordinator');
     }
 
-    /** Permite consultar una carrera específica. */
-    public function view(User $user, Degree $degree): bool
+    /** Permite consultar un nivel específico. */
+    public function view(User $user, Level $level): bool
     {
         return $user->hasRole('coordinator');
     }
 
-    /** Permite crear carreras. */
+    /** Permite crear niveles. */
     public function create(User $user): bool
     {
         return $user->hasRole('coordinator');
     }
 
-    /** Permite actualizar carreras. */
-    public function update(User $user, Degree $degree): bool
+    /** Permite actualizar niveles. */
+    public function update(User $user, Level $level): bool
     {
         return $user->hasRole('coordinator');
     }
 
-    /** Permite eliminar una carrera de forma individual. */
-    public function delete(User $user, Degree $degree): bool
+    /** Permite eliminar un nivel de forma individual. */
+    public function delete(User $user, Level $level): bool
     {
         return $user->hasRole('coordinator');
     }
 
-    /** Permite eliminación masiva de carreras. */
+    /** Permite eliminación masiva de niveles. */
     public function deleteAny(User $user): bool
     {
         return $user->hasRole('coordinator');
     }
 
     /** Reserva restauración para administrador (vía before). */
-    public function restore(User $user, Degree $degree): bool
+    public function restore(User $user, Level $level): bool
     {
         return false;
     }
 
     /** Reserva eliminación forzada para administrador (vía before). */
-    public function forceDelete(User $user, Degree $degree): bool
+    public function forceDelete(User $user, Level $level): bool
     {
         return false;
     }
