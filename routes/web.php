@@ -18,11 +18,13 @@ use App\Http\Controllers\CatalogUIController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
+Route::middleware('guest')->group(function () {
+    Route::get('/', function () {
     return Inertia::render('Auth/Login', [
         'canResetPassword' => Route::has('password.request'),
         'status' => session('status'),
     ]);
+});
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
