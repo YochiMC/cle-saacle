@@ -190,11 +190,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         // Rutas Bulk Delete para Catálogos (sólo Administradores)
-        Route::delete('periods/bulk', [PeriodController::class, 'bulkDestroy'])->name('periods.bulk-delete');
         Route::delete('type-students/bulk', [TypeStudentController::class, 'bulkDestroy'])->name('type-students.bulk-delete');
 
         // Mutaciones de Catálogos (Thin Controllers, sólo Administradores)
-        Route::apiResource('periods', PeriodController::class)->only(['store', 'update', 'destroy']);
         Route::apiResource('type-students', TypeStudentController::class)->only(['store', 'update', 'destroy'])->parameters([
             'type-students' => 'typeStudent',
         ]);
@@ -202,9 +200,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Operaciones de catálogo para admin + coordinator
     Route::middleware('role:admin|coordinator')->group(function () {
+        Route::delete('periods/bulk', [PeriodController::class, 'bulkDestroy'])->name('periods.bulk-delete');
         Route::delete('levels/bulk', [LevelController::class, 'bulkDestroy'])->name('levels.bulk-delete');
         Route::delete('degrees/bulk', [DegreeController::class, 'bulkDestroy'])->name('degrees.bulk-delete');
 
+        Route::apiResource('periods', PeriodController::class)->only(['store', 'update', 'destroy']);
         Route::apiResource('levels', LevelController::class)->only(['store', 'update', 'destroy']);
         Route::apiResource('degrees', DegreeController::class)->only(['store', 'update', 'destroy']);
     });

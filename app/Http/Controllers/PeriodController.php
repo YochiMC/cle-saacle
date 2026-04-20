@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\StorePeriodRequest;
 use App\Http\Requests\UpdatePeriodRequest;
 use App\Http\Requests\BulkDeletePeriodsRequest;
@@ -19,6 +20,7 @@ class PeriodController extends Controller
 
     public function store(StorePeriodRequest $request, PeriodNamingService $periodNamingService): RedirectResponse
     {
+        Gate::authorize('create', Period::class);
         $validated = $request->validated();
         $validated['name'] = $periodNamingService->generate($validated['start_date'], $validated['end_date']);
 
@@ -29,6 +31,7 @@ class PeriodController extends Controller
 
     public function update(UpdatePeriodRequest $request, Period $period, PeriodNamingService $periodNamingService): RedirectResponse
     {
+        Gate::authorize('update', $period);
         $validated = $request->validated();
         $validated['name'] = $periodNamingService->generate($validated['start_date'], $validated['end_date']);
 
@@ -39,6 +42,7 @@ class PeriodController extends Controller
 
     public function destroy(Period $period): RedirectResponse
     {
+        Gate::authorize('delete', $period);
         return $this->handleDeletion(
             fn() => $period->delete(),
             'Periodo eliminado correctamente.',
@@ -48,6 +52,7 @@ class PeriodController extends Controller
 
     public function bulkDestroy(BulkDeletePeriodsRequest $request): RedirectResponse
     {
+        Gate::authorize('deleteAny', Period::class);
         return $this->handleBulkDeletion(
             fn() => Period::whereIn('id', $request->validated()['ids'])->delete(),
             'Periodos eliminados correctamente.',
