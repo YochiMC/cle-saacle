@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Group;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Clase de acción para actualizar masivamente el estatus de múltiples grupos.
@@ -18,7 +19,23 @@ class BulkUpdateGroupStatus
      */
     public function execute(array $groupIds, string $status): int
     {
-        return Group::whereIn('id', $groupIds)
-            ->update(['status' => $status]);
+        $uniqueIds = array_values(array_unique($groupIds));
+
+        return DB::transaction(function () use ($uniqueIds, $status) {
+            $groups = Group::whereIn('id', $uniqueIds)->get();
+
+            $updatedCount = 0;
+            foreach ($groups as $group) {
+                if ((string) $group->status === $status) {
+                    continue;
+                }
+
+                $group->status = $status;
+                $group->save();
+                $updatedCount++;
+            }
+
+            return $updatedCount;
+        });
     }
 }

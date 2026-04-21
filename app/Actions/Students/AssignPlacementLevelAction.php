@@ -30,6 +30,7 @@ class AssignPlacementLevelAction
         }
 
         $exam->load('students');
+        $levels = Level::query()->get(['id', 'level_tecnm']);
 
         // Mapa para agrupar alumnos por el ID del nivel asignado y minimizar queries
         $updates = [];
@@ -44,8 +45,33 @@ class AssignPlacementLevelAction
                 ?? data_get($units, 'level');
 
             if ($assignedLevelName) {
-                // Buscamos coincidencia en el catálogo de niveles
-                $level = Level::where('level_tecnm', 'like', "%{$assignedLevelName}%")->first();
+                $normalizedName = $this->normalizeLevelName($assignedLevelName);
+                $level = $levels->first(function (Level $catalogLevel) use ($normalizedName) {
+                    return $this->normalizeLevelName($catalogLevel->level_tecnm) === $normalizedName;
+                });
+
+                // Fallback: coincidencia parcial no ambigua.
+                if (!$level) {
+                    $candidates = $levels->filter(function (Level $catalogLevel) use ($normalizedName) {
+                        $normalizedCatalogName = $this->normalizeLevelName($catalogLevel->level_tecnm);
+
+                        return str_contains($normalizedCatalogName, $normalizedName)
+                            || str_contains($normalizedName, $normalizedCatalogName);
+                    })->values();
+
+                    if ($candidates->count() === 1) {
+                        $level = $candidates->first();
+                    } elseif ($candidates->count() > 1) {
+                        Log::warning('Ambiguous level match in placement assignment.', [
+                            'exam_id' => $exam->id,
+                            'student_id' => $student->id,
+                            'raw_level_name' => $assignedLevelName,
+                            'normalized_level_name' => $normalizedName,
+                            'candidate_ids' => $candidates->pluck('id')->all(),
+                        ]);
+                    }
+                }
+
                 if ($level) {
                     $updates[$level->id][] = $student->id;
                 }
@@ -58,6 +84,11 @@ class AssignPlacementLevelAction
                 Student::whereIn('id', $studentIds)->update(['level_id' => $levelId]);
             }
         });
+    }
+
+    private function normalizeLevelName(?string $name): string
+    {
+        return Str::of((string) $name)->trim()->lower()->ascii()->squish()->toString();
     }
 
     /**
