@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 use App\Actions\EnrollStudentsInGroup;
 use App\Actions\UpdateGroupEvaluableUnits;
 use App\Actions\BulkDeleteGroups;
@@ -165,6 +166,10 @@ class GroupController extends Controller
     public function unenroll(Group $group, \App\Models\Student $student): RedirectResponse
     {
         Gate::authorize('unenroll', $group);
+        if (Auth::user()?->hasRole('student') && $student->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         Qualification::where('group_id', $group->id)
             ->where('student_id', $student->id)
             ->delete();
@@ -207,4 +212,5 @@ class GroupController extends Controller
 
         return redirect()->back()->with('success', 'El grupo ha sido cerrado exitosamente. Ya no se permiten modificaciones.');
     }
+
 }

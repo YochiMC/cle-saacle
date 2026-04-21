@@ -16,8 +16,7 @@ class StoreGroupRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // El acceso se controla vía Middleware (auth:sanctum / spatie roles)
-        return true;
+        return $this->user() && $this->user()->hasAnyRole(['admin', 'coordinator']);
     }
 
     /**

@@ -8,7 +8,24 @@ class EnrollStudentsRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() && $this->user()->hasAnyRole(['admin']);
+        if (! $this->user()) {
+            return false;
+        }
+
+        if ($this->user()->hasAnyRole(['admin', 'coordinator'])) {
+            return true;
+        }
+
+        if (! $this->user()->hasRole('student')) {
+            return false;
+        }
+
+        $studentId = $this->user()->student?->id;
+        $studentIds = $this->input('student_ids', []);
+
+        return is_array($studentIds)
+            && count($studentIds) === 1
+            && (int) ($studentIds[0] ?? 0) === (int) $studentId;
     }
 
     public function rules(): array

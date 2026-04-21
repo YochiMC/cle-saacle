@@ -13,7 +13,7 @@ class UpdateUnitsGroupRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() && $this->user()->hasAnyRole(['admin', 'teacher']);
+        return $this->user() && $this->user()->hasAnyRole(['admin', 'coordinator', 'teacher']);
     }
 
     /**
