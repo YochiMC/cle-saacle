@@ -60,8 +60,8 @@ class GroupController extends Controller
      * Actualiza los datos de un grupo existente.
      */
     public function update(
-        UpdateGroupRequest $request, 
-        Group $group, 
+        UpdateGroupRequest $request,
+        Group $group,
         GroupNamingService $namingService,
         \App\Actions\ResetModelQualifications $resetAction
     ): RedirectResponse {
@@ -74,7 +74,13 @@ class GroupController extends Controller
             $resetAction->execute($group);
         }
 
-        $group->update($validated);
+        $group->fill($validated);
+
+        if (!$group->isDirty()) {
+            return redirect()->back()->with('warning', 'No se detectaron cambios enviados desde el formulario de grupo.');
+        }
+
+        $group->save();
 
         return redirect()->back()->with('success', 'Grupo actualizado exitosamente.');
     }

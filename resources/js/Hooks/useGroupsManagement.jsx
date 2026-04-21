@@ -46,6 +46,7 @@ export const useGroupsManagement = (grupos = []) => {
         transform,
         processing,
         errors,
+        setError,
         reset,
         clearErrors,
     } = useForm({
@@ -91,7 +92,9 @@ export const useGroupsManagement = (grupos = []) => {
                             ? payload.teacher_id.toString()
                             : "none",
                         level_id:
-                            (payload.level_id || payload.level?.id)?.toString() ?? "",
+                            (
+                                payload.level_id || payload.level?.id
+                            )?.toString() ?? "",
                     });
                 } else {
                     reset();
@@ -126,8 +129,64 @@ export const useGroupsManagement = (grupos = []) => {
         (e) => {
             if (e) e.preventDefault();
 
-            const isTypeChanged = itemEditando && 
-                formData.type !== (itemEditando.type?.value ?? itemEditando.type);
+            if (itemEditando) {
+                const normalize = (value) => {
+                    if (value === null || value === undefined || value === "")
+                        return "";
+                    return String(value).trim();
+                };
+
+                const current = {
+                    mode: normalize(formData.mode),
+                    type: normalize(formData.type),
+                    capacity: normalize(formData.capacity),
+                    schedule: normalize(formData.schedule),
+                    classroom: normalize(formData.classroom),
+                    meeting_link: normalize(formData.meeting_link),
+                    status: normalize(formData.status),
+                    period_id: normalize(formData.period_id),
+                    teacher_id: normalize(
+                        formData.teacher_id === "none"
+                            ? ""
+                            : formData.teacher_id,
+                    ),
+                    level_id: normalize(formData.level_id),
+                };
+
+                const original = {
+                    mode: normalize(itemEditando.mode),
+                    type: normalize(itemEditando.type),
+                    capacity: normalize(itemEditando.capacity),
+                    schedule: normalize(itemEditando.schedule),
+                    classroom: normalize(itemEditando.classroom),
+                    meeting_link: normalize(itemEditando.meeting_link),
+                    status: normalize(
+                        itemEditando.status?.value ?? itemEditando.status,
+                    ),
+                    period_id: normalize(itemEditando.period_id),
+                    teacher_id: normalize(itemEditando.teacher_id),
+                    level_id: normalize(
+                        itemEditando.level_id || itemEditando.level?.id,
+                    ),
+                };
+
+                const changed = Object.keys(current).filter(
+                    (key) => current[key] !== original[key],
+                );
+
+                if (changed.length === 0) {
+                    setError(
+                        "_form",
+                        "No detectamos cambios en el formulario. Modifica al menos un campo antes de guardar.",
+                    );
+                    return;
+                }
+            }
+
+            const isTypeChanged =
+                itemEditando &&
+                formData.type !==
+                    (itemEditando.type?.value ?? itemEditando.type);
 
             if (isTypeChanged) {
                 setModales((prev) => ({ ...prev, confirmTypeChange: true }));
@@ -136,31 +195,42 @@ export const useGroupsManagement = (grupos = []) => {
 
             confirmSubmit();
         },
-        [itemEditando, formData.type]
+        [itemEditando, formData, setError],
     );
 
-    const confirmSubmit = useCallback(
-        () => {
-            transform((data) => ({
-                ...data,
-                capacity: parseInt(data.capacity) || 0,
-                teacher_id:
-                    data.teacher_id === "none" ? null : data.teacher_id,
-            }));
+    const confirmSubmit = useCallback(() => {
+        transform((data) => ({
+            ...data,
+            capacity: parseInt(data.capacity) || 0,
+            teacher_id: data.teacher_id === "none" ? null : data.teacher_id,
+        }));
 
-            const onSuccess = () => {
-                handleCloseModal("formulario");
-                setModales((prev) => ({ ...prev, confirmTypeChange: false }));
-            };
+        const onSuccess = () => {
+            handleCloseModal("formulario");
+            setModales((prev) => ({ ...prev, confirmTypeChange: false }));
+            router.reload({ preserveState: false, preserveScroll: true });
+        };
 
-            if (itemEditando) {
-                put(route("groups.update", itemEditando.id), { onSuccess });
-            } else {
-                post(route("groups.store"), { onSuccess });
-            }
-        },
-        [post, put, transform, handleCloseModal, itemEditando]
-    );
+        const onError = () => {
+            setModales((prev) => ({ ...prev, confirmTypeChange: false }));
+        };
+
+        if (itemEditando) {
+            put(route("groups.update", itemEditando.id), {
+                onSuccess,
+                onError,
+                preserveState: false,
+                preserveScroll: true,
+            });
+        } else {
+            post(route("groups.store"), {
+                onSuccess,
+                onError,
+                preserveState: false,
+                preserveScroll: true,
+            });
+        }
+    }, [post, put, transform, handleCloseModal, itemEditando]);
 
     // ── 5. Peticiones Bulk / Acciones ─────────────────────────────────────────
     const handleBulkStatus = useCallback(

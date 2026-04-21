@@ -93,8 +93,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
-    // Vistas y operaciones para admin + teacher
-    Route::middleware('role:admin|teacher')->group(function () {
+    // Vistas y operaciones para admin + teacher + coordinator
+    Route::middleware('role:admin|teacher|coordinator')->group(function () {
         Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
 
         Route::prefix('acreditaciones')->group(function () {
@@ -105,10 +105,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::prefix('groups')->group(function () {
             Route::post('/', [GroupController::class, 'store'])->name('groups.store');
-            Route::put('/{group}', [GroupController::class, 'update'])->name('groups.update');
-            Route::delete('/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
             Route::put('/bulk-status', [GroupController::class, 'bulkUpdateStatus'])->name('groups.bulk-status');
             Route::delete('/bulk-delete', [GroupController::class, 'bulkDestroy'])->name('groups.bulk-delete');
+            Route::put('/{group}', [GroupController::class, 'update'])->name('groups.update');
+            Route::delete('/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
             Route::patch('/{group}/update-units', [GroupController::class, 'updateUnits'])->name('groups.update-units');
             Route::patch('/{group}/complete', [GroupController::class, 'complete'])->name('groups.complete');
         });
