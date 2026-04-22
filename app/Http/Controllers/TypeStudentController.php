@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\TypeStudent;
 use App\Http\Requests\StoreTypeStudentRequest;
 use App\Http\Requests\UpdateTypeStudentRequest;
+use App\Http\Requests\BulkDeleteTypeStudentsRequest;
+use App\Traits\HandlesCatalogDeletion;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -12,17 +14,8 @@ use Illuminate\Http\RedirectResponse;
  */
 class TypeStudentController extends Controller
 {
-    /**
-     * Lista todos los tipos de alumnos registrados.
-     */
-    public function index()
-    {
-        return TypeStudent::all();
-    }
+    use HandlesCatalogDeletion;
 
-    /**
-     * Almacena un nuevo tipo de alumno.
-     */
     public function store(StoreTypeStudentRequest $request): RedirectResponse
     {
         TypeStudent::create($request->validated());
@@ -30,9 +23,6 @@ class TypeStudentController extends Controller
         return redirect()->back()->with('success', 'Tipo de alumno creado correctamente.');
     }
 
-    /**
-     * Actualiza un tipo de alumno existente.
-     */
     public function update(UpdateTypeStudentRequest $request, TypeStudent $typeStudent): RedirectResponse
     {
         $typeStudent->update($request->validated());
@@ -40,13 +30,21 @@ class TypeStudentController extends Controller
         return redirect()->back()->with('success', 'Tipo de alumno actualizado correctamente.');
     }
 
-    /**
-     * Elimina un tipo de alumno.
-     */
     public function destroy(TypeStudent $typeStudent): RedirectResponse
     {
-        $typeStudent->delete();
+        return $this->handleDeletion(
+            fn() => $typeStudent->delete(),
+            'Tipo de alumno eliminado correctamente.',
+            'Ocurrió un error al intentar eliminar el tipo de alumno.'
+        );
+    }
 
-        return redirect()->back()->with('success', 'Tipo de alumno eliminado correctamente.');
+    public function bulkDestroy(BulkDeleteTypeStudentsRequest $request): RedirectResponse
+    {
+        return $this->handleBulkDeletion(
+            fn() => TypeStudent::whereIn('id', $request->validated()['ids'])->delete(),
+            'Tipos de alumno eliminados correctamente.',
+            'Ocurrió un error al intentar eliminar los tipos de alumno.'
+        );
     }
 }

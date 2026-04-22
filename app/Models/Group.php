@@ -54,4 +54,15 @@ class Group extends Model
     {
         return $this->hasMany(Qualification::class);
     }
+
+    /**
+     * Alumnos inscritos en el grupo.
+     * Accede a través de la tabla de calificaciones (pivot).
+     */
+    public function students(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Student::class, 'qualifications')
+            ->withPivot('units_breakdown', 'final_average', 'is_approved', 'is_left')
+            ->withTimestamps();
+    }
 }

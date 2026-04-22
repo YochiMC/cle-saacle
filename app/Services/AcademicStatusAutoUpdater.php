@@ -57,7 +57,7 @@ class AcademicStatusAutoUpdater
      * 3. Verifica que haya al menos las fechas base de grupos; si no, aborta con log.
      * 4. Delega a los métodos especializados y registra el log de auditoría final.
      */
-    public function run(): void
+    public function run(string $triggerSource = 'scheduler'): void
     {
         $settings = Setting::pluck('value', 'key')->toArray();
         $hoy      = now()->startOfDay();
@@ -90,12 +90,14 @@ class AcademicStatusAutoUpdater
         if (! $cursosInscripcionInicio) {
             Log::warning('Automatización CLE abortada: no hay fechas de calendario configuradas en Settings.', [
                 'fecha_de_ejecucion' => $hoy->toDateString(),
+                'trigger_source'     => $triggerSource,
             ]);
             return;
         }
 
         Log::info('Automatización CLE: Iniciando actualización de estados académicos.', [
             'fecha_de_ejecucion' => $hoy->toDateString(),
+            'trigger_source'     => $triggerSource,
         ]);
 
         $contadoresGrupos = $this->actualizarGrupos(
@@ -126,9 +128,12 @@ class AcademicStatusAutoUpdater
             $examenEvaluacionFin,
         );
 
-        // Log único de auditoría con todos los contadores del día
+        // Log único de auditoría con todos los contadores del día y el origen del disparo
         Log::info('Automatización CLE ejecutada.', array_merge(
-            ['fecha_de_ejecucion' => $hoy->toDateString()],
+            [
+                'fecha_de_ejecucion' => $hoy->toDateString(),
+                'trigger_source'     => $triggerSource,
+            ],
             $contadoresGrupos,
             $contadoresPE,
             $contadoresExamenes,
@@ -163,7 +168,7 @@ class AcademicStatusAutoUpdater
      * @param Carbon|null $evaluacionInicio    Inicio de evaluación.
      * @param Carbon|null $evaluacionFin       Fin de evaluación.
      *
-     * @return array<string, int> Contadores de auditoría.
+     * @return array<string, mixed> Contadores de auditoría.
      */
     private function actualizarGrupos(
         Carbon  $hoy,
@@ -188,13 +193,14 @@ class AcademicStatusAutoUpdater
         );
 
         // ── Un único bulk update, scoped por tipo de grupo ────────────────────
-        $gruposActualizados = Group::whereIn('type', self::TIPOS_CON_CALENDARIO_GLOBAL)
-            ->where('status', '!=', $estadoObjetivo->value)
-            ->update(['status' => $estadoObjetivo->value]);
+        // Delegamos a la Action dedicada para manejar DB transactions y Observers.
+        $action = app(\App\Actions\System\UpdateGroupsStatusAction::class);
+        $metrics = $action->execute($estadoObjetivo, self::TIPOS_CON_CALENDARIO_GLOBAL);
 
         return [
-            'grupos_reg_estado_objetivo'  => $estadoObjetivo->value,
-            'grupos_reg_actualizados'     => $gruposActualizados,
+            'grupos_reg_estado_objetivo' => $metrics['targetStatus'],
+            'grupos_reg_mutated'         => $metrics['mutated'],
+            'grupos_reg_skipped'         => $metrics['skipped'],
         ];
     }
 
@@ -206,7 +212,7 @@ class AcademicStatusAutoUpdater
      * Aplica la misma cascada cronológica continua pero de forma estrictamente
      * aislada a los cursos de Programa de Egresados (PE).
      *
-     * @return array<string, int> Contadores de auditoría.
+     * @return array<string, mixed> Contadores de auditoría.
      */
     private function actualizarProgramaEgresados(
         Carbon  $hoy,
@@ -220,7 +226,8 @@ class AcademicStatusAutoUpdater
         if (! $inscripcionInicio) {
             return [
                 'grupos_pe_estado_objetivo' => 'sin_fechas_base',
-                'grupos_pe_actualizados'    => 0,
+                'grupos_pe_mutated'         => 0,
+                'grupos_pe_skipped'         => 0,
             ];
         }
 
@@ -234,13 +241,14 @@ class AcademicStatusAutoUpdater
             $evaluacionFin
         );
 
-        $gruposActualizados = Group::where('type', GroupType::PROGRAMA_EGRESADOS->value)
-            ->where('status', '!=', $estadoObjetivo->value)
-            ->update(['status' => $estadoObjetivo->value]);
+        // Delegamos a la Action dedicada
+        $action = app(\App\Actions\System\UpdateGroupsStatusAction::class);
+        $metrics = $action->execute($estadoObjetivo, [GroupType::PROGRAMA_EGRESADOS->value]);
 
         return [
-            'grupos_pe_estado_objetivo'  => $estadoObjetivo->value,
-            'grupos_pe_actualizados'     => $gruposActualizados,
+            'grupos_pe_estado_objetivo' => $metrics['targetStatus'],
+            'grupos_pe_mutated'         => $metrics['mutated'],
+            'grupos_pe_skipped'         => $metrics['skipped'],
         ];
     }
 
@@ -262,7 +270,7 @@ class AcademicStatusAutoUpdater
      *   independientemente del estado global. Esto respeta el calendario
      *   específico de cada examen individual.
      *
-     * @return array<string, int> Contadores de auditoría.
+     * @return array<string, mixed> Contadores de auditoría.
      */
     private function actualizarExamenes(
         Carbon  $hoy,
@@ -273,12 +281,14 @@ class AcademicStatusAutoUpdater
     ): array {
         $contadores = [
             'examenes_estado_global_objetivo' => 'sin_configurar',
-            'examenes_actualizados_fase_global'  => 0,
-            'examenes_actualizados_a_activo'     => 0,
+            'examenes_mutated_to_active'      => 0,
+            'examenes_mutated_to_global'      => 0,
+            'examenes_skipped'                => 0,
         ];
 
         // ── Fase 1: Determine el estado global de exámenes ────────────────────
         // Solo se ejecuta si al menos la fecha de inicio de inscripción existe.
+        $estadoGlobal = null;
         if ($inscripcionInicio) {
             $estadoGlobal = match (true) {
                 $evaluacionFin && $hoy->gt($evaluacionFin) => AcademicStatus::COMPLETED,
@@ -287,30 +297,18 @@ class AcademicStatusAutoUpdater
                 $inscripcionInicio && $inscripcionFin && $hoy->between($inscripcionInicio, $inscripcionFin) => AcademicStatus::ENROLLING,
                 default => AcademicStatus::PENDING,
             };
-
-            $contadores['examenes_estado_global_objetivo'] = $estadoGlobal->value;
-
-            // Aplica el estado global SÓLO a los exámenes que NO están en curso hoy.
-            // Los exámenes activos hoy son actualizados en la Fase 2 con mayor precisión.
-            $contadores['examenes_actualizados_fase_global'] = Exam::where('status', '!=', $estadoGlobal->value)
-                ->where(function ($query) use ($hoy) {
-                    // Excluye los exámenes que están en su periodo de aplicación hoy
-                    $query->whereDate('start_date', '>', $hoy->toDateString())
-                        ->orWhereDate('end_date', '<', $hoy->toDateString())
-                        ->orWhereNull('start_date');
-                })
-                ->update(['status' => $estadoGlobal->value]);
         }
 
-        // ── Fase 2: Estado ACTIVE por instancia individual (mayor precedencia) ─
-        // Se ejecuta siempre, independientemente de si hay fechas globales de examen.
-        // Un examen cuyo start_date <= hoy <= end_date fuerza el estado ACTIVE.
-        $contadores['examenes_actualizados_a_activo'] = Exam::where('status', '!=', AcademicStatus::ACTIVE->value)
-            ->whereDate('start_date', '<=', $hoy->toDateString())
-            ->whereDate('end_date',   '>=', $hoy->toDateString())
-            ->update(['status' => AcademicStatus::ACTIVE->value]);
+        // Delegamos la validación de Fases y actualización a la Action dedicada
+        $action = app(\App\Actions\System\UpdateExamsStatusAction::class);
+        $metrics = $action->execute($estadoGlobal);
 
-        return $contadores;
+        return [
+            'examenes_estado_global_objetivo' => $metrics['targetStatus'],
+            'examenes_mutated_to_active'      => $metrics['mutated_to_active'],
+            'examenes_mutated_to_global'      => $metrics['mutated_to_global'],
+            'examenes_skipped'                => $metrics['skipped'],
+        ];
     }
 
     // ──────────────────────────────────────────────────────────────────────────

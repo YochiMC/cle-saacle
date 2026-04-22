@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\BulkUpdateExamQualifications;
 use App\Actions\EnrollStudentsInExam;
-use App\Actions\AutoQueueAccreditationCandidates;
 use App\Actions\BulkDeleteExams;
 use App\Actions\BulkUpdateExamStatus;
 use App\Actions\BulkDetachStudentsFromExam;
@@ -15,6 +14,7 @@ use App\Http\Requests\BulkUpdateExamStatusRequest;
 use App\Http\Requests\EnrollStudentsRequest;
 use App\Http\Requests\BulkUpdateExamQualificationsRequest;
 use App\Http\Requests\StoreExamRequest;
+use App\Http\Requests\UpdateExamRequest;
 use App\Http\Requests\UpdateExamPivotRequest;
 use App\Models\Exam;
 use App\Models\Student;
@@ -51,18 +51,26 @@ class ExamController extends Controller
      * Actualiza un examen existente.
      */
     public function update(
-        StoreExamRequest $request, 
+        UpdateExamRequest $request,
         Exam $exam,
         \App\Actions\ResetModelQualifications $resetAction
     ): RedirectResponse {
         $validated = $request->validated();
-        $validated['name'] = $this->namingService->generateName($validated);
+
+        $mergedAttributes = array_merge($exam->toArray(), $validated);
+        $validated['name'] = $this->namingService->generateName($mergedAttributes);
 
         if (isset($validated['exam_type']) && $validated['exam_type'] !== $exam->exam_type->value) {
             $resetAction->execute($exam);
         }
 
-        $exam->update($validated);
+        $exam->fill($validated);
+
+        if (!$exam->isDirty()) {
+            return redirect()->back()->with('warning', 'No se detectaron cambios enviados desde el formulario de examen.');
+        }
+
+        $exam->save();
 
         return redirect()->back()->with('success', 'Examen actualizado correctamente.');
     }
@@ -191,12 +199,9 @@ class ExamController extends Controller
     /**
      * Cierra definitivamente un examen.
      */
-    public function complete(Exam $exam, AutoQueueAccreditationCandidates $action): RedirectResponse
+    public function complete(Exam $exam): RedirectResponse
     {
         $exam->update(['status' => AcademicStatus::COMPLETED]);
-
-        // Automatización del flujo de acreditación
-        $action->executeForExam($exam);
 
         return redirect()->back()->with('success', 'El examen ha sido cerrado exitosamente. Ya no se permiten modificaciones.');
     }

@@ -41,8 +41,10 @@ export default function AuthenticatedLayout({ header, children }) {
         { route: "users", label: "Usuarios", allowedRoles: ["admin"] },
         { route: "groups", label: "Grupos", allowedRoles: ["admin", "teacher", "student"] },
         { route: "reports", label: "Reportes", allowedRoles: ["admin", "teacher"] },
+        { route: "accreditations", label: "Acreditaciones", allowedRoles: ["admin", "coordinator"] },
         { route: "exams.index", label: "Exámenes", allowedRoles: ["admin", "teacher", "student"] },
         { route: "settings.index", label: "Configuraciones", allowedRoles: ["admin"] },
+        { route: "settings.catalogs", label: "Catálogos", allowedRoles: ["admin"] },
         { route: "pagos", label: "Pagos", allowedRoles: ["admin", "student"] },
     ];
 

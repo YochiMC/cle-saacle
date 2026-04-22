@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Jobs\RunAcademicStatusAutoUpdater;
 
 /**
  * Controlador para la gestión de Configuraciones del Sistema.
@@ -95,6 +96,8 @@ class SettingController extends Controller
 
         $datosValidados = $request->validate($reglas);
 
+        $academicSettingsChanged = false;
+
         // Iteramos solo sobre las claves reconocidas para garantizar la allowlist
         foreach (self::CLAVES_PERMITIDAS as $clave) {
             // Solo guardamos campos que vinieron en el request
@@ -102,10 +105,20 @@ class SettingController extends Controller
                 continue;
             }
 
-            Setting::updateOrCreate(
+            $setting = Setting::updateOrCreate(
                 ['key'   => $clave],
                 ['value' => $datosValidados[$clave] ?? null],
             );
+
+            if ($clave !== 'teacher_reveal_date' && ($setting->wasChanged('value') || $setting->wasRecentlyCreated)) {
+                $academicSettingsChanged = true;
+            }
+        }
+
+        // Disparamos la actualización asíncrona de los estados académicos
+        // solo si se modificaron fechas de calendario, ignorando configuraciones visuales.
+        if ($academicSettingsChanged) {
+            RunAcademicStatusAutoUpdater::dispatch();
         }
 
         return redirect()

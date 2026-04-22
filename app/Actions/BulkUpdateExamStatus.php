@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Exam;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Clase de acción para actualizar masivamente el estatus de múltiples exámenes académicos.
@@ -18,7 +19,23 @@ class BulkUpdateExamStatus
      */
     public function execute(array $examIds, string $status): int
     {
-        return Exam::whereIn('id', $examIds)
-            ->update(['status' => $status]);
+        $uniqueIds = array_values(array_unique($examIds));
+
+        return DB::transaction(function () use ($uniqueIds, $status) {
+            $exams = Exam::whereIn('id', $uniqueIds)->get();
+
+            $updatedCount = 0;
+            foreach ($exams as $exam) {
+                if ((string) $exam->status === $status) {
+                    continue;
+                }
+
+                $exam->status = $status;
+                $exam->save();
+                $updatedCount++;
+            }
+
+            return $updatedCount;
+        });
     }
 }

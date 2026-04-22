@@ -42,6 +42,7 @@ export const useExamsManagement = (examenes = []) => {
         transform,
         processing,
         errors,
+        setError,
         reset,
         clearErrors,
     } = useForm({
@@ -67,8 +68,12 @@ export const useExamsManagement = (examenes = []) => {
                     // Extracción segura (Operador coalescencia nula / encadenamiento opcional)
                     // Previene el bug de campos vacíos cuando el backend devuelve Enums/Objetos
                     setFormData({
-                        exam_type: payload.exam_type?.value ?? payload.exam_type ?? "",
-                        status: payload.status?.value ?? payload.status ?? "enrolling",
+                        exam_type:
+                            payload.exam_type?.value ?? payload.exam_type ?? "",
+                        status:
+                            payload.status?.value ??
+                            payload.status ??
+                            "enrolling",
                         start_date: payload.start_date || "",
                         end_date: payload.end_date || "",
                         application_time: payload.application_time || "",
@@ -109,8 +114,66 @@ export const useExamsManagement = (examenes = []) => {
         (e) => {
             if (e) e.preventDefault();
 
-            const isTypeChanged = itemEditando && 
-                formData.exam_type !== (itemEditando.exam_type?.value ?? itemEditando.exam_type);
+            if (itemEditando) {
+                const normalize = (value) => {
+                    if (value === null || value === undefined || value === "")
+                        return "";
+                    return String(value).trim();
+                };
+
+                const current = {
+                    exam_type: normalize(formData.exam_type),
+                    status: normalize(formData.status),
+                    capacity: normalize(formData.capacity),
+                    start_date: normalize(formData.start_date),
+                    end_date: normalize(formData.end_date),
+                    mode: normalize(formData.mode),
+                    application_time: normalize(formData.application_time),
+                    classroom: normalize(formData.classroom),
+                    period_id: normalize(formData.period_id),
+                    teacher_id: normalize(
+                        formData.teacher_id === "none"
+                            ? ""
+                            : formData.teacher_id,
+                    ),
+                };
+
+                const original = {
+                    exam_type: normalize(
+                        itemEditando.exam_type?.value ?? itemEditando.exam_type,
+                    ),
+                    status: normalize(
+                        itemEditando.status?.value ?? itemEditando.status,
+                    ),
+                    capacity: normalize(itemEditando.capacity),
+                    start_date: normalize(itemEditando.start_date),
+                    end_date: normalize(itemEditando.end_date),
+                    mode: normalize(
+                        itemEditando.mode?.value ?? itemEditando.mode,
+                    ),
+                    application_time: normalize(itemEditando.application_time),
+                    classroom: normalize(itemEditando.classroom),
+                    period_id: normalize(itemEditando.period_id),
+                    teacher_id: normalize(itemEditando.teacher_id),
+                };
+
+                const changed = Object.keys(current).filter(
+                    (key) => current[key] !== original[key],
+                );
+
+                if (changed.length === 0) {
+                    setError(
+                        "_form",
+                        "No detectamos cambios en el formulario. Modifica al menos un campo antes de guardar.",
+                    );
+                    return;
+                }
+            }
+
+            const isTypeChanged =
+                itemEditando &&
+                formData.exam_type !==
+                    (itemEditando.exam_type?.value ?? itemEditando.exam_type);
 
             if (isTypeChanged) {
                 setModales((prev) => ({ ...prev, confirmTypeChange: true }));
@@ -119,30 +182,42 @@ export const useExamsManagement = (examenes = []) => {
 
             confirmSubmit();
         },
-        [itemEditando, formData.exam_type]
+        [itemEditando, formData, setError],
     );
 
-    const confirmSubmit = useCallback(
-        () => {
-            transform((data) => ({
-                ...data,
-                capacity: parseInt(data.capacity) || 0,
-                teacher_id: data.teacher_id === "none" ? null : data.teacher_id,
-            }));
+    const confirmSubmit = useCallback(() => {
+        transform((data) => ({
+            ...data,
+            capacity: parseInt(data.capacity) || 0,
+            teacher_id: data.teacher_id === "none" ? null : data.teacher_id,
+        }));
 
-            const onSuccess = () => {
-                handleCloseModal("formulario");
-                setModales((prev) => ({ ...prev, confirmTypeChange: false }));
-            };
+        const onSuccess = () => {
+            handleCloseModal("formulario");
+            setModales((prev) => ({ ...prev, confirmTypeChange: false }));
+            router.reload({ preserveState: false, preserveScroll: true });
+        };
 
-            if (itemEditando) {
-                put(route("exams.update", itemEditando.id), { onSuccess });
-            } else {
-                post(route("exams.store"), { onSuccess });
-            }
-        },
-        [post, put, transform, handleCloseModal, itemEditando]
-    );
+        const onError = () => {
+            setModales((prev) => ({ ...prev, confirmTypeChange: false }));
+        };
+
+        if (itemEditando) {
+            put(route("exams.update", itemEditando.id), {
+                onSuccess,
+                onError,
+                preserveState: false,
+                preserveScroll: true,
+            });
+        } else {
+            post(route("exams.store"), {
+                onSuccess,
+                onError,
+                preserveState: false,
+                preserveScroll: true,
+            });
+        }
+    }, [post, put, transform, handleCloseModal, itemEditando]);
 
     // 4. Peticiones Bulk / Acciones
     const handleBulkStatus = useCallback(
@@ -150,7 +225,7 @@ export const useExamsManagement = (examenes = []) => {
             if (!nuevoEstado || catalog.seleccionados.length === 0) return;
             router.post(
                 route("exams.bulk-status"),
-                { ids: catalog.seleccionados, status: nuevoEstado },
+                { ids: catalog.seleccionados, new_status: nuevoEstado },
                 {
                     onSuccess: () => catalog.clearSelection(),
                 },

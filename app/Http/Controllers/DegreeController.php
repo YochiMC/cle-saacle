@@ -3,33 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Degree;
-use App\Models\Student;
-use App\Models\Teacher;
 use App\Http\Requests\StoreDegreeRequest;
 use App\Http\Requests\UpdateDegreeRequest;
+use App\Http\Requests\BulkDeleteDegreesRequest;
+use App\Traits\HandlesCatalogDeletion;
 use Illuminate\Http\RedirectResponse;
-use Inertia\Inertia;
 
 /**
  * Controlador para la Gestión del Catálogo de Carreras / Programas Académicos.
  */
 class DegreeController extends Controller
 {
-    /**
-     * Muestra la vista de catálogo o sandbox con datos base.
-     */
-    public function index()
-    {
-        return Inertia::render('RecursosYochi/Test', [
-            'degrees'  => Degree::all(),
-            'students' => Student::all(),
-            'teachers' => Teacher::all(),
-        ]);
-    }
+    use HandlesCatalogDeletion;
 
-    /**
-     * Almacena una nueva carrera.
-     */
     public function store(StoreDegreeRequest $request): RedirectResponse
     {
         Degree::create($request->validated());
@@ -37,9 +23,6 @@ class DegreeController extends Controller
         return redirect()->back()->with('success', 'Carrera creada correctamente.');
     }
 
-    /**
-     * Actualiza una carrera existente.
-     */
     public function update(UpdateDegreeRequest $request, Degree $degree): RedirectResponse
     {
         $degree->update($request->validated());
@@ -47,13 +30,21 @@ class DegreeController extends Controller
         return redirect()->back()->with('success', 'Carrera actualizada correctamente.');
     }
 
-    /**
-     * Elimina una carrera.
-     */
     public function destroy(Degree $degree): RedirectResponse
     {
-        $degree->delete();
+        return $this->handleDeletion(
+            fn() => $degree->delete(),
+            'Carrera eliminada correctamente.',
+            'Ocurrió un error al intentar eliminar la carrera.'
+        );
+    }
 
-        return redirect()->back()->with('success', 'Carrera eliminada correctamente.');
+    public function bulkDestroy(BulkDeleteDegreesRequest $request): RedirectResponse
+    {
+        return $this->handleBulkDeletion(
+            fn() => Degree::whereIn('id', $request->validated()['ids'])->delete(),
+            'Carreras eliminados correctamente.',
+            'Ocurrió un error al intentar eliminar las carreras.'
+        );
     }
 }
