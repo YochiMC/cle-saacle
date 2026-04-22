@@ -105,8 +105,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
-    // Vistas y operaciones para admin + teacher
-    Route::middleware('role:admin|teacher')->group(function () {
+    // Vistas y operaciones para admin + teacher + coordinator
+    Route::middleware('role:admin|teacher|coordinator')->group(function () {
         Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
 
         Route::prefix('acreditaciones')->group(function () {
@@ -114,7 +114,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/bulk-suspend', [AccreditationController::class, 'bulkSuspend'])->name('accreditations.bulk-suspend');
             Route::patch('/{student}/status', [AccreditationController::class, 'updateStatus'])->name('accreditations.update-status');
         });
-
         Route::prefix('qualifications')->group(function () {
             Route::patch('/bulk-update', [\App\Http\Controllers\QualificationController::class, 'bulkUpdate'])->name('qualifications.bulk-update');
             Route::patch('/{qualification}', [\App\Http\Controllers\QualificationController::class, 'update'])->name('qualifications.update');

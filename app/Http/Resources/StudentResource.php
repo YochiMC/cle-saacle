@@ -33,8 +33,12 @@ class StudentResource extends JsonResource
             'semester'        => $this->semester,
             'status'          => $this->status instanceof StudentStatus ? $this->status->value : $this->status,
             'status_label'    => $this->status instanceof StudentStatus ? $this->status->label() : 'Desconocido',
+            'degree_id'       => $this->degree_id,
             'degree'          => $this->degree ? $this->degree->name : null,
+            'level_id'        => $this->level_id,
             'level'           => $this->level ? $this->level->level_mcer : null,
+            'level_tecnm'     => $this->level ? $this->level->level_tecnm : null,
+            'type_student_id' => $this->type_student_id,
             'type_student'    => $this->typeStudent ? $this->typeStudent->name : null,
             'type'            => 'student',
         ];

@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react';
-import { usePage } from '@inertiajs/react';
+import { useState, useEffect } from "react";
+import { usePage } from "@inertiajs/react";
 
 export default function useFlashAlert() {
     const { flash = {} } = usePage().props;
 
     const [flashModal, setFlashModal] = useState({
         isOpen: false,
-        type: 'info',
-        title: '',
-        message: '',
+        type: "info",
+        title: "",
+        message: "",
     });
 
     const normalizeMessage = (value) => {
-        if (Array.isArray(value)) return value.join(' ');
-        if (typeof value === 'object' && value !== null) {
-            return Object.values(value).join(' ');
+        if (Array.isArray(value)) return value.join(" ");
+        if (typeof value === "object" && value !== null) {
+            return Object.values(value).join(" ");
         }
-        return value ?? '';
+        return value ?? "";
     };
 
     const openFlash = (type, title, rawMessage) => {
@@ -33,13 +33,13 @@ export default function useFlashAlert() {
 
     useEffect(() => {
         if (flash?.success) {
-            openFlash('success', '¡Operación exitosa!', flash.success);
+            openFlash("success", "¡Operación exitosa!", flash.success);
         } else if (flash?.error) {
-            openFlash('error', '¡Ups! Algo salió mal', flash.error);
+            openFlash("error", "¡Ups! Algo salió mal", flash.error);
         } else if (flash?.warning) {
-            openFlash('warning', 'Atención', flash.warning);
+            openFlash("warning", "Atención", flash.warning);
         } else if (flash?.info || flash?.status) {
-            openFlash('info', 'Información', flash.info ?? flash.status);
+            openFlash("info", "Información", flash.info ?? flash.status);
         }
     }, [flash]);
 
