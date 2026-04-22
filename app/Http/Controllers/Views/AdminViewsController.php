@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Views;
 
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
-use App\Enums\StudentStatus;
 use App\Enums\GroupMode;
+use App\Enums\StudentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\LevelResource;
@@ -13,6 +13,7 @@ use App\Http\Resources\StudentResource;
 use App\Http\Resources\TeacherResource;
 use App\Http\Resources\UserResource;
 use App\Models\Degree;
+use App\Models\Exam;
 use App\Models\Group;
 use App\Models\Level;
 use App\Models\Period;
@@ -21,7 +22,6 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\TypeStudent;
 use App\Models\User;
-use App\Models\Exam;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -37,7 +37,6 @@ class AdminViewsController extends Controller
      * Resuelve los tipos de documento visibles según el rol principal del usuario.
      * Mantiene el mismo contrato de datos usado en la vista administrativa del perfil.
      *
-     * @param User $user
      * @return array<int, array{value: string, label: string}>
      */
     private function resolveDocumentTypeOptions(User $user): array
@@ -69,7 +68,7 @@ class AdminViewsController extends Controller
             'degrees' => Degree::all(),
             'levels' => Level::all(),
             'typeStudents' => TypeStudent::all(),
-            'studentStatuses' => array_map(fn($status) => ['value' => $status->value, 'label' => $status->label()], StudentStatus::cases()),
+            'studentStatuses' => array_map(fn ($status) => ['value' => $status->value, 'label' => $status->label()], StudentStatus::cases()),
         ]);
     }
 
@@ -81,15 +80,43 @@ class AdminViewsController extends Controller
      */
     public function groupsView(Request $request)
     {
-        $esEstudiante = $request->user()?->hasRole('student') ?? false;
+        $user = $request->user();
+        $esEstudiante = $user?->hasRole('student') ?? false;
 
         $grupos = Group::with(['teacher', 'level', 'period', 'qualifications.student'])
             ->withCount('qualifications')
-            ->when($esEstudiante, fn($q) => $q->whereIn('status', ['active', 'waiting']))
+            ->where(function ($query) use ($user, $esEstudiante) {
+                if ($user->hasRole(['admin', 'coordinator'])) {
+                    return;
+                }
+                if ($user->hasRole('teacher')) {
+                    $query->where('teacher_id', $user->teacher->id);
+                }
+                if ($esEstudiante) {
+                    $studentId = $user->student?->id;
+
+                    // Anidamos un where para agrupar el "O" (OR) lógicamente
+                    $query->where(function ($subQuery) use ($studentId) {
+
+                        // Condición A: Grupos disponibles para inscripción
+                        // Asegúrate de que los Enum cases aquí correspondan a tu AcademicStatus
+                        $subQuery->whereIn('status', ['enrolling', 'active', 'waiting']);
+
+                        // Condición B: O grupos donde ya tiene una inscripción
+                        if ($studentId) {
+                            $subQuery->orWhereHas('qualifications', function ($q) use ($studentId) {
+                                $q->where('student_id', $studentId);
+                            });
+                        }
+
+                    });
+                }
+            })
             ->get();
 
+        // Regla para ocultar al docente (excelente práctica de seguridad que ya tenías)
         if ($esEstudiante && $this->debeOcultarDocentes()) {
-            $grupos->each(fn($g) => $g->setRelation('teacher', null));
+            $grupos->each(fn ($g) => $g->setRelation('teacher', null));
         }
 
         return Inertia::render('Groups/Index', [
@@ -97,7 +124,7 @@ class AdminViewsController extends Controller
             'levels' => LevelResource::collection(Level::orderBy('level_tecnm')->get())->resolve(),
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(),
-            'statuses' => array_map(fn($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\AcademicStatus::cases()),
+            'statuses' => array_map(fn ($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\AcademicStatus::cases()),
             'modes' => \App\Enums\GroupMode::getOptions(),
             'types' => \App\Enums\GroupType::getOptions(),
         ]);
@@ -163,10 +190,10 @@ class AdminViewsController extends Controller
 
         return Inertia::render('Profile/Users/Edit', [
             'roles' => Role::all(),
-            'user'         => UserResource::make($user),
+            'user' => UserResource::make($user),
             'hasStudent' => (bool) $user->student,
-            'degrees'      => Degree::all(['id', 'name']),
-            'levels'       => Level::all(['id', 'level_tecnm']),
+            'degrees' => Degree::all(['id', 'name']),
+            'levels' => Level::all(['id', 'level_tecnm']),
             'typeStudents' => TypeStudent::all(['id', 'name']),
             'documentStatuses' => DocumentStatus::reviewOptions(),
             'documentTypes' => $documentTypeOptions,
@@ -181,13 +208,14 @@ class AdminViewsController extends Controller
         $levels = Level::all();
         $type_students = TypeStudent::all();
         $groups = Group::all();
+
         return Inertia::render('Academic/Reports', [
             'students' => $students,
             'teachers' => $teachers,
             'degrees' => $degrees,
             'levels' => $levels,
             'groups' => $groups,
-            'typeStudents' => $type_students
+            'typeStudents' => $type_students,
         ]);
     }
 
@@ -200,44 +228,44 @@ class AdminViewsController extends Controller
 
         // Aplanamos los datos y calculamos campos derivados para el frontend
         $examsData = $exams->map(function ($exam) use ($ocultarDocentes) {
-            $enrolledCount   = $exam->students->count();
-            $availableSeats  = max(0, ($exam->capacity ?? 0) - $enrolledCount);
+            $enrolledCount = $exam->students->count();
+            $availableSeats = max(0, ($exam->capacity ?? 0) - $enrolledCount);
 
             return [
-                'id'               => $exam->id,
-                'name'             => $exam->name,
-                'exam_type'        => $exam->exam_type?->value ?? $exam->exam_type,
-                'capacity'         => $exam->capacity,
-                'start_date'       => $exam->start_date,
-                'end_date'         => $exam->end_date,
-                'mode'             => $exam->mode,
+                'id' => $exam->id,
+                'name' => $exam->name,
+                'exam_type' => $exam->exam_type?->value ?? $exam->exam_type,
+                'capacity' => $exam->capacity,
+                'start_date' => $exam->start_date,
+                'end_date' => $exam->end_date,
+                'mode' => $exam->mode,
                 'application_time' => $exam->application_time,
-                'classroom'        => $exam->classroom,
-                'status'           => $exam->status?->value ?? $exam->status,
-                'period_id'        => $exam->period_id,
-                'teacher_id'       => $ocultarDocentes ? null : $exam->teacher_id,
-                'teacher_name'     => $ocultarDocentes ? 'Por asignar' : $exam->teacher?->full_name,
-                'teacher'          => $ocultarDocentes || !$exam->teacher ? null : [
+                'classroom' => $exam->classroom,
+                'status' => $exam->status?->value ?? $exam->status,
+                'period_id' => $exam->period_id,
+                'teacher_id' => $ocultarDocentes ? null : $exam->teacher_id,
+                'teacher_name' => $ocultarDocentes ? 'Por asignar' : $exam->teacher?->full_name,
+                'teacher' => $ocultarDocentes || ! $exam->teacher ? null : [
                     'name' => $exam->teacher->first_name,
                     'last_name' => $exam->teacher->last_name,
                 ],
-                'period_name'      => $exam->period?->name,
-                'period'           => $exam->period ? ['id' => $exam->period->id, 'name' => $exam->period->name] : null,
-                'registered'       => $enrolledCount,
-                'enrolled_count'   => $enrolledCount,
-                'available_seats'  => $availableSeats,
-                'students_string'  => collect($exam->students)->map(fn($s) => ($s->first_name ?? '') . ' ' . ($s->last_name ?? ''))->join(' '),
+                'period_name' => $exam->period?->name,
+                'period' => $exam->period ? ['id' => $exam->period->id, 'name' => $exam->period->name] : null,
+                'registered' => $enrolledCount,
+                'enrolled_count' => $enrolledCount,
+                'available_seats' => $availableSeats,
+                'students_string' => collect($exam->students)->map(fn ($s) => ($s->first_name ?? '').' '.($s->last_name ?? ''))->join(' '),
             ];
         });
 
         $teachers = Teacher::all();
-        $periods  = Period::all();
+        $periods = Period::all();
 
         return Inertia::render('Exams/Index', [
-            'examenes'    => $examsData,
-            'teachers'    => $teachers,
-            'periods'     => $periods,
-            'statuses'    => array_map(fn($s) => ['value' => $s->value, 'label' => $s->label()], \App\Enums\AcademicStatus::cases()),
+            'examenes' => $examsData,
+            'teachers' => $teachers,
+            'periods' => $periods,
+            'statuses' => array_map(fn ($s) => ['value' => $s->value, 'label' => $s->label()], \App\Enums\AcademicStatus::cases()),
             'typeOptions' => \App\Enums\ExamType::getOptions(),
             'modeOptions' => GroupMode::getOptions(),
         ]);
