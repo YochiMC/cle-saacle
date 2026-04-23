@@ -85,35 +85,9 @@ class AdminViewsController extends Controller
 
         $grupos = Group::with(['teacher', 'level', 'period', 'qualifications.student'])
             ->withCount('qualifications')
-            ->where(function ($query) use ($user, $esEstudiante) {
-                if ($user->hasRole(['admin', 'coordinator'])) {
-                    return;
-                }
-                if ($user->hasRole('teacher')) {
-                    $query->where('teacher_id', $user->teacher->id);
-                }
-                if ($esEstudiante) {
-                    $studentId = $user->student?->id;
-
-                    // Anidamos un where para agrupar el "O" (OR) lógicamente
-                    $query->where(function ($subQuery) use ($studentId) {
-
-                        // Condición A: Grupos disponibles para inscripción
-                        // Asegúrate de que los Enum cases aquí correspondan a tu AcademicStatus
-                        $subQuery->whereIn('status', ['enrolling', 'active', 'waiting']);
-
-                        // Condición B: O grupos donde ya tiene una inscripción
-                        if ($studentId) {
-                            $subQuery->orWhereHas('qualifications', function ($q) use ($studentId) {
-                                $q->where('student_id', $studentId);
-                            });
-                        }
-
-                    });
-                }
-            })
+            ->visibleToUser($user)
             ->get();
-
+    
         // Regla para ocultar al docente (excelente práctica de seguridad que ya tenías)
         if ($esEstudiante && $this->debeOcultarDocentes()) {
             $grupos->each(fn ($g) => $g->setRelation('teacher', null));
