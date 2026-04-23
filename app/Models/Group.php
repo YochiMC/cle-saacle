@@ -9,6 +9,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * Modelo de dominio para grupos académicos.
+ *
+ * Incluye:
+ * - relaciones académicas (periodo, docente, nivel, calificaciones);
+ * - scope de visibilidad por rol para el catálogo principal.
+ */
 class Group extends Model
 {
     //
@@ -51,7 +58,10 @@ class Group extends Model
         return $this->belongsTo(Level::class);
     }
 
-    public function qualifications()
+    /**
+     * Calificaciones asociadas al grupo.
+     */
+    public function qualifications(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Qualification::class);
     }
@@ -67,6 +77,15 @@ class Group extends Model
             ->withTimestamps();
     }
 
+    /**
+     * Scope de lectura para catálogo de grupos según rol del usuario.
+     *
+     * Reglas:
+     * - admin/coordinator: sin restricción.
+     * - teacher: solo grupos asignados.
+     * - student: grupos disponibles por nivel + grupos históricos propios.
+     * - otros: sin visibilidad (fallback de seguridad).
+     */
     public function scopeVisibleToUser(Builder $query, User $user): Builder
     {
         // 1. Admins y Coordinadores: Sin restricciones
@@ -87,8 +106,12 @@ class Group extends Model
 
                 // A) Grupos DISPONIBLES: Que sean de su nivel actual Y estén activos/en espera
                 $q->where(function ($availableQuery) use ($student) {
-                    $availableQuery->whereIn('status', ['enrolling', 'active', 'waiting'])
-                        ->where('level_id', $student?->level_id); // <-- ¡Nueva validación de nivel!
+                    $availableQuery->whereIn('status', [
+                        AcademicStatus::ENROLLING->value,
+                        AcademicStatus::ACTIVE->value,
+                        AcademicStatus::PENDING->value,
+                    ])
+                        ->where('level_id', $student?->level_id);
                 })
 
                 // B) Grupos HISTÓRICOS: Donde ya está inscrito (sin importar el nivel o estado actual)

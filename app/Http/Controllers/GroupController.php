@@ -128,6 +128,11 @@ class GroupController extends Controller
 
     /**
      * Muestra el dashboard de un grupo con sus alumnos inscritos y calificaciones.
+     *
+     * Contrato hacia la vista Groups/View:
+     * - grupo: metadata del grupo consultado.
+     * - enrolledStudents: alumnos inscritos con su información de calificación.
+     * - availableStudents: alumnos elegibles para inscripción (vacío para rol student).
      */
     public function show(Group $group): Response
     {
@@ -140,10 +145,14 @@ class GroupController extends Controller
             return new StudentQualificationResource($student);
         });
 
-        $enrolledIds = $group->qualifications()->pluck('student_id');
-        $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
-            ->select('id', 'first_name', 'last_name', 'num_control')
-            ->get();
+        // Seguridad de payload: el alumno no debe recibir el catálogo global de candidatos.
+        $availableStudents = [];
+        if (!Auth::user()?->hasRole('student')) {
+            $enrolledIds = $group->qualifications()->pluck('student_id');
+            $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
+                ->select('id', 'first_name', 'last_name', 'num_control')
+                ->get();
+        }
 
         return Inertia::render('Groups/View', [
             'grupo'            => $group,

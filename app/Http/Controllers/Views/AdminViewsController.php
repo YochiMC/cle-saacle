@@ -82,57 +82,26 @@ class AdminViewsController extends Controller
     {
         $user = $request->user();
         $esEstudiante = $user?->hasRole('student') ?? false;
+        $ocultarDocentes = $esEstudiante && $this->debeOcultarDocentes();
 
         $grupos = Group::with(['teacher', 'level', 'period', 'qualifications.student'])
             ->withCount('qualifications')
             ->visibleToUser($user)
             ->get();
-    
+
         // Regla para ocultar al docente (excelente práctica de seguridad que ya tenías)
-        if ($esEstudiante && $this->debeOcultarDocentes()) {
+        if ($ocultarDocentes) {
             $grupos->each(fn ($g) => $g->setRelation('teacher', null));
         }
 
         return Inertia::render('Groups/Index', [
             'grupos' => GroupResource::collection($grupos)->resolve(),
             'levels' => LevelResource::collection(Level::orderBy('level_tecnm')->get())->resolve(),
-            'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
+            'teachers' => $ocultarDocentes ? [] : TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(),
             'statuses' => array_map(fn ($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\AcademicStatus::cases()),
             'modes' => \App\Enums\GroupMode::getOptions(),
             'types' => \App\Enums\GroupType::getOptions(),
-        ]);
-    }
-
-    /**
-     * Muestra el detalle profundo (Dashboard) de un grupo específico.
-     *
-     * @param  int|string  $id  ID del grupo.
-     * @return \Inertia\Response
-     */
-    public function showDetails($id)
-    {
-        $group = Group::with(['teacher', 'level', 'period', 'qualifications.student'])->findOrFail($id);
-
-        // Mock de estudiantes inscritos para visualización de tabla (reutilizando ResourceDashboard)
-        $mockStudents = [
-            ['id' => 101, 'control_number' => '19000001', 'name' => 'Ana', 'last_name' => 'Pérez', 'status' => 'Activo'],
-            ['id' => 102, 'control_number' => '19000002', 'name' => 'Luis', 'last_name' => 'García', 'status' => 'Activo'],
-            ['id' => 103, 'control_number' => '19000003', 'name' => 'María', 'last_name' => 'López', 'status' => 'Inactivo'],
-            ['id' => 104, 'control_number' => '19000004', 'name' => 'José', 'last_name' => 'Martínez', 'status' => 'Activo'],
-            ['id' => 105, 'control_number' => '19000005', 'name' => 'Elena', 'last_name' => 'Rodríguez', 'status' => 'Activo'],
-        ];
-
-        $availableStudents = Student::whereDoesntHave('qualifications', function ($query) use ($id) {
-            $query->where('group_id', $id);
-        })->get();
-
-        return Inertia::render('Groups/View', [
-            'grupo' => $group,
-            'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
-            'periods' => Period::all(['id', 'name']),
-            'enrolledStudents' => $mockStudents,
-            'availableStudents' => StudentResource::collection($availableStudents)->resolve(),
         ]);
     }
 

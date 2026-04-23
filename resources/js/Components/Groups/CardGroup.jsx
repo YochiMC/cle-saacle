@@ -27,6 +27,7 @@ const CardGroup = memo(
         const esEstudiante = hasRole("student");
         const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
         const esStaff = hasRole("admin") || hasRole("coordinator") || hasRole("teacher");
+        const puedeInscribirse = grupo.status === "enrolling";
 
         // Badge de estado resuelto con el helper compartido (fuente única de verdad)
         const badge = resolverEstado(grupo.status, grupo.status_label);
@@ -47,7 +48,7 @@ const CardGroup = memo(
                 capacity={grupo.capacity}
                 isLleno={grupo.available_seats === 0}
                 onVerDetalles={() => onVerDetalles(grupo)}
-                onInscribir={onInscribir ? () => onInscribir(grupo.id) : undefined}
+                onInscribir={onInscribir && puedeInscribirse ? () => onInscribir(grupo.id) : undefined}
                 onEditar={onEditar ? () => onEditar(grupo) : undefined}
                 openHref={route("groups.show", grupo.id)}
                 openLabel="Abrir Grupo"

@@ -13,6 +13,10 @@ use App\Models\User;
  * - Coordinador: gestión completa del recurso.
  * - Docente: acceso a sus grupos y a acciones operativas específicas.
  * - Alumno: acceso de consulta general y a su flujo de inscripción/baja.
+ *
+ * Nota de diseño:
+ * - Esta policy define autorización por habilidad.
+ * - Validaciones de "self-action" (por ejemplo, baja de sí mismo) se refuerzan en controlador/request.
  */
 class GroupPolicy
 {
@@ -34,11 +38,19 @@ class GroupPolicy
         return $user->hasAnyRole(['coordinator', 'teacher', 'student']);
     }
 
-    /** Permite consultar un grupo específico. */
+    /**
+     * Permite consultar un grupo específico.
+     *
+     * Matriz:
+     * - coordinator: cualquier grupo.
+     * - teacher: solo grupos donde está asignado.
+     * - student: solo grupos en los que está inscrito.
+     */
     public function view(User $user, Group $group): bool
     {
         return $user->hasRole('coordinator')
-            || ($user->hasRole('teacher') && $group->teacher_id === $user->teacher?->id);
+            || ($user->hasRole('teacher') && $group->teacher_id === $user->teacher?->id)
+            || ($user->hasRole('student') && $group->students()->where('student_id', $user->student?->id)->exists());
     }
 
     /** Permite crear grupos. */

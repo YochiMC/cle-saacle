@@ -75,7 +75,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
 
         Route::prefix('groups')->group(function () {
-            Route::middleware('role:admin|coordinator|teacher')->group(function () {
+            Route::middleware('role:admin|coordinator|teacher|student')->group(function () {
                 Route::get('/{group}/detalles', [GroupController::class, 'show'])->name('groups.show');
             });
 
