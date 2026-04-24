@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Gate;
 use App\Models\Qualification;
 use App\Http\Requests\UpdateQualificationsRequest;
 use App\Http\Requests\BulkUpdateGroupQualificationsRequest;
@@ -26,6 +27,7 @@ class QualificationController extends Controller
      */
     public function update(UpdateQualificationsRequest $request, Qualification $qualification): RedirectResponse
     {
+        Gate::authorize('update', $qualification);
         $qualification->update($request->validated());
 
         return redirect()->back()->with('success', 'Calificación individual guardada exitosamente.');
@@ -42,7 +44,8 @@ class QualificationController extends Controller
      * @return RedirectResponse
      */
     public function bulkUpdate(BulkUpdateGroupQualificationsRequest $request, BulkUpdateGroupQualifications $action): RedirectResponse
-    {
+    {   
+        Gate::authorize('updateAny', Qualification::class);
         $action->execute($request->validated('qualifications'));
 
         return redirect()->back()->with('success', 'Calificaciones del grupo guardadas exitosamente.');
