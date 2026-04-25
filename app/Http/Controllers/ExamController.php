@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 use App\Actions\BulkUpdateExamQualifications;
 use App\Actions\EnrollStudentsInExam;
 use App\Actions\BulkDeleteExams;
@@ -39,6 +41,7 @@ class ExamController extends Controller
      */
     public function store(StoreExamRequest $request): RedirectResponse
     {
+        Gate::authorize('create', Exam::class);
         $validated = $request->validated();
         $validated['name'] = $this->namingService->generateName($validated);
 
@@ -55,6 +58,7 @@ class ExamController extends Controller
         Exam $exam,
         \App\Actions\ResetModelQualifications $resetAction
     ): RedirectResponse {
+        Gate::authorize('update', $exam);
         $validated = $request->validated();
 
         $mergedAttributes = array_merge($exam->toArray(), $validated);
@@ -80,6 +84,7 @@ class ExamController extends Controller
      */
     public function destroy(Exam $exam): RedirectResponse
     {
+        Gate::authorize('delete', $exam);
         $exam->delete();
 
         return redirect()->back()->with('success', 'Examen eliminado correctamente.');
@@ -87,19 +92,29 @@ class ExamController extends Controller
 
     /**
      * Muestra el dashboard de un examen con sus alumnos inscritos y calificaciones.
+     *
+     * Contrato hacia la vista Exams/View:
+     * - examen: metadata del examen consultado.
+     * - enrolledStudents: alumnos inscritos con su información de calificación.
+     * - availableStudents: alumnos elegibles para inscripción (vacío para rol student).
      */
     public function show(Exam $exam)
     {
+        Gate::authorize('view', $exam);
         $students = $exam->students()->get();
 
         $enrolledStudents = $students->map(
             fn($student) => new \App\Http\Resources\StudentExamQualificationResource($student)
         );
 
-        $enrolledIds = $exam->students()->pluck('students.id');
-        $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
-            ->select('id', 'first_name', 'last_name', 'num_control')
-            ->get();
+        // Seguridad de payload: el alumno no debe recibir el catálogo global de candidatos.
+        $availableStudents = [];
+        if (!Auth::user()?->hasRole('student')) {
+            $enrolledIds = $exam->students()->pluck('students.id');
+            $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
+                ->select('id', 'first_name', 'last_name', 'num_control')
+                ->get();
+        }
 
         $levelsTecnm = \App\Models\Level::where('level_tecnm', '!=', 'Programa Egresados')
             ->pluck('level_tecnm')
@@ -122,6 +137,7 @@ class ExamController extends Controller
      */
     public function enroll(EnrollStudentsRequest $request, Exam $exam, EnrollStudentsInExam $action): RedirectResponse
     {
+        Gate::authorize('enroll', $exam);
         $action->execute($exam, $request->validated('student_ids'));
 
         return redirect()->back()->with('success', 'Alumnos inscritos al examen.');
@@ -132,6 +148,11 @@ class ExamController extends Controller
      */
     public function unenroll(Exam $exam, Student $student): RedirectResponse
     {
+        Gate::authorize('unenroll', $exam);
+        if (Auth::user()?->hasRole('student') && $student->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         $exam->students()->detach($student->id);
 
         return redirect()->back()->with('success', 'Alumno dado de baja del examen.');
@@ -142,6 +163,7 @@ class ExamController extends Controller
      */
     public function bulkUnenroll(BulkUnenrollRequest $request, Exam $exam, BulkDetachStudentsFromExam $action): RedirectResponse
     {
+        Gate::authorize('bulkUnenroll', $exam);
         $action->execute($exam, $request->validated('ids'));
 
         return redirect()->back()->with('success', 'Alumnos seleccionados desmatriculados correctamente.');
@@ -152,6 +174,7 @@ class ExamController extends Controller
      */
     public function bulkStatus(BulkUpdateExamStatusRequest $request, BulkUpdateExamStatus $action): RedirectResponse
     {
+        Gate::authorize('updateAny', Exam::class);
         $action->execute(
             $request->validated('ids'),
             $request->validated('new_status')
@@ -165,6 +188,7 @@ class ExamController extends Controller
      */
     public function bulkDelete(BulkDeleteExamsRequest $request, BulkDeleteExams $action): RedirectResponse
     {
+        Gate::authorize('deleteAny', Exam::class);
         $action->execute($request->validated('ids'));
 
         return redirect()->back()->with('success', 'Exámenes eliminados correctamente.');
@@ -175,6 +199,7 @@ class ExamController extends Controller
      */
     public function updatePivot(UpdateExamPivotRequest $request, Exam $exam, Student $student): RedirectResponse
     {
+        Gate::authorize('update', $exam);
         $exam->students()->updateExistingPivot($student->id, [
             'units_breakdown' => $request->validated('units_breakdown'),
             'final_average'   => $request->validated('final_average') ?? 0,
@@ -191,6 +216,7 @@ class ExamController extends Controller
      */
     public function bulkUpdatePivot(BulkUpdateExamQualificationsRequest $request, Exam $exam, BulkUpdateExamQualifications $action): RedirectResponse
     {
+        Gate::authorize('updateAny', $exam);
         $action->execute($exam, $request->validated('qualifications'));
 
         return redirect()->back()->with('success', '¡Éxito! Las calificaciones de todos los alumnos han sido guardadas y calculadas correctamente.');
@@ -201,6 +227,7 @@ class ExamController extends Controller
      */
     public function complete(Exam $exam): RedirectResponse
     {
+        Gate::authorize('complete', $exam);
         $exam->update(['status' => AcademicStatus::COMPLETED]);
 
         return redirect()->back()->with('success', 'El examen ha sido cerrado exitosamente. Ya no se permiten modificaciones.');
