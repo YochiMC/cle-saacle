@@ -17,9 +17,9 @@ class BulkDetachStudentsFromExam
      *
      * @param Exam $exam El examen del cual se desvincularán los alumnos.
      * @param array<int> $studentIds Lista de IDs de los alumnos a desmatricular.
-     * @return array Estructura de retorno del método detach de Laravel.
+     * @return int Número de relaciones eliminadas del pivot.
      */
-    public function execute(Exam $exam, array $studentIds): array
+    public function execute(Exam $exam, array $studentIds): int
     {
         return $exam->students()->detach($studentIds);
     }
