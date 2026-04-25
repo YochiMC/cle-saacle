@@ -164,10 +164,13 @@ class AdminViewsController extends Controller
 
     public function examsView(Request $request)
     {
-        $esEstudiante = $request->user()?->hasRole('student') ?? false;
+        $user = $request->user();
+        $esEstudiante = $user?->hasRole('student') ?? false;
         $ocultarDocentes = $esEstudiante && $this->debeOcultarDocentes();
 
-        $exams = Exam::with(['students', 'teacher', 'period'])->get();
+        $exams = Exam::with(['students', 'teacher', 'period'])
+            ->visibleToUser($user)
+            ->get();
 
         // Aplanamos los datos y calculamos campos derivados para el frontend
         $examsData = $exams->map(function ($exam) use ($ocultarDocentes) {
@@ -201,7 +204,7 @@ class AdminViewsController extends Controller
             ];
         });
 
-        $teachers = Teacher::all();
+        $teachers = $ocultarDocentes ? [] : Teacher::all();
         $periods = Period::all();
 
         return Inertia::render('Exams/Index', [
