@@ -46,6 +46,7 @@ const CardExam = memo(
         const esEstudiante = hasRole("student");
         const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
         const esStaff = hasRole("admin") || hasRole("coordinator") || hasRole("teacher");
+        const puedeInscribirse = examen.status === "enrolling";
 
         // Badge de estado resuelto con el helper compartido (fuente única de verdad)
         const badge = resolverEstado(examen.status);
@@ -89,7 +90,7 @@ const CardExam = memo(
                 enrolledCount={examen.registered ?? examen.enrolled_count}
                 capacity={examen.capacity ?? "Ilimitado"}
                 onVerDetalles={() => onVerDetalles(examen)}
-                onInscribir={onInscribir ? () => onInscribir(examen.id) : undefined}
+                onInscribir={onInscribir && puedeInscribirse ? () => onInscribir(examen.id) : undefined}
                 onEditar={onEditar ? () => onEditar(examen) : undefined}
                 openHref={route("exams.show", examen.id)}
                 openLabel="Abrir Examen"
