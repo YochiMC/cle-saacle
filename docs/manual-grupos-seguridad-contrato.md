@@ -135,3 +135,9 @@ Para mantener trazabilidad entre documentacion funcional y documentacion in-file
 - app/Models/Group.php (descripcion del modelo y reglas del scope visibleToUser).
 - resources/js/Pages/Groups/Hooks/useGroupManager.js (contrato del hook y separacion de permisos UI).
 - resources/js/Pages/Groups/View.jsx (contrato de props esperado desde backend).
+
+## Manual espejo en Examenes
+
+Para mantener el mismo patron arquitectonico y de seguridad entre modulos academicos, consultar:
+
+- docs/manual-examenes-seguridad-contrato.md
