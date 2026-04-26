@@ -198,15 +198,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/{id}', [RoleController::class, 'destroy'])->name('roles.destroy');
         });
 
-        // ── Configuraciones del Sistema (sólo Administradores) ─────────────────
-        Route::prefix('settings')->name('settings.')->group(function () {
-            Route::get('/', [SettingController::class, 'index'])->name('index');
-            Route::put('/bulk', [SettingController::class, 'updateBulk'])->name('update-bulk');
-
-            // UI Centralizada de Catálogos
-            Route::get('/catalogs', [CatalogUIController::class, 'index'])->name('catalogs');
-        });
-
         // Rutas Bulk Delete para Catálogos (sólo Administradores)
         Route::delete('type-students/bulk', [TypeStudentController::class, 'bulkDestroy'])->name('type-students.bulk-delete');
 
@@ -216,8 +207,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ]);
     });
 
-    // Operaciones de catálogo para admin + coordinator
+    // Operaciones de configuración y catálogo para admin + coordinator
     Route::middleware('role:admin|coordinator')->group(function () {
+        // ── Configuraciones del Sistema (Administrador y Coordinador) ───────────
+        Route::prefix('settings')->name('settings.')->group(function () {
+            Route::get('/', [SettingController::class, 'index'])->name('index');
+            Route::put('/bulk', [SettingController::class, 'updateBulk'])->name('update-bulk');
+
+            // UI Centralizada de Catálogos
+            Route::get('/catalogs', [CatalogUIController::class, 'index'])->name('catalogs');
+        });
+
         Route::delete('periods/bulk', [PeriodController::class, 'bulkDestroy'])->name('periods.bulk-delete');
         Route::delete('levels/bulk', [LevelController::class, 'bulkDestroy'])->name('levels.bulk-delete');
         Route::delete('degrees/bulk', [DegreeController::class, 'bulkDestroy'])->name('degrees.bulk-delete');
