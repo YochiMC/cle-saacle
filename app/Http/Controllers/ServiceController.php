@@ -74,6 +74,20 @@ class ServiceController extends Controller
 
         $service->update($request->validated());
 
+        $student = $service->student;
+        if ($student) {
+            if ($request->status === \App\Enums\ServiceStatus::APPROVED->value) {
+                $student->update(['status' => \App\Enums\StudentStatus::VALIDATED]);
+                
+                $activePeriod = \App\Models\Period::where('is_active', true)->first();
+                if ($activePeriod) {
+                    $service->update(['period_id' => $activePeriod->id]);
+                }
+            } elseif ($request->status === \App\Enums\ServiceStatus::REJECTED->value) {
+                $student->update(['status' => \App\Enums\StudentStatus::WAITING]);
+            }
+        }
+
         return back()->with('success', 'Pago actualizado exitosamente.');
     }
 

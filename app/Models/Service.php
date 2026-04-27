@@ -25,7 +25,8 @@ class Service extends Model
         'file_path',
         'disk',
         'comments',
-        'student_id'
+        'student_id',
+        'period_id',
     ];
 
     protected $casts = [
@@ -36,5 +37,10 @@ class Service extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
+    }
+
+    public function period(): BelongsTo
+    {
+        return $this->belongsTo(Period::class);
     }
 }

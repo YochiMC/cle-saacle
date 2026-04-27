@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Enums\ServiceStatus;
 use App\Models\Service;
+use App\Models\Student;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 
@@ -28,7 +29,7 @@ class StoreStudentService
         // Almacenar en disco 'local' (storage/app). 
         $path = $file->storeAs("servicios/student_{$studentId}", $fileName, 'local');
 
-        return Service::create([
+        $service = Service::create([
             'student_id'       => $studentId,
             'type'             => $data['type'],
             'amount'           => $data['amount'],
@@ -39,5 +40,12 @@ class StoreStudentService
             'disk'             => 'local',
             'status'           => ServiceStatus::PENDING,
         ]);
+
+        $student = Student::find($studentId);
+        if ($student) {
+            $student->update(['status' => \App\Enums\StudentStatus::PAYMENT_REVIEW]);
+        }
+
+        return $service;
     }
 }
