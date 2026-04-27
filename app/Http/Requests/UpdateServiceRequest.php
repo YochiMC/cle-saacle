@@ -23,13 +23,8 @@ class UpdateServiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type'             => ['required', 'string', 'max:255'],
-            'amount'           => ['required', 'numeric', 'min:0'],
-            'status'           => ['required', 'string', 'max:255'],
-            'description'      => ['nullable', 'string'],
-            'reference_number' => ['nullable', 'string', 'max:255'],
-            'file_path'        => ['nullable', 'string', 'max:255'],
-            'student_id'       => ['required', 'exists:students,id'],
+            'status'   => ['required', 'string', \Illuminate\Validation\Rule::in(\App\Enums\ServiceStatus::reviewValues())],
+            'comments' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
@@ -39,12 +34,9 @@ class UpdateServiceRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'type.required'       => 'El tipo de servicio es obligatorio.',
-            'amount.required'     => 'El monto es obligatorio.',
-            'amount.numeric'      => 'El monto debe ser un valor numérico.',
-            'status.required'      => 'El estado del servicio es obligatorio.',
-            'student_id.required' => 'El alumno asociado es obligatorio.',
-            'student_id.exists'   => 'El alumno seleccionado no existe.',
+            'status.required' => 'El estatus de revisión es obligatorio.',
+            'status.in'       => 'El estatus de revisión no es válido.',
+            'comments.max'    => 'Los comentarios no deben exceder los 1000 caracteres.',
         ];
     }
 }

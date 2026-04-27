@@ -4,7 +4,7 @@ import Graficas from "@/Components/Charts/Graphics";
 import { useState } from "react";
 import { Mail, ShieldCheck, Activity, Users } from "lucide-react";
 
-export default function Dashboard({ auth, degrees = [], students = [], levels = [] }) {
+export default function Dashboard({ auth, degrees = [], students = [], levels = [], groups = [], exams = [] }) {
     // SELECTORES DE LAS 4 GRAFICAS
     const [chartType1, setChartType1] = useState("carrera");
     const [chartType2, setChartType2] = useState("genero");
@@ -19,52 +19,54 @@ export default function Dashboard({ auth, degrees = [], students = [], levels = 
         },
     ];
 
-    // NIVEL
-    const levelData = levels.map((lvl) => {
-        const total = students.filter((s) => s.level_id === lvl.id); 
-        const total2 = total.filter((s) => s.gender === "M").length; 
-        return {
-            name: lvl.level_tecnm,
-            total2,
-        };
-    });
-    
-    const carreraData = degrees.map((degree) => {
-        const total = students.filter((s) => s.degree_id === degree.id).length;
-        return {
-            name: degree.name,
-            total,
-        };
-    });
-
-    // GENERO
-    const generoData = [
-        {
-            name: "Hombres",
-            total: students.filter((s) => s.gender === "M").length,
-        },
-        {
-            name: "Mujeres",
-            total: students.filter((s) => s.gender === "F").length,
-        },
-    ];
-
-    // SEMESTRE
-    const semestreData = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((sem) => {
-        const total = students.filter((s) => s.semester === sem).length;
-        return {
-            name: `Sem ${sem}`,
-            total,
-        };
-    });
+    // OBTENER ESTUDIANTES BASE POR CATEGORÍA DE GRÁFICA
+    const getBaseStudentsForCategory = (category) => {
+        let targetIds = new Set();
+        if (category === "Cursos ordinarios" && groups) {
+            groups.forEach(g => (g.students || []).forEach(s => targetIds.add(s.id)));
+        } else if (category === "Examen 4 Habilidades" && exams) {
+            exams.filter(e => e.exam_type === '4 habilidades').forEach(e => (e.students || []).forEach(s => targetIds.add(s.id)));
+        } else if (category === "Examen de Validación" && exams) {
+            exams.filter(e => e.exam_type === 'Convalidación').forEach(e => (e.students || []).forEach(s => targetIds.add(s.id)));
+        } else if (category === "Egresados próximos a egresar") {
+            students.filter(s => s.semester >= 8).forEach(s => targetIds.add(s.id));
+        } else {
+            return students;
+        }
+        return students.filter(s => targetIds.has(s.id));
+    };
 
     // FUNCION PARA CAMBIAR DATOS
-    const getChartData = (type) => {
-        if (type === "carrera") return carreraData;
-        if (type === "genero") return generoData;
-        if (type === "semestre") return semestreData;
-        if (type === "level") return levelData;
-        return [];
+    const getChartData = (metricType, categoryTitle) => {
+        const targetStudents = getBaseStudentsForCategory(categoryTitle);
+
+        if (metricType === "carrera") {
+            return degrees.map((degree) => ({
+                name: degree.name,
+                total: targetStudents.filter((s) => s.degree_id === degree.id).length,
+            }));
+        }
+        if (metricType === "genero") {
+            return [
+                { name: "Hombres", total: targetStudents.filter((s) => s.gender === "M").length },
+                { name: "Mujeres", total: targetStudents.filter((s) => s.gender === "F").length },
+            ];
+        }
+        if (metricType === "semestre") {
+            return [1, 2, 3, 4, 5, 6, 7, 8, 9].map((sem) => ({
+                name: `Sem ${sem}`,
+                total: targetStudents.filter((s) => s.semester === sem).length,
+            }));
+        }
+        if (metricType === "level") {
+            return levels.map((lvl) => ({
+                name: lvl.level_tecnm,
+                total: targetStudents.filter((s) => s.level_id === lvl.id).length,
+            }));
+        }
+        return [
+            { name: "Total", total: targetStudents.length }
+        ];
     };
 
     return (
@@ -135,7 +137,7 @@ export default function Dashboard({ auth, degrees = [], students = [], levels = 
                             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
                                 <Graficas
                                     title="Cursos ordinarios"
-                                    chartData={getChartData(chartType1)}
+                                    chartData={getChartData(chartType1, "Cursos ordinarios")}
                                     showSelector={true}
                                     chartType={chartType1}
                                     setChartType={setChartType1}
@@ -144,7 +146,7 @@ export default function Dashboard({ auth, degrees = [], students = [], levels = 
                             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
                                 <Graficas
                                     title="Egresados próximos a egresar"
-                                    chartData={getChartData(chartType2)}
+                                    chartData={getChartData(chartType2, "Egresados próximos a egresar")}
                                     showSelector={true}
                                     chartType={chartType2}
                                     setChartType={setChartType2}
@@ -153,7 +155,7 @@ export default function Dashboard({ auth, degrees = [], students = [], levels = 
                             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
                                 <Graficas
                                     title="Examen 4 Habilidades"
-                                    chartData={getChartData(chartType3)}
+                                    chartData={getChartData(chartType3, "Examen 4 Habilidades")}
                                     showSelector={true}
                                     chartType={chartType3}
                                     setChartType={setChartType3}
@@ -162,7 +164,7 @@ export default function Dashboard({ auth, degrees = [], students = [], levels = 
                             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
                                 <Graficas
                                     title="Examen de Validación"
-                                    chartData={getChartData(chartType4)}
+                                    chartData={getChartData(chartType4, "Examen de Validación")}
                                     showSelector={true}
                                     chartType={chartType4}
                                     setChartType={setChartType4}

@@ -17,11 +17,15 @@ return new class extends Migration
             $table->decimal('amount', 10, 2)->default(0);
             $table->string('status')->default('pending');
             $table->string('reference_number')->nullable();
+            $table->string('original_name')->nullable();
             $table->string('file_path')->nullable();
+            $table->string('disk')->nullable();
+            $table->text('comments')->nullable();
             $table->text('description')->nullable();
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
+            
         });
     }
 

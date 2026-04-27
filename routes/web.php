@@ -46,6 +46,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{document}', [DocumentController::class, 'update'])->name('documents.update');
     });
 
+    // Pagos/Servicios personales
+    Route::prefix('services')->group(function () {
+        Route::post('/', [\App\Http\Controllers\ServiceController::class, 'store'])->name('services.store');
+        Route::get('/{service}/download', [\App\Http\Controllers\ServiceController::class, 'download'])->name('services.download');
+        Route::delete('/{service}', [\App\Http\Controllers\ServiceController::class, 'destroy'])->name('services.destroy');
+    });
+
+    // Actualización de revisión de pagos (admin/coordinator)
+    Route::prefix('services')->middleware('role:admin|coordinator')->group(function () {
+        Route::put('/{service}', [\App\Http\Controllers\ServiceController::class, 'update'])->name('services.update');
+    });
+
     // Vistas y operaciones compartidas por roles base del sistema (menú principal)
     Route::middleware('role:admin|teacher|student')->group(function () {
         Route::get('/dashboard', function () {
@@ -54,7 +66,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             $degrees = \App\Models\Degree::all();
             $levels = \App\Models\Level::all();
             $type_students = \App\Models\TypeStudent::all();
-            $groups = \App\Models\Group::all();
+            $groups = \App\Models\Group::with('students')->get();
+            $exams = \App\Models\Exam::with('students')->get();
 
             return Inertia::render('Dashboard', [
                 'students' => $students,
@@ -63,6 +76,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'levels' => $levels,
                 'groups' => $groups,
                 'typeStudents' => $type_students,
+                'exams' => $exams,
             ]);
         })->name('dashboard');
 
@@ -139,7 +153,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Vistas para admin + student (según menú principal)
     Route::middleware('role:admin|student')->group(function () {
         Route::get('/pagos', function () {
-            return Inertia::render('Academic/Pagos');
+            $user = \Illuminate\Support\Facades\Auth::user();
+            
+            if ($user->hasRole('admin')) {
+                // Admin ve todos los servicios
+                $services = \App\Models\Service::with('student.user')->orderBy('created_at', 'desc')->get();
+            } else {
+                // Estudiante ve solo sus propios servicios
+                $studentId = $user->student?->id;
+                $services = $studentId ? \App\Models\Service::where('student_id', $studentId)->orderBy('created_at', 'desc')->get() : [];
+            }
+            
+            return Inertia::render('Academic/Pagos', [
+                'services' => $services,
+                'serviceTypes' => \App\Enums\ServiceType::toSelect(),
+                'serviceStatuses' => \App\Enums\ServiceStatus::toSelect(),
+                'reviewOptions' => \App\Enums\ServiceStatus::reviewOptions(),
+            ]);
         })->name('pagos');
     });
 

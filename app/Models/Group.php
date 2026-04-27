@@ -62,7 +62,7 @@ class Group extends Model
     public function students(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(Student::class, 'qualifications')
-            ->withPivot('units_breakdown', 'final_average', 'is_approved', 'is_left')
+            ->withPivot('units_breakdown', 'final_average', 'is_left')
             ->withTimestamps();
     }
 }
