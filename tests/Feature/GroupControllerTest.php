@@ -19,16 +19,16 @@ use Tests\TestCase;
  * Suite Feature para GroupController.
  *
  * Estrategia: pruebas HTTP de contrato (status, redirect, flash, payload Inertia,
- * efectos en DB y autorizaciÃ³n). La lÃ³gica interna de Actions se prueba de forma
+ * efectos en DB y autorizacion). La logica interna de Actions se prueba de forma
  * aislada en sus propias suites Unit.
  *
  * Nota: `StoreGroupRequest` y `UpdateGroupRequest` tienen `authorize() = true`.
- * La protecciÃ³n real viene del middleware de ruta. Los tests de 403 se apoyan
+ * La proteccion real viene del middleware de ruta. Los tests de 403 se apoyan
  * en ese middleware, no en el FormRequest.
  *
- * Nota: LevelFactory estÃ¡ disponible desde database/factories/LevelFactory.php.
- * Los catÃ¡logos (Level, Degree, TypeStudent) se siembran automÃ¡ticamente
- * desde Tests\TestCase::setUp() vÃ­a sus respectivos Seeders.
+ * Nota: LevelFactory esta disponible desde database/factories/LevelFactory.php.
+ * Los catalogos (Level, Degree, TypeStudent) se siembran automaticamente
+ * desde Tests\TestCase::setUp() via sus respectivos Seeders.
  */
 class GroupControllerTest extends TestCase
 {
@@ -45,10 +45,22 @@ class GroupControllerTest extends TestCase
         return $user;
     }
 
-    private function admin(): User       { return $this->userWithRole('admin'); }
-    private function teacher(): User     { return $this->userWithRole('teacher'); }
-    private function coordinator(): User { return $this->userWithRole('coordinator'); }
-    private function student(): User     { return $this->userWithRole('student'); }
+    private function admin(): User
+    {
+        return $this->userWithRole('admin');
+    }
+    private function teacher(): User
+    {
+        return $this->userWithRole('teacher');
+    }
+    private function coordinator(): User
+    {
+        return $this->userWithRole('coordinator');
+    }
+    private function student(): User
+    {
+        return $this->userWithRole('student');
+    }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Helpers de datos
@@ -60,7 +72,7 @@ class GroupControllerTest extends TestCase
             'mode'            => GroupMode::PRESENCIAL->value,
             'type'            => GroupType::REGULAR->value,
             'capacity'        => 20,
-            'schedule'        => 'Lunes y MiÃ©rcoles 16:00 - 18:00',
+            'schedule'        => 'Lunes y Miercoles 16:00 - 18:00',
             'classroom'       => 'Aula A-1',
             'meeting_link'    => null,
             'status'          => AcademicStatus::PENDING->value,
@@ -72,14 +84,14 @@ class GroupControllerTest extends TestCase
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // index() â€” GroupController::index() NO tiene ruta HTTP dedicada.
-    // GET /groups estÃ¡ mapeado a AdminViewsController::groupsView() (Inertia).
+    // index() - GroupController::index() NO tiene ruta HTTP dedicada.
+    // GET /groups esta mapeado a AdminViewsController::groupsView() (Inertia).
     // Si se registra una ruta para GroupController::index() en el futuro,
-    // agregar los tests JSON aquÃ­.
+    // agregar los tests JSON aqui.
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // store() â€” POST /groups
+    // store() - POST /groups
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_store_creates_group_and_redirects_with_success(): void
@@ -166,7 +178,7 @@ class GroupControllerTest extends TestCase
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // update() â€” PUT /groups/{group}
+    // update() - PUT /groups/{group}
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_update_modifies_group_and_redirects_with_success(): void
@@ -183,7 +195,7 @@ class GroupControllerTest extends TestCase
 
     public function test_update_rejects_invalid_url_for_meeting_link(): void
     {
-        // UpdateGroupRequest: meeting_link debe ser url vÃ¡lida si se envÃ­a
+        // UpdateGroupRequest: meeting_link debe ser url valida si se envia
         $group = Group::factory()->create();
 
         $this->actingAs($this->admin())
@@ -235,7 +247,7 @@ class GroupControllerTest extends TestCase
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // destroy() â€” DELETE /groups/{group}
+    // destroy() - DELETE /groups/{group}
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_destroy_soft_deletes_group_and_redirects_with_success(): void
@@ -260,7 +272,7 @@ class GroupControllerTest extends TestCase
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // bulkDestroy() â€” DELETE /groups/bulk-delete
+    // bulkDestroy() - DELETE /groups/bulk-delete
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_bulk_destroy_soft_deletes_groups_and_redirects_with_success(): void
@@ -302,7 +314,7 @@ class GroupControllerTest extends TestCase
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // bulkUpdateStatus() â€” POST /groups/bulk-status
+    // bulkUpdateStatus() - POST /groups/bulk-status
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_bulk_update_status_changes_statuses_and_redirects_with_success(): void
@@ -347,7 +359,7 @@ class GroupControllerTest extends TestCase
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // show() â€” GET /groups/{group}/detalles
+    // show() - GET /groups/{group}/detalles
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_show_renders_inertia_view_with_expected_props(): void
@@ -357,11 +369,12 @@ class GroupControllerTest extends TestCase
         $this->actingAs($this->admin())
             ->get(route('groups.show', $group))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->component('Groups/View')
-                ->has('grupo')
-                ->has('enrolledStudents')
-                ->has('availableStudents')
+            ->assertInertia(
+                fn($page) => $page
+                    ->component('Groups/View')
+                    ->has('grupo')
+                    ->has('enrolledStudents')
+                    ->has('availableStudents')
             );
     }
 
@@ -380,16 +393,19 @@ class GroupControllerTest extends TestCase
         $this->actingAs($this->admin())
             ->get(route('groups.show', $group))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->where('availableStudents', fn ($available) =>
-                    ! collect($available)->pluck('id')->contains($student->id)
-                )
+            ->assertInertia(
+                fn($page) => $page
+                    ->where(
+                        'availableStudents',
+                        fn($available) =>
+                        ! collect($available)->pluck('id')->contains($student->id)
+                    )
             );
     }
 
     public function test_show_is_accessible_for_student_role(): void
     {
-        // groups.show estÃ¡ bajo role:admin|teacher|student â€” el student SÃ tiene acceso
+        // groups.show esta bajo role:admin|teacher|student - el student SI tiene acceso
         $group = Group::factory()->create();
 
         $this->actingAs($this->student())
@@ -398,8 +414,8 @@ class GroupControllerTest extends TestCase
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // enroll() â€” POST /groups/{group}/enroll
-    // AutorizaciÃ³n: admin  (EnrollStudentsRequest)
+    // enroll() - POST /groups/{group}/enroll
+    // Autorizacion: admin  (EnrollStudentsRequest)
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_enroll_creates_qualification_records_for_each_student(): void
@@ -433,7 +449,7 @@ class GroupControllerTest extends TestCase
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // unenroll() â€” DELETE /groups/{group}/unenroll/{student}
+    // unenroll() - DELETE /groups/{group}/unenroll/{student}
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_unenroll_removes_qualification_and_redirects_with_success(): void
@@ -460,8 +476,8 @@ class GroupControllerTest extends TestCase
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // bulkUnenroll() â€” POST /groups/{group}/unenroll-bulk
-    // AutorizaciÃ³n: admin | coordinator  (BulkUnenrollRequest)
+    // bulkUnenroll() - POST /groups/{group}/unenroll-bulk
+    // Autorizacion: admin | coordinator  (BulkUnenrollRequest)
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_bulk_unenroll_removes_multiple_qualifications_and_redirects(): void
@@ -507,8 +523,8 @@ class GroupControllerTest extends TestCase
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // updateUnits() â€” PATCH /groups/{group}/units
-    // AutorizaciÃ³n: admin | teacher  (UpdateUnitsGroupRequest)
+    // updateUnits() - PATCH /groups/{group}/units
+    // Autorizacion: admin | teacher  (UpdateUnitsGroupRequest)
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_update_units_changes_evaluable_units_and_redirects(): void
@@ -559,7 +575,7 @@ class GroupControllerTest extends TestCase
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // complete() â€” PATCH /groups/{group}/complete
+    // complete() - PATCH /groups/{group}/complete
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_complete_sets_status_to_completed_and_redirects(): void
@@ -586,4 +602,3 @@ class GroupControllerTest extends TestCase
             ->assertForbidden();
     }
 }
-

@@ -22,11 +22,11 @@ use Tests\TestCase;
  * Suite Feature para ExamController.
  *
  * Estrategia: se prueban los contratos HTTP (status, redirect, flash, payload
- * Inertia, efectos en DB y autorizaciÃ³n). La lÃ³gica interna de cada Action
+ * Inertia, efectos en DB y autorizacion). La logica interna de cada Action
  * se prueba de forma aislada en sus propias suites Unit.
  *
- * Se mockean Ãºnicamente las Actions cuando necesitamos verificar dispatch sin
- * efectos colaterales. En el resto de casos usamos la implementaciÃ³n real.
+ * Se mockean unicamente las Actions cuando necesitamos verificar dispatch sin
+ * efectos colaterales. En el resto de casos usamos la implementacion real.
  */
 class ExamControllerTest extends TestCase
 {
@@ -105,7 +105,7 @@ class ExamControllerTest extends TestCase
         $this->actingAs($this->admin())
             ->post(route('exams.store'), $this->validExamPayload($period));
 
-        // ExamNamingService genera algo tipo "UBAGOSTO26P" â€” verificamos que no es null ni vacÃ­o
+        // ExamNamingService genera algo tipo "UBAGOSTO26P" - verificamos que no es null ni vacio
         $exam = Exam::first();
         $this->assertNotEmpty($exam->name);
         $this->assertSame(strtoupper($exam->name), $exam->name, 'Name should be uppercase');
@@ -326,7 +326,7 @@ class ExamControllerTest extends TestCase
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // bulkUnenroll()
     // POST /exams/{exam}/unenroll-bulk
-    // AutorizaciÃ³n: admin | coordinator  (BulkUnenrollRequest)
+    // Autorizacion: admin | coordinator  (BulkUnenrollRequest)
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_bulk_unenroll_detaches_multiple_students_and_redirects_with_success(): void
@@ -463,7 +463,7 @@ class ExamControllerTest extends TestCase
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // updatePivot()
     // PATCH /exams/{exam}/qualifications/{student}
-    // AutorizaciÃ³n: admin | teacher | coordinator  (UpdateExamPivotRequest)
+    // Autorizacion: admin | teacher | coordinator  (UpdateExamPivotRequest)
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_update_pivot_persists_units_breakdown_and_final_average(): void
@@ -476,7 +476,7 @@ class ExamControllerTest extends TestCase
             'final_average' => 0,
         ]);
 
-        $newBreakdown = ['is_left' => false, 'nivel_asignado' => 'BÃ¡sico I'];
+        $newBreakdown = ['is_left' => false, 'nivel_asignado' => 'Basico I'];
 
         $this->actingAs($this->teacher())
             ->patch(route('exams.qualifications.update', [$exam, $student]), [
@@ -552,7 +552,7 @@ class ExamControllerTest extends TestCase
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // bulkUpdatePivot()
     // PATCH /exams/{exam}/qualifications/bulk
-    // AutorizaciÃ³n: admin | teacher | coordinator  (BulkUpdateExamQualificationsRequest)
+    // Autorizacion: admin | teacher | coordinator  (BulkUpdateExamQualificationsRequest)
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public function test_bulk_update_pivot_persists_all_qualifications_atomically(): void
@@ -570,7 +570,7 @@ class ExamControllerTest extends TestCase
 
         $qualifications = $students->map(fn($s) => [
             'student_id'      => $s->id,
-            'units_breakdown' => ['is_left' => false, 'nivel_asignado' => 'BÃ¡sico I'],
+            'units_breakdown' => ['is_left' => false, 'nivel_asignado' => 'Basico I'],
             'final_average'   => 90,
         ])->all();
 
@@ -592,7 +592,7 @@ class ExamControllerTest extends TestCase
 
     public function test_bulk_update_pivot_defaults_final_average_to_zero_when_null(): void
     {
-        // BulkUpdateExamQualifications::execute() hace ?? 0 en cada Ã­tem
+        // BulkUpdateExamQualifications::execute() hace ?? 0 en cada item
         $exam    = Exam::factory()->create();
         $student = Student::factory()->withRole()->create();
         $exam->students()->attach($student->id, [
