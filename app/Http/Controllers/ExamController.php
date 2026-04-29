@@ -201,6 +201,10 @@ class ExamController extends Controller
      */
     public function complete(Exam $exam): RedirectResponse
     {
+        if ($exam->students()->count() === 0) {
+            return redirect()->back()->with('error', 'No se puede completar un examen sin alumnos inscritos.');
+        }
+
         $exam->update(['status' => AcademicStatus::COMPLETED]);
 
         return redirect()->back()->with('success', 'El examen ha sido cerrado exitosamente. Ya no se permiten modificaciones.');

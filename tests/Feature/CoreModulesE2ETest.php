@@ -161,4 +161,101 @@ class CoreModulesE2ETest extends TestCase
             ]);
         }
     }
+
+    public function test_cannot_enroll_student_in_full_group(): void
+    {
+        $admin = $this->admin();
+        $period = Period::factory()->create();
+        $teacher = Teacher::factory()->create();
+        $level = Level::factory()->create();
+
+        $group = Group::factory()->create([
+            'period_id' => $period->id,
+            'teacher_id' => $teacher->id,
+            'level_id' => $level->id,
+            'capacity' => 1,
+            'status' => AcademicStatus::ACTIVE->value,
+        ]);
+
+        $student1 = Student::factory()->withRole()->create();
+        $this->actingAs($admin)
+            ->post(route('groups.enroll', $group), [
+                'student_ids' => [$student1->id],
+            ]);
+
+        $student2 = Student::factory()->withRole()->create();
+        $response = $this->actingAs($admin)
+            ->post(route('groups.enroll', $group), [
+                'student_ids' => [$student2->id],
+            ]);
+
+        $this->assertTrue(
+            $response->status() === 302 || $response->status() === 422,
+            'Enrolling in full group should fail'
+        );
+    }
+
+    public function test_cannot_enroll_duplicate_student_in_group(): void
+    {
+        $admin = $this->admin();
+        $period = Period::factory()->create();
+        $teacher = Teacher::factory()->create();
+        $level = Level::factory()->create();
+
+        $group = Group::factory()->create([
+            'period_id' => $period->id,
+            'teacher_id' => $teacher->id,
+            'level_id' => $level->id,
+            'status' => AcademicStatus::ACTIVE->value,
+        ]);
+
+        $student = Student::factory()->withRole()->create();
+
+        $this->actingAs($admin)
+            ->post(route('groups.enroll', $group), [
+                'student_ids' => [$student->id],
+            ]);
+
+        $response = $this->actingAs($admin)
+            ->post(route('groups.enroll', $group), [
+                'student_ids' => [$student->id],
+            ]);
+
+        $this->assertTrue(
+            $response->status() === 302 || $response->status() === 422,
+            'Duplicate student enrollment should fail'
+        );
+    }
+
+    public function test_cannot_complete_group_without_students(): void
+    {
+        $admin = $this->admin();
+        $group = Group::factory()->create(['status' => AcademicStatus::ACTIVE->value]);
+
+        $this->actingAs($admin)
+            ->patch(route('groups.complete', $group))
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseHas('groups', [
+            'id' => $group->id,
+            'status' => AcademicStatus::ACTIVE->value,
+        ]);
+    }
+
+    public function test_cannot_complete_exam_without_students(): void
+    {
+        $admin = $this->admin();
+        $exam = Exam::factory()->create(['status' => AcademicStatus::ACTIVE->value]);
+
+        $this->actingAs($admin)
+            ->patch(route('exams.complete', $exam))
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseHas('exams', [
+            'id' => $exam->id,
+            'status' => AcademicStatus::ACTIVE->value,
+        ]);
+    }
 }

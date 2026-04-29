@@ -196,6 +196,10 @@ class GroupController extends Controller
      */
     public function complete(Group $group): RedirectResponse
     {
+        if ($group->qualifications()->count() === 0) {
+            return redirect()->back()->with('error', 'No se puede completar un grupo sin alumnos inscritos.');
+        }
+
         $group->update(['status' => AcademicStatus::COMPLETED]);
 
         return redirect()->back()->with('success', 'El grupo ha sido cerrado exitosamente. Ya no se permiten modificaciones.');
