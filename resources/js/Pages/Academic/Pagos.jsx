@@ -2,16 +2,14 @@ import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import { 
-    CreditCard, Wallet, Clock, CheckCircle, 
-    AlertCircle, Download, ChevronRight, 
-    Search, FileText, Plus, User as UserIcon, Trash2
+    Wallet, Clock, CheckCircle, 
+    ChevronRight, 
+    Search, Plus, User as UserIcon
 } from 'lucide-react';
-import Modal from '@/Components/Modal';
+import PaymentModal from '@/Components/Academic/PaymentModal';
+import ReviewModal from '@/Components/Academic/ReviewModal';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
-import FileInputForm from '@/Components/Forms/FileInputForm';
-import SelectForm from '@/Components/Forms/SelectForm';
-import { FieldError } from '@/Components/ui/field';
 
 export default function Pagos({ auth, services = [], serviceTypes = [], serviceStatuses = [], reviewOptions = [] }) {
     const isAdmin = auth.user?.roles?.some(role => role.name === 'admin' || role.name === 'coordinator');
@@ -239,197 +237,47 @@ export default function Pagos({ auth, services = [], serviceTypes = [], serviceS
 
             {/* MODAL PARA ESTUDIANTE: DETALLE / SUBIR PAGO */}
             {!isAdmin && (
-                <Modal show={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} maxWidth="md">
-                    <form onSubmit={submitPayment} className="bg-white overflow-hidden rounded-2xl">
-                        <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <CreditCard className="w-5 h-5 text-indigo-500"/>
-                                {selectedPayment ? 'Detalles del Pago' : 'Nuevo Pago'}
-                            </h2>
-                            {selectedPayment && (
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${getStatusStyle(selectedPayment.status)}`}>
-                                    {getStatusIcon(selectedPayment.status)}
-                                    {getStatusLabel(selectedPayment.status)}
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="p-6 space-y-4">
-                            {selectedPayment ? (
-                                <div className="space-y-4">
-                                    <div className="text-center mb-6">
-                                        <p className="text-5xl font-black text-gray-900 tracking-tight">{formatCurrency(selectedPayment.amount)}</p>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm border-b pb-2">
-                                        <span className="text-gray-500 font-medium">Tipo de Pago</span>
-                                        <span className="font-bold text-gray-900">{getTypeLabel(selectedPayment.type)}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm border-b pb-2">
-                                        <span className="text-gray-500 font-medium">Ref / Folio</span>
-                                        <span className="font-bold text-gray-900">{selectedPayment.reference_number || 'N/A'}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm border-b pb-2">
-                                        <span className="text-gray-500 font-medium">Fecha</span>
-                                        <span className="font-bold text-gray-900">{new Date(selectedPayment.created_at).toLocaleDateString()}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm border-b pb-2">
-                                        <span className="text-gray-500 font-medium">Comprobante</span>
-                                        <button type="button" onClick={() => handleDownload(selectedPayment.id)} className="text-indigo-600 hover:text-indigo-800 font-bold flex items-center">
-                                            <Download className="w-4 h-4 mr-1" /> Descargar
-                                        </button>
-                                    </div>
-                                    {selectedPayment.comments && (
-                                        <div className="mt-4 p-3 bg-red-50 text-red-800 rounded-xl text-sm">
-                                            <p className="font-bold mb-1">Comentarios de revisión:</p>
-                                            <p>{selectedPayment.comments}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <>
-                                    <div>
-                                        <SelectForm
-                                            label="Tipo de Pago"
-                                            selectId="type"
-                                            options={serviceTypes}
-                                            value={formData.type}
-                                            onValueChange={(val) => setFormData('type', val)}
-                                            required
-                                        />
-                                        <FieldError>{errors.type}</FieldError>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-900 mb-1">Monto a Pagar <span className="text-red-500">*</span></label>
-                                        <input type="number" required step="0.01" className="w-full rounded-xl border-gray-200 focus:border-indigo-500 text-sm" value={formData.amount} onChange={e => setFormData('amount', e.target.value)} />
-                                        <FieldError>{errors.amount}</FieldError>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-900 mb-1">Número de Referencia / Folio</label>
-                                        <input type="text" className="w-full rounded-xl border-gray-200 focus:border-indigo-500 text-sm" value={formData.reference_number} onChange={e => setFormData('reference_number', e.target.value)} />
-                                        <FieldError>{errors.reference_number}</FieldError>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-900 mb-1">Descripción o Notas Adicionales</label>
-                                        <textarea className="w-full rounded-xl border-gray-200 focus:border-indigo-500 text-sm" rows={2} value={formData.description} onChange={e => setFormData('description', e.target.value)} />
-                                        <FieldError>{errors.description}</FieldError>
-                                    </div>
-                                    <div>
-                                        <FileInputForm
-                                            name="file"
-                                            label="Comprobante de Pago"
-                                            onChange={handleFileChange}
-                                            onValidationError={handleFileValidationError}
-                                            accept=".pdf,.jpg,.jpeg,.png"
-                                            maxFileSizeMb={5}
-                                            required
-                                        />
-                                        <FieldError>{errors.file}</FieldError>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                        <div className="px-6 py-4 border-t border-gray-100 flex justify-between gap-3 bg-gray-50">
-                            <div>
-                                {selectedPayment && (
-                                    <button type="button" onClick={() => handleDelete(selectedPayment.id)} className="text-red-600 hover:text-red-800 flex items-center font-bold text-sm px-3 py-2">
-                                        <Trash2 className="w-4 h-4 mr-1" /> Eliminar
-                                    </button>
-                                )}
-                            </div>
-                            <div className="flex gap-3">
-                                <SecondaryButton onClick={() => setIsPaymentModalOpen(false)}>Cerrar</SecondaryButton>
-                                {!selectedPayment && (
-                                    <PrimaryButton type="submit" disabled={isPosting} className="bg-indigo-600 hover:bg-indigo-700">Subir Pago</PrimaryButton>
-                                )}
-                            </div>
-                        </div>
-                    </form>
-                </Modal>
+                <PaymentModal
+                    show={isPaymentModalOpen}
+                    onClose={() => setIsPaymentModalOpen(false)}
+                    selectedPayment={selectedPayment}
+                    serviceTypes={serviceTypes}
+                    formData={formData}
+                    setFormData={setFormData}
+                    errors={errors}
+                    onSubmit={submitPayment}
+                    isProcessing={isPosting}
+                    onFileChange={handleFileChange}
+                    onDelete={handleDelete}
+                    onDownload={handleDownload}
+                    getStatusStyle={getStatusStyle}
+                    getStatusIcon={getStatusIcon}
+                    getStatusLabel={getStatusLabel}
+                    getTypeLabel={getTypeLabel}
+                    formatCurrency={formatCurrency}
+                />
             )}
 
             {/* MODAL PARA ADMIN: REVISAR PAGO */}
             {isAdmin && (
-                <Modal show={isReviewModalOpen} onClose={() => setIsReviewModalOpen(false)} maxWidth="md">
-                    <form onSubmit={submitReview} className="bg-white overflow-hidden rounded-2xl">
-                        <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                            <h2 className="text-xl font-bold text-gray-900">Revisar Pago</h2>
-                            {selectedPayment && (
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${getStatusStyle(selectedPayment.status)}`}>
-                                    {getStatusIcon(selectedPayment.status)}
-                                    {getStatusLabel(selectedPayment.status)}
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="p-6 space-y-4">
-                            {selectedPayment && (
-                                <>
-                                    <div className="text-center mb-4">
-                                        <p className="text-4xl font-black text-gray-900 tracking-tight">{formatCurrency(selectedPayment.amount)}</p>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4 text-sm mb-6 bg-gray-50 p-4 rounded-xl">
-                                        <div>
-                                            <p className="text-gray-500 font-medium">Alumno</p>
-                                            <p className="font-bold text-gray-900">{selectedPayment.student?.user?.name}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-gray-500 font-medium">Tipo</p>
-                                            <p className="font-bold text-gray-900">{getTypeLabel(selectedPayment.type)}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-gray-500 font-medium">Referencia</p>
-                                            <p className="font-bold text-gray-900">{selectedPayment.reference_number || 'N/A'}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-gray-500 font-medium">Comprobante</p>
-                                            <button type="button" onClick={() => handleDownload(selectedPayment.id)} className="text-indigo-600 hover:underline font-bold flex items-center">
-                                                <FileText className="w-4 h-4 mr-1" /> Descargar
-                                            </button>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                            <div>
-                                <SelectForm
-                                    label="Estado de Revisión"
-                                    selectId="status"
-                                    options={reviewOptions}
-                                    value={reviewData.status}
-                                    onValueChange={(val) => setReviewData('status', val)}
-                                    required
-                                />
-                                <FieldError>{reviewErrors.status}</FieldError>
-                            </div>
-                            
-                            <div>
-                                <label className="block text-sm font-bold text-gray-900 mb-1">Comentarios (Opcional)</label>
-                                <textarea 
-                                    className="w-full rounded-xl border-gray-200 focus:border-indigo-500 text-sm" 
-                                    rows={3} 
-                                    placeholder="Motivo de rechazo o nota interna..."
-                                    value={reviewData.comments} 
-                                    onChange={e => setReviewData('comments', e.target.value)} 
-                                />
-                                <FieldError>{reviewErrors.comments}</FieldError>
-                            </div>
-                        </div>
-
-                        <div className="px-6 py-4 border-t border-gray-100 flex justify-between bg-gray-50">
-                            <div>
-                                {selectedPayment && (
-                                    <button type="button" onClick={() => handleDelete(selectedPayment.id)} className="text-red-600 hover:text-red-800 flex items-center font-bold text-sm px-3 py-2">
-                                        <Trash2 className="w-4 h-4 mr-1" /> Eliminar
-                                    </button>
-                                )}
-                            </div>
-                            <div className="flex gap-3">
-                                <SecondaryButton onClick={() => setIsReviewModalOpen(false)}>Cancelar</SecondaryButton>
-                                <PrimaryButton type="submit" disabled={isReviewing} className="bg-indigo-600 hover:bg-indigo-700">Guardar Revisión</PrimaryButton>
-                            </div>
-                        </div>
-                    </form>
-                </Modal>
+                <ReviewModal
+                    show={isReviewModalOpen}
+                    onClose={() => setIsReviewModalOpen(false)}
+                    selectedPayment={selectedPayment}
+                    reviewOptions={reviewOptions}
+                    reviewData={reviewData}
+                    setReviewData={setReviewData}
+                    reviewErrors={reviewErrors}
+                    onSubmit={submitReview}
+                    isProcessing={isReviewing}
+                    onDelete={handleDelete}
+                    onDownload={handleDownload}
+                    getStatusStyle={getStatusStyle}
+                    getStatusIcon={getStatusIcon}
+                    getStatusLabel={getStatusLabel}
+                    getTypeLabel={getTypeLabel}
+                    formatCurrency={formatCurrency}
+                />
             )}
             
         </AuthenticatedLayout>
