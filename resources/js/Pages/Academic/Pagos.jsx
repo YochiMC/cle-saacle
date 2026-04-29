@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, router } from '@inertiajs/react';
-import { 
-    Wallet, Clock, CheckCircle, 
-    ChevronRight, 
+import {
+    Wallet, Clock, CheckCircle, AlertCircle,
+    ChevronRight, CreditCard,
     Search, Plus, User as UserIcon
 } from 'lucide-react';
 import PaymentModal from '@/Components/Academic/PaymentModal';
@@ -138,7 +138,7 @@ export default function Pagos({ auth, services = [], serviceTypes = [], serviceS
 
     const filteredServices = services.filter(p => {
         const term = searchTerm.toLowerCase();
-        return (p.type && p.type.toLowerCase().includes(term)) || 
+        return (p.type && p.type.toLowerCase().includes(term)) ||
                (p.reference_number && p.reference_number.toLowerCase().includes(term)) ||
                (isAdmin && p.student?.user?.name?.toLowerCase().includes(term));
     });
@@ -165,7 +165,7 @@ export default function Pagos({ auth, services = [], serviceTypes = [], serviceS
 
             <div className="py-8 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-                    
+
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 group">
                         <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50/50">
                             <div className="relative w-full sm:w-96">
@@ -279,7 +279,7 @@ export default function Pagos({ auth, services = [], serviceTypes = [], serviceS
                     formatCurrency={formatCurrency}
                 />
             )}
-            
+
         </AuthenticatedLayout>
     );
 }
