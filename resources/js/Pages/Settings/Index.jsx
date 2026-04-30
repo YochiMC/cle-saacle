@@ -193,4 +193,5 @@ export default function Index({ configuraciones = {} }) {
             />
         </AuthenticatedLayout>
     );
+    
 }

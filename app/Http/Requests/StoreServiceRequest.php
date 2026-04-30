@@ -25,13 +25,11 @@ class StoreServiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type'             => ['required', 'string', 'max:255'],
+            'file'             => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'type'             => ['required', 'string', \Illuminate\Validation\Rule::in(array_column(\App\Enums\ServiceType::cases(), 'value'))],
             'amount'           => ['required', 'numeric', 'min:0'],
-            'status'           => ['required', 'string', 'max:255'],
-            'description'      => ['nullable', 'string'],
             'reference_number' => ['nullable', 'string', 'max:255'],
-            'file_path'        => ['nullable', 'string', 'max:255'],
-            'student_id'       => ['required', 'exists:students,id'],
+            'description'      => ['nullable', 'string'],
         ];
     }
 
@@ -41,12 +39,12 @@ class StoreServiceRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'type.required'       => 'El tipo de servicio es obligatorio.',
+            'file.required'       => 'El comprobante de pago es obligatorio.',
+            'file.mimes'          => 'El comprobante debe ser un archivo PDF, JPG, JPEG o PNG.',
+            'file.max'            => 'El comprobante no debe superar los 5MB.',
+            'type.required'       => 'El tipo de pago es obligatorio.',
             'amount.required'     => 'El monto es obligatorio.',
-            'amount.numeric'      => 'El monto debe ser un valor numérico.',
-            'status.required'      => 'El estado del servicio es obligatorio.',
-            'student_id.required' => 'El alumno asociado es obligatorio.',
-            'student_id.exists'   => 'El alumno seleccionado no existe.',
+            'amount.numeric'      => 'El monto debe ser numérico.',
         ];
     }
 }
