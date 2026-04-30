@@ -135,6 +135,7 @@ export default function ExamFormModal({
                                     type="date"
                                     className="mt-1 block w-full"
                                     value={manager.formData.end_date}
+                                    min={manager.formData.start_date || undefined}
                                     onChange={(e) =>
                                         manager.setFormData(
                                             "end_date",

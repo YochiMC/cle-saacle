@@ -114,6 +114,13 @@ export const useExamsManagement = (examenes = []) => {
         (e) => {
             if (e) e.preventDefault();
 
+            if (formData.start_date && formData.end_date) {
+                if (new Date(formData.start_date) > new Date(formData.end_date)) {
+                    setError("end_date", "La fecha de fin no puede ser anterior a la fecha de inicio.");
+                    return;
+                }
+            }
+
             if (itemEditando) {
                 const normalize = (value) => {
                     if (value === null || value === undefined || value === "")

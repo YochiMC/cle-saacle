@@ -183,12 +183,15 @@ export const useGroupsManagement = (grupos = []) => {
                 }
             }
 
-            const isTypeChanged =
-                itemEditando &&
-                formData.type !==
-                    (itemEditando.type?.value ?? itemEditando.type);
+            const originalType = itemEditando?.type?.value ?? itemEditando?.type;
+            const currentType = formData.type;
 
-            if (isTypeChanged) {
+            const isTypeChanged = itemEditando && currentType !== originalType;
+            const involvesEgresados = 
+                (originalType === "Programa Egresados" && currentType !== "Programa Egresados") ||
+                (originalType !== "Programa Egresados" && currentType === "Programa Egresados");
+
+            if (isTypeChanged && involvesEgresados) {
                 setModales((prev) => ({ ...prev, confirmTypeChange: true }));
                 return;
             }

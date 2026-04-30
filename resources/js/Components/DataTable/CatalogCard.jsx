@@ -35,8 +35,8 @@ import { Link } from "@inertiajs/react";
  * @param {Function} props.onVerDetalles           - Abre el modal de detalles.
  * @param {Function} [props.onInscribir]           - Acción de inscripción (solo estudiantes).
  * @param {Function} [props.onEditar]              - Acción de edición (solo admin/coord).
- * @param {string}   [props.openHref]             - URL Inertia para el botón "Abrir [entidad]".
- * @param {string}   [props.openLabel="Abrir"]    - Etiqueta del botón de apertura.
+ * @param {string}   [props.openHref]             - URL Inertia para el botón "Ver [entidad]".
+ * @param {string}   [props.openLabel="Ver"]      - Etiqueta del botón de apertura.
  * @param {boolean}  [props.esEstudiante=false]   - Determina visibilidad del botón Inscribirse.
  * @param {boolean}  [props.esAdminOCoord=false]  - Determina visibilidad del checkbox y botón Editar.
  * @param {boolean}  [props.esStaff=false]        - Determina visibilidad del botón Abrir.
@@ -57,7 +57,7 @@ const CatalogCard = memo(
         onInscribir,
         onEditar,
         openHref,
-        openLabel = "Abrir",
+        openLabel = "Ver",
         esEstudiante = false,
         esAdminOCoord = false,
         esStaff = false,

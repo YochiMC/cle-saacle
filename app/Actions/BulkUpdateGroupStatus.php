@@ -26,7 +26,7 @@ class BulkUpdateGroupStatus
 
             $updatedCount = 0;
             foreach ($groups as $group) {
-                if ((string) $group->status === $status) {
+                if ($group->status?->value === $status || $group->status === $status) {
                     continue;
                 }
 

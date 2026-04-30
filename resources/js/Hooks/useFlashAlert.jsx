@@ -41,6 +41,14 @@ export default function useFlashAlert() {
         } else if (flash?.info || flash?.status) {
             openFlash("info", "Información", flash.info ?? flash.status);
         }
+
+        const handleCustomFlash = (e) => {
+            if (e.detail) {
+                openFlash(e.detail.type, e.detail.title, e.detail.message);
+            }
+        };
+        window.addEventListener("show-flash", handleCustomFlash);
+        return () => window.removeEventListener("show-flash", handleCustomFlash);
     }, [flash]);
 
     const closeFlashModal = () => {

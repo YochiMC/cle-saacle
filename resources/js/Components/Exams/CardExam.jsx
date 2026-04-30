@@ -92,7 +92,7 @@ const CardExam = memo(
                 onInscribir={onInscribir ? () => onInscribir(examen.id) : undefined}
                 onEditar={onEditar ? () => onEditar(examen) : undefined}
                 openHref={route("exams.show", examen.id)}
-                openLabel="Abrir Examen"
+                openLabel="Ver Examen"
                 esEstudiante={esEstudiante}
                 esAdminOCoord={esAdminOCoord}
                 esStaff={esStaff}

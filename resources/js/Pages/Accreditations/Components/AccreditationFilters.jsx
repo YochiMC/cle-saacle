@@ -27,6 +27,7 @@ const AccreditationFilters = ({
                     <option value="in_review">En Revisión</option>
                     <option value="accredited">Acreditado</option>
                     <option value="released">Liberado</option>
+                    <option value="suspended">Suspendido</option>
                 </select>
             </div>
 

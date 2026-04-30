@@ -26,6 +26,7 @@ class GetAccreditationCandidates
                 StudentStatus::IN_REVIEW,
                 StudentStatus::ACCREDITED,
                 StudentStatus::RELEASED,
+                StudentStatus::SUSPENDED,
             ]);
         }
 

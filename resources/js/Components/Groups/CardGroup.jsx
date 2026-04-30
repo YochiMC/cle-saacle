@@ -50,7 +50,7 @@ const CardGroup = memo(
                 onInscribir={onInscribir ? () => onInscribir(grupo.id) : undefined}
                 onEditar={onEditar ? () => onEditar(grupo) : undefined}
                 openHref={route("groups.show", grupo.id)}
-                openLabel="Abrir Grupo"
+                openLabel="Ver Grupo"
                 esEstudiante={esEstudiante}
                 esAdminOCoord={esAdminOCoord}
                 esStaff={esStaff}

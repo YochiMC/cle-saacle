@@ -69,7 +69,10 @@ export function DataTable({
     useEffect(() => {
         if (onSelectionChange) {
             const selectedData = table.getFilteredSelectedRowModel().rows.map((r) => r.original);
-            const visibleCols = table.getVisibleLeafColumns().map((c) => c.id);
+            const visibleCols = table.getVisibleLeafColumns().map((c) => ({
+                id: c.id,
+                header: typeof c.columnDef.header === 'string' ? c.columnDef.header : c.id
+            }));
             onSelectionChange(selectedData, visibleCols);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

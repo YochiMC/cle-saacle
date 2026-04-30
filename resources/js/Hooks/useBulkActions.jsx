@@ -42,17 +42,69 @@ export function useBulkActions(deleteRoute, vistaActual, bulkDeleteMethod = "pos
     const handleBulkCopy = useCallback(() => {
         if (filasSeleccionadas.length === 0) return;
         const EXCLUDED = ["select", "actions"];
+        
+        // columnasVisibles ahora es un array de objetos { id, header }
         const visibleDataCols = columnasVisibles.filter(
-            (id) => !EXCLUDED.includes(id),
+            (col) => !EXCLUDED.includes(col.id || col),
         );
-        const headerRow = visibleDataCols.join("\t");
+
+        const headerRow = visibleDataCols.map(col => typeof col === 'object' ? col.header : col).join("\t");
+
+        const getNestedValue = (obj, path) => {
+            if (!path || !obj) return undefined;
+            return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+        };
+
         const dataRows = filasSeleccionadas
             .map((row) =>
-                visibleDataCols.map((key) => row[key] ?? "").join("\t"),
+                visibleDataCols.map((col) => {
+                    const key = typeof col === 'object' ? col.id : col;
+                    let val = getNestedValue(row, key);
+                    if (val === null || val === undefined) val = "";
+                    if (typeof val === 'object' && val !== null) {
+                        val = val.label || val.value || val.name || val.full_name || JSON.stringify(val);
+                    }
+                    return String(val).replace(/\t/g, ' ').replace(/\n/g, ' ');
+                }).join("\t"),
             )
             .join("\n");
-        navigator.clipboard.writeText(`${headerRow}\n${dataRows}`);
-        alert("Copiado al portapapeles (solo columnas visibles)");
+            
+        const textToCopy = `${headerRow}\n${dataRows}`;
+
+        const showToast = (type, message) => {
+            window.dispatchEvent(new CustomEvent('show-flash', {
+                detail: { type, title: type === 'success' ? 'Éxito' : 'Error', message }
+            }));
+        };
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => showToast('success', 'Se han copiado las columnas visibles al portapapeles. Ahora puedes pegarlas en Excel.'))
+                .catch(() => showToast('error', 'Hubo un error al copiar al portapapeles.'));
+        } else {
+            // Fallback robusto para conexiones HTTP en LAN (como 192.168.x.x)
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = textToCopy;
+                textArea.style.position = "fixed";
+                textArea.style.top = "-999999px";
+                textArea.style.left = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                if (successful) {
+                    showToast('success', 'Se han copiado las columnas visibles al portapapeles. Ahora puedes pegarlas en Excel.');
+                } else {
+                    showToast('error', 'El navegador bloqueó la copia al portapapeles.');
+                }
+            } catch (err) {
+                showToast('error', 'Hubo un problema inesperado al copiar los datos.');
+                console.error(err);
+            }
+        }
     }, [filasSeleccionadas, columnasVisibles]);
 
     const handleBulkDelete = useCallback(() => {
