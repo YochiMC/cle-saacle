@@ -216,4 +216,27 @@ class AdminViewsController extends Controller
             'modeOptions' => GroupMode::getOptions(),
         ]);
     }
+
+    /**
+     * Renderiza el catálogo de servicios/pagos filtrado según el rol del usuario.
+     * Implementa el flujo de carga y revisión de comprobantes de pago.
+     *
+     * @return \Inertia\Response
+     */
+    public function servicesView(Request $request)
+    {
+        $user = $request->user();
+
+        $services = \App\Models\Service::with('student.user')
+            ->visibleToUser($user)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return Inertia::render('Academic/Pagos', [
+            'services' => $services,
+            'serviceTypes' => \App\Enums\ServiceType::toSelect(),
+            'serviceStatuses' => \App\Enums\ServiceStatus::toSelect(),
+            'reviewOptions' => \App\Enums\ServiceStatus::reviewOptions(),
+        ]);
+    }
 }

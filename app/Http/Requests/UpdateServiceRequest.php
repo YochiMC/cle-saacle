@@ -6,15 +6,20 @@ use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Valida la actualización de un registro de servicio existente.
+ *
+ * Segunda capa de seguridad: valida que el usuario sea coordinador
+ * antes de que el controlador invoque la policy.
  */
 class UpdateServiceRequest extends FormRequest
 {
     /**
      * Determina si el usuario está autorizado para realizar esta solicitud.
+     *
+     * Solo coordinadores pueden revisar/aprobar/rechazar servicios.
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasRole('coordinator') ?? false;
     }
 
     /**

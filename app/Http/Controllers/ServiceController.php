@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Gate;
 use App\Actions\DeleteStudentService;
 use App\Actions\StoreStudentService;
 use App\Http\Requests\StoreServiceRequest;
@@ -21,18 +22,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class ServiceController extends Controller
 {
-    private function canReviewServices(): bool
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        return $user?->hasAnyRole(['admin', 'coordinator']) ?? false;
-    }
-
-    private function canDownloadService(Service $service): bool
-    {
-        return $service->student_id === Auth::user()->student?->id || $this->canReviewServices();
-    }
 
     private function resolveServiceAbsolutePath(Service $service): string
     {
@@ -48,11 +37,9 @@ class ServiceController extends Controller
      */
     public function store(StoreServiceRequest $request, StoreStudentService $action): RedirectResponse
     {
+        Gate::authorize('create', Service::class);
+
         $studentId = Auth::user()->student?->id;
-        
-        if ($studentId === null) {
-            abort(403, 'Solo los alumnos pueden subir pagos.');
-        }
 
         $action->execute(
             $request->file('file'),
@@ -68,9 +55,7 @@ class ServiceController extends Controller
      */
     public function update(UpdateServiceRequest $request, Service $service): RedirectResponse
     {
-        if (!$this->canReviewServices()) {
-            abort(403, 'No autorizado para revisar pagos.');
-        }
+        Gate::authorize('update', $service);
 
         $service->update($request->validated());
 
@@ -78,7 +63,7 @@ class ServiceController extends Controller
         if ($student) {
             if ($request->status === \App\Enums\ServiceStatus::APPROVED->value) {
                 $student->update(['status' => \App\Enums\StudentStatus::VALIDATED]);
-                
+
                 $activePeriod = \App\Models\Period::where('is_active', true)->first();
                 if ($activePeriod) {
                     $service->update(['period_id' => $activePeriod->id]);
@@ -96,10 +81,7 @@ class ServiceController extends Controller
      */
     public function destroy(Service $service, DeleteStudentService $action): RedirectResponse
     {
-        // Solo el propietario puede eliminar su pago
-        if ($service->student_id !== Auth::user()->student?->id) {
-            abort(403, 'No autorizado para eliminar este pago.');
-        }
+        Gate::authorize('delete', $service);
 
         $action->execute($service);
 
@@ -111,9 +93,7 @@ class ServiceController extends Controller
      */
     public function download(Service $service): BinaryFileResponse
     {
-        if (! $this->canDownloadService($service)) {
-            abort(403, 'No autorizado para descargar este documento.');
-        }
+        Gate::authorize('download', $service);
 
         $absolutePath = $this->resolveServiceAbsolutePath($service);
 

@@ -48,7 +48,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{document}', [DocumentController::class, 'update'])->name('documents.update');
     });
 
-    // Pagos/Servicios personales
+    // Pagos/Servicios personales (estudiante/admin/coordinator)
     Route::prefix('services')->group(function () {
         Route::post('/', [\App\Http\Controllers\ServiceController::class, 'store'])->name('services.store');
         Route::get('/{service}/download', [\App\Http\Controllers\ServiceController::class, 'download'])->name('services.download');
@@ -170,27 +170,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
-    // Vistas para admin + student (según menú principal)
-    Route::middleware('role:admin|student')->group(function () {
-        Route::get('/pagos', function () {
-            $user = \Illuminate\Support\Facades\Auth::user();
-            
-            if ($user->hasRole('admin')) {
-                // Admin ve todos los servicios
-                $services = \App\Models\Service::with('student.user')->orderBy('created_at', 'desc')->get();
-            } else {
-                // Estudiante ve solo sus propios servicios
-                $studentId = $user->student?->id;
-                $services = $studentId ? \App\Models\Service::where('student_id', $studentId)->orderBy('created_at', 'desc')->get() : [];
-            }
-            
-            return Inertia::render('Academic/Pagos', [
-                'services' => $services,
-                'serviceTypes' => \App\Enums\ServiceType::toSelect(),
-                'serviceStatuses' => \App\Enums\ServiceStatus::toSelect(),
-                'reviewOptions' => \App\Enums\ServiceStatus::reviewOptions(),
-            ]);
-        })->name('pagos');
+    // Vistas para admin + coordinator + student (según menú principal)
+    Route::middleware('role:admin|coordinator|student')->group(function () {
+        Route::get('/pagos', [AdminViewsController::class, 'servicesView'])->name('pagos');
     });
 
     // Operaciones administrativas exclusivas de admin

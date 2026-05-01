@@ -6,15 +6,20 @@ use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Valida la creación de un nuevo registro de servicio o pago de alumno.
+ *
+ * Segunda capa de seguridad: valida que el usuario autenticado sea estudiante
+ * antes de que el controlador invoque la policy.
  */
 class StoreServiceRequest extends FormRequest
 {
     /**
      * Determina si el usuario está autorizado para realizar esta solicitud.
+     *
+     * Solo estudiantes pueden crear servicios (subir comprobantes de pago).
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasRole('student') ?? false;
     }
 
     /**
