@@ -2,12 +2,21 @@
 
 namespace App\Models;
 
+use App\Enums\AcademicStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * Modelo de dominio para exámenes académicos.
+ *
+ * Incluye:
+ * - relaciones académicas (periodo, docente, alumnos inscritos);
+ * - scope de visibilidad por rol para el catálogo principal.
+ */
 class Exam extends Model
 {
     use HasFactory, SoftDeletes;
@@ -50,5 +59,45 @@ class Exam extends Model
             ->using(ExamStudent::class)
             ->withPivot('calificacion', 'units_breakdown', 'final_average')
             ->withTimestamps();
+    }
+
+    /**
+     * Scope de lectura para catálogo de exámenes según rol del usuario.
+     *
+     * Reglas:
+     * - admin/coordinator: sin restricción.
+     * - teacher: solo exámenes asignados.
+     * - student: exámenes disponibles por estado + exámenes históricos propios.
+     * - otros: sin visibilidad (fallback de seguridad).
+     */
+    public function scopeVisibleToUser(Builder $query, User $user): Builder
+    {
+        // 1. Admins y Coordinadores: Sin restricciones
+        if ($user->hasRole(['admin', 'coordinator'])) {
+            return $query;
+        }
+
+        // 2. Docentes: Solo sus exámenes asignados
+        if ($user->hasRole('teacher')) {
+            return $query->where('teacher_id', $user->teacher?->id);
+        }
+
+        // 3. Estudiantes: Exámenes disponibles + historial propio
+        if ($user->hasRole('student')) {
+            $student = $user->student;
+
+            return $query->where(function ($q) use ($student) {
+                $q->whereIn('status', [
+                    AcademicStatus::ENROLLING->value,
+                    AcademicStatus::ACTIVE->value,
+                    AcademicStatus::PENDING->value,
+                ])->orWhereHas('students', function ($enrolledQuery) use ($student) {
+                    $enrolledQuery->where('student_id', $student?->id);
+                });
+            });
+        }
+
+        // Fallback de seguridad: Si no es ninguno de los roles anteriores, no ve nada.
+        return $query->whereRaw('1 = 0');
     }
 }

@@ -3,9 +3,9 @@ import { router } from "@inertiajs/react";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import { usePermission } from "@/Utils/auth";
 import { METADATA_KEYS } from "../Constants/groupConstants";
-import { 
-    normalizeQualificationRow, 
-    calculateAverage, 
+import {
+    normalizeQualificationRow,
+    calculateAverage,
     serializeQualification,
     buildUnitsBreakdown,
     getUnitKeys
@@ -13,9 +13,13 @@ import {
 
 /**
  * Custom Hook: useGroupManager
- * 
+ *
  * Controlador lógico para la vista de gestión de grupos.
  * Gestiona estados de captura de calificaciones, inscripciones y cierres.
+ *
+ * @param {object} grupo Grupo activo.
+ * @param {Array|{data: Array}} enrolledStudents Dataset de alumnos inscritos.
+ * @returns {{state: object, handlers: object, actions: object, flashModal: object}}
  */
 export default function useGroupManager(grupo, enrolledStudents = []) {
     const { hasRole } = usePermission();
@@ -23,8 +27,8 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
 
     // 1. Estados de Datos
     const normalizedEnrolledStudents = useMemo(() => {
-        const data = Array.isArray(enrolledStudents) 
-            ? enrolledStudents 
+        const data = Array.isArray(enrolledStudents)
+            ? enrolledStudents
             : (enrolledStudents?.data || []);
         return data.map(row => normalizeQualificationRow(row, grupo));
     }, [enrolledStudents, grupo]);
@@ -47,9 +51,15 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
         itemData: null,
     });
 
-    // 3. Permisos Derivados
-    const canEditQualifications = useMemo(() => 
-        hasRole("teacher") || hasRole("admin"), 
+    // 3. Permisos derivados alineados con backend.
+    // canEditQualifications controla captura/cierre academico.
+    const canEditQualifications = useMemo(() =>
+        hasRole("teacher") || hasRole("admin") || hasRole("coordinator"),
+    [hasRole]);
+
+    // canEnrollStudents controla la accion de alta en el modal de inscripcion.
+    const canEnrollStudents = useMemo(() =>
+        hasRole("admin") || hasRole("coordinator"),
     [hasRole]);
 
     const editableColumns = useMemo(() => {
@@ -114,8 +124,8 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
         const resetModal = () => setConfirmModal({ isOpen: false, type: null, itemData: null });
 
         if (confirmModal.type === 'global') {
-            router.patch(route('qualifications.bulk-update'), { 
-                qualifications: localData.map(serializeQualification) 
+            router.patch(route('qualifications.bulk-update'), {
+                qualifications: localData.map(serializeQualification)
             }, {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -127,8 +137,8 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
         } else if (confirmModal.type === 'row' && confirmModal.itemData) {
             const rowToSave = localData.find((row) => row.id === confirmModal.itemData.id);
             if (rowToSave && rowToSave.qualification_id) {
-                router.patch(route('qualifications.update', rowToSave.qualification_id), 
-                    serializeQualification(rowToSave), 
+                router.patch(route('qualifications.update', rowToSave.qualification_id),
+                    serializeQualification(rowToSave),
                 {
                     preserveScroll: true,
                     onSuccess: () => {
@@ -145,8 +155,8 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
                 onError: resetModal,
             });
         } else if (confirmModal.type === 'units') {
-            router.patch(route('groups.update-units', grupo.id), { 
-                evaluable_units: Number(confirmModal.itemData) 
+            router.patch(route('groups.update-units', grupo.id), {
+                evaluable_units: Number(confirmModal.itemData)
             }, {
                 preserveScroll: true,
                 onSuccess: resetModal,
@@ -166,6 +176,7 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
             confirmModal,
             editableColumns,
             canEditQualifications,
+            canEnrollStudents,
         },
         handlers: {
             setEditingRowId,

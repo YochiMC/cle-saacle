@@ -2,54 +2,101 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Service;
+use Illuminate\Support\Facades\Gate;
+use App\Actions\DeleteStudentService;
+use App\Actions\StoreStudentService;
 use App\Http\Requests\StoreServiceRequest;
 use App\Http\Requests\UpdateServiceRequest;
+use App\Models\Service;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Controlador para la Gestión de Servicios / Pagos de Alumnos.
- * 
- * Implementa el patrón Thin Controller para asegurar un flujo de datos limpio
- * y compatible con el ciclo de vida de Inertia.js.
+ * Controlador de Pagos/Servicios de Usuario.
+ *
+ * Implementa un orquestador ligero usando FormRequests para validación
+ * y Actions para la lógica de almacenamiento.
  */
 class ServiceController extends Controller
 {
-    /**
-     * Lista todos los servicios registrados.
-     */
-    public function index()
+
+    private function resolveServiceAbsolutePath(Service $service): string
     {
-        return Service::with('student')->get();
+        if (! Storage::disk($service->disk)->exists($service->file_path)) {
+            abort(404, 'Archivo no encontrado.');
+        }
+
+        return Storage::disk($service->disk)->path($service->file_path);
     }
 
     /**
-     * Almacena un nuevo servicio o pago.
+     * Almacena un nuevo pago para el alumno autenticado.
      */
-    public function store(StoreServiceRequest $request): RedirectResponse
+    public function store(StoreServiceRequest $request, StoreStudentService $action): RedirectResponse
     {
-        Service::create($request->validated());
+        Gate::authorize('create', Service::class);
 
-        return redirect()->back()->with('success', 'Servicio registrado correctamente.');
+        $studentId = Auth::user()->student?->id;
+
+        $action->execute(
+            $request->file('file'),
+            $request->validated(),
+            (int) $studentId
+        );
+
+        return back()->with('success', 'Pago subido exitosamente.');
     }
 
     /**
-     * Actualiza un registro de servicio existente.
+     * Actualiza el estatus y comentarios de un pago (Revisión Administrativa).
      */
     public function update(UpdateServiceRequest $request, Service $service): RedirectResponse
     {
+        Gate::authorize('update', $service);
+
         $service->update($request->validated());
 
-        return redirect()->back()->with('success', 'Servicio actualizado correctamente.');
+        $student = $service->student;
+        if ($student) {
+            if ($request->status === \App\Enums\ServiceStatus::APPROVED->value) {
+                $student->update(['status' => \App\Enums\StudentStatus::VALIDATED]);
+
+                $activePeriod = \App\Models\Period::where('is_active', true)->first();
+                if ($activePeriod) {
+                    $service->update(['period_id' => $activePeriod->id]);
+                }
+            } elseif ($request->status === \App\Enums\ServiceStatus::REJECTED->value) {
+                $student->update(['status' => \App\Enums\StudentStatus::WAITING]);
+            }
+        }
+
+        return back()->with('success', 'Pago actualizado exitosamente.');
     }
 
     /**
-     * Elimina un registro de servicio.
+     * Elimina un pago del sistema (Físico y Lógico).
      */
-    public function destroy(Service $service): RedirectResponse
+    public function destroy(Service $service, DeleteStudentService $action): RedirectResponse
     {
-        $service->delete();
+        Gate::authorize('delete', $service);
 
-        return redirect()->back()->with('success', 'Servicio eliminado correctamente.');
+        $action->execute($service);
+
+        return back()->with('success', 'Pago eliminado exitosamente.');
+    }
+
+    /**
+     * Descarga un comprobante de pago autorizado.
+     */
+    public function download(Service $service): BinaryFileResponse
+    {
+        Gate::authorize('download', $service);
+
+        $absolutePath = $this->resolveServiceAbsolutePath($service);
+
+        return response()->download($absolutePath, $service->original_name);
     }
 }

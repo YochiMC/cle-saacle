@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Gate;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ use App\Jobs\RunAcademicStatusAutoUpdater;
 /**
  * Controlador para la gestión de Configuraciones del Sistema.
  *
- * Permite al administrador consultar y actualizar de forma masiva los parámetros
+ * Permite a administrador y coordinador consultar y actualizar de forma masiva los parámetros
  * globales del sistema (fechas de inscripción, periodos de clases, etc.) que son
  * consumidos para automatizar los estados de Grupos y Exámenes.
  *
@@ -64,6 +65,7 @@ class SettingController extends Controller
      */
     public function index(): Response
     {
+        Gate::authorize('viewAny', Setting::class);
         // Convertimos la colección a un objeto plano { key => value, ... }
         $configuraciones = Setting::all()
             ->pluck('value', 'key')
@@ -89,6 +91,8 @@ class SettingController extends Controller
      */
     public function updateBulk(Request $request): RedirectResponse
     {
+        Gate::authorize('updateAny', Setting::class);
+
         // Construimos las reglas de validación dinámicamente desde la lista blanca
         $reglas = collect(self::CLAVES_PERMITIDAS)
             ->mapWithKeys(fn ($clave) => [$clave => 'nullable|date|max:255'])

@@ -16,29 +16,34 @@ import GroupModals from "./Components/GroupModals";
 
 /**
  * Vista Principal: Gestión de Grupo (Dashboard).
- * 
+ *
  * Orquestador de la vista de calificaciones e inscripción.
  * Aplica el patrón Headless Controller (useGroupManager) para separar la lógica de la UI.
+ *
+ * Contrato esperado desde backend:
+ * - grupo: objeto del grupo activo.
+ * - enrolledStudents: arreglo de alumnos inscritos con datos de calificación.
+ * - availableStudents: candidatos para inscripción (vacío para rol student).
  */
-export default function View({ 
-    auth, 
-    grupo, 
-    enrolledStudents = [], 
+export default function View({
+    auth,
+    grupo,
+    enrolledStudents = [],
     availableStudents = [] // Ajustado según contrato del backend
 }) {
     // 1. Invocación del Controlador Lógico (Custom Hook)
-    const { 
-        state, 
-        handlers, 
-        actions, 
-        flashModal 
+    const {
+        state,
+        handlers,
+        actions,
+        flashModal
     } = useGroupManager(grupo, enrolledStudents);
 
     // 2. Lógica Visual: Determinación de estilos de fila
     const getRowClassName = (row) => {
-        return row.original.is_left 
-            ? "bg-slate-50/50 text-slate-400 opacity-75 hover:bg-slate-100 transition-colors" 
-            : "text-slate-700 bg-white"; 
+        return row.original.is_left
+            ? "bg-slate-50/50 text-slate-400 opacity-75 hover:bg-slate-100 transition-colors"
+            : "text-slate-700 bg-white";
     };
 
     return (
@@ -58,26 +63,26 @@ export default function View({
                     title={`Calificaciones del Grupo: ${grupo?.name || "N/A"}`}
                     dataMap={{ alumnos: state.localData }}
                     viewOptions={VIEW_OPTIONS}
-                    
+
                     // Configuración de mutaciones
                     deleteRoute={route('groups.unenroll-bulk', grupo.id)}
                     onDeleteRow={handlers.requestDeleteRow}
-                    
+
                     // Configuración de tabla dinámica
                     editableColumns={state.editableColumns}
                     editAllRows={state.isEditingMode}
                     hiddenColumns={{ qualification_id: false }}
                     onCellChange={handlers.handleCellChange}
-                    
+
                     // Edición Individual de Filas
                     editingRowId={state.editingRowId}
                     onEditRow={(item) => handlers.setEditingRowId(item.id)}
                     onSaveRow={handlers.requestSaveRow}
                     onCancelRow={() => handlers.setEditingRowId(null)}
-                    
+
                     // Inyección de Controles Fragmentados
                     buttonSpace={
-                        <GroupToolbar 
+                        <GroupToolbar
                             grupo={grupo}
                             isEditingMode={state.isEditingMode}
                             canEditQualifications={state.canEditQualifications}
@@ -86,20 +91,20 @@ export default function View({
                             setIsEditingMode={handlers.setIsEditingMode}
                         />
                     }
-                    onNew={state.canEditQualifications ? () => handlers.setIsEnrollModalOpen(true) : undefined}
+                    onNew={state.canEnrollStudents ? () => handlers.setIsEnrollModalOpen(true) : undefined}
                     getRowClassName={getRowClassName}
                 />
             </div>
 
             {/* Barra Inferior Flotante de Guardado Masivo */}
-            <GroupBulkActionsBar 
+            <GroupBulkActionsBar
                 isEditingMode={state.isEditingMode}
                 setIsEditingMode={handlers.setIsEditingMode}
                 requestSaveGlobal={handlers.requestSaveGlobal}
             />
 
             {/* Gestión de Modales y Confirmaciones */}
-            <GroupModals 
+            <GroupModals
                 isEnrollModalOpen={state.isEnrollModalOpen}
                 setIsEnrollModalOpen={handlers.setIsEnrollModalOpen}
                 availableStudents={availableStudents}

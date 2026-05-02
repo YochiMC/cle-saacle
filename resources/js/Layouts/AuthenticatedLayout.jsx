@@ -45,7 +45,7 @@ export default function AuthenticatedLayout({ header, children }) {
         { route: "exams.index", label: "Exámenes", allowedRoles: ["admin", "teacher", "student"] },
         { route: "settings.index", label: "Configuraciones", allowedRoles: ["admin"] },
         { route: "settings.catalogs", label: "Catálogos", allowedRoles: ["admin"] },
-        { route: "pagos", label: "Pagos", allowedRoles: ["admin", "student"] },
+        { route: "pagos", label: "Pagos", allowedRoles: ["admin", "coordinator", "student"] },
     ];
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =

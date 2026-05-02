@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 use App\Actions\EnrollStudentsInGroup;
 use App\Actions\UpdateGroupEvaluableUnits;
 use App\Actions\BulkDeleteGroups;
@@ -39,6 +41,7 @@ class GroupController extends Controller
      */
     public function index()
     {
+        Gate::authorize('viewAny', Group::class);
         $groups = Group::with(['level', 'teacher', 'period'])->get();
         return \App\Http\Resources\GroupResource::collection($groups);
     }
@@ -48,6 +51,7 @@ class GroupController extends Controller
      */
     public function store(StoreGroupRequest $request, GroupNamingService $namingService): RedirectResponse
     {
+        Gate::authorize('create', Group::class);
         $validated = $request->validated();
         $validated['name'] = $namingService->generateName($validated);
 
@@ -65,6 +69,7 @@ class GroupController extends Controller
         GroupNamingService $namingService,
         \App\Actions\ResetModelQualifications $resetAction
     ): RedirectResponse {
+        Gate::authorize('update', $group);
         $validated = $request->validated();
 
         $mergedAttributes = array_merge($group->toArray(), $validated);
@@ -90,6 +95,7 @@ class GroupController extends Controller
      */
     public function destroy(Group $group): RedirectResponse
     {
+        Gate::authorize('delete', $group);
         $group->delete();
 
         return redirect()->back()->with('success', 'Grupo eliminado exitosamente.');
@@ -100,6 +106,7 @@ class GroupController extends Controller
      */
     public function bulkDestroy(BulkDeleteGroupsRequest $request, BulkDeleteGroups $action): RedirectResponse
     {
+        Gate::authorize('deleteAny', Group::class);
         $action->execute($request->validated('ids'));
 
         return redirect()->back()->with('success', 'Grupos eliminados exitosamente.');
@@ -110,6 +117,7 @@ class GroupController extends Controller
      */
     public function bulkUpdateStatus(BulkUpdateGroupStatusRequest $request, BulkUpdateGroupStatus $action): RedirectResponse
     {
+        Gate::authorize('updateAny', Group::class);
         $action->execute(
             $request->validated('ids'),
             $request->validated('new_status')
@@ -120,9 +128,15 @@ class GroupController extends Controller
 
     /**
      * Muestra el dashboard de un grupo con sus alumnos inscritos y calificaciones.
+     *
+     * Contrato hacia la vista Groups/View:
+     * - grupo: metadata del grupo consultado.
+     * - enrolledStudents: alumnos inscritos con su información de calificación.
+     * - availableStudents: alumnos elegibles para inscripción (vacío para rol student).
      */
     public function show(Group $group): Response
     {
+        Gate::authorize('view', $group);
         $qualifications = $group->qualifications()->with('student')->get();
 
         $enrolledStudents = $qualifications->map(function ($qualification) {
@@ -131,10 +145,14 @@ class GroupController extends Controller
             return new StudentQualificationResource($student);
         });
 
-        $enrolledIds = $group->qualifications()->pluck('student_id');
-        $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
-            ->select('id', 'first_name', 'last_name', 'num_control')
-            ->get();
+        // Seguridad de payload: el alumno no debe recibir el catálogo global de candidatos.
+        $availableStudents = [];
+        if (!Auth::user()?->hasRole('student')) {
+            $enrolledIds = $group->qualifications()->pluck('student_id');
+            $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
+                ->select('id', 'first_name', 'last_name', 'num_control')
+                ->get();
+        }
 
         return Inertia::render('Groups/View', [
             'grupo'            => $group,
@@ -151,6 +169,7 @@ class GroupController extends Controller
      */
     public function enroll(EnrollStudentsRequest $request, Group $group, EnrollStudentsInGroup $action): RedirectResponse
     {
+        Gate::authorize('enroll', $group);
         $action->execute($group, $request->validated('student_ids'));
 
         return redirect()->back()->with('success', 'Alumnos inscritos correctamente.');
@@ -161,6 +180,11 @@ class GroupController extends Controller
      */
     public function unenroll(Group $group, \App\Models\Student $student): RedirectResponse
     {
+        Gate::authorize('unenroll', $group);
+        if (Auth::user()?->hasRole('student') && $student->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         Qualification::where('group_id', $group->id)
             ->where('student_id', $student->id)
             ->delete();
@@ -173,6 +197,7 @@ class GroupController extends Controller
      */
     public function bulkUnenroll(BulkUnenrollRequest $request, Group $group, BulkUnenrollStudentsFromGroup $action): RedirectResponse
     {
+        Gate::authorize('bulkUnenroll', $group);
         $action->execute($group, $request->validated('ids'));
 
         return redirect()->back()->with('success', 'Alumnos seleccionados dados de baja correctamente.');
@@ -186,6 +211,7 @@ class GroupController extends Controller
      */
     public function updateUnits(UpdateUnitsGroupRequest $request, Group $group, UpdateGroupEvaluableUnits $action): RedirectResponse
     {
+        Gate::authorize('updateUnits', $group);
         $action->execute($group, $request->validated('evaluable_units'));
 
         return redirect()->back()->with('success', 'Número de unidades actualizado.');
@@ -196,8 +222,10 @@ class GroupController extends Controller
      */
     public function complete(Group $group): RedirectResponse
     {
+        Gate::authorize('complete', $group);
         $group->update(['status' => AcademicStatus::COMPLETED]);
 
         return redirect()->back()->with('success', 'El grupo ha sido cerrado exitosamente. Ya no se permiten modificaciones.');
     }
+
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Head } from "@inertiajs/react";
 import { PlusCircle } from "lucide-react";
 
@@ -6,6 +6,7 @@ import { DataTable } from "@/Components/DataTable/DataTable";
 import DashboardHeader from "@/Components/Menus/DashboardHeader";
 import { useDynamicColumns } from "@/Hooks/useDynamicColumns";
 import { useBulkActions } from "@/Hooks/useBulkActions";
+import { usePermission } from "@/Utils/auth";
 import ConfirmModal from "@/Components/ui/ConfirmModal";
 import ThemeButton from "@/Components/ui/ThemeButton";
 
@@ -62,6 +63,9 @@ export default function ResourceDashboard({
     bulkDeleteModal,
     baseDataMap, // NUEVO: Permite saber si hay datos antes de filtrar
 }) {
+    const { hasRole } = usePermission();
+    const debeOcultarAcciones = hasRole("student");
+
     const firstView = viewOptions[0]?.value ?? "";
     const [vistaActual, setVistaActual] = useState(firstView);
 
@@ -71,7 +75,7 @@ export default function ResourceDashboard({
         viewOptions.find((o) => o.value === vistaActual)?.label ?? title;
 
     // Generación reactiva de columnas basado en currentBaseData para que los encabezados no desaparezcan al filtrar
-    const columns = useDynamicColumns(currentBaseData, onEditRow, onDeleteRow, {
+    const generatedColumns = useDynamicColumns(currentBaseData, onEditRow, onDeleteRow, {
         editableColumns,
         restrictedColumns,
         selectOptions,
@@ -82,6 +86,15 @@ export default function ResourceDashboard({
         onCancelRow,
         customRowActions,
     });
+    const columns = useMemo(() => {
+        if (!debeOcultarAcciones) {
+            return generatedColumns;
+        }
+
+        return generatedColumns.filter(
+            (column) => column.id !== "actions" && column.id !== "select",
+        );
+    }, [generatedColumns, debeOcultarAcciones]);
 
     // Estado y handlers de acciones masivas
     const {
