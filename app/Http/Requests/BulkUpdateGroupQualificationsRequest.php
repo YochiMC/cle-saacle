@@ -33,7 +33,7 @@ class BulkUpdateGroupQualificationsRequest extends FormRequest
         return [
             'qualifications' => 'required|array|min:1',
             'qualifications.*.qualification_id' => 'required|exists:qualifications,id',
-            'qualifications.*.units_breakdown' => 'required|array',
+            'qualifications.*.units_breakdown' => 'nullable|array',
             'qualifications.*.units_breakdown.*' => 'nullable',
             'qualifications.*.final_average' => 'required', // Se permite mixed (string/numeric) para 'NA', 'NP', etc.
             'qualifications.*.is_left' => 'nullable|boolean',
