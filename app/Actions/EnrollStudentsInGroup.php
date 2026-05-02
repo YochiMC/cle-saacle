@@ -61,6 +61,7 @@ class EnrollStudentsInGroup
                     'units_breakdown' => $defaultUnitsBreakdown,
                     'final_average'   => $initialAverage,
                     'is_left'         => false,
+                    'attempt'         => \App\Enums\AttemptEnum::FIRST->value,
                 ]);
             }
         });

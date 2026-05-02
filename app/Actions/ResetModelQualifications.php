@@ -27,6 +27,7 @@ class ResetModelQualifications
                 $model->qualifications()->update([
                     'units_breakdown' => '{}',
                     'final_average'   => 0,
+                    'attempt'         => \App\Enums\AttemptEnum::FIRST->value,
                 ]);
             } elseif ($model instanceof Exam) {
                 // Update the pivot table for all students enrolled in this exam
@@ -35,6 +36,7 @@ class ResetModelQualifications
                     ->update([
                         'units_breakdown' => '{}',
                         'final_average'   => 0,
+                        'attempt'         => \App\Enums\AttemptEnum::FIRST->value,
                     ]);
             } else {
                 throw new InvalidArgumentException("Model must be an instance of Group or Exam.");

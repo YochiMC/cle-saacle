@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Enums\AttemptEnum;
 
 /**
  * FormRequest especializado para la actualización masiva de calificaciones de grupos.
@@ -35,6 +37,7 @@ class BulkUpdateGroupQualificationsRequest extends FormRequest
             'qualifications.*.units_breakdown.*' => 'nullable',
             'qualifications.*.final_average' => 'required', // Se permite mixed (string/numeric) para 'NA', 'NP', etc.
             'qualifications.*.is_left' => 'nullable|boolean',
+            'qualifications.*.attempt' => ['required', Rule::enum(AttemptEnum::class)],
         ];
     }
 

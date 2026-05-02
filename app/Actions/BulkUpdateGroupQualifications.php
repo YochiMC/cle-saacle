@@ -27,6 +27,7 @@ class BulkUpdateGroupQualifications
                     'units_breakdown' => $data['units_breakdown'] ?? [],
                     'final_average'   => $data['final_average'] ?? 0,
                     'is_left'         => $data['is_left'] ?? false,
+                    'attempt'         => $data['attempt'] ?? 'first',
                 ]);
             }
         });

@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Enums\AttemptEnum;
 
 class UpdateQualificationsRequest extends FormRequest
 {
@@ -32,6 +34,7 @@ class UpdateQualificationsRequest extends FormRequest
                 'qualifications.*.units_breakdown.*' => 'nullable',
                 'qualifications.*.final_average' => 'required',
                 'qualifications.*.is_left' => 'nullable|boolean',
+                'qualifications.*.attempt' => ['required', Rule::enum(AttemptEnum::class)],
             ];
         }
 
@@ -40,6 +43,7 @@ class UpdateQualificationsRequest extends FormRequest
             'units_breakdown.*' => 'nullable',
             'final_average' => 'required',
             'is_left' => 'nullable|boolean',
+            'attempt' => ['required', Rule::enum(AttemptEnum::class)],
         ];
     }
 }
