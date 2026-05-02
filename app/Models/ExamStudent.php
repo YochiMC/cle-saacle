@@ -32,6 +32,7 @@ class ExamStudent extends Pivot
         'calificacion',
         'units_breakdown',
         'final_average',
+        'attempt',
     ];
 
     /**
@@ -39,5 +40,6 @@ class ExamStudent extends Pivot
      */
     protected $casts = [
         'units_breakdown' => 'array',
+        'attempt' => \App\Enums\AttemptEnum::class,
     ];
 }

@@ -56,6 +56,7 @@ class StudentExamQualificationResource extends JsonResource
             // Estructura garantizada: nunca faltarán columnas en el frontend.
             'units_breakdown' => $unitsBreakdown,
 
+            'attempt'         => $pivot?->attempt ?? 'first',
             'final_average'   => $pivot?->final_average ?? 0,
         ];
 

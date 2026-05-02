@@ -45,6 +45,7 @@ class StudentQualificationResource extends JsonResource
             'units_breakdown' => $qualification?->units_breakdown ?? [],
             'final_average'  => $qualification?->final_average ?? 0,
             'is_left'        => (bool) ($qualification?->is_left ?? false),
+            'attempt'        => $qualification?->attempt ?? 'first',
         ];
     }
 }

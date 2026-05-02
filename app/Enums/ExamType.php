@@ -35,7 +35,6 @@ enum ExamType: string
 
             self::CUATRO_HABILIDADES => [
                 'is_left'             => false,
-                'oportunidad'         => 'Primera',
                 'listening'           => '',
                 'reading'             => '',
                 'writing'             => '',
@@ -45,7 +44,6 @@ enum ExamType: string
 
             self::CONVALIDACION => [
                 'is_left'             => false,
-                'oportunidad'         => 'Primera',
                 'nivel_certificado'   => '',
                 'speaking'            => '',
             ],
