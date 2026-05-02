@@ -22,8 +22,10 @@ import {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-const formatLabel = (key) =>
-    key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+const formatLabel = (key) => {
+    if (key === "attempt") return "Oportunidad";
+    return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+};
 
 const renderCellValue = (value) => {
     if (value === null || value === undefined || value === "") return "—";
@@ -64,7 +66,8 @@ const resolveInputType = (fieldKey) => {
         lower.includes("reading") ||
         lower.includes("writing") ||
         lower.includes("speaking") ||
-        lower.includes("status")
+        lower.includes("status") ||
+        lower.includes("attempt")
     )
         return "select";
 
@@ -137,6 +140,11 @@ const EditableCell = ({
     if (inputType === "select") {
         const fallbackOptions = fieldKey.includes("nivel_certificado")
             ? ["A1", "A2", "B1", "B2", "C1", "C2"]
+            : fieldKey.includes("attempt")
+            ? [
+                  { value: "first", label: "Primera" },
+                  { value: "second", label: "Segunda" },
+              ]
             : [
                   "Básico 1",
                   "Básico 2",
@@ -376,9 +384,14 @@ export function useDynamicColumns(
                 }
 
                 // Celda de solo-lectura
+                let displayValue = cellValue;
+                if (key === "attempt") {
+                    displayValue = cellValue === "second" ? "Segunda" : "Primera";
+                }
+
                 return (
                     <span className={textColor}>
-                        {renderCellValue(cellValue)}
+                        {renderCellValue(displayValue)}
                     </span>
                 );
             },

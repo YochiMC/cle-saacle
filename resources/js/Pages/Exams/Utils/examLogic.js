@@ -13,11 +13,23 @@ export const normalizeQualificationRow = (row) => {
             ? row.units_breakdown
             : {};
 
-    const { units_breakdown, ...rest } = row;
+    const { units_breakdown: _ignored, ...rest } = row;
+    const isLeft = unitsBreakdown.is_left ?? row.is_left ?? false;
+
+    // Extraemos is_left del breakdown para que no se duplique en las columnas dinámicas
+    const { is_left: _unused, ...dynamicUnits } = unitsBreakdown;
 
     return {
-        ...rest,
-        ...unitsBreakdown,
+        id: row.id,
+        full_name: row.full_name,
+        matricula: row.matricula,
+        gender: row.gender,
+        semester: row.semester,
+        is_left: isLeft,
+        attempt: row.attempt ?? "first",
+        ...dynamicUnits,
+        final_average: row.final_average ?? 0,
+        exam_student_id: row.exam_student_id,
     };
 };
 
@@ -90,6 +102,9 @@ export const getRestrictedColumns = (examType) => {
     if (RESTRICTED_EXAM_TYPES.includes(examType)) {
         restricted.push("final_average");
     }
+    if (examType === "Ubicación") {
+        restricted.push("attempt");
+    }
     return restricted;
 };
 
@@ -107,12 +122,14 @@ export const serializeQualification = (row) => {
         qualification_id, 
         gender, 
         semester, 
+        attempt,
         ...dynamicUnits 
     } = row;
     
     return {
         student_id: id,
         final_average: final_average || 0,
+        attempt: attempt ?? "first",
         units_breakdown: dynamicUnits
     };
 };

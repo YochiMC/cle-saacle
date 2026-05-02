@@ -62,7 +62,8 @@ export default function useExamManager(examen, enrolledStudents = []) {
     const editableColumns = useMemo(() => {
         if (!canEditQualifications) return [];
         // 'promedio_habilidades' es un campo de solo lectura calculado en cliente/server
-        return unitKeys.filter(k => k !== "promedio_habilidades");
+        const columns = unitKeys.filter(k => k !== "promedio_habilidades");
+        return ["attempt", ...columns];
     }, [canEditQualifications, unitKeys]);
 
     // 4. Handlers de Interacción
@@ -113,7 +114,7 @@ export default function useExamManager(examen, enrolledStudents = []) {
             {
                 preserveScroll: true,
                 onSuccess: () => { setIsEditingMode(false); reset(); },
-                onError: reset,
+                onError: (errors) => { console.error("Bulk Update Error:", errors); reset(); },
             });
         } else if (confirmModal.type === 'row' && confirmModal.itemData) {
             const rowToSave = localData.find((row) => row.id === confirmModal.itemData.id);
@@ -123,7 +124,7 @@ export default function useExamManager(examen, enrolledStudents = []) {
                 {
                     preserveScroll: true,
                     onSuccess: () => { setEditingRowId(null); reset(); },
-                    onError: reset,
+                    onError: (errors) => { console.error("Row Update Error:", errors); reset(); },
                 });
             }
         } else if (confirmModal.type === 'close') {

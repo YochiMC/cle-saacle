@@ -11,6 +11,7 @@ export const METADATA_KEYS = new Set([
     "exam_student_id",
     "final_average",
     "qualification_id",
+    "attempt",
 ]);
 
 export const MCER_SCALE = ["A1", "A2", "B1", "B2", "C1", "C2"];

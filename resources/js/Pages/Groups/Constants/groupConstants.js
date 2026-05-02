@@ -16,6 +16,7 @@ export const METADATA_KEYS = new Set([
     "final_average",
     "is_approved",
     "is_left",
+    "attempt",
 ]);
 
 /**

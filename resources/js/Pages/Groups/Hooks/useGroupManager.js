@@ -54,7 +54,7 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
 
     const editableColumns = useMemo(() => {
         if (!canEditQualifications) return [];
-        return [...getUnitKeys(grupo), "is_left"];
+        return ["attempt", ...getUnitKeys(grupo), "is_left"];
     }, [canEditQualifications, grupo]);
 
     // 4. Handlers de Interacción
@@ -122,7 +122,7 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
                     setIsEditingMode(false);
                     resetModal();
                 },
-                onError: resetModal,
+                onError: (errors) => { console.error("Bulk Update Error:", errors); resetModal(); },
             });
         } else if (confirmModal.type === 'row' && confirmModal.itemData) {
             const rowToSave = localData.find((row) => row.id === confirmModal.itemData.id);
@@ -135,7 +135,7 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
                         setEditingRowId(null);
                         resetModal();
                     },
-                    onError: resetModal,
+                    onError: (errors) => { console.error("Row Update Error:", errors); resetModal(); },
                 });
             }
         } else if (confirmModal.type === 'close') {

@@ -70,11 +70,12 @@ export const normalizeQualificationRow = (row, grupo) => {
     });
 
     const { units_breakdown: _ignored, ...rest } = row;
-    const { final_average, is_approved: _unused1, is_left, ...baseFields } = rest;
+    const { final_average, is_approved: _unused1, is_left, attempt, ...baseFields } = rest;
 
     return {
         ...baseFields,
         is_left: is_left ?? false,
+        attempt: attempt ?? "first",
         ...unitsBreakdownFlat,
         final_average: final_average !== undefined ? final_average : 0,
     };
@@ -88,4 +89,5 @@ export const serializeQualification = (row) => ({
     units_breakdown: buildUnitsBreakdown(row),
     final_average: row.final_average,
     is_left: !!row.is_left,
+    attempt: row.attempt ?? "first",
 });
