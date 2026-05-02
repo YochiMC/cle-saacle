@@ -81,7 +81,7 @@ export const normalizeQualificationRow = (row, grupo) => {
         id: row.id,
         qualification_id: qualificationId,
         full_name: row.full_name,
-        matricula: row.matricula,
+        num_control: row.num_control || row.matricula,
         gender: row.gender,
         semester: row.semester,
         ...sanitizedBaseFields,

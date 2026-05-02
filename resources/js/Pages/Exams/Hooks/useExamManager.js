@@ -74,10 +74,20 @@ export default function useExamManager(examen, enrolledStudents = []) {
 
                 const updatedRow = { ...row, [fieldKey]: newValue };
 
+                // Regla especial: Planes anteriores (Auto-cálculo de calificación final)
+                if (examen?.exam_type === "Planes anteriores") {
+                    updatedRow.calificacion_final = updatedRow.is_curso_nivelacion 
+                        ? Number(updatedRow.calificacion_curso_nivelacion || 0)
+                        : Number(updatedRow.calificacion_examen || 0);
+                    
+                    // Sincronizar con el promedio general del sistema
+                    updatedRow.final_average = updatedRow.calificacion_final;
+                }
+
                 if (examen?.exam_type === "4 habilidades") {
                     updatedRow.promedio_habilidades = calculateMcerOutcome(updatedRow);
-                } else if (!restrictedColumns.includes("final_average")) {
-                    // Recalcular promedio numérico si no está oculto
+                } else if (!restrictedColumns.includes("final_average") && examen?.exam_type !== "Planes anteriores") {
+                    // Recalcular promedio numérico si no está oculto y no es el caso especial arriba
                     const isNumeric = !isNaN(Number(newValue)) && newValue !== "";
                     if (isNumeric) {
                         updatedRow.final_average = calculateAverage(updatedRow);

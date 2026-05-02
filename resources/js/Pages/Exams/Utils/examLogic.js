@@ -24,7 +24,7 @@ export const normalizeQualificationRow = (row) => {
     return {
         id: row.id,
         full_name: row.full_name,
-        matricula: row.matricula,
+        num_control: row.num_control || row.matricula,
         gender: row.gender,
         semester: row.semester,
         is_left: isLeft,
@@ -118,7 +118,7 @@ export const serializeQualification = (row) => {
     const {
         id,
         full_name,
-        matricula,
+        num_control,
         exam_student_id,
         final_average,
         qualification_id,

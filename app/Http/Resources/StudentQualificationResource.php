@@ -39,7 +39,7 @@ class StudentQualificationResource extends JsonResource
             // Datos básicos del alumno
             'id'             => $this->id,
             'full_name' => $this->full_name,
-            'matricula'      => $this->num_control,
+            'num_control'      => $this->num_control,
             'gender' => $this->gender,
             'semester' => $this->semester,
 

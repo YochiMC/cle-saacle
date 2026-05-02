@@ -28,9 +28,10 @@ enum ExamType: string
     {
         return match ($this) {
             self::PLANES_ANTERIORES => [
-                'is_left'             => false,
-                'is_curso_nivelacion' => false,
-                'calificacion_final'  => 0,
+                'is_curso_nivelacion'           => false,
+                'calificacion_curso_nivelacion' => 0,
+                'calificacion_examen'           => 0,
+                'calificacion_final'            => 0,
             ],
 
             self::CUATRO_HABILIDADES => [

@@ -25,6 +25,7 @@ import {
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const formatLabel = (key) => {
+    if (key === "num_control") return "Matrícula";
     if (key === "attempt") return "Oportunidad";
     if (key === "score") return "Score";
     if (key === "certified_level" || key === "nivel_certificado")
@@ -32,6 +33,10 @@ const formatLabel = (key) => {
     if (key === "grade_1") return "Calificación 1";
     if (key === "grade_2") return "Calificación 2";
     if (key === "grade_3") return "Calificación 3";
+    if (key === "is_curso_nivelacion") return "Curso Nivelación";
+    if (key === "calificacion_curso_nivelacion") return "Calif. Curso";
+    if (key === "calificacion_examen") return "Calif. Examen";
+    if (key === "calificacion_final") return "Calif. Final";
     return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
@@ -118,7 +123,7 @@ const SortIcon = ({ column }) => {
 const BASE_STUDENT_KEYS = [
     "id",
     "full_name",
-    "matricula",
+    "num_control",
     "gender",
     "semester",
 ];
@@ -173,6 +178,7 @@ const EditableCell = ({
     fieldKey,
     onChange,
     selectOptions = {},
+    row = {}, // Tarea 1: Recibir fila completa
 }) => {
     const inputType = resolveInputType(fieldKey);
     const [value, setValue] = useState(
@@ -195,6 +201,11 @@ const EditableCell = ({
                         setValue(next);
                         if (onChange) {
                             onChange(fieldKey, rowId, next);
+
+                            // Tarea 1 (Opcional): Si desmarca el curso, resetear calificación a 0
+                            if (fieldKey === "is_curso_nivelacion" && !checked) {
+                                onChange("calificacion_curso_nivelacion", rowId, 0);
+                            }
                         } else {
                             console.log(
                                 `[Edicion Tabla] campo="${fieldKey}" alumno_id=${rowId} valor=${next}`,
@@ -270,14 +281,14 @@ const EditableCell = ({
 
     const extraNumericProps =
         inputType === "number"
-            ? fieldKey === "score"
-                ? { min: 0, max: 2000, step: 1 }
+            ? (fieldKey === "score" || fieldKey.includes("calificacion_"))
+                ? { min: 0, max: fieldKey === "score" ? 2000 : 100, step: 1 }
                 : { min: 0, max: 100, step: 0.1 }
             : {};
 
     const handleKeyDown = (e) => {
-        // Prevent decimal separators and exponent notation for integer-only score
-        if (fieldKey === "score") {
+        // Prevent decimal separators and exponent notation for integer-only fields
+        if (fieldKey === "score" || fieldKey.includes("calificacion_")) {
             if (
                 e.key === "." ||
                 e.key === "," ||
@@ -289,13 +300,16 @@ const EditableCell = ({
         }
     };
 
+    const isLevelingDisabled = fieldKey === "calificacion_curso_nivelacion" && !row.is_curso_nivelacion;
+
     return (
         <ThemeInput
             type={inputType}
             value={value ?? ""}
+            disabled={isLevelingDisabled}
             aria-label={`${formatLabel(fieldKey)} — fila ${rowId}`}
             wrapperClassName="w-28"
-            className="text-sm text-center"
+            className={`text-sm text-center ${isLevelingDisabled ? "bg-slate-100 cursor-not-allowed opacity-50" : ""}`}
             onChange={(e) => {
                 setValue(e.target.value);
             }}
@@ -423,6 +437,7 @@ export function useDynamicColumns(
                             fieldKey={key}
                             onChange={onCellChange}
                             selectOptions={selectOptions}
+                            row={row.original}
                         />
                     );
                 }
@@ -566,7 +581,7 @@ export function useDynamicColumns(
             cell: ({ row }) => {
                 const item = row.original;
                 const itemName =
-                    item.name || item.nombre || item.matricula || item.id;
+                    item.name || item.nombre || item.num_control || item.id;
                 const isRowEditing = editAllRows || item.id === editingRowId;
 
                 // OCP: si existe una acción personalizada, tiene prioridad sobre acciones por defecto
