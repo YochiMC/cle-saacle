@@ -3,6 +3,8 @@ import { Button } from "@/Components/ui/button";
 import { Checkbox } from "@/Components/ui/checkbox";
 import { ThemeInput } from "@/Components/ui/ThemeInput";
 import StatusBadge from "@/Components/ui/StatusBadge";
+import { METADATA_KEYS as EXAM_METADATA_KEYS } from "@/Pages/Exams/Constants/examConstants";
+import { METADATA_KEYS as GROUP_METADATA_KEYS } from "@/Pages/Groups/Constants/groupConstants";
 import {
     Select,
     SelectContent,
@@ -24,6 +26,9 @@ import {
 
 const formatLabel = (key) => {
     if (key === "attempt") return "Oportunidad";
+    if (key === "score") return "Score";
+    if (key === "certified_level" || key === "nivel_certificado")
+        return "Nivel Certificado";
     if (key === "grade_1") return "Calificación 1";
     if (key === "grade_2") return "Calificación 2";
     if (key === "grade_3") return "Calificación 3";
@@ -31,7 +36,8 @@ const formatLabel = (key) => {
 };
 
 const renderCellValue = (value) => {
-    if (value === null || value === undefined || value === "") return "—";
+    if (value === null || value === undefined || value === "" || value === "-")
+        return "—";
     if (typeof value === "object") {
         // Evita crashear React cuando accidentalmente llega un objeto como valor de celda.
         return JSON.stringify(value);
@@ -49,7 +55,8 @@ const resolveInputType = (fieldKey) => {
         lower.includes("aprobado") ||
         lower.includes("activo") ||
         lower.includes("left") ||
-        lower.includes("certificacion")
+        lower.includes("certificacion") ||
+        lower.includes("hizo_")
     )
         return "checkbox";
 
@@ -65,6 +72,7 @@ const resolveInputType = (fieldKey) => {
     if (
         lower.includes("nivel_asignado") ||
         lower.includes("nivel_certificado") ||
+        lower.includes("certified_level") ||
         lower.includes("listening") ||
         lower.includes("reading") ||
         lower.includes("writing") ||
@@ -77,11 +85,71 @@ const resolveInputType = (fieldKey) => {
     return "number"; // Default: calificación numérica
 };
 
+const getInitialEditableValue = (fieldKey, initialValue) => {
+    const inputType = resolveInputType(fieldKey);
+
+    if (
+        initialValue !== null &&
+        initialValue !== undefined &&
+        initialValue !== "" &&
+        initialValue !== "-"
+    ) {
+        return initialValue;
+    }
+
+    if (inputType === "number") {
+        return 0;
+    }
+
+    if (inputType === "select" || inputType === "text") {
+        return "";
+    }
+
+    return "";
+};
+
 const SortIcon = ({ column }) => {
     const sorted = column.getIsSorted();
     if (sorted === "asc") return <ArrowUp className="w-4 h-4 ml-2" />;
     if (sorted === "desc") return <ArrowDown className="w-4 h-4 ml-2" />;
     return <ArrowUpDown className="w-4 h-4 ml-2 opacity-40" />;
+};
+
+const BASE_STUDENT_KEYS = [
+    "id",
+    "full_name",
+    "matricula",
+    "gender",
+    "semester",
+];
+const STATUS_KEYS = ["is_left", "attempt", "is_approved"];
+const FOOTER_KEYS = ["final_average", "promedio_habilidades"];
+
+const IGNORED_DYNAMIC_KEYS = new Set([
+    ...EXAM_METADATA_KEYS,
+    ...GROUP_METADATA_KEYS,
+    ...BASE_STUDENT_KEYS,
+    ...STATUS_KEYS,
+    ...FOOTER_KEYS,
+    "exam_student_id",
+    "student_id",
+    "group_id",
+]);
+
+const collectRowKeys = (rows = []) => {
+    const seen = new Set();
+    const keys = [];
+
+    rows.forEach((row) => {
+        Object.keys(row || {}).forEach((key) => {
+            if (!seen.has(key)) {
+                seen.add(key);
+                keys.push(key);
+            }
+        });
+    });
+
+    return keys;
 };
 
 // ── EditableCell ───────────────────────────────────────────────────────────────
@@ -107,11 +175,13 @@ const EditableCell = ({
     selectOptions = {},
 }) => {
     const inputType = resolveInputType(fieldKey);
-    const [value, setValue] = useState(initialValue);
+    const [value, setValue] = useState(
+        getInitialEditableValue(fieldKey, initialValue),
+    );
 
     useEffect(() => {
-        setValue(initialValue);
-    }, [initialValue]);
+        setValue(getInitialEditableValue(fieldKey, initialValue));
+    }, [fieldKey, initialValue]);
 
     // OCP: Nueva rama de renderizado para checkboxes (sin tocar inputs de texto/número)
     if (inputType === "checkbox") {
@@ -141,24 +211,26 @@ const EditableCell = ({
 
     // OCP: Nueva rama para selector de nivel (examen de Ubicación) y certificado
     if (inputType === "select") {
-        const fallbackOptions = fieldKey.includes("nivel_certificado")
-            ? ["A1", "A2", "B1", "B2", "C1", "C2"]
-            : fieldKey.includes("attempt")
-            ? [
-                  { value: "first", label: "Primera" },
-                  { value: "second", label: "Segunda" },
-              ]
-            : [
-                  "Básico 1",
-                  "Básico 2",
-                  "Intermedio 1",
-                  "Intermedio 2",
-                  "Intermedio 3",
-                  "Intermedio 4",
-                  "Intermedio 5",
-                  "Avanzado 1",
-                  "Avanzado 2",
-              ];
+        const fallbackOptions =
+            fieldKey.includes("nivel_certificado") ||
+            fieldKey.includes("certified_level")
+                ? ["A1", "A2", "B1", "B2", "C1", "C2"]
+                : fieldKey.includes("attempt")
+                  ? [
+                        { value: "first", label: "Primera" },
+                        { value: "second", label: "Segunda" },
+                    ]
+                  : [
+                        "Básico 1",
+                        "Básico 2",
+                        "Intermedio 1",
+                        "Intermedio 2",
+                        "Intermedio 3",
+                        "Intermedio 4",
+                        "Intermedio 5",
+                        "Avanzado 1",
+                        "Avanzado 2",
+                    ];
 
         const options = selectOptions[fieldKey] || fallbackOptions;
 
@@ -197,7 +269,25 @@ const EditableCell = ({
     }
 
     const extraNumericProps =
-        inputType === "number" ? { min: 0, max: 100, step: 0.1 } : {};
+        inputType === "number"
+            ? fieldKey === "score"
+                ? { min: 0, max: 2000, step: 1 }
+                : { min: 0, max: 100, step: 0.1 }
+            : {};
+
+    const handleKeyDown = (e) => {
+        // Prevent decimal separators and exponent notation for integer-only score
+        if (fieldKey === "score") {
+            if (
+                e.key === "." ||
+                e.key === "," ||
+                e.key === "e" ||
+                e.key === "E"
+            ) {
+                e.preventDefault();
+            }
+        }
+    };
 
     return (
         <ThemeInput
@@ -209,6 +299,7 @@ const EditableCell = ({
             onChange={(e) => {
                 setValue(e.target.value);
             }}
+            onKeyDown={handleKeyDown}
             onBlur={() => {
                 if (onChange) {
                     onChange(fieldKey, rowId, value);
@@ -257,21 +348,54 @@ export function useDynamicColumns(
         customRowActions,
     } = {},
 ) {
-    // Generar una firma de las llaves para evitar recrear columnas cuando el array `data`
-    // cambia su valor interno pero no su estructura (evita perder el foco en inputs)
-    const dataKeys =
-        data && data.length > 0 ? Object.keys(data[0]).join(",") : "";
+    const rowKeys = collectRowKeys(data || []);
 
     return useMemo(() => {
-        if (!dataKeys) return [];
-
-        const allKeys = dataKeys.split(",");
         const editableSet = new Set(editableColumns);
         const restrictedSet = new Set(restrictedColumns);
-        const keys = allKeys.filter((k) => !restrictedSet.has(k));
+        const dynamicKeys = rowKeys.filter(
+            (key) => !IGNORED_DYNAMIC_KEYS.has(key) && !restrictedSet.has(key),
+        );
+
+        const orderedDynamicKeys = [];
+        const convalidationCertifiedKey = dynamicKeys.includes(
+            "certified_level",
+        )
+            ? "certified_level"
+            : dynamicKeys.includes("nivel_certificado")
+              ? "nivel_certificado"
+              : null;
+
+        const preferredDynamicOrder = [
+            convalidationCertifiedKey,
+            "score",
+            "speaking",
+        ].filter(Boolean);
+
+        for (const key of preferredDynamicOrder) {
+            if (dynamicKeys.includes(key)) orderedDynamicKeys.push(key);
+        }
+
+        for (const key of dynamicKeys) {
+            if (!orderedDynamicKeys.includes(key)) orderedDynamicKeys.push(key);
+        }
+
+        const visibleBaseKeys = BASE_STUDENT_KEYS.filter(
+            (key) => !restrictedSet.has(key),
+        );
+
+        const visibleStatusKeys = STATUS_KEYS.filter((key) => {
+            if (restrictedSet.has(key)) return false;
+            if (key === "is_approved") return rowKeys.includes(key);
+            return true;
+        });
+
+        const visibleFooterKeys = FOOTER_KEYS.filter((key) =>
+            rowKeys.includes(key),
+        ).filter((key) => !restrictedSet.has(key));
 
         // ── Columnas de datos (con lógica de celda condicional) ───────────────
-        const baseColumns = keys.map((key) => ({
+        const buildColumn = (key) => ({
             accessorKey: key,
             header: ({ column }) => (
                 <Button
@@ -311,24 +435,24 @@ export function useDynamicColumns(
                     );
                 }
 
-                // Renderizar celda normal para is_left
-                if (key.includes("is_left")) {
-                    return cellValue ? (
-                        <span className="px-2 py-0.5 text-xs font-semibold bg-red-500 text-white rounded-full">
-                            Baja
-                        </span>
-                    ) : (
-                        <span className="text-slate-400">-</span>
-                    );
-                }
+                // Renderizar booleanos de forma legible
+                if (typeof cellValue === "boolean" || (key.startsWith("is_") || key.includes("hizo_"))) {
+                    if (key.includes("is_left")) {
+                        return cellValue ? (
+                            <span className="px-2 py-0.5 text-xs font-semibold bg-red-500 text-white rounded-full">
+                                Baja
+                            </span>
+                        ) : (
+                            <span className="text-slate-400">No</span>
+                        );
+                    }
 
-                if (key.includes("certificacion")) {
                     return cellValue ? (
                         <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-600 text-white rounded-full">
                             Sí
                         </span>
                     ) : (
-                        <span className="text-slate-400">-</span>
+                        <span className="text-slate-400">No</span>
                     );
                 }
 
@@ -336,6 +460,7 @@ export function useDynamicColumns(
 
                 // 1. Definir qué columnas SON calificaciones (Lista Blanca)
                 const gradeColumns = [
+                    "score",
                     "final_average",
                     "calificacion",
                     "calificacion_final",
@@ -390,7 +515,8 @@ export function useDynamicColumns(
                 // Celda de solo-lectura
                 let displayValue = cellValue;
                 if (key === "attempt") {
-                    displayValue = cellValue === "second" ? "Segunda" : "Primera";
+                    displayValue =
+                        cellValue === "second" ? "Segunda" : "Primera";
                 }
 
                 return (
@@ -399,7 +525,14 @@ export function useDynamicColumns(
                     </span>
                 );
             },
-        }));
+        });
+
+        const baseColumns = [
+            ...visibleBaseKeys.map(buildColumn),
+            ...visibleStatusKeys.map(buildColumn),
+            ...orderedDynamicKeys.map(buildColumn),
+            ...visibleFooterKeys.map(buildColumn),
+        ];
 
         const selectionColumn = {
             id: "select",
@@ -504,7 +637,7 @@ export function useDynamicColumns(
 
         return [selectionColumn, ...baseColumns, actionsColumn];
     }, [
-        dataKeys,
+        rowKeys,
         onEditRow,
         onDeleteRow,
         editableColumns,

@@ -63,7 +63,7 @@ export default function useExamManager(examen, enrolledStudents = []) {
         if (!canEditQualifications) return [];
         // 'promedio_habilidades' es un campo de solo lectura calculado en cliente/server
         const columns = unitKeys.filter(k => k !== "promedio_habilidades");
-        return ["attempt", ...columns];
+        return ["attempt", "is_left", ...columns];
     }, [canEditQualifications, unitKeys]);
 
     // 4. Handlers de Interacción

@@ -16,8 +16,10 @@ export const normalizeQualificationRow = (row) => {
     const { units_breakdown: _ignored, ...rest } = row;
     const isLeft = unitsBreakdown.is_left ?? row.is_left ?? false;
 
-    // Extraemos is_left del breakdown para que no se duplique en las columnas dinámicas
-    const { is_left: _unused, ...dynamicUnits } = unitsBreakdown;
+    // Filtramos metadatos para que solo queden las llaves reales de calificación.
+    const dynamicUnits = Object.fromEntries(
+        Object.entries(unitsBreakdown).filter(([key]) => !METADATA_KEYS.has(key)),
+    );
 
     return {
         id: row.id,
@@ -72,15 +74,15 @@ export const calculateMcerOutcome = (row) => {
 
     for (const skill of skills) {
         const val = row[skill]?.toString().toUpperCase().trim();
-        
+
         if (!val || !(val in MCER_WEIGHTS)) {
             allSkillsValid = false;
             break;
         }
-        
+
         const weight = MCER_WEIGHTS[val];
         if (weight < lowestWeight) lowestWeight = weight;
-        
+
         // Regla académica: Mínimo B1 para acreditar
         if (weight < 3) {
             allSkillsValid = false;
@@ -113,19 +115,19 @@ export const getRestrictedColumns = (examType) => {
  */
 export const serializeQualification = (row) => {
     // Campos que no van al JSON units_breakdown
-    const { 
-        id, 
-        full_name, 
-        matricula, 
-        exam_student_id, 
-        final_average, 
-        qualification_id, 
-        gender, 
-        semester, 
+    const {
+        id,
+        full_name,
+        matricula,
+        exam_student_id,
+        final_average,
+        qualification_id,
+        gender,
+        semester,
         attempt,
-        ...dynamicUnits 
+        ...dynamicUnits
     } = row;
-    
+
     return {
         student_id: id,
         final_average: final_average || 0,

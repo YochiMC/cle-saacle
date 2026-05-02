@@ -3,9 +3,9 @@ import { router } from "@inertiajs/react";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import { usePermission } from "@/Utils/auth";
 import { METADATA_KEYS } from "../Constants/groupConstants";
-import { 
-    normalizeQualificationRow, 
-    calculateAverage, 
+import {
+    normalizeQualificationRow,
+    calculateAverage,
     serializeQualification,
     buildUnitsBreakdown,
     getUnitKeys
@@ -13,7 +13,7 @@ import {
 
 /**
  * Custom Hook: useGroupManager
- * 
+ *
  * Controlador lógico para la vista de gestión de grupos.
  * Gestiona estados de captura de calificaciones, inscripciones y cierres.
  */
@@ -23,8 +23,8 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
 
     // 1. Estados de Datos
     const normalizedEnrolledStudents = useMemo(() => {
-        const data = Array.isArray(enrolledStudents) 
-            ? enrolledStudents 
+        const data = Array.isArray(enrolledStudents)
+            ? enrolledStudents
             : (enrolledStudents?.data || []);
         return data.map(row => normalizeQualificationRow(row, grupo));
     }, [enrolledStudents, grupo]);
@@ -48,8 +48,8 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
     });
 
     // 3. Permisos Derivados
-    const canEditQualifications = useMemo(() => 
-        hasRole("teacher") || hasRole("admin"), 
+    const canEditQualifications = useMemo(() =>
+        hasRole("teacher") || hasRole("admin"),
     [hasRole]);
 
     const editableColumns = useMemo(() => {
@@ -114,28 +114,37 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
         const resetModal = () => setConfirmModal({ isOpen: false, type: null, itemData: null });
 
         if (confirmModal.type === 'global') {
-            router.patch(route('qualifications.bulk-update'), { 
-                qualifications: localData.map(serializeQualification) 
+            router.patch(route('groups.qualifications.bulk-update', { group: grupo.id }), {
+                qualifications: localData.map(serializeQualification)
             }, {
                 preserveScroll: true,
                 onSuccess: () => {
                     setIsEditingMode(false);
                     resetModal();
                 },
-                onError: (errors) => { console.error("Bulk Update Error:", errors); resetModal(); },
+                onError: (errors) => {
+                    console.error("Bulk Update Error:", errors);
+                    resetModal();
+                },
             });
         } else if (confirmModal.type === 'row' && confirmModal.itemData) {
             const rowToSave = localData.find((row) => row.id === confirmModal.itemData.id);
             if (rowToSave && rowToSave.qualification_id) {
-                router.patch(route('qualifications.update', rowToSave.qualification_id), 
-                    serializeQualification(rowToSave), 
+                router.patch(route('groups.qualifications.update', {
+                    group: grupo.id,
+                    qualification: rowToSave.qualification_id,
+                }),
+                    serializeQualification(rowToSave),
                 {
                     preserveScroll: true,
                     onSuccess: () => {
                         setEditingRowId(null);
                         resetModal();
                     },
-                    onError: (errors) => { console.error("Row Update Error:", errors); resetModal(); },
+                    onError: (errors) => {
+                        console.error("Row Update Error:", errors);
+                        resetModal();
+                    },
                 });
             }
         } else if (confirmModal.type === 'close') {
@@ -145,8 +154,8 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
                 onError: resetModal,
             });
         } else if (confirmModal.type === 'units') {
-            router.patch(route('groups.update-units', grupo.id), { 
-                evaluable_units: Number(confirmModal.itemData) 
+            router.patch(route('groups.update-units', grupo.id), {
+                evaluable_units: Number(confirmModal.itemData)
             }, {
                 preserveScroll: true,
                 onSuccess: resetModal,

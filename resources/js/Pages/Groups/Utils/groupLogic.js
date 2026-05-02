@@ -28,7 +28,7 @@ export const getUnitKeys = (grupo) => {
  */
 export const buildUnitsBreakdown = (row) =>
     Object.fromEntries(
-        Object.entries(row).filter(([key]) => !METADATA_KEYS.has(key))
+        Object.entries(row).filter(([key, value]) => !METADATA_KEYS.has(key) && key !== 'id' && key !== 'qualification_id' && typeof value !== 'function')
     );
 
 /**
@@ -38,8 +38,8 @@ export const buildUnitsBreakdown = (row) =>
  */
 export const calculateAverage = (unitsBreakdown) => {
     const numericValues = Object.entries(unitsBreakdown)
-        .filter(([key, v]) => 
-            key !== 'hizo_certificacion' && 
+        .filter(([key, v]) =>
+            key !== 'hizo_certificacion' &&
             (typeof v === 'number' || (typeof v === 'string' && v !== '' && !isNaN(Number(v))))
         )
         .map(([, v]) => Number(v));
@@ -61,19 +61,30 @@ export const normalizeQualificationRow = (row, grupo) => {
         row?.units_breakdown && typeof row.units_breakdown === "object" && !Array.isArray(row.units_breakdown)
             ? row.units_breakdown
             : {};
-            
+
     const expectedKeys = getUnitKeys(grupo);
     const unitsBreakdownFlat = {};
-    
+
     expectedKeys.forEach((key) => {
         unitsBreakdownFlat[key] = rawBreakdown[key] ?? (key === "hizo_certificacion" ? 0 : 0);
     });
 
     const { units_breakdown: _ignored, ...rest } = row;
     const { final_average, is_approved: _unused1, is_left, attempt, ...baseFields } = rest;
+    const sanitizedBaseFields = Object.fromEntries(
+        Object.entries(baseFields).filter(([key]) => !METADATA_KEYS.has(key))
+    );
+
+    const qualificationId = row.qualification_id ?? row?.qualification?.id ?? row?.pivot?.id ?? null;
 
     return {
-        ...baseFields,
+        id: row.id,
+        qualification_id: qualificationId,
+        full_name: row.full_name,
+        matricula: row.matricula,
+        gender: row.gender,
+        semester: row.semester,
+        ...sanitizedBaseFields,
         is_left: is_left ?? false,
         attempt: attempt ?? "first",
         ...unitsBreakdownFlat,
@@ -85,7 +96,7 @@ export const normalizeQualificationRow = (row, grupo) => {
  * Serializa los datos locales para el envío atómico al servidor.
  */
 export const serializeQualification = (row) => ({
-    qualification_id: row.qualification_id,
+    qualification_id: row.qualification_id ?? row?.qualification?.id ?? row?.pivot?.id ?? null,
     units_breakdown: buildUnitsBreakdown(row),
     final_average: row.final_average,
     is_left: !!row.is_left,
