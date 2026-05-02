@@ -33,9 +33,13 @@ class EnrollStudentsInGroup
         $existingQualification = $group->qualifications()->first();
         $existingUnitsBreakdown = $existingQualification?->units_breakdown ?? [];
 
+        $enumDefaults = $group->type->defaultUnitsBreakdown($group->evaluable_units ?? 0);
+
         $defaultUnitsBreakdown = !empty($existingUnitsBreakdown)
-            ? array_fill_keys(array_keys($existingUnitsBreakdown), 0)
-            : $group->type->defaultUnitsBreakdown($group->evaluable_units ?? 0);
+            ? collect($existingUnitsBreakdown)->map(function ($v, $k) use ($enumDefaults) {
+                return $enumDefaults[$k] ?? (is_numeric($v) ? 0 : '-');
+            })->toArray()
+            : $enumDefaults;
 
         $initialAverage = 0;
         $numericValues = [];

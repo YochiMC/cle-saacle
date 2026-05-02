@@ -24,7 +24,7 @@ class QualificationController extends Controller
      * @param Qualification $qualification
      * @return RedirectResponse
      */
-    public function update(UpdateQualificationsRequest $request, Qualification $qualification): RedirectResponse
+    public function update(UpdateQualificationsRequest $request, \App\Models\Group $group, Qualification $qualification): RedirectResponse
     {
         $qualification->update($request->validated());
 
@@ -41,7 +41,7 @@ class QualificationController extends Controller
      * @param BulkUpdateGroupQualifications $action
      * @return RedirectResponse
      */
-    public function bulkUpdate(BulkUpdateGroupQualificationsRequest $request, BulkUpdateGroupQualifications $action): RedirectResponse
+    public function bulkUpdate(BulkUpdateGroupQualificationsRequest $request, BulkUpdateGroupQualifications $action, \App\Models\Group $group): RedirectResponse
     {
         $action->execute($request->validated('qualifications'));
 

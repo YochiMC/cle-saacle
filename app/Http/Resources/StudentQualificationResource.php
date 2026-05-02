@@ -31,6 +31,10 @@ class StudentQualificationResource extends JsonResource
             $qualification = $this->qualification ?? null;
         }
 
+        $qualificationId = $qualification?->id
+            ?? data_get($this, 'pivot.id')
+            ?? data_get($this, 'qualification_id');
+
         return [
             // Datos básicos del alumno
             'id'             => $this->id,
@@ -40,7 +44,7 @@ class StudentQualificationResource extends JsonResource
             'semester' => $this->semester,
 
             // Flatten de la calificación con manejo seguro de valores nulos o vacíos
-            'qualification_id' => $qualification ? $qualification->id : null,
+            'qualification_id' => $qualificationId ? (int) $qualificationId : null,
             // Se entrega JSON crudo para permitir columnas dinámicas en frontend.
             'units_breakdown' => $qualification?->units_breakdown ?? [],
             'final_average'  => $qualification?->final_average ?? 0,

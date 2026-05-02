@@ -23,18 +23,20 @@ class ResetModelQualifications
     {
         DB::transaction(function () use ($model) {
             if ($model instanceof Group) {
+                $defaultBreakdown = $model->type->defaultUnitsBreakdown($model->evaluable_units ?? 0);
                 // Update all qualifications related to this group
                 $model->qualifications()->update([
-                    'units_breakdown' => '{}',
+                    'units_breakdown' => json_encode($defaultBreakdown),
                     'final_average'   => 0,
                     'attempt'         => \App\Enums\AttemptEnum::FIRST->value,
                 ]);
             } elseif ($model instanceof Exam) {
+                $defaultBreakdown = $model->exam_type->defaultUnitsBreakdown();
                 // Update the pivot table for all students enrolled in this exam
                 DB::table('exam_student')
                     ->where('exam_id', $model->id)
                     ->update([
-                        'units_breakdown' => '{}',
+                        'units_breakdown' => json_encode($defaultBreakdown),
                         'final_average'   => 0,
                         'attempt'         => \App\Enums\AttemptEnum::FIRST->value,
                     ]);

@@ -111,6 +111,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
             Route::patch('/{group}/update-units', [GroupController::class, 'updateUnits'])->name('groups.update-units');
             Route::patch('/{group}/complete', [GroupController::class, 'complete'])->name('groups.complete');
+            
+            // Calificaciones (Nested)
+            Route::patch('/{group}/qualifications/bulk', [\App\Http\Controllers\QualificationController::class, 'bulkUpdate'])->name('groups.qualifications.bulk-update');
+            Route::patch('/{group}/qualifications/{qualification}', [\App\Http\Controllers\QualificationController::class, 'update'])->name('groups.qualifications.update');
         });
 
         // Alias legacy para endpoints de operación masiva en español.
@@ -119,10 +123,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/bulk-delete', [GroupController::class, 'bulkDestroy']);
         });
 
-        Route::prefix('qualifications')->group(function () {
-            Route::patch('/bulk-update', [\App\Http\Controllers\QualificationController::class, 'bulkUpdate'])->name('qualifications.bulk-update');
-            Route::patch('/{qualification}', [\App\Http\Controllers\QualificationController::class, 'update'])->name('qualifications.update');
-        });
 
         Route::prefix('exams')->group(function () {
             Route::post('/', [\App\Http\Controllers\ExamController::class, 'store'])->name('exams.store');
