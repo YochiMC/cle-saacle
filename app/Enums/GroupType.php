@@ -29,9 +29,9 @@ enum GroupType: string
         return match($this) {
             self::PROGRAMA_EGRESADOS => [
                 'hizo_certificacion' => false,
-                'a1'                 => 0,
-                'a2'                 => 0,
-                'b1'                 => 0,
+                'grade_1'            => 0,
+                'grade_2'            => 0,
+                'grade_3'            => 0,
             ],
             default => array_fill_keys(
                 array_map(fn($i) => "unit_{$i}", range(1, max(1, $unitsCount))),

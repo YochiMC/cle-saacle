@@ -11,7 +11,7 @@ import { METADATA_KEYS } from "../Constants/groupConstants";
 export const getUnitKeys = (grupo) => {
     // Regla estricta para Programa Egresados
     if (grupo?.type === 'Programa Egresados') {
-        return ['hizo_certificacion', 'a1', 'a2', 'b1'];
+        return ['hizo_certificacion', 'grade_1', 'grade_2', 'grade_3'];
     }
 
     // Regla dinámica basada en unidades configuradas

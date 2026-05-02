@@ -24,6 +24,9 @@ import {
 
 const formatLabel = (key) => {
     if (key === "attempt") return "Oportunidad";
+    if (key === "grade_1") return "Calificación 1";
+    if (key === "grade_2") return "Calificación 2";
+    if (key === "grade_3") return "Calificación 3";
     return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
@@ -348,6 +351,7 @@ export function useDynamicColumns(
                     "b2",
                     "c1",
                     "c2",
+                    "grade_",
                 ];
                 const isGradeColumn = gradeColumns.some((col) =>
                     key.includes(col),
