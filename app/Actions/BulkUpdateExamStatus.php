@@ -26,7 +26,7 @@ class BulkUpdateExamStatus
 
             $updatedCount = 0;
             foreach ($exams as $exam) {
-                if ($exam->status?->value === $status || $exam->status === $status) {
+                if ($exam->status->value === $status) {
                     continue;
                 }
 
