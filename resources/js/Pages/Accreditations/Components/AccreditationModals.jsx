@@ -4,18 +4,18 @@ import ConfirmModal from "@/Components/ui/ConfirmModal";
 
 /**
  * Componente: AccreditationModals
- * 
+ *
  * Agrupa todos los modales vinculados al flujo de acreditación.
  */
-const AccreditationModals = ({ 
-    flashModal, 
-    closeFlashModal, 
-    itemToSuspend, 
-    setItemToSuspend, 
-    handleConfirmSuspend, 
-    itemToChange, 
-    setItemToChange, 
-    handleConfirmChange 
+const AccreditationModals = ({
+    flashModal,
+    closeFlashModal,
+    itemToSuspend,
+    setItemToSuspend,
+    handleConfirmSuspend,
+    itemToChange,
+    setItemToChange,
+    handleConfirmChange,
 }) => {
     return (
         <>
@@ -33,9 +33,9 @@ const AccreditationModals = ({
                 isOpen={itemToSuspend != null}
                 onClose={() => setItemToSuspend(null)}
                 onConfirm={handleConfirmSuspend}
-                title="Suspender candidato"
-                message={`Al confirmar, ${itemToSuspend?.full_name || "el alumno"} será extraído del flujo de acreditaciones y su estatus pasará a "Suspendido". ¿Deseas proceder?`}
-                confirmText="Sí, suspender alumno"
+                title="Inhabilitar candidato"
+                message={`Al confirmar, ${itemToSuspend?.full_name || "el alumno"} será extraído del flujo de acreditaciones y su estatus pasará a "Inhabilitado". ¿Deseas proceder?`}
+                confirmText="Sí, inhabilitar alumno"
                 variant="warning"
             />
 

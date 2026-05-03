@@ -69,12 +69,12 @@ class AutoQueueAccreditationCandidates
 
     /**
      * Encola a un estudiante actualizando su estatus si es aplicable.
-     * No sobreescribe el estatus si ya está acreditado o liberado.
+     * No sobreescribe el estatus si ya está acreditado.
      */
     private function queueStudent(Student $student, string $source, Carbon $date): void
     {
         // Protegemos a los alumnos que ya han sido dictaminados
-        if (in_array($student->status, [StudentStatus::ACCREDITED, StudentStatus::RELEASED])) {
+        if ($student->status === StudentStatus::ACCREDITED) {
             return;
         }
 
