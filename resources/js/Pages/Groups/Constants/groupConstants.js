@@ -9,6 +9,7 @@
 export const METADATA_KEYS = new Set([
     "id",
     "full_name",
+    "num_control",
     "matricula",
     "gender",
     "semester",

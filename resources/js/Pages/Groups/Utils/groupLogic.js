@@ -28,7 +28,17 @@ export const getUnitKeys = (grupo) => {
  */
 export const buildUnitsBreakdown = (row) =>
     Object.fromEntries(
-        Object.entries(row).filter(([key, value]) => !METADATA_KEYS.has(key) && key !== 'id' && key !== 'qualification_id' && typeof value !== 'function')
+        Object.entries(row).filter(([key, value]) => {
+            if (typeof value === 'function') return false;
+
+            // Solo campos de unidades evaluables para evitar contaminar
+            // el promedio con metadata numérica (ej. num_control, semester).
+            return (
+                key === 'hizo_certificacion' ||
+                key.startsWith('unit_') ||
+                key.startsWith('grade_')
+            );
+        })
     );
 
 /**
@@ -42,7 +52,8 @@ export const calculateAverage = (unitsBreakdown) => {
             key !== 'hizo_certificacion' &&
             (typeof v === 'number' || (typeof v === 'string' && v !== '' && !isNaN(Number(v))))
         )
-        .map(([, v]) => Number(v));
+        .map(([, v]) => Number(v))
+        .filter(Number.isFinite);
 
     if (numericValues.length === 0) return 0;
 
@@ -69,6 +80,8 @@ export const normalizeQualificationRow = (row, grupo) => {
         unitsBreakdownFlat[key] = rawBreakdown[key] ?? (key === "hizo_certificacion" ? 0 : 0);
     });
 
+    const computedAverage = calculateAverage(unitsBreakdownFlat);
+
     const { units_breakdown: _ignored, ...rest } = row;
     const { final_average, is_approved: _unused1, is_left, attempt, ...baseFields } = rest;
     const sanitizedBaseFields = Object.fromEntries(
@@ -88,7 +101,16 @@ export const normalizeQualificationRow = (row, grupo) => {
         is_left: is_left ?? false,
         attempt: attempt ?? "first",
         ...unitsBreakdownFlat,
-        final_average: final_average !== undefined ? final_average : 0,
+        final_average:
+            final_average === "NA"
+                ? "NA"
+                : (() => {
+                    const parsed = Number(final_average);
+                    if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 100) {
+                        return parsed;
+                    }
+                    return computedAverage;
+                })(),
     };
 };
 
