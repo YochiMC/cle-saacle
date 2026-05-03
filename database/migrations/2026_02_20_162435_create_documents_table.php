@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('type');
+            $table->string('type')->default('evidencia');
+            $table->string('original_name');
             $table->string('file_path');
+            $table->string('disk');
             $table->string('status')->default('pending');
             $table->text('comments')->nullable();
             $table->timestamps();

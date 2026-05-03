@@ -6,6 +6,7 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Enums\StudentStatus;
 
 class CreateStudentWithUser
 {
@@ -40,7 +41,8 @@ class CreateStudentWithUser
                 'degree_id'       => $data['degree_id'],
                 'type_student_id' => $data['type_student_id'],
                 'level_id'        => $data['level_id'],
-                'status'          => 'active',
+                // Estado inicial de negocio para altas nuevas.
+                'status'          => StudentStatus::CURRENT->value,
             ]);
 
             return $student;

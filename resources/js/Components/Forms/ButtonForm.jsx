@@ -10,6 +10,9 @@
  * @param {string}   [cancelLabel="Cancel"]  - Texto del botón de cancelar.
  * @param {Function} [onCancel]              - Callback que se ejecuta al presionar Cancelar.
  * @param {boolean}  [isLoading=false]       - Deshabilita ambos botones mientras se procesa.
+ * @param {boolean}  [disabled=false]        - Deshabilita ambos botones (compatibilidad global).
+ * @param {boolean}  [submitDisabled=false]  - Deshabilita solo el botón de envío.
+ * @param {boolean}  [cancelDisabled=false]  - Deshabilita solo el botón de cancelar.
  * @param {string}   [className]             - Clases CSS adicionales para el Field contenedor.
  *
  * @example
@@ -21,8 +24,8 @@
  * />
  */
 
-import { Field } from '@/components/ui/field';
-import { Button } from '@/components/ui/button';
+import { Field } from '@/Components/ui/field';
+import { Button } from '@/Components/ui/button';
 
 export default function ButtonForm({
     submitLabel = 'Submit',
@@ -30,6 +33,8 @@ export default function ButtonForm({
     onCancel,
     isLoading = false,
     disabled = false,
+    submitDisabled = false,
+    cancelDisabled = false,
     tone = 'default',
     submitVariant = 'default',
     cancelVariant = 'outline',
@@ -38,7 +43,8 @@ export default function ButtonForm({
     showCancel = true,
     className,
 }) {
-    const isBusy = isLoading || disabled;
+    const isSubmitBusy = isLoading || disabled || submitDisabled;
+    const isCancelBusy = isLoading || disabled || cancelDisabled;
 
     const toneClasses = {
         default: {
@@ -62,16 +68,16 @@ export default function ButtonForm({
             <Button
                 type="submit"
                 variant={submitVariant}
-                disabled={isBusy}
+                disabled={isSubmitBusy}
                 className={`${currentTone.submit} ${submitClassName}`.trim()}
             >
-                {isBusy ? 'Cargando...' : submitLabel}
+                {submitLabel}
             </Button>
             {showCancel && (
                 <Button
                     variant={cancelVariant}
                     type="button"
-                    disabled={isBusy}
+                    disabled={isCancelBusy}
                     onClick={onCancel}
                     className={`${currentTone.cancel} ${cancelClassName}`.trim()}
                 >

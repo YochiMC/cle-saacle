@@ -8,7 +8,19 @@ export default {
         "./vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php",
         "./storage/framework/views/*.php",
         "./resources/views/**/*.blade.php",
-        "./resources/js/**/*.jsx",
+        "./resources/js/**/*.{js,jsx,ts,tsx}",
+    ],
+
+    safelist: [
+        'border-emerald-200',
+        'bg-emerald-50',
+        'text-emerald-700',
+        'border-rose-200',
+        'bg-rose-50',
+        'text-rose-700',
+        'border-amber-200',
+        'bg-amber-50',
+        'text-amber-700',
     ],
 
     theme: {

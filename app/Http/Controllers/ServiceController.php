@@ -2,49 +2,101 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use App\Actions\DeleteStudentService;
+use App\Actions\StoreStudentService;
+use App\Http\Requests\StoreServiceRequest;
+use App\Http\Requests\UpdateServiceRequest;
 use App\Models\Service;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
+/**
+ * Controlador de Pagos/Servicios de Usuario.
+ *
+ * Implementa un orquestador ligero usando FormRequests para validación
+ * y Actions para la lógica de almacenamiento.
+ */
 class ServiceController extends Controller
 {
-    //
-    public function createService(Request $request): void
-    {
-        $validate = $request->validate([
-            'type' => 'required|string|max:255',
-            'amount' => 'required|numeric',
-            'status' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'reference_number' => 'nullable|string|max:255',
-            'file_path' => 'nullable|string|max:255',
-            'student_id' => 'required|exists:students,id',
-        ]);
 
-        $service = Service::create($validate);
+    private function resolveServiceAbsolutePath(Service $service): string
+    {
+        if (! Storage::disk($service->disk)->exists($service->file_path)) {
+            abort(404, 'Archivo no encontrado.');
+        }
+
+        return Storage::disk($service->disk)->path($service->file_path);
     }
 
-    public function getServices(): void
+    /**
+     * Almacena un nuevo pago para el alumno autenticado.
+     */
+    public function store(StoreServiceRequest $request, StoreStudentService $action): RedirectResponse
     {
-        $services = Service::all();
+        Gate::authorize('create', Service::class);
+
+        $studentId = Auth::user()->student?->id;
+
+        $action->execute(
+            $request->file('file'),
+            $request->validated(),
+            (int) $studentId
+        );
+
+        return back()->with('success', 'Pago subido exitosamente.');
     }
 
-    public function updateService(Service $service, Request $request): void
+    /**
+     * Actualiza el estatus y comentarios de un pago (Revisión Administrativa).
+     */
+    public function update(UpdateServiceRequest $request, Service $service): RedirectResponse
     {
-        $validate = $request->validate([
-            'type' => 'required|string|max:255',
-            'amount' => 'required|numeric',
-            'status' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'reference_number' => 'nullable|string|max:255',
-            'file_path' => 'nullable|string|max:255',
-            'student_id' => 'required|exists:students,id',
-        ]);
+        Gate::authorize('update', $service);
 
-        $service->update($validate);
+        $service->update($request->validated());
+
+        $student = $service->student;
+        if ($student) {
+            if ($request->status === \App\Enums\ServiceStatus::APPROVED->value) {
+                $student->update(['status' => \App\Enums\StudentStatus::VALIDATED]);
+
+                $activePeriod = \App\Models\Period::where('is_active', true)->first();
+                if ($activePeriod) {
+                    $service->update(['period_id' => $activePeriod->id]);
+                }
+            } elseif ($request->status === \App\Enums\ServiceStatus::REJECTED->value) {
+                $student->update(['status' => \App\Enums\StudentStatus::WAITING]);
+            }
+        }
+
+        return back()->with('success', 'Pago actualizado exitosamente.');
     }
 
-    public function deleteService(Service $service): void
+    /**
+     * Elimina un pago del sistema (Físico y Lógico).
+     */
+    public function destroy(Service $service, DeleteStudentService $action): RedirectResponse
     {
-        $service->delete();
+        Gate::authorize('delete', $service);
+
+        $action->execute($service);
+
+        return back()->with('success', 'Pago eliminado exitosamente.');
+    }
+
+    /**
+     * Descarga un comprobante de pago autorizado.
+     */
+    public function download(Service $service): BinaryFileResponse
+    {
+        Gate::authorize('download', $service);
+
+        $absolutePath = $this->resolveServiceAbsolutePath($service);
+
+        return response()->download($absolutePath, $service->original_name);
     }
 }

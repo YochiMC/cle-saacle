@@ -1,5 +1,5 @@
 // ── Componentes de UI propios ───────────────────────────────────────────────
-import { ThemeButton } from '@/Components/ThemeButton';
+import { ThemeButton } from '@/Components/ui/ThemeButton';
 
 /**
  * @component GridPagination

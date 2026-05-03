@@ -11,7 +11,7 @@ class UpdateQualificationsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user() && $this->user()->hasAnyRole(['admin', 'teacher']);
+        return $this->user() && $this->user()->hasAnyRole(['admin', 'coordinator', 'teacher']);
     }
 
     /**
@@ -21,13 +21,25 @@ class UpdateQualificationsRequest extends FormRequest
      */
     public function rules(): array
     {
+        // El mismo FormRequest se usa para dos contratos:
+        // 1) Guardado masivo: { qualifications: [...] }
+        // 2) Guardado individual: { units_breakdown, final_average, is_left }
+        if ($this->has('qualifications')) {
+            return [
+                'qualifications' => 'required|array',
+                'qualifications.*.qualification_id' => 'required|exists:qualifications,id',
+                'qualifications.*.units_breakdown' => 'required|array',
+                'qualifications.*.units_breakdown.*' => 'nullable',
+                'qualifications.*.final_average' => 'required',
+                'qualifications.*.is_left' => 'nullable|boolean',
+            ];
+        }
+
         return [
-            'qualifications' => 'required|array',
-            'qualifications.*.qualification_id' => 'required|exists:qualifications,id',
-            'qualifications.*.unit_1' => 'nullable|numeric|min:0|max:100',
-            'qualifications.*.unit_2' => 'nullable|numeric|min:0|max:100',
-            'qualifications.*.is_approved' => 'nullable|boolean',
-            'qualifications.*.is_left' => 'nullable|boolean',
+            'units_breakdown' => 'required|array',
+            'units_breakdown.*' => 'nullable',
+            'final_average' => 'required',
+            'is_left' => 'nullable|boolean',
         ];
     }
 }

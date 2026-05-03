@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Period;
 use App\Models\Level;
 use App\Models\Teacher;
-use App\Enums\GroupStatus;
+use App\Enums\AcademicStatus;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Group>
@@ -41,7 +41,7 @@ class GroupFactory extends Factory
             // Si la tabla está vacía, crea uno nuevo al vuelo llamando a su propio Factory.
             'period_id' => Period::inRandomOrder()->value('id') ?? Period::factory(),
             'level_id' => Level::inRandomOrder()->value('id') ?? Level::factory(),
-            'status' => $this->faker->randomElement(GroupStatus::cases())->value,
+            'status' => $this->faker->randomElement(AcademicStatus::cases())->value,
 
             // Asumiendo que tus docentes son Usuarios con el rol 'teacher' de Spatie
             // Si tienes una tabla separada llamada 'teachers', cámbialo a Teacher::inRandomOrder()...

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,9 +14,11 @@ class Document extends Model
 {
     use HasFactory, SoftDeletes;
     protected $fillable = [
-        'teacher_id',
+        'user_id',
         'type',
+        'original_name',
         'file_path',
+        'disk',
         'status',
         'comments'
     ];
@@ -23,12 +26,13 @@ class Document extends Model
     protected function casts(): array
     {
         return [
+            'type' => DocumentType::class,
             'status' => DocumentStatus::class,
         ];
     }
 
-    public function teacher(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->belongsTo(User::class);
     }
 }

@@ -8,12 +8,17 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasRoles, Notifiable, SoftDeletes;
+    use HasFactory, HasRoles {
+        hasRole as protected spatieHasRole;
+        hasAnyRole as protected spatieHasAnyRole;
+    }
+    use Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -51,6 +56,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
     public function teacher(): HasOne
     {
         return $this->hasOne(Teacher::class);
@@ -59,5 +69,15 @@ class User extends Authenticatable
     public function student(): HasOne
     {
         return $this->hasOne(Student::class);
+    }
+
+    public function hasRole(...$arguments): bool
+    {
+        return $this->spatieHasRole(...$arguments);
+    }
+
+    public function hasAnyRole(...$arguments): bool
+    {
+        return $this->spatieHasAnyRole(...$arguments);
     }
 }

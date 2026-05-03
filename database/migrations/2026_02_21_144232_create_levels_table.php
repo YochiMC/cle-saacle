@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('level_tecnm')->unique();
             $table->string('level_mcer');
             $table->integer('hours');
+            $table->string('program_type')->default('Regular');
             $table->timestamps();
         });
     }

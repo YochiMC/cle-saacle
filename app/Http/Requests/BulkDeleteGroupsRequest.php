@@ -14,7 +14,7 @@ class BulkDeleteGroupsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Controlado por Middleware de roles
+        return $this->user() && $this->user()->hasAnyRole(['admin', 'coordinator']);
     }
 
     /**

@@ -1,33 +1,39 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint; // <--- Cambiado aquí
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Ejecuta las migraciones.
      */
     public function up(): void
     {
-        // He cambiado 'exam' a 'exams' para seguir la convención de Laravel
         Schema::create('exams', function (Blueprint $table) {
             $table->id();
-            // Asegúrate de que la tabla de alumnos se llame exactamente 'students'
-            $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
-            $table->string('nombre_examen');
-            $table->decimal('calificacion', 5, 2)->nullable();
-            $table->date('fecha_aplicacion');
+            $table->string('name');
+            $table->string('exam_type'); // 'Convalidación', 'Planes anteriores', '4 habilidades', 'Ubicación'
+            $table->integer('capacity');
+            $table->string('mode')->nullable(); // Presencial, Virtual, etc.
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->string('application_time')->nullable();
+            $table->string('classroom')->nullable();
+            $table->string('status')->default('active');
+            $table->foreignId('period_id')->constrained('periods')->cascadeOnDelete();
+            $table->foreignId('teacher_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Revierte las migraciones.
      */
     public function down(): void
     {
-        Schema::dropIfExists('exams'); // <--- Debe coincidir con el nombre de arriba
+        Schema::dropIfExists('exams');
     }
 };

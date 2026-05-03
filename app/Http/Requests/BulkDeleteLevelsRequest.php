@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class BulkDeleteLevelsRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'required|exists:levels,id'
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'ids.required' => 'Debe seleccionar al menos un nivel para eliminar.',
+            'ids.array'    => 'Formato de selección inválido.',
+            'ids.*.exists' => 'Uno de los niveles seleccionados ya no existe en el sistema.',
+        ];
+    }
+}

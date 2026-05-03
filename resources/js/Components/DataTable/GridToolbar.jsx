@@ -2,7 +2,7 @@
 import React from 'react';
 
 // ── Componentes de UI propios ───────────────────────────────────────────────
-import { ThemeInput } from '@/Components/ThemeInput';
+import { ThemeInput } from '@/Components/ui/ThemeInput';
 
 // ── Íconos ──────────────────────────────────────────────────────────────────
 import { Search } from 'lucide-react';

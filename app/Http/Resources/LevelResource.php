@@ -23,10 +23,11 @@ class LevelResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'          => $this->id,
-            'level_tecnm' => $this->level_tecnm,
-            'level_mcer'  => $this->level_mcer,
-            'hours'       => $this->hours,
+            'id'           => $this->id,
+            'level_tecnm'  => $this->level_tecnm,
+            'level_mcer'   => $this->level_mcer,
+            'hours'        => $this->hours,
+            'program_type' => $this->program_type,
         ];
     }
 }

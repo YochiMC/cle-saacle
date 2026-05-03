@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Gate;
 use App\Actions\CreateStudentWithUser;
 use App\Actions\DeleteStudentWithUser;
 use App\Actions\UpdateStudentWithUser;
+use App\Actions\BulkDeleteUser;
+use App\Http\Requests\BulkDeleteStudentsRequest;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Student;
@@ -15,6 +18,8 @@ class StudentController extends Controller
         StoreStudentRequest $request,
         CreateStudentWithUser $action
     ) {
+        Gate::authorize('create', Student::class);
+
         try {
             // 1. Ejecutamos la acción
             $action->execute($request->validated());
@@ -33,6 +38,8 @@ class StudentController extends Controller
         Student $student,
         UpdateStudentWithUser $action
     ) {
+        Gate::authorize('update', $student);
+
         $action->execute($student, $request->validated());
 
         return redirect()->back()->with('success', 'Estudiante actualizado correctamente.');
@@ -42,8 +49,34 @@ class StudentController extends Controller
         Student $student,
         DeleteStudentWithUser $action
     ) {
+        Gate::authorize('delete', $student);
+
         $action->execute($student);
 
         return redirect()->back()->with('success', 'Estudiante eliminado correctamente.');
+    }
+
+    /**
+     * Elimina masivamente alumnos y sus usuarios asociados.
+     *
+     * La lógica de borrado transaccional se delega a BulkDeleteUser.
+     */
+    public function bulkDeleteStudents(
+        BulkDeleteStudentsRequest $request,
+        BulkDeleteUser $action
+    ) {
+        Gate::authorize('deleteAny', Student::class);
+        $students = Student::with('user')
+            ->whereIn('id', $request->validated('ids'))
+            ->get();
+
+        $users = $students
+            ->pluck('user')
+            ->filter()
+            ->all();
+
+        $action->execute($users);
+
+        return redirect()->back()->with('success', 'Estudiantes eliminados correctamente.');
     }
 }

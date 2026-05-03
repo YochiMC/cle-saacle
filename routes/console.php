@@ -4,6 +4,7 @@ use App\Imports\StudentsImport;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -50,3 +51,4 @@ Artisan::command('students:import {file : Ruta del archivo .xlsx/.csv} {--disk= 
 
     return self::SUCCESS;
 })->purpose('Importa estudiantes desde un Excel/CSV con encabezados');
+Schedule::command('saacle:update-statuses')->dailyAt('01:00');
