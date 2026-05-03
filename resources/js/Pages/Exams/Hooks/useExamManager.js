@@ -2,18 +2,18 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { router } from "@inertiajs/react";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import { usePermission } from "@/Utils/auth";
-import { 
-    normalizeQualificationRow, 
-    getUnitKeysFromRows, 
-    calculateAverage, 
-    calculateMcerOutcome, 
+import {
+    normalizeQualificationRow,
+    getUnitKeysFromRows,
+    calculateAverage,
+    calculateMcerOutcome,
     getRestrictedColumns,
     serializeQualification
 } from "../Utils/examLogic";
 
 /**
  * Custom Hook: useExamManager
- * 
+ *
  * Controlador lógico para la vista de gestión de exámenes.
  * Implementa soporte dinámico para promedios numéricos y niveles MCER.
  */
@@ -23,8 +23,8 @@ export default function useExamManager(examen, enrolledStudents = []) {
 
     // 1. Estados de Datos
     const normalizedData = useMemo(() => {
-        const data = Array.isArray(enrolledStudents) 
-            ? enrolledStudents 
+        const data = Array.isArray(enrolledStudents)
+            ? enrolledStudents
             : (enrolledStudents?.data || []);
         return data.map(normalizeQualificationRow);
     }, [enrolledStudents]);
@@ -47,24 +47,29 @@ export default function useExamManager(examen, enrolledStudents = []) {
     });
 
     // 3. Lógica Derivada
-    const canEditQualifications = useMemo(() => 
-        hasRole("teacher") || hasRole("admin") || hasRole("coordinator"), 
+    const canEditQualifications = useMemo(() =>
+        hasRole("teacher") || hasRole("admin") || hasRole("coordinator"),
     [hasRole]);
 
-    const unitKeys = useMemo(() => 
-        getUnitKeysFromRows(normalizedData), 
+    const unitKeys = useMemo(() =>
+        getUnitKeysFromRows(normalizedData),
     [normalizedData]);
 
-    const restrictedColumns = useMemo(() => 
-        getRestrictedColumns(examen?.exam_type), 
+    const restrictedColumns = useMemo(() =>
+        getRestrictedColumns(examen?.exam_type),
     [examen]);
 
     const editableColumns = useMemo(() => {
         if (!canEditQualifications) return [];
         // 'promedio_habilidades' es un campo de solo lectura calculado en cliente/server
-        const columns = unitKeys.filter(k => k !== "promedio_habilidades");
+        const columns = unitKeys.filter((k) => {
+            if (k === "promedio_habilidades") return false;
+            // En Planes anteriores la calificación final se calcula automáticamente.
+            if (examen?.exam_type === "Planes anteriores" && k === "calificacion_final") return false;
+            return true;
+        });
         return ["attempt", "is_left", ...columns];
-    }, [canEditQualifications, unitKeys]);
+    }, [canEditQualifications, unitKeys, examen?.exam_type]);
 
     // 4. Handlers de Interacción
     const handleCellChange = useCallback((fieldKey, rowId, newValue) => {
@@ -72,14 +77,19 @@ export default function useExamManager(examen, enrolledStudents = []) {
             prevData.map((row) => {
                 if (row.id !== rowId) return row;
 
+                // Blindaje: evitar edición manual de calificación final en Planes anteriores.
+                if (examen?.exam_type === "Planes anteriores" && fieldKey === "calificacion_final") {
+                    return row;
+                }
+
                 const updatedRow = { ...row, [fieldKey]: newValue };
 
                 // Regla especial: Planes anteriores (Auto-cálculo de calificación final)
                 if (examen?.exam_type === "Planes anteriores") {
-                    updatedRow.calificacion_final = updatedRow.is_curso_nivelacion 
+                    updatedRow.calificacion_final = updatedRow.is_curso_nivelacion
                         ? Number(updatedRow.calificacion_curso_nivelacion || 0)
                         : Number(updatedRow.calificacion_examen || 0);
-                    
+
                     // Sincronizar con el promedio general del sistema
                     updatedRow.final_average = updatedRow.calificacion_final;
                 }
@@ -119,8 +129,8 @@ export default function useExamManager(examen, enrolledStudents = []) {
         const reset = () => setConfirmModal({ isOpen: false, type: null, itemData: null });
 
         if (confirmModal.type === 'global') {
-            router.patch(route("exams.qualifications.bulk-update", examen.id), 
-                { qualifications: localData.map(serializeQualification) }, 
+            router.patch(route("exams.qualifications.bulk-update", examen.id),
+                { qualifications: localData.map(serializeQualification) },
             {
                 preserveScroll: true,
                 onSuccess: () => { setIsEditingMode(false); reset(); },
@@ -129,8 +139,8 @@ export default function useExamManager(examen, enrolledStudents = []) {
         } else if (confirmModal.type === 'row' && confirmModal.itemData) {
             const rowToSave = localData.find((row) => row.id === confirmModal.itemData.id);
             if (rowToSave) {
-                router.patch(route("exams.qualifications.update", [examen.id, rowToSave.id]), 
-                    serializeQualification(rowToSave), 
+                router.patch(route("exams.qualifications.update", [examen.id, rowToSave.id]),
+                    serializeQualification(rowToSave),
                 {
                     preserveScroll: true,
                     onSuccess: () => { setEditingRowId(null); reset(); },
