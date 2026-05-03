@@ -23,7 +23,7 @@ class CreateStudentWithUser
                 'name'           => $data['first_name'] . ' ' . $data['last_name'],
                 'email'    => $data['email'] ?? $data['num_control'] . '@leon.tecnm.mx',
                 'password' => Hash::make($data['password'] ?? $data['num_control']), // Contraseña por defecto
-                'phone'          => $data['phone'] ?? null,
+                'phone'          => $data['phone'] ?? '',
                 'email_recovery' => $data['email_recovery'] ?? null,
             ]);
 

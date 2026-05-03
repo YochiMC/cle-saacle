@@ -7,13 +7,15 @@ use App\Models\Student;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Validators\Failure;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
-class StudentsImport implements ToCollection, WithHeadingRow, WithValidation, SkipsOnFailure
+class StudentsImport implements ToCollection, WithHeadingRow, WithValidation, SkipsOnFailure, SkipsEmptyRows, WithChunkReading
 {
     /** @var array<int, Failure> */
     private array $validationFailures = [];
@@ -38,7 +40,7 @@ class StudentsImport implements ToCollection, WithHeadingRow, WithValidation, Sk
 
             $this->processedRows++;
 
-            if (Student::where('num_control', $data['num_control'])->exists()) {
+            if (Student::withTrashed()->where('num_control', $data['num_control'])->exists()) {
                 $this->skippedDuplicates++;
 
                 continue;
@@ -173,5 +175,10 @@ class StudentsImport implements ToCollection, WithHeadingRow, WithValidation, Sk
     public function getSkippedDuplicates(): int
     {
         return $this->skippedDuplicates;
+    }
+
+    public function chunkSize(): int
+    {
+        return 500;
     }
 }
