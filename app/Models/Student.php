@@ -33,13 +33,17 @@ class Student extends Model
         'accreditation_date',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'status' => StudentStatus::class,
-            'accreditation_date' => 'datetime',
-        ];
-    }
+    /**
+     * Atributos que deben ser casteados.
+     * Se usa la propiedad `$casts` para mantener compatibilidad con Eloquent.
+     * El tipo `StudentStatus::class` permite cast a enum.
+     *
+     * @var array<string,string>
+     */
+    protected $casts = [
+        'status' => StudentStatus::class,
+        'accreditation_date' => 'datetime',
+    ];
 
     public function user(): BelongsTo
     {
@@ -64,6 +68,11 @@ class Student extends Model
     public function qualifications(): HasMany
     {
         return $this->hasMany(Qualification::class);
+    }
+
+    public function legacyQualifications(): HasMany
+    {
+        return $this->hasMany(LegacyQualification::class);
     }
 
     public function services(): HasMany

@@ -14,12 +14,15 @@ class StudentResource extends JsonResource
      * Incluye los IDs de las relaciones (degree_id, level_id, type_student_id)
      * para que los formularios de edición puedan pre-seleccionar el valor actual,
      * así como la fecha de nacimiento requerida por UpdateStudentRequest.
-        *
-        * Expone `status` (valor técnico del enum) y `status_label` (texto para UI),
-        * evitando acoplar el frontend a valores internos del dominio.
+     *
+     * Expone `status` (valor técnico del enum) y `status_label` (texto para UI),
+     * evitando acoplar el frontend a valores internos del dominio.
      */
     public function toArray(Request $request): array
     {
+        $rawStatus = $this->resource->getRawOriginal('status') ?? ($this->resource->getAttributes()['status'] ?? null);
+        $statusEnum = is_string($rawStatus) ? StudentStatus::tryFrom($rawStatus) : null;
+
         return [
             'id'              => $this->id,
             'user_id'         => $this->user_id,
@@ -31,8 +34,8 @@ class StudentResource extends JsonResource
             'birthdate'       => $this->birthdate,
             'age'             => $this->age,
             'semester'        => $this->semester,
-            'status'          => $this->status instanceof StudentStatus ? $this->status->value : $this->status,
-            'status_label'    => $this->status instanceof StudentStatus ? $this->status->label() : 'Desconocido',
+            'status'          => $statusEnum?->value ?? $rawStatus,
+            'status_label'    => $statusEnum?->label() ?? 'Sin estado',
             'degree_id'       => $this->degree_id,
             'degree'          => $this->degree ? $this->degree->name : null,
             'level_id'        => $this->level_id,
