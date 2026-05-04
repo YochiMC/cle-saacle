@@ -24,6 +24,7 @@ export default function KardexTable({ kardexData = [], records = [] }) {
     const getPeriod = (record) => record.period ?? record.periodo ?? "N/A";
     const getSubject = (record) => record.subject ?? record.materia ?? "N/A";
     const getGroup = (record) => record.group ?? record.grupo ?? "N/A";
+    const getTeacher = (record) => record.teacher ?? "N/A";
     const getGrade = (record) => record.grade ?? record.calificacion ?? "NA";
 
     return (
@@ -42,6 +43,9 @@ export default function KardexTable({ kardexData = [], records = [] }) {
                         </TableHead>
                         <TableHead className="text-xs uppercase tracking-wider text-gray-500 text-left">
                             Grupo / Examen
+                        </TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider text-gray-500 text-left">
+                            Maestro
                         </TableHead>
                         <TableHead className="w-[150px] text-xs uppercase tracking-wider text-gray-500 text-center">
                             Calificación
@@ -67,6 +71,9 @@ export default function KardexTable({ kardexData = [], records = [] }) {
                                 <TableCell className="font-medium text-slate-700 text-left">
                                     {getGroup(record)}
                                 </TableCell>
+                                <TableCell className="font-medium text-slate-600 text-left italic">
+                                    {getTeacher(record)}
+                                </TableCell>
                                 <TableCell className="text-center font-bold text-slate-800">
                                     {getGrade(record)}
                                 </TableCell>
@@ -75,7 +82,7 @@ export default function KardexTable({ kardexData = [], records = [] }) {
                     ) : (
                         <TableRow>
                             <TableCell
-                                colSpan={5}
+                                colSpan={6}
                                 className="h-24 text-center text-slate-500"
                             >
                                 Sin registros académicos encontrados.
