@@ -10,7 +10,7 @@
  * @param {boolean}   [show=false]      - Controla la visibilidad del modal.
  * @param {Function}  onClose           - Callback invocado al cerrar el modal.
  * @param {Object}    [selectedPayment] - Pago a visualizar (si existe, modo lectura).
- * @param {Array}     serviceTypes      - Listado de tipos de pago: [{ value, label }].
+ * @param {Array}     serviceTypes      - Listado de conceptos de pago: [{ value, label }].
  * @param {Object}    formData          - Estado del formulario (react-hook-form o useForm).
  * @param {Function}  setFormData       - Setter del estado del formulario.
  * @param {Array}     errors            - Errores de validación del formulario.
@@ -101,7 +101,7 @@ export default function PaymentModal({
                             <p className="text-5xl font-black text-gray-900 tracking-tight">{formatCurrency(selectedPayment.amount)}</p>
                         </div>
                         <div className="flex justify-between items-center text-sm border-b pb-2">
-                            <span className="text-gray-500 font-medium">Tipo de Pago</span>
+                            <span className="text-gray-500 font-medium">Concepto</span>
                             <span className="font-bold text-gray-900">{getTypeLabel(selectedPayment.type)}</span>
                         </div>
                         <div className="flex justify-between items-center text-sm border-b pb-2">
@@ -130,7 +130,7 @@ export default function PaymentModal({
                     <div className="space-y-5">
                         <div>
                             <SelectForm
-                                label="Tipo de Pago"
+                                label="Concepto"
                                 selectId="type"
                                 options={serviceTypes}
                                 value={formData.type}

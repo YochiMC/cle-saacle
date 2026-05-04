@@ -239,4 +239,74 @@ class AdminViewsController extends Controller
             'reviewOptions' => \App\Enums\ServiceStatus::reviewOptions(),
         ]);
     }
+
+    /**
+     * Renderiza la vista de autoinscripción para estudiantes.
+     * Muestra grupos disponibles dentro del período de inscripción actual.
+     * Valida que el estudiante sea elegible antes de permitir la inscripción.
+     *
+     * @return \Inertia\Response
+     */
+    public function studentEnrollmentView(Request $request)
+    {
+        $user = $request->user();
+        $student = $user->student;
+
+        if (!$student) {
+            return back()->with('error', 'No eres un estudiante registrado en el sistema.');
+        }
+
+        $activePeriod = Period::where('is_active', true)->first();
+
+        // Grupos disponibles en el período activo, agrupados por nivel
+        $availableGroups = [];
+        $isEligible = $student->status === StudentStatus::ELEGIBLE_INSCRIPCION;
+        $isInPeriod = $activePeriod && now()->between($activePeriod->start_date, $activePeriod->end_date);
+
+        if ($isInPeriod && $activePeriod) {
+            $grupos = Group::with(['level', 'teacher', 'period', 'qualifications'])
+                ->where('period_id', $activePeriod->id)
+                ->where('status', \App\Enums\AcademicStatus::ENROLLING)
+                ->get();
+
+            // Calcular capacidad disponible y filtrar grupos no inscritos
+            $availableGroups = $grupos
+                ->filter(fn ($g) => !$g->qualifications->contains('student_id', $student->id))
+                ->map(function ($group) {
+                    $enrolled = $group->qualifications->count();
+                    $capacity = $group->capacity ?? 0;
+                    $available = max(0, $capacity - $enrolled);
+
+                    return [
+                        'id' => $group->id,
+                        'name' => $group->name,
+                        'level' => $group->level,
+                        'teacher' => $group->teacher ? ['id' => $group->teacher->id, 'name' => $group->teacher->full_name] : null,
+                        'period' => $group->period ? ['id' => $group->period->id, 'name' => $group->period->name] : null,
+                        'type' => $group->type,
+                        'capacity' => $capacity,
+                        'enrolled' => $enrolled,
+                        'available' => $available,
+                        'schedule' => $group->schedule,
+                        'classroom' => $group->classroom,
+                    ];
+                })
+                ->groupBy('level.id')
+                ->map(fn ($groups) => [
+                    'level' => $groups->first()['level'],
+                    'groups' => $groups->values()->all(),
+                ])
+                ->values()
+                ->all();
+        }
+
+        return Inertia::render('Academic/StudentEnrollment', [
+            'student' => $student,
+            'activePeriod' => $activePeriod,
+            'isEligible' => $isEligible,
+            'isInPeriod' => $isInPeriod,
+            'availableGroups' => $availableGroups,
+            'studentStatus' => $student->status->label(),
+        ]);
+    }
 }

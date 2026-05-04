@@ -71,7 +71,7 @@ export default function ReviewModal({
     formatCurrency,
 }) {
     return (
-        <FormModal title="Revisar Pago" show={show} onClose={onClose}>
+        <FormModal title="Aprobar o Rechazar Pago" show={show} onClose={onClose}>
             <form onSubmit={onSubmit} className="space-y-6">
                 {/* Encabezado con estado actual */}
                 <div className="flex items-center justify-between border-b border-gray-100 pb-4">
@@ -97,7 +97,7 @@ export default function ReviewModal({
                                 <p className="font-bold text-gray-900 text-sm">{selectedPayment.student?.user?.name}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 font-medium">Tipo</p>
+                                <p className="text-sm text-gray-500 font-medium">Concepto</p>
                                 <p className="font-bold text-gray-900 text-sm">{getTypeLabel(selectedPayment.type)}</p>
                             </div>
                             <div>
