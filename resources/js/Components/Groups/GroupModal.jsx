@@ -22,7 +22,7 @@ import SelectForm from "@/components/Forms/SelectForm";
 import InputForm from "@/components/Forms/InputForm";
 import DataFormModal from "@/Components/DataTable/DataFormModal";
 import FormErrors from "@/Components/ui/FormErrors";
-
+import InputError from "@/Components/InputError";
 import ConfirmModal from "@/Components/ui/ConfirmModal";
 
 /**
@@ -128,42 +128,54 @@ export default function GroupModal({
                     </FieldDescription>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <SelectForm
-                            options={modes}
-                            label="Modalidad"
-                            selectId="mode"
-                            placeholder="Selecciona una modalidad"
-                            value={formData.mode}
-                            onValueChange={(v) => setFormData("mode", v)}
-                        />
-                        <SelectForm
-                            options={types}
-                            label="Tipo"
-                            selectId="type"
-                            placeholder="Selecciona un tipo"
-                            value={formData.type}
-                            onValueChange={(v) => setFormData("type", v)}
-                        />
+                        <div className="flex flex-col gap-1">
+                            <SelectForm
+                                options={modes}
+                                label="Modalidad"
+                                selectId="mode"
+                                placeholder="Selecciona una modalidad"
+                                value={formData.mode}
+                                onValueChange={(v) => setFormData("mode", v)}
+                            />
+                            <InputError message={errors.mode} />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <SelectForm
+                                options={types}
+                                label="Tipo"
+                                selectId="type"
+                                placeholder="Selecciona un tipo"
+                                value={formData.type}
+                                onValueChange={(v) => setFormData("type", v)}
+                            />
+                            <InputError message={errors.type} />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
-                        <InputForm
-                            label="Capacidad (estudiantes)"
-                            type="number"
-                            inputId="capacity"
-                            placeholder="Ej. 25"
-                            description="Número máximo de estudiantes del grupo."
-                            value={formData.capacity}
-                            onChange={(e) => setFormData("capacity", e.target.value)}
-                        />
-                        <SelectForm
-                            options={statusOptions}
-                            label="Estado"
-                            selectId="status"
-                            placeholder="Selecciona un estado"
-                            value={formData.status}
-                            onValueChange={(v) => setFormData("status", v)}
-                        />
+                        <div className="flex flex-col gap-1">
+                            <InputForm
+                                label="Capacidad (estudiantes)"
+                                type="number"
+                                inputId="capacity"
+                                placeholder="Ej. 25"
+                                description="Número máximo de estudiantes del grupo."
+                                value={formData.capacity}
+                                onChange={(e) => setFormData("capacity", e.target.value)}
+                            />
+                            <InputError message={errors.capacity} />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <SelectForm
+                                options={statusOptions}
+                                label="Estado"
+                                selectId="status"
+                                placeholder="Selecciona un estado"
+                                value={formData.status}
+                                onValueChange={(v) => setFormData("status", v)}
+                            />
+                            <InputError message={errors.status} />
+                        </div>
                     </div>
                 </FieldSet>
 
@@ -177,37 +189,46 @@ export default function GroupModal({
                     </FieldDescription>
 
                     <div className="grid grid-cols-1 gap-4">
-                        <InputForm
-                            label="Horario"
-                            inputId="schedule"
-                            placeholder="Ej. Lunes y Miércoles 16:00 - 18:00"
-                            description="Incluye días y rango de horas."
-                            value={formData.schedule}
-                            onChange={(e) => setFormData("schedule", e.target.value)}
-                        />
+                        <div className="flex flex-col gap-1">
+                            <InputForm
+                                label="Horario"
+                                inputId="schedule"
+                                placeholder="Ej. Lunes y Miércoles 16:00 - 18:00"
+                                description="Incluye días y rango de horas."
+                                value={formData.schedule}
+                                onChange={(e) => setFormData("schedule", e.target.value)}
+                            />
+                            <InputError message={errors.schedule} />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
-                        <InputForm
-                            label="Aula"
-                            inputId="classroom"
-                            required={false}
-                            disabled={formData.mode === "Virtual"}
-                            placeholder="Ej. B-203"
-                            description="Opcional"
-                            value={formData.classroom}
-                            onChange={(e) => setFormData("classroom", e.target.value)}
-                        />
-                        <InputForm
-                            label="Enlace de reunión (URL)"
-                            inputId="meeting_link"
-                            required={false}
-                            disabled={formData.mode === "Presencial"}
-                            placeholder="https://..."
-                            description="Opcional para grupos virtuales o híbridos."
-                            value={formData.meeting_link}
-                            onChange={(e) => setFormData("meeting_link", e.target.value)}
-                        />
+                        <div className="flex flex-col gap-1">
+                            <InputForm
+                                label="Aula"
+                                inputId="classroom"
+                                required={false}
+                                disabled={formData.mode === "Virtual"}
+                                placeholder="Ej. B-203"
+                                description="Opcional"
+                                value={formData.classroom}
+                                onChange={(e) => setFormData("classroom", e.target.value)}
+                            />
+                            <InputError message={errors.classroom} />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <InputForm
+                                label="Enlace de reunión (URL)"
+                                inputId="meeting_link"
+                                required={false}
+                                disabled={formData.mode === "Presencial"}
+                                placeholder="https://..."
+                                description="Opcional para grupos virtuales o híbridos."
+                                value={formData.meeting_link}
+                                onChange={(e) => setFormData("meeting_link", e.target.value)}
+                            />
+                            <InputError message={errors.meeting_link} />
+                        </div>
                     </div>
                 </FieldSet>
 
@@ -221,31 +242,40 @@ export default function GroupModal({
                     </FieldDescription>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <SelectForm
-                            options={periodOptions}
-                            label="Periodo"
-                            selectId="period_id"
-                            placeholder="Selecciona un periodo"
-                            value={formData.period_id}
-                            onValueChange={(v) => setFormData("period_id", v)}
-                        />
-                        <SelectForm
-                            options={levelOptions}
-                            label="Nivel"
-                            selectId="level_id"
-                            placeholder="Selecciona un nivel"
-                            value={formData.level_id}
-                            disabled={formData.type === "Programa Egresados"}
-                            onValueChange={(v) => setFormData("level_id", v)}
-                        />
-                        <SelectForm
-                            options={teacherOptions}
-                            label="Docente"
-                            selectId="teacher_id"
-                            placeholder="Selecciona un docente"
-                            value={formData.teacher_id}
-                            onValueChange={(v) => setFormData("teacher_id", v)}
-                        />
+                        <div className="flex flex-col gap-1">
+                            <SelectForm
+                                options={periodOptions}
+                                label="Periodo"
+                                selectId="period_id"
+                                placeholder="Selecciona un periodo"
+                                value={formData.period_id}
+                                onValueChange={(v) => setFormData("period_id", v)}
+                            />
+                            <InputError message={errors.period_id} />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <SelectForm
+                                options={levelOptions}
+                                label="Nivel"
+                                selectId="level_id"
+                                placeholder="Selecciona un nivel"
+                                value={formData.level_id}
+                                disabled={formData.type === "Programa Egresados"}
+                                onValueChange={(v) => setFormData("level_id", v)}
+                            />
+                            <InputError message={errors.level_id} />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <SelectForm
+                                options={teacherOptions}
+                                label="Docente"
+                                selectId="teacher_id"
+                                placeholder="Selecciona un docente"
+                                value={formData.teacher_id}
+                                onValueChange={(v) => setFormData("teacher_id", v)}
+                            />
+                            <InputError message={errors.teacher_id} />
+                        </div>
                     </div>
                 </FieldSet>
             </FieldGroup>
