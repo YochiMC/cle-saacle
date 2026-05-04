@@ -11,6 +11,7 @@ use App\Http\Controllers\PeriodController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\LegacyQualificationController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TypeStudentController;
@@ -197,6 +198,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{user}', [ProfileController::class, 'show'])->name('profiles');
             Route::get('/{user}/kardex', [ProfileController::class, 'kardex'])->name('profiles.kardex');
             Route::delete('/{user}', [ProfileController::class, 'delete'])->name('profiles.delete');
+
+            // CRUD de Calificaciones Históricas (OG) — anidadas bajo el contexto del usuario
+            Route::post('/{user}/legacy-qualifications', [LegacyQualificationController::class, 'store'])
+                ->name('legacy-qualifications.store');
+            Route::put('/{user}/legacy-qualifications/{legacy}', [LegacyQualificationController::class, 'update'])
+                ->name('legacy-qualifications.update');
+            Route::delete('/{user}/legacy-qualifications/{legacy}', [LegacyQualificationController::class, 'destroy'])
+                ->name('legacy-qualifications.destroy');
         });
 
         Route::prefix('password')->group(function () {
