@@ -26,7 +26,7 @@ class StoreStudentService
         // Generar nombre único basado en UUID para evitar colisiones
         $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
 
-        // Almacenar en disco 'local' (storage/app). 
+        // Almacenar en disco 'local' (storage/app).
         $path = $file->storeAs("servicios/student_{$studentId}", $fileName, 'local');
 
         $service = Service::create([
@@ -38,7 +38,7 @@ class StoreStudentService
             'original_name'    => $file->getClientOriginalName(),
             'file_path'        => $path,
             'disk'             => 'local',
-            'status'           => ServiceStatus::PENDING,
+            'status'           => ServiceStatus::PENDING->value,
         ]);
 
         $student = Student::find($studentId);

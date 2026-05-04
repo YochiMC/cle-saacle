@@ -31,7 +31,7 @@ class StoreServiceRequest extends FormRequest
     {
         return [
             'file'             => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-            'type'             => ['required', 'string', \Illuminate\Validation\Rule::in(array_column(\App\Enums\ServiceType::cases(), 'value'))],
+            'type'             => ['required', 'string', \Illuminate\Validation\Rule::in(\App\Enums\ServiceType::EXAMEN->value, \App\Enums\ServiceType::CURSO->value)],
             'amount'           => ['required', 'numeric', 'min:0'],
             'reference_number' => ['nullable', 'string', 'max:255'],
             'description'      => ['nullable', 'string'],
@@ -47,7 +47,8 @@ class StoreServiceRequest extends FormRequest
             'file.required'       => 'El comprobante de pago es obligatorio.',
             'file.mimes'          => 'El comprobante debe ser un archivo PDF, JPG, JPEG o PNG.',
             'file.max'            => 'El comprobante no debe superar los 5MB.',
-            'type.required'       => 'El tipo de pago es obligatorio.',
+            'type.required'       => 'Debes especificar si el pago es para Examen o Curso.',
+            'type.in'             => 'El tipo debe ser Examen o Curso.',
             'amount.required'     => 'El monto es obligatorio.',
             'amount.numeric'      => 'El monto debe ser numérico.',
         ];

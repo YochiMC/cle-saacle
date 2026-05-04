@@ -30,5 +30,6 @@ class AppServiceProvider extends ServiceProvider
         // Registro de Observers para Sincronización de Estado de Alumnos
         \App\Models\Group::observe(\App\Observers\GroupObserver::class);
         \App\Models\Exam::observe(\App\Observers\ExamObserver::class);
+        \App\Models\Service::observe(\App\Observers\ServiceObserver::class);
     }
 }
