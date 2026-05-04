@@ -16,6 +16,10 @@ enum StudentStatus: string
     case PAYMENT_REVIEW = 'payment_review';
     case VALIDATED = 'validated';
 
+    case ELEGIBLE_INSCRIPCION = 'elegible_inscripcion';
+    case ESPERA_INSCRIPCION = 'espera_inscripcion';
+    case ESPERA = 'espera';
+
     public function label(): string
     {
         return match($this) {
@@ -27,6 +31,9 @@ enum StudentStatus: string
             self::RELEASED => 'Liberado',
             self::PAYMENT_REVIEW => 'Revisión de Pago',
             self::VALIDATED => 'Validado para Inscripción',
+            self::ELEGIBLE_INSCRIPCION => 'Elegible para Inscripción',
+            self::ESPERA_INSCRIPCION => 'Esperando Inscripción',
+            self::ESPERA => 'En Espera',
         };
     }
 }
