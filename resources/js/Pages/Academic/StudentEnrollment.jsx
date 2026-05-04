@@ -10,7 +10,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 
 /**
  * Vista de Autoinscripción para Estudiantes
- * 
+ *
  * Muestra:
  * 1. Estado de elegibilidad: Elegible o No Elegible
  * 2. Estado del período de inscripción: Activo o Inactivo
@@ -66,16 +66,16 @@ export default function StudentEnrollment({
 
                     {/* Encabezado */}
                     <div className="mb-8">
-                        <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
+                        <h1 className="mb-2 text-4xl font-extrabold text-gray-900">
                             Autoinscripción a Grupos
                         </h1>
-                        <p className="text-gray-600 text-lg">
+                        <p className="text-lg text-gray-600">
                             Revisa tu elegibilidad y elige un grupo para inscribirte.
                         </p>
                     </div>
 
                     {/* Tarjetas de Estado */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3">
 
                         {/* Estado del Estudiante */}
                         <div className={`rounded-2xl border-2 p-6 shadow-sm ${isEligible ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
@@ -98,7 +98,7 @@ export default function StudentEnrollment({
                                     : 'No tienes pagos aprobados. Carga un comprobante para ser elegible.'}
                             </p>
                             {!isEligible && (
-                                <SecondaryButton className="mt-4 w-full text-center bg-red-100 hover:bg-red-200 border border-red-300">
+                                <SecondaryButton className="w-full mt-4 text-center bg-red-100 border border-red-300 hover:bg-red-200">
                                     <a href={route('pagos')} className="block w-full">
                                         Ir a Subir Comprobante
                                     </a>
@@ -163,12 +163,12 @@ export default function StudentEnrollment({
                         <div className="space-y-8">
                             {availableGroups.map((levelGroup) => (
                                 <div key={levelGroup.level.id}>
-                                    <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                    <h2 className="flex items-center gap-2 mb-4 text-2xl font-bold text-gray-900">
                                         <BookOpen className="w-6 h-6 text-indigo-600" />
                                         {levelGroup.level.level_tecnm || levelGroup.level.name}
                                     </h2>
 
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                                         {levelGroup.groups.map((group) => {
                                             const isSelected = selectedGroupId === group.id;
                                             const capacityPercent = (group.enrolled / group.capacity) * 100;
@@ -184,49 +184,49 @@ export default function StudentEnrollment({
                                                     onClick={() => setSelectedGroupId(isSelected ? null : group.id)}
                                                 >
                                                     {/* Encabezado del Grupo */}
-                                                    <div className="flex justify-between items-start mb-4">
+                                                    <div className="flex items-start justify-between mb-4">
                                                         <div>
                                                             <h3 className="text-xl font-bold text-gray-900">{group.name}</h3>
                                                             {group.teacher && (
-                                                                <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                                                                <p className="flex items-center gap-1 mt-1 text-sm text-gray-600">
                                                                     <User className="w-4 h-4" />
                                                                     {group.teacher.name}
                                                                 </p>
                                                             )}
                                                         </div>
                                                         {availableSeats > 0 ? (
-                                                            <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">
+                                                            <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800">
                                                                 {availableSeats} {availableSeats === 1 ? 'lugar' : 'lugares'}
                                                             </span>
                                                         ) : (
-                                                            <span className="bg-red-100 text-red-800 text-xs font-bold px-3 py-1 rounded-full">
+                                                            <span className="px-3 py-1 text-xs font-bold text-red-800 bg-red-100 rounded-full">
                                                                 Lleno
                                                             </span>
                                                         )}
                                                     </div>
 
                                                     {/* Detalles del Grupo */}
-                                                    <div className="space-y-3 mb-5">
+                                                    <div className="mb-5 space-y-3">
                                                         <div className="grid grid-cols-2 gap-4 text-sm">
                                                             <div>
-                                                                <p className="text-gray-500 font-semibold">Horario</p>
+                                                                <p className="font-semibold text-gray-500">Horario</p>
                                                                 <p className="text-gray-900">{group.schedule || 'N/A'}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-gray-500 font-semibold">Aula</p>
+                                                                <p className="font-semibold text-gray-500">Aula</p>
                                                                 <p className="text-gray-900">{group.classroom || 'N/A'}</p>
                                                             </div>
                                                         </div>
 
                                                         {/* Barra de Capacidad */}
                                                         <div>
-                                                            <div className="flex justify-between items-center mb-2">
-                                                                <p className="text-gray-500 text-sm font-semibold">Capacidad</p>
-                                                                <p className="text-gray-900 text-sm font-bold">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <p className="text-sm font-semibold text-gray-500">Capacidad</p>
+                                                                <p className="text-sm font-bold text-gray-900">
                                                                     {group.enrolled}/{group.capacity}
                                                                 </p>
                                                             </div>
-                                                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                                            <div className="w-full h-2 overflow-hidden bg-gray-200 rounded-full">
                                                                 <div
                                                                     className={`h-full transition-all ${capacityPercent >= 100 ? 'bg-red-600' : 'bg-emerald-600'}`}
                                                                     style={{ width: `${Math.min(capacityPercent, 100)}%` }}
@@ -264,18 +264,18 @@ export default function StudentEnrollment({
                             ))}
                         </div>
                     ) : canEnroll ? (
-                        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-8 text-center">
-                            <AlertCircle className="w-12 h-12 text-yellow-600 mx-auto mb-4" />
-                            <h3 className="text-xl font-bold text-yellow-900 mb-2">No hay grupos disponibles</h3>
+                        <div className="p-8 text-center border-2 border-yellow-200 bg-yellow-50 rounded-2xl">
+                            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-yellow-600" />
+                            <h3 className="mb-2 text-xl font-bold text-yellow-900">No hay grupos disponibles</h3>
                             <p className="text-yellow-800">
                                 En este momento no hay grupos disponibles dentro de tu nivel académico en el período de inscripción.
                             </p>
                         </div>
                     ) : (
-                        <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-8 text-center">
-                            <Lock className="w-12 h-12 text-red-600 mx-auto mb-4" />
-                            <h3 className="text-xl font-bold text-red-900 mb-2">Inscripción no disponible</h3>
-                            <p className="text-red-800 mb-6">
+                        <div className="p-8 text-center border-2 border-red-200 bg-red-50 rounded-2xl">
+                            <Lock className="w-12 h-12 mx-auto mb-4 text-red-600" />
+                            <h3 className="mb-2 text-xl font-bold text-red-900">Inscripción no disponible</h3>
+                            <p className="mb-6 text-red-800">
                                 {!isEligible
                                     ? 'Necesitas ser elegible para inscribirte. Sube un comprobante de pago aprobado.'
                                     : 'El período de inscripción no está activo en este momento.'}

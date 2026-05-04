@@ -4,16 +4,12 @@ namespace App\Enums;
 
 enum ServiceType: string
 {
-    case TRANSFERENCIA = 'transferencia';
-    case DEPOSITO = 'deposito';
     case EXAMEN = 'examen';
     case CURSO = 'curso';
 
     public function label(): string
     {
         return match($this) {
-            self::TRANSFERENCIA => 'Transferencia',
-            self::DEPOSITO => 'Depósito',
             self::EXAMEN => 'Examen',
             self::CURSO => 'Curso',
         };

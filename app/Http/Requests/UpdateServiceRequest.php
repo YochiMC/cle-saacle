@@ -19,7 +19,7 @@ class UpdateServiceRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()?->hasRole('coordinator') ?? false;
+        return $this->user()?->hasAnyRole(['admin', 'coordinator']) ?? false;
     }
 
     /**

@@ -38,6 +38,7 @@ export default function AuthenticatedLayout({ header, children }) {
      */
     const links = [
         { route: "dashboard", label: "Dashboard", allowedRoles: ["admin", "teacher", "student"] },
+        { route: "student.enrollment", label: "Inscripción", allowedRoles: ["student"] },
         { route: "users", label: "Usuarios", allowedRoles: ["admin"] },
         { route: "groups", label: "Grupos", allowedRoles: ["admin", "teacher", "student"] },
         { route: "reports", label: "Reportes", allowedRoles: ["admin", "teacher"] },
