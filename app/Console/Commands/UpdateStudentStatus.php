@@ -48,7 +48,7 @@ class UpdateStudentStatus extends Command
 
             $this->info("✓ {$updated} estudiante(s) actualizados a '{$to}'");
 
-            return Command::SUCCESS;
+            return 0;
         } catch (\Exception $e) {
             $this->error("Error: " . $e->getMessage());
             return 1;

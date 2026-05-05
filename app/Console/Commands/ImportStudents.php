@@ -55,6 +55,7 @@ class ImportStudents extends Command
 
             $imported = 0;
             $errors = 0;
+            /** @var \Symfony\Component\Console\Helper\ProgressBar $bar */
             $bar = $this->output->createProgressBar(count($rows) - 1);
 
             // Iterar desde la fila 1 (la 0 son headers)
