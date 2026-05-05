@@ -12,17 +12,16 @@ export const VIEW_OPTIONS = [
 export const STATUS_SELECT_OPTIONS = [
     { value: "in_review", label: "En Revisión" },
     { value: "accredited", label: "Acreditado" },
-    { value: "released", label: "Liberado" },
-    { value: "suspended", label: "Suspendido" },
+    { value: "disabled",  label: "Disabled" },
 ];
 
 /**
  * Configuración para el modal de borrado masivo (Bulk Suspend).
  */
 export const BULK_SUSPEND_MODAL_CONFIG = {
-    title: "Suspender candidatos seleccionados",
-    message: "Estos alumnos dejarán de ser considerados candidatos activos en el proceso de acreditación. Su estatus pasará a Suspendido de manera inmediata. ¿Estás seguro?",
-    confirmText: "Sí, suspender alumnos",
+    title: "Disable selected candidates",
+    message: "These students will no longer be considered active candidates in the accreditation process. Their status will change to Disabled immediately. Are you sure?",
+    confirmText: "Yes, disable students",
     variant: "warning",
 };
 
