@@ -17,7 +17,7 @@ use Inertia\Response;
 
 /**
  * Controlador para la Gestión y Flujo de Acreditación de Alumnos.
- * 
+ *
  * Este controlador actúa como un orquestador ligero (Thin Controller),
  * delegando la validación a FormRequests y la lógica de negocio a Actions.
  */
@@ -27,7 +27,7 @@ class AccreditationController extends Controller
      * Muestra la vista de gestión de candidatos a acreditación.
      */
     public function index(
-        Request $request, 
+        Request $request,
         GetAccreditationCandidates $candidatesAction,
         GetAccreditationMetadata $metadataAction
     ): Response {
@@ -44,13 +44,13 @@ class AccreditationController extends Controller
      * Actualiza el estatus de acreditación de un alumno de forma manual (React Inline Edit).
      */
     public function updateStatus(
-        UpdateAccreditationStatusRequest $request, 
+        UpdateAccreditationStatusRequest $request,
         Student $student,
         UpdateStudentAccreditationStatus $action
     ): RedirectResponse {
         $action->execute($student, $request->validated('status'));
 
-        return redirect()->back()->with('success', 'El estatus del alumno ha sido actualizado correctamente.');
+        return redirect()->back()->with('success', 'Student status updated successfully.');
     }
 
     /**
@@ -62,6 +62,6 @@ class AccreditationController extends Controller
     ): RedirectResponse {
         $action->execute($request->validated('ids'));
 
-        return redirect()->back()->with('success', 'Los alumnos seleccionados han sido actualizados al estatus "Suspendido".');
+        return redirect()->back()->with('success', 'The selected students have been updated to "Disabled" status.');
     }
 }
