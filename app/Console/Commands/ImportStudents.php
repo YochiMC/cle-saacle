@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Spatie\Permission\Models\Role;
-use Symfony\Component\Console\Style\SymfonyStyle;
+use App\Console\Commands\ConsoleProgress;
 
 class ImportStudents extends Command
 {
@@ -57,8 +57,8 @@ class ImportStudents extends Command
             $imported = 0;
             $errors = 0;
 
-            // Usar SymfonyStyle para el progreso y evitar advertencias del analizador
-            $io = new SymfonyStyle($this->input, $this->output);
+            // Usar ConsoleProgress (wrapper local) para progreso y evitar advertencias del analizador
+            $io = new ConsoleProgress($this->input, $this->output);
             $io->progressStart(count($rows) - 1);
 
             // Iterar desde la fila 1 (la 0 son headers)
