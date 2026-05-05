@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Spatie\Permission\Models\Role;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 class ImportStudents extends Command
 {
@@ -55,8 +56,10 @@ class ImportStudents extends Command
 
             $imported = 0;
             $errors = 0;
-            /** @var \Symfony\Component\Console\Helper\ProgressBar $bar */
-            $bar = $this->output->createProgressBar(count($rows) - 1);
+
+            // Usar SymfonyStyle para el progreso y evitar advertencias del analizador
+            $io = new SymfonyStyle($this->input, $this->output);
+            $io->progressStart(count($rows) - 1);
 
             // Iterar desde la fila 1 (la 0 son headers)
             for ($i = 1; $i < count($rows); $i++) {
@@ -83,7 +86,7 @@ class ImportStudents extends Command
                     // Validaciones básicas
                     if (empty($data['email']) || empty($data['first_name']) || empty($data['last_name'])) {
                         $errors++;
-                        $bar->advance();
+                        $io->progressAdvance();
                         continue;
                     }
 
@@ -108,7 +111,7 @@ class ImportStudents extends Command
                             ]);
                         }
                         $imported++;
-                        $bar->advance();
+                        $io->progressAdvance();
                         continue;
                     }
 
@@ -140,15 +143,15 @@ class ImportStudents extends Command
                     ]);
 
                     $imported++;
-                    $bar->advance();
+                    $io->progressAdvance();
                 } catch (\Exception $e) {
                     $errors++;
-                    $bar->advance();
+                    $io->progressAdvance();
                     // Continuar con el siguiente registro
                 }
             }
 
-            $bar->finish();
+            $io->progressFinish();
 
             $this->newLine();
             $this->info("=== IMPORTACIÓN COMPLETADA ===");
