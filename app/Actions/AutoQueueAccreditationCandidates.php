@@ -149,7 +149,7 @@ class AutoQueueAccreditationCandidates
         return false;
     }
 
-    private function extractUnitsBreakdown($pivot): array
+    private function extractUnitsBreakdown(mixed $pivot): array
     {
         $units = $pivot->units_breakdown ?? [];
 

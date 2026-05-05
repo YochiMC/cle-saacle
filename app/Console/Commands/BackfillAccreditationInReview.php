@@ -167,7 +167,7 @@ class BackfillAccreditationInReview extends Command
         return now();
     }
 
-    private function isApprovedExamResult($pivot): bool
+    private function isApprovedExamResult(mixed $pivot): bool
     {
         $units = $this->extractUnitsBreakdown($pivot);
 
@@ -203,7 +203,7 @@ class BackfillAccreditationInReview extends Command
         return false;
     }
 
-    private function extractUnitsBreakdown($pivot): array
+    private function extractUnitsBreakdown(mixed $pivot): array
     {
         $units = $pivot->units_breakdown ?? [];
 
