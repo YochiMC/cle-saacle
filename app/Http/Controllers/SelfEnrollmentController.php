@@ -42,8 +42,21 @@ class SelfEnrollmentController extends Controller
             return back()->with('warning', 'Ya estás inscrito en este grupo.');
         }
 
-        // Comprueba periodo: usa el periodo del grupo si existe, sino el periodo activo
-        $period = $group->period ?? Period::where('is_active', true)->first();
+        // Comprueba periodo: usa el periodo del grupo si existe, sino busca el activo que cubre hoy
+        $period = $group->period;
+        
+        if (! $period) {
+            $today = now()->startOfDay();
+            // Preferir un periodo activo que cubra hoy; fallback al más reciente por start_date
+            $period = Period::query()
+                ->where('is_active', true)
+                ->whereDate('start_date', '<=', $today)
+                ->whereDate('end_date', '>=', $today)
+                ->orderByDesc('start_date')
+                ->first()
+                ?? Period::query()->where('is_active', true)->orderByDesc('start_date')->first();
+        }
+        
         if (! $period) {
             return back()->with('warning', 'No hay un periodo activo configurado para inscripción.');
         }
@@ -56,12 +69,11 @@ class SelfEnrollmentController extends Controller
             return back()->with('warning', 'Las inscripciones están fuera de las fechas del periodo.');
         }
 
-        // Verificar elegibilidad: estado del alumno o pago aprobado de tipo CURSO
-        $isEligibleByStatus = $student->status === StudentStatus::ELEGIBLE_INSCRIPCION;
+        // Verificar elegibilidad: estado del alumno o pago aprobado de tipo curso
+        $isEligibleByStatus = in_array($student->status, [StudentStatus::ELEGIBLE_INSCRIPCION, StudentStatus::VALIDATED], true);
 
-        $hasApprovedCoursePayment = $student->services()
-            ->where('status', ServiceStatus::APPROVED->value)
-            ->where('type', ServiceType::CURSO->value)
+        $hasApprovedCoursePayment = $student->approvedServices()
+            ->whereIn('type', ServiceType::courseValues())
             ->exists();
 
         if (! $isEligibleByStatus && ! $hasApprovedCoursePayment) {
@@ -72,7 +84,7 @@ class SelfEnrollmentController extends Controller
         $currentGroupIds = $student->qualifications()->pluck('group_id')->filter(fn($id) => $id !== $group->id)->unique()->values()->all();
 
         foreach ($currentGroupIds as $oldGroupId) {
-            $oldGroup = \App\Models\Group::find($oldGroupId);
+            $oldGroup = Group::query()->where('id', $oldGroupId)->first();
             if ($oldGroup) {
                 $bulkAction->execute($oldGroup, [$student->id]);
             }

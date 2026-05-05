@@ -29,6 +29,7 @@ class GetPeriodConfigAction
                 ['accessorKey' => 'start_date', 'header' => 'Fecha de Inicio'],
                 ['accessorKey' => 'end_date', 'header' => 'Fecha de Fin'],
                 ['accessorKey' => 'status', 'header' => 'Estado'],
+                ['accessorKey' => 'is_active', 'header' => 'Activo'],
             ],
             'formFields' => [
                 [
@@ -42,6 +43,12 @@ class GetPeriodConfigAction
                     'label' => 'Fecha de Fin',
                     'type' => 'date',
                     'required' => true,
+                ],
+                [
+                    'name' => 'is_active',
+                    'label' => 'Activo',
+                    'type' => 'checkbox',
+                    'required' => false,
                 ],
             ],
             'data' => PeriodResource::collection(Period::all())->resolve(),

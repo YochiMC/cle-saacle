@@ -300,6 +300,21 @@ export function useDynamicColumns(
                     );
                 }
 
+                if (key === "is_active") {
+                    const isActiveByStatus = row.original.status === "Activo";
+
+                    return (
+                        <div className="flex justify-center w-full">
+                            <Checkbox
+                                checked={isActiveByStatus}
+                                disabled
+                                aria-label={`${formatLabel(key)} — fila ${row.original.id}`}
+                                className="border-gray-500 data-[state=checked]:bg-[#17365D] data-[state=checked]:text-white"
+                            />
+                        </div>
+                    );
+                }
+
                 // Renderizar celda normal para is_left
                 if (key.includes("is_left")) {
                     return cellValue ? (

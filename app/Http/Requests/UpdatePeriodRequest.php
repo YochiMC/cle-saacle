@@ -24,6 +24,7 @@ class UpdatePeriodRequest extends FormRequest
         return [
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'is_active' => ['sometimes', 'boolean'],
         ];
     }
 

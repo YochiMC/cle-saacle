@@ -260,7 +260,17 @@ class AdminViewsController extends Controller
 
         $student->loadMissing(['services', 'qualifications', 'exams']);
 
-        $activePeriod = Period::all()->firstWhere('is_active', true);
+        // Preferir un periodo activo que cubra la fecha actual. Si no existe,
+        // devolver el periodo activo más reciente por `start_date`.
+        $today = now()->startOfDay();
+
+        $activePeriod = Period::query()
+            ->where('is_active', true)
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->orderByDesc('start_date')
+            ->first()
+            ?? Period::query()->where('is_active', true)->orderByDesc('start_date')->first();
 
         $approvedCourseTypes = $student->approvedCourseTypeValues();
         $approvedExamTypes = $student->approvedExamTypeValues();
@@ -268,8 +278,20 @@ class AdminViewsController extends Controller
         // Grupos y exámenes disponibles en el período activo, filtrados por el concepto pagado.
         $availableGroups = [];
         $availableExams = [];
-        $isEligible = $student->status === StudentStatus::ELEGIBLE_INSCRIPCION;
-        $isInPeriod = $activePeriod && now()->between($activePeriod->start_date, $activePeriod->end_date);
+        // Considerar estados que implican elegibilidad para inscribirse.
+        // Algunos flujos marcan al estudiante como VALIDATED (validado para inscripción)
+        // antes de cambiar a ELEGIBLE_INSCRIPCION, por lo que ambos deben permitir la inscripción.
+        $isEligible = in_array($student->status, [StudentStatus::ELEGIBLE_INSCRIPCION, StudentStatus::VALIDATED], true);
+
+        // Aseguramos que la comparación considere todo el día del inicio y fin
+        // ya que Period castea las fechas como 'date' (00:00:00), lo que podía
+        // provocar que now() quedara fuera si era el mismo día pero con hora > 00:00.
+        $isInPeriod = false;
+        if ($activePeriod && $activePeriod->start_date && $activePeriod->end_date) {
+            $start = Carbon::parse($activePeriod->start_date)->startOfDay();
+            $end = Carbon::parse($activePeriod->end_date)->endOfDay();
+            $isInPeriod = now()->between($start, $end);
+        }
 
         if ($isInPeriod && $activePeriod) {
             $grupos = Group::with(['level', 'teacher', 'period', 'qualifications'])

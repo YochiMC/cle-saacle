@@ -35,13 +35,10 @@ class Student extends Model
         'accreditation_date',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'status' => StudentStatus::class,
-            'accreditation_date' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'status' => StudentStatus::class,
+        'accreditation_date' => 'datetime',
+    ];
 
     public function user(): BelongsTo
     {
