@@ -37,7 +37,7 @@ class VerifyImport extends Command
             ->select('status', DB::raw('count(*) as count'))
             ->groupBy('status')
             ->get();
-        
+
         foreach ($statuses as $status) {
             $this->line("  - {$status->status}: {$status->count}");
         }
@@ -49,7 +49,7 @@ class VerifyImport extends Command
             ->select('degrees.name', DB::raw('count(*) as count'))
             ->groupBy('degrees.id', 'degrees.name')
             ->get();
-        
+
         foreach ($degrees as $degree) {
             $this->line("  - {$degree->name}: {$degree->count}");
         }
