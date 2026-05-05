@@ -2,10 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Teacher;
 
 class TestDataBaseSeeder extends Seeder
 {
@@ -41,9 +39,5 @@ class TestDataBaseSeeder extends Seeder
             'password' => bcrypt('password'),
         ]);
         $viux->assignRole('teacher');
-        Teacher::factory(10)->withRole()->create();
-
-        // Crear exámenes de prueba
-        \App\Models\Exam::factory(5)->withStudents()->create();
     }
 }
