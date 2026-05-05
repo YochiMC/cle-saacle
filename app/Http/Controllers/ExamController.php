@@ -10,6 +10,7 @@ use App\Actions\BulkDeleteExams;
 use App\Actions\BulkUpdateExamStatus;
 use App\Actions\BulkDetachStudentsFromExam;
 use App\Enums\AcademicStatus;
+use App\Enums\StudentStatus;
 use App\Http\Requests\BulkDeleteExamsRequest;
 use App\Http\Requests\BulkUnenrollRequest;
 use App\Http\Requests\BulkUpdateExamStatusRequest;
@@ -21,6 +22,7 @@ use App\Http\Requests\UpdateExamPivotRequest;
 use App\Models\Exam;
 use App\Models\Student;
 use App\Services\ExamNamingService;
+use App\Services\EnrollmentWindowResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -97,6 +99,7 @@ class ExamController extends Controller
      * - examen: metadata del examen consultado.
      * - enrolledStudents: alumnos inscritos con su información de calificación.
      * - availableStudents: alumnos elegibles para inscripción (vacío para rol student).
+     * - isStudentEnrolled: indica si el estudiante actual ya está inscrito.
      */
     public function show(Exam $exam)
     {
@@ -107,14 +110,12 @@ class ExamController extends Controller
             fn($student) => new \App\Http\Resources\StudentExamQualificationResource($student)
         );
 
-        // Seguridad de payload: el alumno no debe recibir el catálogo global de candidatos.
+        // Verificar si el estudiante actual está inscrito
+        $isStudentEnrolled = Auth::user()?->hasRole('student')
+            ? $exam->students()->where('student_id', Auth::user()?->student?->id)->exists()
+            : false;
+
         $availableStudents = [];
-        if (!Auth::user()?->hasRole('student')) {
-            $enrolledIds = $exam->students()->pluck('students.id');
-            $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
-                ->select('id', 'first_name', 'last_name', 'num_control')
-                ->get();
-        }
 
         $levelsTecnm = \App\Models\Level::where('level_tecnm', '!=', 'Programa Egresados')
             ->pluck('level_tecnm')
@@ -122,10 +123,11 @@ class ExamController extends Controller
             ->values();
 
         return \Inertia\Inertia::render('Exams/View', [
-            'examen'           => $exam,
-            'enrolledStudents' => $enrolledStudents,
+            'examen'            => $exam,
+            'enrolledStudents'  => $enrolledStudents,
             'availableStudents' => $availableStudents,
-            'levelsTecnm'      => $levelsTecnm,
+            'levelsTecnm'       => $levelsTecnm,
+            'isStudentEnrolled' => $isStudentEnrolled,
         ]);
     }
 
@@ -135,9 +137,40 @@ class ExamController extends Controller
      * Toda la lógica (schema inicial desde ExamType, anti-duplicados, transacción)
      * está encapsulada en EnrollStudentsInExam.
      */
-    public function enroll(EnrollStudentsRequest $request, Exam $exam, EnrollStudentsInExam $action): RedirectResponse
+    public function enroll(EnrollStudentsRequest $request, Exam $exam, EnrollStudentsInExam $action, EnrollmentWindowResolver $windowResolver): RedirectResponse
     {
         Gate::authorize('enroll', $exam);
+
+        $user = Auth::user();
+        if ($user?->hasRole('student')) {
+            $student = $user->student;
+
+            if (! $student) {
+                abort(403);
+            }
+
+            $studentStatus = $student->status;
+
+            if (! $studentStatus?->canAccessEnrollmentCatalog()) {
+                return back()->with('warning', 'Tu estatus actual no permite iniciar inscripciones.');
+            }
+
+            $period = $exam->period ?? $windowResolver->resolveActivePeriod();
+
+            if (! $windowResolver->isOpen($period)) {
+                return back()->with('warning', 'Las inscripciones de exámenes están fuera de las fechas del periodo.');
+            }
+
+            $examType = $exam->exam_type?->value ?? $exam->exam_type;
+            if (! in_array($examType, $student->approvedExamTypeValues(), true)) {
+                return back()->with('warning', 'El examen no coincide con tu concepto de pago aprobado.');
+            }
+
+            if ($exam->students()->where('student_id', $student->id)->exists()) {
+                return back()->with('warning', 'Ya estás inscrito en este examen.');
+            }
+        }
+
         $action->execute($exam, $request->validated('student_ids'));
 
         return redirect()->back()->with('success', 'Alumnos inscritos al examen.');
@@ -145,6 +178,7 @@ class ExamController extends Controller
 
     /**
      * Da de baja a un solo alumno del examen.
+     * Al desincribirse, mantiene el estado VALIDATED para permitir reinscripción.
      */
     public function unenroll(Exam $exam, Student $student): RedirectResponse
     {
@@ -154,6 +188,9 @@ class ExamController extends Controller
         }
 
         $exam->students()->detach($student->id);
+
+        // Preservar estado VALIDATED para permitir reinscripción durante el mismo período
+        $student->update(['status' => StudentStatus::VALIDATED->value]);
 
         return redirect()->back()->with('success', 'Alumno dado de baja del examen.');
     }

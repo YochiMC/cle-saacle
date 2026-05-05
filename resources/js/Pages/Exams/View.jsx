@@ -26,6 +26,7 @@ export default function View({
     enrolledStudents = [],
     availableStudents = [],
     levelsTecnm = [],
+    isStudentEnrolled = false,
 }) {
     // 1. Invocación del Controlador Lógico (Custom Hook)
     const { 
@@ -33,7 +34,7 @@ export default function View({
         handlers, 
         actions, 
         flashModal 
-    } = useExamManager(examen, enrolledStudents);
+    } = useExamManager(examen, enrolledStudents, isStudentEnrolled);
 
     // 2. Lógica Visual de Filas
     const getRowClassName = (row) => {
@@ -95,7 +96,7 @@ export default function View({
                         />
                     }
                     onNew={
-                        state.canEditQualifications
+                        state.canEnrollStudents
                             ? () => handlers.setIsEnrollModalOpen(true)
                             : undefined
                     }

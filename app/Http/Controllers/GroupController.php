@@ -10,6 +10,7 @@ use App\Actions\BulkDeleteGroups;
 use App\Actions\BulkUpdateGroupStatus;
 use App\Actions\BulkUnenrollStudentsFromGroup;
 use App\Enums\AcademicStatus;
+use App\Enums\StudentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BulkDeleteGroupsRequest;
 use App\Http\Requests\BulkUnenrollRequest;
@@ -147,17 +148,25 @@ class GroupController extends Controller
 
         // Seguridad de payload: el alumno no debe recibir el catálogo global de candidatos.
         $availableStudents = [];
+        $isStudentEnrolled = false;
+        
         if (!Auth::user()?->hasRole('student')) {
             $enrolledIds = $group->qualifications()->pluck('student_id');
             $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
                 ->select('id', 'first_name', 'last_name', 'num_control')
                 ->get();
+        } else {
+            // Para estudiantes: verificar si ya están inscritos en este grupo
+            $isStudentEnrolled = $group->qualifications()
+                ->where('student_id', Auth::user()?->student?->id)
+                ->exists();
         }
 
         return Inertia::render('Groups/View', [
-            'grupo'            => $group,
-            'enrolledStudents' => $enrolledStudents,
-            'availableStudents' => $availableStudents,
+            'grupo'              => $group,
+            'enrolledStudents'   => $enrolledStudents,
+            'availableStudents'  => $availableStudents,
+            'isStudentEnrolled'  => $isStudentEnrolled,
         ]);
     }
 
@@ -177,6 +186,7 @@ class GroupController extends Controller
 
     /**
      * Da de baja a un solo alumno del grupo.
+     * Al desincribirse, mantiene el estado VALIDATED para permitir reinscripción.
      */
     public function unenroll(Group $group, \App\Models\Student $student): RedirectResponse
     {
@@ -188,6 +198,9 @@ class GroupController extends Controller
         Qualification::where('group_id', $group->id)
             ->where('student_id', $student->id)
             ->delete();
+
+        // Preservar estado VALIDATED para permitir reinscripción durante el mismo período
+        $student->update(['status' => StudentStatus::VALIDATED->value]);
 
         return redirect()->back()->with('success', 'Alumno dado de baja del grupo.');
     }

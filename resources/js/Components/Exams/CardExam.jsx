@@ -46,7 +46,7 @@ const CardExam = memo(
         const esEstudiante = hasRole("student");
         const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
         const esStaff = hasRole("admin") || hasRole("coordinator") || hasRole("teacher");
-        const puedeInscribirse = examen.status === "enrolling";
+        const puedeInscribirse = examen.status === "enrolling" && !(esEstudiante && examen.is_enrolled);
 
         // Badge de estado resuelto con el helper compartido (fuente única de verdad)
         const badge = resolverEstado(examen.status);

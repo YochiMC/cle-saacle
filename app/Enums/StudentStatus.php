@@ -20,6 +20,24 @@ enum StudentStatus: string
     case ESPERA_INSCRIPCION = 'espera_inscripcion';
     case ESPERA = 'espera';
 
+    /**
+     * Estados que habilitan el flujo de autoinscripción.
+     *
+     * @return array<int, self>
+     */
+    public static function enrollmentEligibleCases(): array
+    {
+        return [self::VALIDATED, self::ELEGIBLE_INSCRIPCION];
+    }
+
+    /**
+     * Indica si el alumno puede iniciar una autoinscripción.
+     */
+    public function canAccessEnrollmentCatalog(): bool
+    {
+        return in_array($this, self::enrollmentEligibleCases(), true);
+    }
+
     public function label(): string
     {
         return match($this) {

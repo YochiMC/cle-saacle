@@ -14,6 +14,7 @@ import {
     User,
     Unlock,
 } from 'lucide-react';
+import { Trash } from 'lucide-react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 
@@ -22,41 +23,73 @@ export default function StudentEnrollment({
     activePeriod = null,
     isEligible = false,
     isInPeriod = false,
+    canEnroll = false,
     availableGroups = [],
     availableExams = [],
+    enrolledGroups = [],
+    enrolledExams = [],
     studentStatus = '',
+    studentStatusValue = '',
 }) {
     const [submittingTarget, setSubmittingTarget] = useState(null);
     const [feedbackMessage, setFeedbackMessage] = useState('');
 
-    const canEnroll = isEligible && isInPeriod;
+    const canEnrollCatalog = canEnroll || (isEligible && isInPeriod);
 
-    const startEnrollment = (targetKey, postAction) => {
+    const startMutation = (targetKey, action, successMessage, fallbackMessage) => {
         setSubmittingTarget(targetKey);
         setFeedbackMessage('');
 
-        postAction({
+        action({
             preserveScroll: true,
             onSuccess: () => {
-                setFeedbackMessage('Tu solicitud se envió correctamente.');
-                setTimeout(() => window.location.reload(), 1500);
+                setFeedbackMessage(successMessage);
+                setTimeout(() => router.reload({ preserveScroll: true, preserveState: true }), 900);
             },
             onError: (errors) => {
                 const firstError = Object.values(errors || {})[0];
-                setFeedbackMessage(firstError ? String(firstError) : 'No se pudo completar la inscripción.');
+                setFeedbackMessage(firstError ? String(firstError) : fallbackMessage);
             },
             onFinish: () => setSubmittingTarget(null),
         });
     };
 
     const handleGroupEnroll = (groupId) => {
-        startEnrollment(`group-${groupId}`, (options) => router.post(route('self-enroll', { group: groupId }), {}, options));
+        startMutation(
+            `group-${groupId}`,
+            (options) => router.post(route('self-enroll', { group: groupId }), {}, options),
+            'Tu solicitud de inscripción al grupo se envió correctamente.',
+            'No se pudo completar la inscripción al grupo.'
+        );
     };
 
     const handleExamEnroll = (examId) => {
-        startEnrollment(`exam-${examId}`, (options) => router.post(route('exams.enroll', { exam: examId }), {
-            student_ids: [student.id],
-        }, options));
+        startMutation(
+            `exam-${examId}`,
+            (options) => router.post(route('exams.enroll', { exam: examId }), {
+                student_ids: [student.id],
+            }, options),
+            'Tu solicitud de inscripción al examen se envió correctamente.',
+            'No se pudo completar la inscripción al examen.'
+        );
+    };
+
+    const handleGroupUnenroll = (groupId) => {
+        startMutation(
+            `group-unenroll-${groupId}`,
+            (options) => router.delete(route('groups.unenroll', { group: groupId, student: student.id }), options),
+            'Te has desinscrito correctamente del grupo.',
+            'No se pudo completar la desinscripción del grupo.'
+        );
+    };
+
+    const handleExamUnenroll = (examId) => {
+        startMutation(
+            `exam-unenroll-${examId}`,
+            (options) => router.delete(route('exams.unenroll', { exam: examId, student: student.id }), options),
+            'Te has desinscrito correctamente del examen.',
+            'No se pudo completar la desinscripción del examen.'
+        );
     };
 
     const renderCardStatus = (enabled) => (
@@ -126,6 +159,7 @@ export default function StudentEnrollment({
                                     : 'Primero debe activarse tu elegibilidad y el período de inscripción.'}
                             </p>
                             {studentStatus && <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Estatus actual: {studentStatus}</p>}
+                            {studentStatusValue && <p className="mt-1 text-xs text-gray-500">Valor técnico: {studentStatusValue}</p>}
                         </section>
                     </div>
 
@@ -135,7 +169,7 @@ export default function StudentEnrollment({
                         </div>
                     )}
 
-                    {!canEnroll ? (
+                    {!canEnrollCatalog && (
                         <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center shadow-sm">
                             <Lock className="mx-auto mb-4 h-12 w-12 text-red-600" />
                             <h2 className="text-2xl font-bold text-red-900">Inscripción no disponible</h2>
@@ -153,15 +187,80 @@ export default function StudentEnrollment({
                                 </SecondaryButton>
                             )}
                         </div>
-                    ) : (
-                        <div className="space-y-10">
-                            <section className="space-y-4">
-                                <div className="flex items-center gap-2">
-                                    <BookOpen className="h-6 w-6 text-indigo-600" />
-                                    <h2 className="text-2xl font-bold text-gray-900">Cursos disponibles</h2>
-                                </div>
+                    )}
+                    <div className="space-y-10">
+                        <section className="space-y-4">
+                            <div className="flex items-center gap-2">
+                                <User className="h-6 w-6 text-indigo-600" />
+                                <h2 className="text-2xl font-bold text-gray-900">Mis inscripciones en grupos</h2>
+                            </div>
 
-                                {availableGroups.length > 0 ? (
+                            {enrolledGroups.length > 0 ? (
+                                <div className="grid gap-6 lg:grid-cols-2">
+                                    {enrolledGroups.map((g) => {
+                                        const isSubmittingThisUnenroll = submittingTarget === `group-unenroll-${g.id}`;
+
+                                        return (
+                                            <article key={g.id} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div>
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <h4 className="text-xl font-bold text-gray-900">{g.name}</h4>
+                                                            <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-900">{g.type}</span>
+                                                        </div>
+                                                        {g.teacher && (
+                                                            <p className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                                                                <User className="h-4 w-4" />
+                                                                {g.teacher.full_name || g.teacher.name}
+                                                            </p>
+                                                        )}
+                                                    </div>
+
+                                                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${g.available > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                                                        {g.available > 0 ? `${g.available} cupos` : 'Lleno'}
+                                                    </span>
+                                                </div>
+
+                                                <div className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+                                                    <div className="rounded-2xl bg-gray-50 p-4">
+                                                        <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Horario</p>
+                                                        <p className="mt-1 text-gray-900">{g.schedule || 'N/A'}</p>
+                                                    </div>
+                                                    <div className="rounded-2xl bg-gray-50 p-4">
+                                                        <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Aula</p>
+                                                        <p className="mt-1 text-gray-900">{g.classroom || 'N/A'}</p>
+                                                    </div>
+                                                </div>
+
+                                                <SecondaryButton
+                                                    className="mt-6 w-full border border-red-300 bg-red-50 hover:bg-red-100"
+                                                    disabled={isSubmittingThisUnenroll}
+                                                    onClick={() => handleGroupUnenroll(g.id)}
+                                                >
+                                                    {isSubmittingThisUnenroll ? 'Procesando...' : (
+                                                        <span className="inline-flex items-center gap-2"><Trash className="h-4 w-4" /> Desinscribirme</span>
+                                                    )}
+                                                </SecondaryButton>
+                                            </article>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="rounded-3xl border border-yellow-200 bg-yellow-50 p-8 text-center text-yellow-900">
+                                    <User className="mx-auto mb-4 h-12 w-12 text-yellow-600" />
+                                    No estás inscrito en ningún grupo actualmente.
+                                </div>
+                            )}
+                        </section>
+
+                        <section className="space-y-4">
+                            <div className="flex items-center gap-2">
+                                <BookOpen className="h-6 w-6 text-indigo-600" />
+                                <h2 className="text-2xl font-bold text-gray-900">Mis cursos disponibles</h2>
+                            </div>
+
+                            {canEnrollCatalog ? (
+                                availableGroups.length > 0 ? (
                                     availableGroups.map((levelGroup) => (
                                         <div key={levelGroup.level.id} className="space-y-4">
                                             <h3 className="text-lg font-semibold text-gray-800">
@@ -233,16 +332,96 @@ export default function StudentEnrollment({
                                         <BookOpen className="mx-auto mb-4 h-12 w-12 text-yellow-600" />
                                         No hay cursos disponibles para el concepto que pagaste.
                                     </div>
-                                )}
-                            </section>
-
-                            <section className="space-y-4">
-                                <div className="flex items-center gap-2">
-                                    <FileText className="h-6 w-6 text-indigo-600" />
-                                    <h2 className="text-2xl font-bold text-gray-900">Exámenes disponibles</h2>
+                                )
+                            ) : (
+                                <div className="rounded-3xl border border-gray-200 bg-white p-6 text-sm text-gray-600 shadow-sm">
+                                    Aún no puedes ver cursos disponibles porque tu estatus o el período de inscripción no están activos.
                                 </div>
+                            )}
+                        </section>
 
-                                {availableExams.length > 0 ? (
+                        <section className="space-y-4">
+                            <div className="flex items-center gap-2">
+                                <FileText className="h-6 w-6 text-indigo-600" />
+                                <h2 className="text-2xl font-bold text-gray-900">Mis exámenes inscritos</h2>
+                            </div>
+
+                            {enrolledExams.length > 0 ? (
+                                <div className="grid gap-6 lg:grid-cols-2">
+                                    {enrolledExams.map((exam) => {
+                                        const isSubmittingThisExamUnenroll = submittingTarget === `exam-unenroll-${exam.id}`;
+
+                                        return (
+                                            <article key={exam.id} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div>
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <h4 className="text-xl font-bold text-gray-900">{exam.name}</h4>
+                                                            <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-900">
+                                                                {exam.exam_type?.value || exam.exam_type}
+                                                            </span>
+                                                        </div>
+                                                        {exam.teacher && (
+                                                            <p className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                                                                <User className="h-4 w-4" />
+                                                                {exam.teacher.full_name || exam.teacher.name}
+                                                            </p>
+                                                        )}
+                                                    </div>
+
+                                                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${exam.available > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                                                        {exam.available > 0 ? `${exam.available} cupos` : 'Lleno'}
+                                                    </span>
+                                                </div>
+
+                                                <div className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+                                                    <div className="rounded-2xl bg-gray-50 p-4">
+                                                        <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Aplicación</p>
+                                                        <p className="mt-1 text-gray-900">{exam.application_time || 'N/A'}</p>
+                                                    </div>
+                                                    <div className="rounded-2xl bg-gray-50 p-4">
+                                                        <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Modalidad</p>
+                                                        <p className="mt-1 text-gray-900">{exam.mode || 'N/A'}</p>
+                                                    </div>
+                                                    <div className="rounded-2xl bg-gray-50 p-4">
+                                                        <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Aula</p>
+                                                        <p className="mt-1 text-gray-900">{exam.classroom || 'N/A'}</p>
+                                                    </div>
+                                                    <div className="rounded-2xl bg-gray-50 p-4">
+                                                        <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Capacidad</p>
+                                                        <p className="mt-1 text-gray-900">{exam.enrolled}/{exam.capacity}</p>
+                                                    </div>
+                                                </div>
+
+                                                <SecondaryButton
+                                                    className="mt-6 w-full border border-red-300 bg-red-50 hover:bg-red-100"
+                                                    disabled={isSubmittingThisExamUnenroll}
+                                                    onClick={() => handleExamUnenroll(exam.id)}
+                                                >
+                                                    {isSubmittingThisExamUnenroll ? 'Procesando...' : (
+                                                        <span className="inline-flex items-center gap-2"><Trash className="h-4 w-4" /> Desinscribirme del examen</span>
+                                                    )}
+                                                </SecondaryButton>
+                                            </article>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="rounded-3xl border border-yellow-200 bg-yellow-50 p-8 text-center text-yellow-900">
+                                    <FileText className="mx-auto mb-4 h-12 w-12 text-yellow-600" />
+                                    No estás inscrito en ningún examen actualmente.
+                                </div>
+                            )}
+                        </section>
+
+                        <section className="space-y-4">
+                            <div className="flex items-center gap-2">
+                                <FileText className="h-6 w-6 text-indigo-600" />
+                                <h2 className="text-2xl font-bold text-gray-900">Exámenes disponibles</h2>
+                            </div>
+
+                            {canEnrollCatalog ? (
+                                availableExams.length > 0 ? (
                                     <div className="grid gap-6 lg:grid-cols-2">
                                         {availableExams.map((exam) => {
                                             const isSubmittingThisExam = submittingTarget === `exam-${exam.id}`;
@@ -305,20 +484,24 @@ export default function StudentEnrollment({
                                         <FileText className="mx-auto mb-4 h-12 w-12 text-yellow-600" />
                                         No hay exámenes disponibles para el concepto que pagaste.
                                     </div>
-                                )}
-                            </section>
-
-                            <div className="rounded-3xl border border-gray-200 bg-white p-5 text-sm text-gray-600 shadow-sm">
-                                <div className="flex items-start gap-3">
-                                    <School className="mt-0.5 h-5 w-5 text-indigo-600" />
-                                    <p>
-                                        Si tu pago corresponde a <strong>Regular</strong>, el sistema seguirá respetando tu nivel.
-                                        Para los demás conceptos, solo verás los grupos o exámenes que coinciden con el pago aprobado.
-                                    </p>
+                                )
+                            ) : (
+                                <div className="rounded-3xl border border-gray-200 bg-white p-6 text-sm text-gray-600 shadow-sm">
+                                    Aún no puedes ver exámenes disponibles porque tu estatus o el período de inscripción no están activos.
                                 </div>
+                            )}
+                        </section>
+
+                        <div className="rounded-3xl border border-gray-200 bg-white p-5 text-sm text-gray-600 shadow-sm">
+                            <div className="flex items-start gap-3">
+                                <School className="mt-0.5 h-5 w-5 text-indigo-600" />
+                                <p>
+                                    Si tu pago corresponde a <strong>Regular</strong>, el sistema seguirá respetando tu nivel.
+                                    Para los demás conceptos, solo verás los grupos o exámenes que coinciden con el pago aprobado.
+                                </p>
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>

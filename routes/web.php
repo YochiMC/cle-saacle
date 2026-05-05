@@ -95,8 +95,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             });
 
             Route::middleware('role:admin|coordinator|student')->group(function () {
-                Route::post('/{group}/enroll', [GroupController::class, 'enroll'])->name('groups.enroll');
                 Route::delete('/{group}/unenroll/{student}', [GroupController::class, 'unenroll'])->name('groups.unenroll');
+            });
+
+            Route::middleware('role:admin|coordinator')->group(function () {
+                Route::post('/{group}/enroll', [GroupController::class, 'enroll'])->name('groups.enroll');
             });
 
             Route::middleware('role:admin|coordinator')->group(function () {

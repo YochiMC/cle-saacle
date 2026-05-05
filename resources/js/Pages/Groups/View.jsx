@@ -29,7 +29,8 @@ export default function View({
     auth,
     grupo,
     enrolledStudents = [],
-    availableStudents = [] // Ajustado según contrato del backend
+    availableStudents = [],
+    isStudentEnrolled = false
 }) {
     // 1. Invocación del Controlador Lógico (Custom Hook)
     const {
@@ -37,7 +38,7 @@ export default function View({
         handlers,
         actions,
         flashModal
-    } = useGroupManager(grupo, enrolledStudents);
+    } = useGroupManager(grupo, enrolledStudents, isStudentEnrolled);
 
     // 2. Lógica Visual: Determinación de estilos de fila
     const getRowClassName = (row) => {

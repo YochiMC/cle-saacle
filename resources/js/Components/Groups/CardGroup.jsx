@@ -27,7 +27,7 @@ const CardGroup = memo(
         const esEstudiante = hasRole("student");
         const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
         const esStaff = hasRole("admin") || hasRole("coordinator") || hasRole("teacher");
-        const puedeInscribirse = grupo.status === "enrolling";
+        const puedeInscribirse = grupo.status === "enrolling" && !(esEstudiante && grupo.is_enrolled);
 
         // Badge de estado resuelto con el helper compartido (fuente única de verdad)
         const badge = resolverEstado(grupo.status, grupo.status_label);

@@ -17,7 +17,7 @@ import {
  * Controlador lógico para la vista de gestión de exámenes.
  * Implementa soporte dinámico para promedios numéricos y niveles MCER.
  */
-export default function useExamManager(examen, enrolledStudents = []) {
+export default function useExamManager(examen, enrolledStudents = [], isStudentEnrolled = false) {
     const { hasRole } = usePermission();
     const { flashModal, closeFlashModal } = useFlashAlert();
 
@@ -50,6 +50,10 @@ export default function useExamManager(examen, enrolledStudents = []) {
     const canEditQualifications = useMemo(() => 
         hasRole("teacher") || hasRole("admin") || hasRole("coordinator"), 
     [hasRole]);
+
+    const canEnrollStudents = useMemo(() => 
+        (hasRole("admin") || hasRole("coordinator")) && !isStudentEnrolled,
+    [hasRole, isStudentEnrolled]);
 
     const unitKeys = useMemo(() => 
         getUnitKeysFromRows(normalizedData), 
@@ -147,6 +151,7 @@ export default function useExamManager(examen, enrolledStudents = []) {
             restrictedColumns,
             editableColumns,
             canEditQualifications,
+            canEnrollStudents,
         },
         handlers: {
             setEditingRowId,
