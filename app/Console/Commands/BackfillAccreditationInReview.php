@@ -83,7 +83,7 @@ class BackfillAccreditationInReview extends Command
         $this->line("Actualizados: {$updated}");
         $this->line("Sin cambios: {$skipped}");
 
-        return self::SUCCESS;
+        return Command::SUCCESS;
     }
 
     private function resolveLatestAccreditationCandidate(Student $student): ?array

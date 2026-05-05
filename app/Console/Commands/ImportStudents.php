@@ -103,7 +103,7 @@ class ImportStudents extends Command
                                 'degree_id' => $data['degree_id'],
                                 'type_student_id' => $data['type_student_id'],
                                 'level_id' => $data['level_id'],
-                                'status' => StudentStatus::WAITING,
+                                'status' => StudentStatus::CURRENT,
                             ]);
                         }
                         $imported++;
@@ -135,7 +135,7 @@ class ImportStudents extends Command
                         'degree_id' => $data['degree_id'],
                         'type_student_id' => $data['type_student_id'],
                         'level_id' => $data['level_id'],
-                        'status' => StudentStatus::WAITING,
+                        'status' => StudentStatus::CURRENT,
                     ]);
 
                     $imported++;
@@ -164,7 +164,7 @@ class ImportStudents extends Command
     /**
      * Parsear fechas en diferentes formatos.
      */
-    private function parseDate($dateString)
+    private function parseDate(string|null|\DateTime $dateString)
     {
         if (empty($dateString)) {
             return null;

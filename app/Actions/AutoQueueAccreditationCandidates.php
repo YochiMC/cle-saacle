@@ -113,7 +113,7 @@ class AutoQueueAccreditationCandidates
         return now();
     }
 
-    private function isApprovedExamResult($pivot): bool
+    private function isApprovedExamResult(mixed $pivot): bool
     {
         $units = $this->extractUnitsBreakdown($pivot);
 
