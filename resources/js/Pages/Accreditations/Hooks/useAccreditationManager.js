@@ -5,7 +5,7 @@ import { STATUS_SELECT_OPTIONS } from "../Constants/accreditationConstants";
 
 /**
  * Custom Hook: Headless Controller para la gestión de Acreditaciones.
- * 
+ *
  * Centraliza la lógica de filtrado, estados de UI y mutaciones vía Inertia.
  */
 export default function useAccreditationManager(candidates) {
@@ -23,7 +23,7 @@ export default function useAccreditationManager(candidates) {
     const filteredCandidates = useMemo(() => {
         return candidates.filter((item) => {
             const matchesStatus = statusFilter === "" || item.status === statusFilter;
-            const matchesType = typeFilter === "" || 
+            const matchesType = typeFilter === "" ||
                 (item?.achieved_by && item.achieved_by.toLowerCase() === typeFilter.toLowerCase());
             return matchesStatus && matchesType;
         });
@@ -69,11 +69,11 @@ export default function useAccreditationManager(candidates) {
                 preserveScroll: true,
                 preserveState: true,
                 onSuccess: () => {
-                    showFlash("success", "El estatus de acreditación se ha actualizado.");
+                    showFlash("success", "Accreditation status updated.");
                     setEditingRowId(null);
                 },
                 onError: () => {
-                    showFlash("error", "Ha ocurrido un error al actualizar el estatus.");
+                    showFlash("error", "An error occurred while updating the status.");
                 },
             }
         );
@@ -87,15 +87,15 @@ export default function useAccreditationManager(candidates) {
 
         router.patch(
             route("accreditations.update-status", target.id),
-            { status: "suspended" },
+            { status: "disabled" },
             {
                 preserveScroll: true,
                 preserveState: true,
                 onSuccess: () => {
-                    showFlash("success", "Alumno actualizado a estatus Suspendido.");
+                    showFlash("success", "Student updated to Disabled status.");
                 },
                 onError: () => {
-                    showFlash("error", "No se pudo actualizar el estatus del alumno.");
+                    showFlash("error", "Could not update student status.");
                 },
             }
         );
