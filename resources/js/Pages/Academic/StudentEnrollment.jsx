@@ -2,294 +2,323 @@ import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
 import {
-    Lock, AlertCircle, CheckCircle, Clock, BookOpen,
-    User, Unlock, ChevronRight, AlertTriangle
+    AlertCircle,
+    AlertTriangle,
+    BookOpen,
+    CheckCircle,
+    Clock,
+    FileText,
+    Lock,
+    Plus,
+    School,
+    User,
+    Unlock,
 } from 'lucide-react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 
-/**
- * Vista de Autoinscripción para Estudiantes
- *
- * Muestra:
- * 1. Estado de elegibilidad: Elegible o No Elegible
- * 2. Estado del período de inscripción: Activo o Inactivo
- * 3. Grupos disponibles agrupados por nivel
- * 4. Opción de inscribirse o cambiar de grupo
- */
 export default function StudentEnrollment({
     student,
     activePeriod = null,
     isEligible = false,
     isInPeriod = false,
     availableGroups = [],
+    availableExams = [],
     studentStatus = '',
 }) {
-    const [selectedGroupId, setSelectedGroupId] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [enrollmentMessage, setEnrollmentMessage] = useState('');
+    const [submittingTarget, setSubmittingTarget] = useState(null);
+    const [feedbackMessage, setFeedbackMessage] = useState('');
 
-    const handleEnroll = (groupId) => {
-        setIsSubmitting(true);
-        setEnrollmentMessage('');
-
-        // Enrolar en el nuevo grupo (y desinscrribirse de otros si aplica)
-        router.post(
-            route('self-enroll', { group: groupId }),
-            {},
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setEnrollmentMessage('✓ Inscripción exitosa. Ahora estás en espera de confirmación.');
-                    setSelectedGroupId(null);
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
-                },
-                onError: (errors) => {
-                    setEnrollmentMessage('✗ No se pudo completar la inscripción. ' + Object.values(errors)[0]);
-                },
-                onFinish: () => setIsSubmitting(false),
-            }
-        );
-    };
-
-    // Determina el estado visual general
     const canEnroll = isEligible && isInPeriod;
 
+    const startEnrollment = (targetKey, postAction) => {
+        setSubmittingTarget(targetKey);
+        setFeedbackMessage('');
+
+        postAction({
+            preserveScroll: true,
+            onSuccess: () => {
+                setFeedbackMessage('Tu solicitud se envió correctamente.');
+                setTimeout(() => window.location.reload(), 1500);
+            },
+            onError: (errors) => {
+                const firstError = Object.values(errors || {})[0];
+                setFeedbackMessage(firstError ? String(firstError) : 'No se pudo completar la inscripción.');
+            },
+            onFinish: () => setSubmittingTarget(null),
+        });
+    };
+
+    const handleGroupEnroll = (groupId) => {
+        startEnrollment(`group-${groupId}`, (options) => router.post(route('self-enroll', { group: groupId }), {}, options));
+    };
+
+    const handleExamEnroll = (examId) => {
+        startEnrollment(`exam-${examId}`, (options) => router.post(route('exams.enroll', { exam: examId }), {
+            student_ids: [student.id],
+        }, options));
+    };
+
+    const renderCardStatus = (enabled) => (
+        <span
+            className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${enabled
+                ? 'bg-emerald-200 text-emerald-900'
+                : 'bg-red-200 text-red-900'
+            }`}
+        >
+            {enabled ? 'Disponible' : 'Bloqueado'}
+        </span>
+    );
+
     return (
-        <AuthenticatedLayout user={null}>
-            <Head title="Autoinscripción a Grupos" />
+        <AuthenticatedLayout>
+            <Head title="Autoinscripción" />
 
             <div className="py-12">
-                <div className="max-w-6xl mx-auto sm:px-6 lg:px-8">
-
-                    {/* Encabezado */}
-                    <div className="mb-8">
-                        <h1 className="mb-2 text-4xl font-extrabold text-gray-900">
-                            Autoinscripción a Grupos
-                        </h1>
-                        <p className="text-lg text-gray-600">
-                            Revisa tu elegibilidad y elige un grupo para inscribirte.
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-8">
+                    <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">Módulo de inscripciones</p>
+                        <h1 className="mt-2 text-4xl font-black text-gray-900">Autoinscripción a grupos y exámenes</h1>
+                        <p className="mt-3 max-w-3xl text-gray-600">
+                            El sistema mostrará solo los conceptos que ya pagaste y que están abiertos dentro del período actual.
+                            En los cursos regulares se mantiene la restricción por nivel.
                         </p>
                     </div>
 
-                    {/* Tarjetas de Estado */}
-                    <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3">
-
-                        {/* Estado del Estudiante */}
-                        <div className={`rounded-2xl border-2 p-6 shadow-sm ${isEligible ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
-                            <div className="flex items-start justify-between mb-4">
-                                {isEligible ? (
-                                    <Unlock className="w-8 h-8 text-emerald-600" />
-                                ) : (
-                                    <Lock className="w-8 h-8 text-red-600" />
-                                )}
-                                <span className={`text-xs font-bold px-3 py-1 rounded-full ${isEligible ? 'bg-emerald-200 text-emerald-900' : 'bg-red-200 text-red-900'}`}>
-                                    {isEligible ? 'ELEGIBLE' : 'NO ELEGIBLE'}
-                                </span>
+                    <div className="grid gap-6 md:grid-cols-3">
+                        <section className={`rounded-3xl border-2 p-6 shadow-sm ${isEligible ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
+                            <div className="mb-4 flex items-start justify-between">
+                                {isEligible ? <Unlock className="h-8 w-8 text-emerald-600" /> : <Lock className="h-8 w-8 text-red-600" />}
+                                {renderCardStatus(isEligible)}
                             </div>
-                            <h3 className={`text-lg font-bold ${isEligible ? 'text-emerald-900' : 'text-red-900'}`}>
-                                Tu Elegibilidad
-                            </h3>
+                            <h2 className={`text-lg font-bold ${isEligible ? 'text-emerald-900' : 'text-red-900'}`}>Elegibilidad</h2>
                             <p className={`mt-2 text-sm ${isEligible ? 'text-emerald-800' : 'text-red-800'}`}>
                                 {isEligible
-                                    ? 'Tienes un pago aprobado y eres elegible para inscribirte.'
-                                    : 'No tienes pagos aprobados. Carga un comprobante para ser elegible.'}
+                                    ? 'Tu pago fue aprobado y ya puedes ver las opciones correspondientes.'
+                                    : 'Debes tener al menos un pago aprobado para activar tu proceso de inscripción.'}
+                            </p>
+                        </section>
+
+                        <section className={`rounded-3xl border-2 p-6 shadow-sm ${isInPeriod ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
+                            <div className="mb-4 flex items-start justify-between">
+                                {isInPeriod ? <Clock className="h-8 w-8 text-blue-600" /> : <AlertCircle className="h-8 w-8 text-gray-600" />}
+                                {renderCardStatus(isInPeriod)}
+                            </div>
+                            <h2 className={`text-lg font-bold ${isInPeriod ? 'text-blue-900' : 'text-gray-900'}`}>Período actual</h2>
+                            <p className={`mt-2 text-sm ${isInPeriod ? 'text-blue-800' : 'text-gray-700'}`}>
+                                {activePeriod
+                                    ? isInPeriod
+                                        ? `Período activo: ${activePeriod.name}`
+                                        : `Fuera de fecha: ${activePeriod.name}`
+                                    : 'No hay un período activo configurado.'}
+                            </p>
+                        </section>
+
+                        <section className={`rounded-3xl border-2 p-6 shadow-sm ${canEnroll ? 'border-indigo-200 bg-indigo-50' : 'border-yellow-200 bg-yellow-50'}`}>
+                            <div className="mb-4 flex items-start justify-between">
+                                {canEnroll ? <CheckCircle className="h-8 w-8 text-indigo-600" /> : <AlertTriangle className="h-8 w-8 text-yellow-600" />}
+                                {renderCardStatus(canEnroll)}
+                            </div>
+                            <h2 className={`text-lg font-bold ${canEnroll ? 'text-indigo-900' : 'text-yellow-900'}`}>Estado general</h2>
+                            <p className={`mt-2 text-sm ${canEnroll ? 'text-indigo-800' : 'text-yellow-800'}`}>
+                                {canEnroll
+                                    ? 'Puedes elegir un grupo o un examen que coincida con tu pago aprobado.'
+                                    : 'Primero debe activarse tu elegibilidad y el período de inscripción.'}
+                            </p>
+                            {studentStatus && <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Estatus actual: {studentStatus}</p>}
+                        </section>
+                    </div>
+
+                    {feedbackMessage && (
+                        <div className="rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-medium text-indigo-900">
+                            {feedbackMessage}
+                        </div>
+                    )}
+
+                    {!canEnroll ? (
+                        <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center shadow-sm">
+                            <Lock className="mx-auto mb-4 h-12 w-12 text-red-600" />
+                            <h2 className="text-2xl font-bold text-red-900">Inscripción no disponible</h2>
+                            <p className="mx-auto mt-3 max-w-2xl text-red-800">
+                                {!isEligible
+                                    ? 'Necesitas un pago aprobado para desbloquear tu inscripción.'
+                                    : 'Tu período de inscripción aún no está activo o ya expiró.'}
                             </p>
                             {!isEligible && (
-                                <SecondaryButton className="w-full mt-4 text-center bg-red-100 border border-red-300 hover:bg-red-200">
-                                    <a href={route('pagos')} className="block w-full">
-                                        Ir a Subir Comprobante
+                                <SecondaryButton className="mt-6 border border-red-300 bg-red-100 hover:bg-red-200">
+                                    <a href={route('pagos')} className="inline-flex items-center gap-2">
+                                        <Plus className="h-4 w-4" />
+                                        Ir a pagos
                                     </a>
                                 </SecondaryButton>
                             )}
                         </div>
+                    ) : (
+                        <div className="space-y-10">
+                            <section className="space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <BookOpen className="h-6 w-6 text-indigo-600" />
+                                    <h2 className="text-2xl font-bold text-gray-900">Cursos disponibles</h2>
+                                </div>
 
-                        {/* Estado del Período */}
-                        <div className={`rounded-2xl border-2 p-6 shadow-sm ${isInPeriod ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
-                            <div className="flex items-start justify-between mb-4">
-                                {isInPeriod ? (
-                                    <Clock className="w-8 h-8 text-blue-600" />
+                                {availableGroups.length > 0 ? (
+                                    availableGroups.map((levelGroup) => (
+                                        <div key={levelGroup.level.id} className="space-y-4">
+                                            <h3 className="text-lg font-semibold text-gray-800">
+                                                {levelGroup.level.level_tecnm || levelGroup.level.name}
+                                            </h3>
+
+                                            <div className="grid gap-6 lg:grid-cols-2">
+                                                {levelGroup.groups.map((group) => {
+                                                    const isSubmittingThisGroup = submittingTarget === `group-${group.id}`;
+                                                    const isRegularCourse = group.type === 'Regular';
+
+                                                    return (
+                                                        <article key={group.id} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+                                                            <div className="flex items-start justify-between gap-4">
+                                                                <div>
+                                                                    <div className="flex flex-wrap items-center gap-2">
+                                                                        <h4 className="text-xl font-bold text-gray-900">{group.name}</h4>
+                                                                        <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-900">
+                                                                            {group.type}
+                                                                        </span>
+                                                                    </div>
+                                                                    {group.teacher && (
+                                                                        <p className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                                                                            <User className="h-4 w-4" />
+                                                                            {group.teacher.name}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+
+                                                                <span className={`rounded-full px-3 py-1 text-xs font-bold ${group.available > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                                                                    {group.available > 0 ? `${group.available} cupos` : 'Lleno'}
+                                                                </span>
+                                                            </div>
+
+                                                            <div className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+                                                                <div className="rounded-2xl bg-gray-50 p-4">
+                                                                    <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Horario</p>
+                                                                    <p className="mt-1 text-gray-900">{group.schedule || 'N/A'}</p>
+                                                                </div>
+                                                                <div className="rounded-2xl bg-gray-50 p-4">
+                                                                    <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Aula</p>
+                                                                    <p className="mt-1 text-gray-900">{group.classroom || 'N/A'}</p>
+                                                                </div>
+                                                                <div className="rounded-2xl bg-gray-50 p-4">
+                                                                    <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Capacidad</p>
+                                                                    <p className="mt-1 text-gray-900">{group.enrolled}/{group.capacity}</p>
+                                                                </div>
+                                                                <div className="rounded-2xl bg-gray-50 p-4">
+                                                                    <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Regla</p>
+                                                                    <p className="mt-1 text-gray-900">{isRegularCourse ? 'Respeta tu nivel actual' : 'Sin restricción por nivel'}</p>
+                                                                </div>
+                                                            </div>
+
+                                                            <PrimaryButton
+                                                                className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                                                                disabled={isSubmittingThisGroup || group.available <= 0}
+                                                                onClick={() => handleGroupEnroll(group.id)}
+                                                            >
+                                                                {isSubmittingThisGroup ? 'Procesando...' : 'Inscribirme al curso'}
+                                                            </PrimaryButton>
+                                                        </article>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))
                                 ) : (
-                                    <AlertCircle className="w-8 h-8 text-gray-600" />
+                                    <div className="rounded-3xl border border-yellow-200 bg-yellow-50 p-8 text-center text-yellow-900">
+                                        <BookOpen className="mx-auto mb-4 h-12 w-12 text-yellow-600" />
+                                        No hay cursos disponibles para el concepto que pagaste.
+                                    </div>
                                 )}
-                                <span className={`text-xs font-bold px-3 py-1 rounded-full ${isInPeriod ? 'bg-blue-200 text-blue-900' : 'bg-gray-200 text-gray-900'}`}>
-                                    {isInPeriod ? 'ABIERTO' : 'CERRADO'}
-                                </span>
-                            </div>
-                            <h3 className={`text-lg font-bold ${isInPeriod ? 'text-blue-900' : 'text-gray-900'}`}>
-                                Período de Inscripción
-                            </h3>
-                            {activePeriod ? (
-                                <p className={`mt-2 text-sm ${isInPeriod ? 'text-blue-800' : 'text-gray-700'}`}>
-                                    {isInPeriod
-                                        ? `Período activo: ${activePeriod.name}`
-                                        : `Período: ${activePeriod.name} (fuera de fechas)`}
-                                </p>
-                            ) : (
-                                <p className="mt-2 text-sm text-gray-700">
-                                    No hay período activo en este momento.
-                                </p>
-                            )}
-                        </div>
+                            </section>
 
-                        {/* Resumen General */}
-                        <div className={`rounded-2xl border-2 p-6 shadow-sm ${canEnroll ? 'bg-indigo-50 border-indigo-200' : 'bg-yellow-50 border-yellow-200'}`}>
-                            <div className="flex items-start justify-between mb-4">
-                                {canEnroll ? (
-                                    <CheckCircle className="w-8 h-8 text-indigo-600" />
-                                ) : (
-                                    <AlertTriangle className="w-8 h-8 text-yellow-600" />
-                                )}
-                                <span className={`text-xs font-bold px-3 py-1 rounded-full ${canEnroll ? 'bg-indigo-200 text-indigo-900' : 'bg-yellow-200 text-yellow-900'}`}>
-                                    {canEnroll ? 'LISTO' : 'EN ESPERA'}
-                                </span>
-                            </div>
-                            <h3 className={`text-lg font-bold ${canEnroll ? 'text-indigo-900' : 'text-yellow-900'}`}>
-                                Puedes Inscribirte
-                            </h3>
-                            <p className={`mt-2 text-sm ${canEnroll ? 'text-indigo-800' : 'text-yellow-800'}`}>
-                                {canEnroll
-                                    ? 'Todo está listo. Elige un grupo a continuación.'
-                                    : 'Completa los requisitos de elegibilidad y período.'}
-                            </p>
-                        </div>
+                            <section className="space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <FileText className="h-6 w-6 text-indigo-600" />
+                                    <h2 className="text-2xl font-bold text-gray-900">Exámenes disponibles</h2>
+                                </div>
 
-                    </div>
-
-                    {/* Grupos Disponibles */}
-                    {canEnroll && availableGroups.length > 0 ? (
-                        <div className="space-y-8">
-                            {availableGroups.map((levelGroup) => (
-                                <div key={levelGroup.level.id}>
-                                    <h2 className="flex items-center gap-2 mb-4 text-2xl font-bold text-gray-900">
-                                        <BookOpen className="w-6 h-6 text-indigo-600" />
-                                        {levelGroup.level.level_tecnm || levelGroup.level.name}
-                                    </h2>
-
-                                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                                        {levelGroup.groups.map((group) => {
-                                            const isSelected = selectedGroupId === group.id;
-                                            const capacityPercent = (group.enrolled / group.capacity) * 100;
-                                            const availableSeats = group.available;
+                                {availableExams.length > 0 ? (
+                                    <div className="grid gap-6 lg:grid-cols-2">
+                                        {availableExams.map((exam) => {
+                                            const isSubmittingThisExam = submittingTarget === `exam-${exam.id}`;
 
                                             return (
-                                                <div
-                                                    key={group.id}
-                                                    className={`rounded-2xl border-2 p-6 transition-all cursor-pointer ${isSelected
-                                                        ? 'bg-indigo-50 border-indigo-500 shadow-lg'
-                                                        : 'bg-white border-gray-200 hover:border-indigo-300 hover:shadow-md'
-                                                    }`}
-                                                    onClick={() => setSelectedGroupId(isSelected ? null : group.id)}
-                                                >
-                                                    {/* Encabezado del Grupo */}
-                                                    <div className="flex items-start justify-between mb-4">
+                                                <article key={exam.id} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+                                                    <div className="flex items-start justify-between gap-4">
                                                         <div>
-                                                            <h3 className="text-xl font-bold text-gray-900">{group.name}</h3>
-                                                            {group.teacher && (
-                                                                <p className="flex items-center gap-1 mt-1 text-sm text-gray-600">
-                                                                    <User className="w-4 h-4" />
-                                                                    {group.teacher.name}
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                <h4 className="text-xl font-bold text-gray-900">{exam.name}</h4>
+                                                                <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-900">
+                                                                    {exam.exam_type}
+                                                                </span>
+                                                            </div>
+                                                            {exam.teacher && (
+                                                                <p className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                                                                    <User className="h-4 w-4" />
+                                                                    {exam.teacher.name}
                                                                 </p>
                                                             )}
                                                         </div>
-                                                        {availableSeats > 0 ? (
-                                                            <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800">
-                                                                {availableSeats} {availableSeats === 1 ? 'lugar' : 'lugares'}
-                                                            </span>
-                                                        ) : (
-                                                            <span className="px-3 py-1 text-xs font-bold text-red-800 bg-red-100 rounded-full">
-                                                                Lleno
-                                                            </span>
-                                                        )}
+
+                                                        <span className={`rounded-full px-3 py-1 text-xs font-bold ${exam.available > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                                                            {exam.available > 0 ? `${exam.available} cupos` : 'Lleno'}
+                                                        </span>
                                                     </div>
 
-                                                    {/* Detalles del Grupo */}
-                                                    <div className="mb-5 space-y-3">
-                                                        <div className="grid grid-cols-2 gap-4 text-sm">
-                                                            <div>
-                                                                <p className="font-semibold text-gray-500">Horario</p>
-                                                                <p className="text-gray-900">{group.schedule || 'N/A'}</p>
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-semibold text-gray-500">Aula</p>
-                                                                <p className="text-gray-900">{group.classroom || 'N/A'}</p>
-                                                            </div>
+                                                    <div className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+                                                        <div className="rounded-2xl bg-gray-50 p-4">
+                                                            <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Aplicación</p>
+                                                            <p className="mt-1 text-gray-900">{exam.application_time || 'N/A'}</p>
                                                         </div>
-
-                                                        {/* Barra de Capacidad */}
-                                                        <div>
-                                                            <div className="flex items-center justify-between mb-2">
-                                                                <p className="text-sm font-semibold text-gray-500">Capacidad</p>
-                                                                <p className="text-sm font-bold text-gray-900">
-                                                                    {group.enrolled}/{group.capacity}
-                                                                </p>
-                                                            </div>
-                                                            <div className="w-full h-2 overflow-hidden bg-gray-200 rounded-full">
-                                                                <div
-                                                                    className={`h-full transition-all ${capacityPercent >= 100 ? 'bg-red-600' : 'bg-emerald-600'}`}
-                                                                    style={{ width: `${Math.min(capacityPercent, 100)}%` }}
-                                                                ></div>
-                                                            </div>
+                                                        <div className="rounded-2xl bg-gray-50 p-4">
+                                                            <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Modalidad</p>
+                                                            <p className="mt-1 text-gray-900">{exam.mode || 'N/A'}</p>
+                                                        </div>
+                                                        <div className="rounded-2xl bg-gray-50 p-4">
+                                                            <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Aula</p>
+                                                            <p className="mt-1 text-gray-900">{exam.classroom || 'N/A'}</p>
+                                                        </div>
+                                                        <div className="rounded-2xl bg-gray-50 p-4">
+                                                            <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Capacidad</p>
+                                                            <p className="mt-1 text-gray-900">{exam.enrolled}/{exam.capacity}</p>
                                                         </div>
                                                     </div>
 
-                                                    {/* Botón de Inscripción (Condicional) */}
-                                                    {isSelected && availableSeats > 0 && (
-                                                        <div className="pt-4 border-t border-gray-200">
-                                                            {enrollmentMessage && (
-                                                                <div className={`mb-4 p-3 rounded-lg text-sm font-semibold ${
-                                                                    enrollmentMessage.startsWith('✓')
-                                                                        ? 'bg-emerald-100 text-emerald-800'
-                                                                        : 'bg-red-100 text-red-800'
-                                                                }`}>
-                                                                    {enrollmentMessage}
-                                                                </div>
-                                                            )}
-                                                            <PrimaryButton
-                                                                onClick={() => handleEnroll(group.id)}
-                                                                disabled={isSubmitting}
-                                                                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
-                                                            >
-                                                                {isSubmitting ? 'Procesando...' : 'Inscribirme'}
-                                                            </PrimaryButton>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                    <PrimaryButton
+                                                        className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                                                        disabled={isSubmittingThisExam || exam.available <= 0}
+                                                        onClick={() => handleExamEnroll(exam.id)}
+                                                    >
+                                                        {isSubmittingThisExam ? 'Procesando...' : 'Inscribirme al examen'}
+                                                    </PrimaryButton>
+                                                </article>
                                             );
                                         })}
                                     </div>
+                                ) : (
+                                    <div className="rounded-3xl border border-yellow-200 bg-yellow-50 p-8 text-center text-yellow-900">
+                                        <FileText className="mx-auto mb-4 h-12 w-12 text-yellow-600" />
+                                        No hay exámenes disponibles para el concepto que pagaste.
+                                    </div>
+                                )}
+                            </section>
+
+                            <div className="rounded-3xl border border-gray-200 bg-white p-5 text-sm text-gray-600 shadow-sm">
+                                <div className="flex items-start gap-3">
+                                    <School className="mt-0.5 h-5 w-5 text-indigo-600" />
+                                    <p>
+                                        Si tu pago corresponde a <strong>Regular</strong>, el sistema seguirá respetando tu nivel.
+                                        Para los demás conceptos, solo verás los grupos o exámenes que coinciden con el pago aprobado.
+                                    </p>
                                 </div>
-                            ))}
-                        </div>
-                    ) : canEnroll ? (
-                        <div className="p-8 text-center border-2 border-yellow-200 bg-yellow-50 rounded-2xl">
-                            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-yellow-600" />
-                            <h3 className="mb-2 text-xl font-bold text-yellow-900">No hay grupos disponibles</h3>
-                            <p className="text-yellow-800">
-                                En este momento no hay grupos disponibles dentro de tu nivel académico en el período de inscripción.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="p-8 text-center border-2 border-red-200 bg-red-50 rounded-2xl">
-                            <Lock className="w-12 h-12 mx-auto mb-4 text-red-600" />
-                            <h3 className="mb-2 text-xl font-bold text-red-900">Inscripción no disponible</h3>
-                            <p className="mb-6 text-red-800">
-                                {!isEligible
-                                    ? 'Necesitas ser elegible para inscribirte. Sube un comprobante de pago aprobado.'
-                                    : 'El período de inscripción no está activo en este momento.'}
-                            </p>
-                            {!isEligible && (
-                                <PrimaryButton className="bg-red-600 hover:bg-red-700">
-                                    <a href={route('pagos')} className="block">
-                                        Subir Comprobante
-                                    </a>
-                                </PrimaryButton>
-                            )}
+                            </div>
                         </div>
                     )}
-
                 </div>
             </div>
         </AuthenticatedLayout>

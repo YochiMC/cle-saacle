@@ -85,13 +85,32 @@ class Exam extends Model
         // 3. Estudiantes: Exámenes disponibles + historial propio
         if ($user->hasRole('student')) {
             $student = $user->student;
+            $approvedExamTypes = $student?->approvedExamTypeValues() ?? [];
+
+            if (empty($approvedExamTypes)) {
+                return $query->whereHas('students', function ($enrolledQuery) use ($student) {
+                    $enrolledQuery->where('student_id', $student?->id);
+                });
+            }
 
             return $query->where(function ($q) use ($student) {
-                $q->whereIn('status', [
-                    AcademicStatus::ENROLLING->value,
-                    AcademicStatus::ACTIVE->value,
-                    AcademicStatus::PENDING->value,
-                ])->orWhereHas('students', function ($enrolledQuery) use ($student) {
+                $approvedExamTypes = $student?->approvedExamTypeValues() ?? [];
+
+                if (empty($approvedExamTypes)) {
+                    $q->whereHas('students', function ($enrolledQuery) use ($student) {
+                        $enrolledQuery->where('student_id', $student?->id);
+                    });
+
+                    return;
+                }
+
+                $q->where(function ($availableQuery) use ($approvedExamTypes) {
+                    $availableQuery->whereIn('status', [
+                        AcademicStatus::ENROLLING->value,
+                        AcademicStatus::ACTIVE->value,
+                        AcademicStatus::PENDING->value,
+                    ])->whereIn('exam_type', $approvedExamTypes);
+                })->orWhereHas('students', function ($enrolledQuery) use ($student) {
                     $enrolledQuery->where('student_id', $student?->id);
                 });
             });

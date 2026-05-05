@@ -13,7 +13,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 
 export default function Pagos({ auth, services = [], serviceTypes = [], serviceStatuses = [], reviewOptions = [] }) {
     const isAdmin = auth.user?.roles?.some(role => role.name === 'admin' || role.name === 'coordinator');
-    const paymentConceptOptions = serviceTypes.filter((option) => ['examen', 'curso'].includes(option.value));
+    const paymentConceptOptions = serviceTypes;
 
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);

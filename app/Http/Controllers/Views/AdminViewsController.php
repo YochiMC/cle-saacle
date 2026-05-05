@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Views;
 
+use App\Enums\AcademicStatus;
+use App\Enums\GroupType;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
 use App\Enums\GroupMode;
@@ -96,7 +98,7 @@ class AdminViewsController extends Controller
 
         return Inertia::render('Groups/Index', [
             'grupos' => GroupResource::collection($grupos)->resolve(),
-            'levels' => LevelResource::collection(Level::orderBy('level_tecnm')->get())->resolve(),
+            'levels' => LevelResource::collection(Level::all()->sortBy('level_tecnm')->values())->resolve(),
             'teachers' => $ocultarDocentes ? [] : TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(),
             'statuses' => array_map(fn ($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\AcademicStatus::cases()),
@@ -110,7 +112,7 @@ class AdminViewsController extends Controller
      */
     private function debeOcultarDocentes(): bool
     {
-        $fechaConfig = Setting::where('key', 'teacher_reveal_date')->value('value');
+        $fechaConfig = Setting::all()->firstWhere('key', 'teacher_reveal_date')?->value;
         $fechaRevelo = $fechaConfig ? Carbon::parse($fechaConfig) : Carbon::parse('2026-03-20');
 
         return now()->lt($fechaRevelo);
@@ -256,22 +258,44 @@ class AdminViewsController extends Controller
             return back()->with('error', 'No eres un estudiante registrado en el sistema.');
         }
 
-        $activePeriod = Period::where('is_active', true)->first();
+        $student->loadMissing(['services', 'qualifications', 'exams']);
 
-        // Grupos disponibles en el período activo, agrupados por nivel
+        $activePeriod = Period::all()->firstWhere('is_active', true);
+
+        $approvedCourseTypes = $student->approvedCourseTypeValues();
+        $approvedExamTypes = $student->approvedExamTypeValues();
+
+        // Grupos y exámenes disponibles en el período activo, filtrados por el concepto pagado.
         $availableGroups = [];
+        $availableExams = [];
         $isEligible = $student->status === StudentStatus::ELEGIBLE_INSCRIPCION;
         $isInPeriod = $activePeriod && now()->between($activePeriod->start_date, $activePeriod->end_date);
 
         if ($isInPeriod && $activePeriod) {
             $grupos = Group::with(['level', 'teacher', 'period', 'qualifications'])
                 ->where('period_id', $activePeriod->id)
-                ->where('status', \App\Enums\AcademicStatus::ENROLLING)
+                ->where('status', AcademicStatus::ENROLLING->value)
                 ->get();
 
             // Calcular capacidad disponible y filtrar grupos no inscritos
             $availableGroups = $grupos
-                ->filter(fn ($g) => !$g->qualifications->contains('student_id', $student->id))
+                ->filter(function ($group) use ($student, $approvedCourseTypes) {
+                    if ($group->qualifications->contains('student_id', $student->id)) {
+                        return false;
+                    }
+
+                    $groupType = $group->type?->value ?? $group->type;
+
+                    if (!in_array($groupType, $approvedCourseTypes, true)) {
+                        return false;
+                    }
+
+                    if ($groupType === GroupType::REGULAR->value) {
+                        return (int) $group->level_id === (int) $student->level_id;
+                    }
+
+                    return true;
+                })
                 ->map(function ($group) {
                     $enrolled = $group->qualifications->count();
                     $capacity = $group->capacity ?? 0;
@@ -280,10 +304,14 @@ class AdminViewsController extends Controller
                     return [
                         'id' => $group->id,
                         'name' => $group->name,
-                        'level' => $group->level,
+                        'level' => $group->level ? [
+                            'id' => $group->level->id,
+                            'name' => $group->level->name,
+                            'level_tecnm' => $group->level->level_tecnm,
+                        ] : null,
                         'teacher' => $group->teacher ? ['id' => $group->teacher->id, 'name' => $group->teacher->full_name] : null,
                         'period' => $group->period ? ['id' => $group->period->id, 'name' => $group->period->name] : null,
-                        'type' => $group->type,
+                        'type' => $group->type?->value ?? $group->type,
                         'capacity' => $capacity,
                         'enrolled' => $enrolled,
                         'available' => $available,
@@ -298,6 +326,45 @@ class AdminViewsController extends Controller
                 ])
                 ->values()
                 ->all();
+
+            $exams = Exam::with(['teacher', 'period', 'students'])
+                ->where('period_id', $activePeriod->id)
+                ->where('status', AcademicStatus::ENROLLING->value)
+                ->get();
+
+            $availableExams = $exams
+                ->filter(function ($exam) use ($student, $approvedExamTypes) {
+                    if ($exam->students->contains('id', $student->id)) {
+                        return false;
+                    }
+
+                    $examType = $exam->exam_type?->value ?? $exam->exam_type;
+
+                    return in_array($examType, $approvedExamTypes, true);
+                })
+                ->map(function ($exam) {
+                    $enrolled = $exam->students->count();
+                    $capacity = $exam->capacity ?? 0;
+                    $available = max(0, $capacity - $enrolled);
+
+                    return [
+                        'id' => $exam->id,
+                        'name' => $exam->name,
+                        'exam_type' => $exam->exam_type?->value ?? $exam->exam_type,
+                        'capacity' => $capacity,
+                        'enrolled' => $enrolled,
+                        'available' => $available,
+                        'start_date' => $exam->start_date,
+                        'end_date' => $exam->end_date,
+                        'application_time' => $exam->application_time,
+                        'mode' => $exam->mode?->value ?? $exam->mode,
+                        'classroom' => $exam->classroom,
+                        'teacher' => $exam->teacher ? ['id' => $exam->teacher->id, 'name' => $exam->teacher->full_name] : null,
+                        'period' => $exam->period ? ['id' => $exam->period->id, 'name' => $exam->period->name] : null,
+                    ];
+                })
+                ->values()
+                ->all();
         }
 
         return Inertia::render('Academic/StudentEnrollment', [
@@ -306,6 +373,7 @@ class AdminViewsController extends Controller
             'isEligible' => $isEligible,
             'isInPeriod' => $isInPeriod,
             'availableGroups' => $availableGroups,
+            'availableExams' => $availableExams,
             'studentStatus' => $student->status->label(),
         ]);
     }
