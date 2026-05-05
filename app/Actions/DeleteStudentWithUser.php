@@ -20,7 +20,7 @@ class DeleteStudentWithUser
         DB::transaction(function () use ($student) {
 
             // 1. Marcar el estudiante como inactivo antes de eliminarlo
-            $student->status = StudentStatus::SUSPENDED;
+            $student->status = StudentStatus::DISABLED;
             $student->save();
 
             // 2. Soft-delete del perfil del estudiante

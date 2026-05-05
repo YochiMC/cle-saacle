@@ -45,7 +45,7 @@ class BackfillAccreditationInReview extends Command
                 'qualifications.group.level',
                 'qualifications.group.period',
             ])
-            ->whereNotIn('status', [StudentStatus::ACCREDITED, StudentStatus::RELEASED])
+            ->whereNotIn('status', [StudentStatus::ACCREDITED])
             ->chunkById(200, function ($students) use ($dryRun, &$processed, &$updated, &$skipped) {
                 foreach ($students as $student) {
                     $processed++;
