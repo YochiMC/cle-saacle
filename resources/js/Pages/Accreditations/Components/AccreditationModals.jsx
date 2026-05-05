@@ -4,18 +4,18 @@ import ConfirmModal from "@/Components/ui/ConfirmModal";
 
 /**
  * Componente: AccreditationModals
- * 
+ *
  * Agrupa todos los modales vinculados al flujo de acreditación.
  */
-const AccreditationModals = ({ 
-    flashModal, 
-    closeFlashModal, 
-    itemToSuspend, 
-    setItemToSuspend, 
-    handleConfirmSuspend, 
-    itemToChange, 
-    setItemToChange, 
-    handleConfirmChange 
+const AccreditationModals = ({
+    flashModal,
+    closeFlashModal,
+    itemToSuspend,
+    setItemToSuspend,
+    handleConfirmSuspend,
+    itemToChange,
+    setItemToChange,
+    handleConfirmChange,
 }) => {
     return (
         <>
@@ -28,14 +28,14 @@ const AccreditationModals = ({
                 message={flashModal.message}
             />
 
-            {/* Modal para Confirmar Suspensión Individual */}
+            {/* Modal to confirm disabling an individual candidate */}
             <ConfirmModal
                 isOpen={itemToSuspend != null}
                 onClose={() => setItemToSuspend(null)}
                 onConfirm={handleConfirmSuspend}
-                title="Suspender candidato"
-                message={`Al confirmar, ${itemToSuspend?.full_name || "el alumno"} será extraído del flujo de acreditaciones y su estatus pasará a "Suspendido". ¿Deseas proceder?`}
-                confirmText="Sí, suspender alumno"
+                title="Disable candidate"
+                message={`On confirm, ${itemToSuspend?.full_name || "the student"} will be removed from the accreditation flow and their status will change to "Disabled". Proceed?`}
+                confirmText="Yes, disable student"
                 variant="warning"
             />
 
@@ -44,9 +44,9 @@ const AccreditationModals = ({
                 isOpen={itemToChange != null}
                 onClose={() => setItemToChange(null)}
                 onConfirm={handleConfirmChange}
-                title="Confirmar actualización"
-                message={`¿Estás seguro de que deseas cambiar el estatus de ${itemToChange?.targetName} a "${itemToChange?.newLabel}"? Esto alterará su historial académico.`}
-                confirmText="Sí, actualizar estatus"
+                title="Confirm update"
+                message={`Are you sure you want to change the status of ${itemToChange?.targetName} to "${itemToChange?.newLabel}"? This will alter their academic record.`}
+                confirmText="Yes, update status"
                 variant="warning"
             />
         </>
