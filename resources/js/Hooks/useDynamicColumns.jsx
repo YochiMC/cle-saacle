@@ -127,6 +127,9 @@ const BASE_STUDENT_KEYS = [
     "gender",
     "semester",
 ];
+// STATUS_KEYS: Campos de estado que se incluyen solo si existen en los datos
+// y no están en restrictedColumns. Algunos pueden estar ocultos por defecto
+// en ciertos contextos (controlado por restrictedColumns).
 const STATUS_KEYS = ["is_left", "attempt", "is_approved"];
 const FOOTER_KEYS = ["final_average", "promedio_habilidades"];
 
@@ -367,6 +370,14 @@ export function useDynamicColumns(
     return useMemo(() => {
         const editableSet = new Set(editableColumns);
         const restrictedSet = new Set(restrictedColumns);
+        
+        // Detectar contexto: ¿es una tabla de estudiantes o un catálogo genérico?
+        // Los contextos de estudiantes siempre tienen 'full_name' o 'num_control'
+        const isStudentContext = rowKeys.includes("full_name") || rowKeys.includes("num_control");
+        
+        // Campos que ya están en METADATA_KEYS no deben aparecer como columnas de estado adicionales
+        const allMetadataKeys = new Set([...EXAM_METADATA_KEYS, ...GROUP_METADATA_KEYS]);
+        
         const dynamicKeys = rowKeys.filter(
             (key) => !IGNORED_DYNAMIC_KEYS.has(key) && !restrictedSet.has(key),
         );
@@ -394,15 +405,27 @@ export function useDynamicColumns(
             if (!orderedDynamicKeys.includes(key)) orderedDynamicKeys.push(key);
         }
 
-        const visibleBaseKeys = BASE_STUDENT_KEYS.filter(
-            (key) => !restrictedSet.has(key),
-        );
+        // En catálogos genéricos, no aplicar BASE_STUDENT_KEYS
+        const visibleBaseKeys = isStudentContext
+            ? BASE_STUDENT_KEYS.filter((key) => !restrictedSet.has(key))
+            : [];
 
-        const visibleStatusKeys = STATUS_KEYS.filter((key) => {
-            if (restrictedSet.has(key)) return false;
-            if (key === "is_approved") return rowKeys.includes(key);
-            return true;
-        });
+        // STATUS_KEYS solo se muestra si:
+        // 1. Estamos en contexto de estudiantes
+        // 2. No está en restrictedColumns (explícitamente excluido)
+        // 3. Existe en los datos (rowKeys)
+        // 4. No está en METADATA_KEYS (ya controlado en otro lado)
+        const visibleStatusKeys = isStudentContext
+            ? STATUS_KEYS.filter((key) => {
+                  // Excluir si está explícitamente en restrictedColumns
+                  if (restrictedSet.has(key)) return false;
+                  // Solo mostrar si existe en los datos
+                  if (!rowKeys.includes(key)) return false;
+                  // Excluir si ya está en METADATA_KEYS (evitar duplicados)
+                  if (allMetadataKeys.has(key)) return false;
+                  return true;
+              })
+            : [];
 
         const visibleFooterKeys = FOOTER_KEYS.filter((key) =>
             rowKeys.includes(key),
