@@ -26,33 +26,33 @@ enum ExamType: string
      */
     public function defaultUnitsBreakdown(): array
     {
-        return match($this) {
+        return match ($this) {
             self::PLANES_ANTERIORES => [
-                'is_left'             => false,
-                'is_curso_nivelacion' => false,
-                'calificacion_final'  => 0,
+                'is_curso_nivelacion'           => false,
+                'calificacion_curso_nivelacion' => 0,
+                'calificacion_examen'           => 0,
+                'calificacion_final'            => 0,
             ],
 
             self::CUATRO_HABILIDADES => [
                 'is_left'             => false,
-                'oportunidad'         => 'Primera',
-                'listening'           => '',
-                'reading'             => '',
-                'writing'             => '',
-                'speaking'            => '',
-                'promedio_habilidades'=> '',
+                'listening'           => '-',
+                'reading'             => '-',
+                'writing'             => '-',
+                'speaking'            => '-',
+                'promedio_habilidades' => '-',
             ],
 
             self::CONVALIDACION => [
-                'is_left'             => false,
-                'oportunidad'         => 'Primera',
-                'nivel_certificado'   => '',
-                'speaking'            => '',
+                // Estructura estricta para Convalidación: certified_level, score, speaking
+                'certified_level'     => '-',
+                'score'               => 0,
+                'speaking'            => '-',
             ],
 
             self::UBICACION => [
                 'is_left'        => false,
-                'nivel_asignado' => '', // Renderizado como <select> en el frontend
+                'nivel_asignado' => '-', // Renderizado como <select> en el frontend
             ],
         };
     }

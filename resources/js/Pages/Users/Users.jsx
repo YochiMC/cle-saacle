@@ -17,14 +17,13 @@
 
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
-import { useState } from 'react';
+import { useState } from "react";
 import StudentModal from "@/Components/Users/StudentModal";
 import TeacherModal from "@/Components/Users/TeacherModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
-import { Head, router } from '@inertiajs/react';
+import { Head, router } from "@inertiajs/react";
 import useFlashAlert from "@/Hooks/useFlashAlert";
-import ConfirmModal from '@/Components/ui/ConfirmModal';
-
+import ConfirmModal from "@/Components/ui/ConfirmModal";
 
 // Definidas fuera del componente para mantener referencia estable entre renders.
 const VIEW_OPTIONS = [
@@ -32,7 +31,13 @@ const VIEW_OPTIONS = [
     { value: "maestros", label: "Maestros" },
 ];
 
-export default function Users({ degrees, students, teachers, levels, typeStudents }) {
+export default function Users({
+    degrees,
+    students,
+    teachers,
+    levels,
+    typeStudents,
+}) {
     // Centraliza el estado del modal de alertas de feedback (flash messages).
     const { flashModal, closeFlashModal } = useFlashAlert();
 
@@ -55,11 +60,10 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
      * @returns {void}
      */
 
-
     const handleEditRow = (item) => {
         const userId = item?.user_id;
         if (!userId) return;
-        router.get(route('profiles', userId));
+        router.get(route("profiles", userId));
     };
 
     const openDeleteModal = (item) => {
@@ -73,36 +77,48 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
         if (!itemId) return;
 
         switch (currentView) {
-            case 'alumnos':
-                router.delete(route('students.delete', itemId), {
+            case "alumnos":
+                router.delete(route("students.delete", itemId), {
                     onSuccess: () => setItemToDelete(null),
                 });
                 break;
-            case 'maestros':
-                router.delete(route('teachers.delete', itemId), {
+            case "maestros":
+                router.delete(route("teachers.delete", itemId), {
                     onSuccess: () => setItemToDelete(null),
                 });
                 break;
         }
-    }
+    };
 
     return (
-        <AuthenticatedLayout header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Usuarios</h2>}>
+        <AuthenticatedLayout
+            header={
+                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    Usuarios
+                </h2>
+            }
+        >
             <Head title="Usuarios" />
             <ResourceDashboard
                 title="Gestión de usuarios"
                 dataMap={{ alumnos: studentsForTable, maestros: teachers }}
                 viewOptions={VIEW_OPTIONS}
                 deleteRoute={{
-                    alumnos: route('students.bulk-delete'),
-                    maestros: route('teachers.bulk-delete'),
+                    alumnos: route("students.bulk-delete"),
+                    maestros: route("teachers.bulk-delete"),
                 }}
                 bulkDeleteMethod="delete"
                 onNew={() => setIsModalOpen(true)}
                 onEditRow={handleEditRow}
                 onDeleteRow={openDeleteModal}
                 onViewChange={(view) => setCurrentView(view)}
-                hiddenColumns={{ user_id: false, birthdate: false, type: false, status_label: false }}
+                restrictedColumns={["attempt"]}
+                hiddenColumns={{
+                    user_id: false,
+                    birthdate: false,
+                    type: false,
+                    status_label: false,
+                }}
             />
 
             {/* Modales — se monta únicamente el correspondiente a la vista activa */}
@@ -131,7 +147,7 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
                 onConfirm={handleDeleteRow}
                 title="Eliminar usuario"
                 // Opcional: Puedes usar el nombre del usuario en el mensaje para darle más contexto
-                message={`¿Estás seguro de que deseas eliminar a ${itemToDelete?.first_name || itemToDelete?.full_name || 'este usuario'}? Esta acción no se puede deshacer.`}
+                message={`¿Estás seguro de que deseas eliminar a ${itemToDelete?.first_name || itemToDelete?.full_name || "este usuario"}? Esta acción no se puede deshacer.`}
                 confirmText="Sí, eliminar"
                 variant="warning"
             />
@@ -146,4 +162,3 @@ export default function Users({ degrees, students, teachers, levels, typeStudent
         </AuthenticatedLayout>
     );
 }
-

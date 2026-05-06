@@ -30,7 +30,6 @@ class UpdateAccreditationStatusRequest extends FormRequest
         $allowedStatuses = [
             StudentStatus::IN_REVIEW->value,
             StudentStatus::ACCREDITED->value,
-            StudentStatus::RELEASED->value,
             StudentStatus::SUSPENDED->value,
         ];
 

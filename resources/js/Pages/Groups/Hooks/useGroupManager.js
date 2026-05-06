@@ -51,20 +51,14 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
         itemData: null,
     });
 
-    // 3. Permisos derivados alineados con backend.
-    // canEditQualifications controla captura/cierre academico.
+    // 3. Permisos Derivados
     const canEditQualifications = useMemo(() =>
-        hasRole("teacher") || hasRole("admin") || hasRole("coordinator"),
-    [hasRole]);
-
-    // canEnrollStudents controla la accion de alta en el modal de inscripcion.
-    const canEnrollStudents = useMemo(() =>
-        hasRole("admin") || hasRole("coordinator"),
+        hasRole("teacher") || hasRole("admin"),
     [hasRole]);
 
     const editableColumns = useMemo(() => {
         if (!canEditQualifications) return [];
-        return [...getUnitKeys(grupo), "is_left"];
+        return ["attempt", ...getUnitKeys(grupo), "is_left"];
     }, [canEditQualifications, grupo]);
 
     // 4. Handlers de Interacción
@@ -124,7 +118,7 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
         const resetModal = () => setConfirmModal({ isOpen: false, type: null, itemData: null });
 
         if (confirmModal.type === 'global') {
-            router.patch(route('qualifications.bulk-update'), {
+            router.patch(route('groups.qualifications.bulk-update', { group: grupo.id }), {
                 qualifications: localData.map(serializeQualification)
             }, {
                 preserveScroll: true,
@@ -132,12 +126,18 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
                     setIsEditingMode(false);
                     resetModal();
                 },
-                onError: resetModal,
+                onError: (errors) => {
+                    console.error("Bulk Update Error:", errors);
+                    resetModal();
+                },
             });
         } else if (confirmModal.type === 'row' && confirmModal.itemData) {
             const rowToSave = localData.find((row) => row.id === confirmModal.itemData.id);
             if (rowToSave && rowToSave.qualification_id) {
-                router.patch(route('qualifications.update', rowToSave.qualification_id),
+                router.patch(route('groups.qualifications.update', {
+                    group: grupo.id,
+                    qualification: rowToSave.qualification_id,
+                }),
                     serializeQualification(rowToSave),
                 {
                     preserveScroll: true,
@@ -145,7 +145,10 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
                         setEditingRowId(null);
                         resetModal();
                     },
-                    onError: resetModal,
+                    onError: (errors) => {
+                        console.error("Row Update Error:", errors);
+                        resetModal();
+                    },
                 });
             }
         } else if (confirmModal.type === 'close') {

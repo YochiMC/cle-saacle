@@ -9,13 +9,20 @@
 export const METADATA_KEYS = new Set([
     "id",
     "full_name",
+    "num_control",
     "matricula",
     "gender",
     "semester",
+    "student_id",
+    "group_id",
     "qualification_id",
     "final_average",
     "is_approved",
     "is_left",
+    "attempt",
+    "created_at",
+    "updated_at",
+    "deleted_at",
 ]);
 
 /**

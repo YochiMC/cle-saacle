@@ -23,10 +23,12 @@ class BulkUpdateGroupQualifications
     {
         DB::transaction(function () use ($qualificationsData) {
             foreach ($qualificationsData as $data) {
-                Qualification::where('id', $data['qualification_id'])->update([
+                $qualification = Qualification::findOrFail($data['qualification_id']);
+                $qualification->update([
                     'units_breakdown' => $data['units_breakdown'] ?? [],
                     'final_average'   => $data['final_average'] ?? 0,
                     'is_left'         => $data['is_left'] ?? false,
+                    'attempt'         => $data['attempt'] ?? 'first',
                 ]);
             }
         });

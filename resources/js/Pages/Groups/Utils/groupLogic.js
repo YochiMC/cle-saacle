@@ -11,7 +11,7 @@ import { METADATA_KEYS } from "../Constants/groupConstants";
 export const getUnitKeys = (grupo) => {
     // Regla estricta para Programa Egresados
     if (grupo?.type === 'Programa Egresados') {
-        return ['hizo_certificacion', 'a1', 'a2', 'b1'];
+        return ['hizo_certificacion', 'grade_1', 'grade_2', 'grade_3'];
     }
 
     // Regla dinámica basada en unidades configuradas
@@ -28,7 +28,17 @@ export const getUnitKeys = (grupo) => {
  */
 export const buildUnitsBreakdown = (row) =>
     Object.fromEntries(
-        Object.entries(row).filter(([key]) => !METADATA_KEYS.has(key))
+        Object.entries(row).filter(([key, value]) => {
+            if (typeof value === 'function') return false;
+
+            // Solo campos de unidades evaluables para evitar contaminar
+            // el promedio con metadata numérica (ej. num_control, semester).
+            return (
+                key === 'hizo_certificacion' ||
+                key.startsWith('unit_') ||
+                key.startsWith('grade_')
+            );
+        })
     );
 
 /**
@@ -38,11 +48,12 @@ export const buildUnitsBreakdown = (row) =>
  */
 export const calculateAverage = (unitsBreakdown) => {
     const numericValues = Object.entries(unitsBreakdown)
-        .filter(([key, v]) => 
-            key !== 'hizo_certificacion' && 
+        .filter(([key, v]) =>
+            key !== 'hizo_certificacion' &&
             (typeof v === 'number' || (typeof v === 'string' && v !== '' && !isNaN(Number(v))))
         )
-        .map(([, v]) => Number(v));
+        .map(([, v]) => Number(v))
+        .filter(Number.isFinite);
 
     if (numericValues.length === 0) return 0;
 
@@ -61,22 +72,45 @@ export const normalizeQualificationRow = (row, grupo) => {
         row?.units_breakdown && typeof row.units_breakdown === "object" && !Array.isArray(row.units_breakdown)
             ? row.units_breakdown
             : {};
-            
+
     const expectedKeys = getUnitKeys(grupo);
     const unitsBreakdownFlat = {};
-    
+
     expectedKeys.forEach((key) => {
         unitsBreakdownFlat[key] = rawBreakdown[key] ?? (key === "hizo_certificacion" ? 0 : 0);
     });
 
+    const computedAverage = calculateAverage(unitsBreakdownFlat);
+
     const { units_breakdown: _ignored, ...rest } = row;
-    const { final_average, is_approved: _unused1, is_left, ...baseFields } = rest;
+    const { final_average, is_approved: _unused1, is_left, attempt, ...baseFields } = rest;
+    const sanitizedBaseFields = Object.fromEntries(
+        Object.entries(baseFields).filter(([key]) => !METADATA_KEYS.has(key))
+    );
+
+    const qualificationId = row.qualification_id ?? row?.qualification?.id ?? row?.pivot?.id ?? null;
 
     return {
-        ...baseFields,
+        id: row.id,
+        qualification_id: qualificationId,
+        full_name: row.full_name,
+        num_control: row.num_control || row.matricula,
+        gender: row.gender,
+        semester: row.semester,
+        ...sanitizedBaseFields,
         is_left: is_left ?? false,
+        attempt: attempt ?? "first",
         ...unitsBreakdownFlat,
-        final_average: final_average !== undefined ? final_average : 0,
+        final_average:
+            final_average === "NA"
+                ? "NA"
+                : (() => {
+                    const parsed = Number(final_average);
+                    if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 100) {
+                        return parsed;
+                    }
+                    return computedAverage;
+                })(),
     };
 };
 
@@ -84,8 +118,9 @@ export const normalizeQualificationRow = (row, grupo) => {
  * Serializa los datos locales para el envío atómico al servidor.
  */
 export const serializeQualification = (row) => ({
-    qualification_id: row.qualification_id,
+    qualification_id: row.qualification_id ?? row?.qualification?.id ?? row?.pivot?.id ?? null,
     units_breakdown: buildUnitsBreakdown(row),
     final_average: row.final_average,
     is_left: !!row.is_left,
+    attempt: row.attempt ?? "first",
 });

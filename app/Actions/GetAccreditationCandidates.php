@@ -25,7 +25,6 @@ class GetAccreditationCandidates
             $query->whereIn('status', [
                 StudentStatus::IN_REVIEW,
                 StudentStatus::ACCREDITED,
-                StudentStatus::RELEASED,
                 StudentStatus::SUSPENDED,
             ]);
         }

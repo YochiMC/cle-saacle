@@ -13,11 +13,25 @@ export const normalizeQualificationRow = (row) => {
             ? row.units_breakdown
             : {};
 
-    const { units_breakdown, ...rest } = row;
+    const { units_breakdown: _ignored, ...rest } = row;
+    const isLeft = unitsBreakdown.is_left ?? row.is_left ?? false;
+
+    // Filtramos metadatos para que solo queden las llaves reales de calificación.
+    const dynamicUnits = Object.fromEntries(
+        Object.entries(unitsBreakdown).filter(([key]) => !METADATA_KEYS.has(key)),
+    );
 
     return {
-        ...rest,
-        ...unitsBreakdown,
+        id: row.id,
+        full_name: row.full_name,
+        num_control: row.num_control || row.matricula,
+        gender: row.gender,
+        semester: row.semester,
+        is_left: isLeft,
+        attempt: row.attempt ?? "first",
+        ...dynamicUnits,
+        final_average: row.final_average ?? 0,
+        exam_student_id: row.exam_student_id,
     };
 };
 
@@ -60,15 +74,15 @@ export const calculateMcerOutcome = (row) => {
 
     for (const skill of skills) {
         const val = row[skill]?.toString().toUpperCase().trim();
-        
+
         if (!val || !(val in MCER_WEIGHTS)) {
             allSkillsValid = false;
             break;
         }
-        
+
         const weight = MCER_WEIGHTS[val];
         if (weight < lowestWeight) lowestWeight = weight;
-        
+
         // Regla académica: Mínimo B1 para acreditar
         if (weight < 3) {
             allSkillsValid = false;
@@ -90,6 +104,9 @@ export const getRestrictedColumns = (examType) => {
     if (RESTRICTED_EXAM_TYPES.includes(examType)) {
         restricted.push("final_average");
     }
+    if (examType === "Ubicación") {
+        restricted.push("attempt");
+    }
     return restricted;
 };
 
@@ -98,21 +115,23 @@ export const getRestrictedColumns = (examType) => {
  */
 export const serializeQualification = (row) => {
     // Campos que no van al JSON units_breakdown
-    const { 
-        id, 
-        full_name, 
-        matricula, 
-        exam_student_id, 
-        final_average, 
-        qualification_id, 
-        gender, 
-        semester, 
-        ...dynamicUnits 
+    const {
+        id,
+        full_name,
+        num_control,
+        exam_student_id,
+        final_average,
+        qualification_id,
+        gender,
+        semester,
+        attempt,
+        ...dynamicUnits
     } = row;
-    
+
     return {
         student_id: id,
         final_average: final_average || 0,
+        attempt: attempt ?? "first",
         units_breakdown: dynamicUnits
     };
 };

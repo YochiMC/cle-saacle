@@ -15,12 +15,14 @@ class Qualification extends Model
         'final_average',
         'is_approved',
         'is_left',
+        'attempt',
         'student_id',
         'group_id'
     ];
 
     protected $casts = [
         'units_breakdown' => 'array',
+        'attempt' => \App\Enums\AttemptEnum::class,
     ];
 
     public function student()

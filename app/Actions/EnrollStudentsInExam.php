@@ -35,8 +35,9 @@ class EnrollStudentsInExam
             foreach ($studentIds as $studentId) {
                 if (!$exam->students()->where('students.id', $studentId)->exists()) {
                     $exam->students()->attach($studentId, [
-                        'units_breakdown' => json_encode($defaultBreakdown),
+                        'units_breakdown' => $defaultBreakdown,
                         'final_average'   => 0,
+                        'attempt'         => \App\Enums\AttemptEnum::FIRST->value,
                     ]);
                 }
             }

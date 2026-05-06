@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Enums\AttemptEnum;
 
 /**
  * FormRequest para la actualización masiva de calificaciones de Exámenes.
@@ -35,6 +37,7 @@ class BulkUpdateExamQualificationsRequest extends FormRequest
             'qualifications.*.student_id' => 'required|exists:students,id',
             'qualifications.*.units_breakdown' => 'required|array',
             'qualifications.*.final_average' => 'nullable|numeric',
+            'qualifications.*.attempt' => ['required', Rule::enum(AttemptEnum::class)],
         ];
     }
 }

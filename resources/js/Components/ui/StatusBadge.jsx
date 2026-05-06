@@ -6,20 +6,31 @@ import React, { memo } from "react";
  * la triplicación que existía en CardGroup, ExamDetailsModal y GroupDetailsModal.
  */
 const ESTADO_MAP = {
-    enrolling: { etiqueta: "Inscripciones Abiertas", cls: "bg-blue-100 text-blue-800" },
-    active:    { etiqueta: "Activo",                 cls: "bg-green-100 text-green-800" },
-    pending:   { etiqueta: "En Espera",              cls: "bg-yellow-100 text-yellow-800" },
-    waiting:   { etiqueta: "En Espera",              cls: "bg-yellow-100 text-yellow-800" },
-    grading:   { etiqueta: "En Evaluación",          cls: "bg-purple-100 text-purple-800" },
-    completed: { etiqueta: "Completado",             cls: "bg-gray-100 text-gray-800" },
-    closed:    { etiqueta: "Cerrado",                cls: "bg-red-100 text-red-800" },
-    inactive:  { etiqueta: "Cerrado",                cls: "bg-red-100 text-red-800" },
-    
+    enrolling: {
+        etiqueta: "Inscripciones Abiertas",
+        cls: "bg-blue-100 text-blue-800",
+    },
+    active: { etiqueta: "Activo", cls: "bg-green-100 text-green-800" },
+    pending: { etiqueta: "En Espera", cls: "bg-yellow-100 text-yellow-800" },
+    waiting: { etiqueta: "En Espera", cls: "bg-yellow-100 text-yellow-800" },
+    grading: {
+        etiqueta: "En Evaluación",
+        cls: "bg-purple-100 text-purple-800",
+    },
+    completed: { etiqueta: "Completado", cls: "bg-gray-100 text-gray-800" },
+    closed: { etiqueta: "Cerrado", cls: "bg-red-100 text-red-800" },
+    inactive: { etiqueta: "Cerrado", cls: "bg-red-100 text-red-800" },
+
     // Acreditaciones
-    in_review: { etiqueta: "En Revisión",            cls: "bg-orange-100 text-orange-800" },
-    accredited:{ etiqueta: "Acreditado",             cls: "bg-emerald-100 text-emerald-800" },
-    released:  { etiqueta: "Liberado",               cls: "bg-indigo-100 text-indigo-800" },
-    suspended: { etiqueta: "Suspendido",             cls: "bg-red-100 text-red-800" },
+    in_review: {
+        etiqueta: "En Revisión",
+        cls: "bg-orange-100 text-orange-800",
+    },
+    accredited: {
+        etiqueta: "Acreditado",
+        cls: "bg-emerald-100 text-emerald-800",
+    },
+    inhabilitado: { etiqueta: "Inhabilitado", cls: "bg-red-100 text-red-800" },
 };
 
 /**
@@ -63,7 +74,9 @@ const StatusBadge = memo(({ status, etiquetaCustom }) => {
     const { etiqueta, cls } = resolverEstado(status, etiquetaCustom);
 
     return (
-        <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full ${cls}`}>
+        <span
+            className={`inline-block text-sm font-semibold px-3 py-1 rounded-full ${cls}`}
+        >
             {etiqueta}
         </span>
     );

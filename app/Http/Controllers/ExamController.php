@@ -203,6 +203,7 @@ class ExamController extends Controller
         $exam->students()->updateExistingPivot($student->id, [
             'units_breakdown' => $request->validated('units_breakdown'),
             'final_average'   => $request->validated('final_average') ?? 0,
+            'attempt'         => $request->validated('attempt'),
         ]);
 
         return redirect()->back()->with('success', 'La calificación del alumno ha sido guardada correctamente.');

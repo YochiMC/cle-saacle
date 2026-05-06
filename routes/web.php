@@ -128,10 +128,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/bulk-suspend', [AccreditationController::class, 'bulkSuspend'])->name('accreditations.bulk-suspend');
             Route::patch('/{student}/status', [AccreditationController::class, 'updateStatus'])->name('accreditations.update-status');
         });
-        Route::prefix('qualifications')->group(function () {
-            Route::patch('/bulk-update', [\App\Http\Controllers\QualificationController::class, 'bulkUpdate'])->name('qualifications.bulk-update');
-            Route::patch('/{qualification}', [\App\Http\Controllers\QualificationController::class, 'update'])->name('qualifications.update');
+
+        Route::prefix('groups')->group(function () {
+            Route::post('/', [GroupController::class, 'store'])->name('groups.store');
+            Route::put('/bulk-status', [GroupController::class, 'bulkUpdateStatus'])->name('groups.bulk-status');
+            Route::delete('/bulk-delete', [GroupController::class, 'bulkDestroy'])->name('groups.bulk-delete');
+            Route::put('/{group}', [GroupController::class, 'update'])->name('groups.update');
+            Route::delete('/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
+            Route::patch('/{group}/update-units', [GroupController::class, 'updateUnits'])->name('groups.update-units');
+            Route::patch('/{group}/complete', [GroupController::class, 'complete'])->name('groups.complete');
+            
+            // Calificaciones (Nested)
+            Route::patch('/{group}/qualifications/bulk', [\App\Http\Controllers\QualificationController::class, 'bulkUpdate'])->name('groups.qualifications.bulk-update');
+            Route::patch('/{group}/qualifications/{qualification}', [\App\Http\Controllers\QualificationController::class, 'update'])->name('groups.qualifications.update');
         });
+
+        // Alias legacy para endpoints de operación masiva en español.
+        Route::prefix('grupos')->group(function () {
+            Route::put('/bulk-status', [GroupController::class, 'bulkUpdateStatus']);
+            Route::delete('/bulk-delete', [GroupController::class, 'bulkDestroy']);
+        });
+
 
         Route::prefix('exams')->group(function () {
             Route::post('/', [\App\Http\Controllers\ExamController::class, 'store'])->name('exams.store');

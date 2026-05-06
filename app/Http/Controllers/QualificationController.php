@@ -25,7 +25,7 @@ class QualificationController extends Controller
      * @param Qualification $qualification
      * @return RedirectResponse
      */
-    public function update(UpdateQualificationsRequest $request, Qualification $qualification): RedirectResponse
+    public function update(UpdateQualificationsRequest $request, \App\Models\Group $group, Qualification $qualification): RedirectResponse
     {
         Gate::authorize('update', $qualification);
         $qualification->update($request->validated());
@@ -43,9 +43,8 @@ class QualificationController extends Controller
      * @param BulkUpdateGroupQualifications $action
      * @return RedirectResponse
      */
-    public function bulkUpdate(BulkUpdateGroupQualificationsRequest $request, BulkUpdateGroupQualifications $action): RedirectResponse
-    {   
-        Gate::authorize('updateAny', Qualification::class);
+    public function bulkUpdate(BulkUpdateGroupQualificationsRequest $request, BulkUpdateGroupQualifications $action, \App\Models\Group $group): RedirectResponse
+    {
         $action->execute($request->validated('qualifications'));
 
         return redirect()->back()->with('success', 'Calificaciones del grupo guardadas exitosamente.');

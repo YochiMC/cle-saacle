@@ -2,15 +2,15 @@ import React from "react";
 
 /**
  * Componente: AccreditationFilters
- * 
+ *
  * Renderiza los selectores de filtrado para el dashboard de acreditaciones.
  */
-const AccreditationFilters = ({ 
-    statusFilter, 
-    setStatusFilter, 
-    typeFilter, 
-    setTypeFilter, 
-    accreditationTypeOptions = [] 
+const AccreditationFilters = ({
+    statusFilter,
+    setStatusFilter,
+    typeFilter,
+    setTypeFilter,
+    accreditationTypeOptions = [],
 }) => {
     return (
         <div className="flex flex-wrap items-end gap-4">
@@ -26,8 +26,7 @@ const AccreditationFilters = ({
                     <option value="">Todos los estatus</option>
                     <option value="in_review">En Revisión</option>
                     <option value="accredited">Acreditado</option>
-                    <option value="released">Liberado</option>
-                    <option value="suspended">Suspendido</option>
+                    <option value="inhabilitado">Inhabilitado</option>
                 </select>
             </div>
 

@@ -8,9 +8,14 @@ export const METADATA_KEYS = new Set([
     "matricula",
     "gender",
     "semester",
+    "is_left",
     "exam_student_id",
     "final_average",
     "qualification_id",
+    "attempt",
+    "created_at",
+    "updated_at",
+    "deleted_at",
 ]);
 
 export const MCER_SCALE = ["A1", "A2", "B1", "B2", "C1", "C2"];

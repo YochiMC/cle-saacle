@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Enums\AttemptEnum;
 
 /**
  * FormRequest para actualizar la calificación individual de un alumno en un examen.
@@ -24,6 +26,7 @@ class UpdateExamPivotRequest extends FormRequest
         return [
             'units_breakdown' => 'required|array',
             'final_average'   => 'nullable|numeric',
+            'attempt'         => ['required', Rule::enum(AttemptEnum::class)],
         ];
     }
 }
