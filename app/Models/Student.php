@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\ServiceStatus;
+use App\Enums\ServiceType;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\StudentStatus;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,13 +35,10 @@ class Student extends Model
         'accreditation_date',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'status' => StudentStatus::class,
-            'accreditation_date' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'status' => StudentStatus::class,
+        'accreditation_date' => 'datetime',
+    ];
 
     public function user(): BelongsTo
     {
@@ -69,6 +68,55 @@ class Student extends Model
     public function services(): HasMany
     {
         return $this->hasMany(Service::class);
+    }
+
+    public function approvedServices(): HasMany
+    {
+        return $this->services()->where('status', ServiceStatus::APPROVED->value);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function approvedServiceTypeValues(): array
+    {
+        return $this->approvedServices()
+            ->get()
+            ->map(function (Service $service) {
+                return $service->type instanceof ServiceType
+                    ? $service->type->value
+                    : (string) $service->type;
+            })
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function approvedCourseTypeValues(): array
+    {
+        $approvedTypeValues = $this->approvedServiceTypeValues();
+
+        return array_values(array_filter(
+            $approvedTypeValues,
+            fn (string $serviceTypeValue) => ServiceType::tryFrom($serviceTypeValue)?->isCourse() ?? false
+        ));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function approvedExamTypeValues(): array
+    {
+        $approvedTypeValues = $this->approvedServiceTypeValues();
+
+        return array_values(array_filter(
+            $approvedTypeValues,
+            fn (string $serviceTypeValue) => ServiceType::tryFrom($serviceTypeValue)?->isExam() ?? false
+        ));
     }
 
     public function getAgeAttribute(): int

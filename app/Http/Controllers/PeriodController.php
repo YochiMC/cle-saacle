@@ -24,6 +24,10 @@ class PeriodController extends Controller
         $validated = $request->validated();
         $validated['name'] = $periodNamingService->generate($validated['start_date'], $validated['end_date']);
 
+        if (!empty($validated['is_active'])) {
+            Period::query()->update(['is_active' => false]);
+        }
+
         Period::create($validated);
 
         return redirect()->back()->with('success', 'Periodo creado correctamente.');
@@ -35,6 +39,12 @@ class PeriodController extends Controller
         $validated = $request->validated();
         $validated['name'] = $periodNamingService->generate($validated['start_date'], $validated['end_date']);
 
+        if (!empty($validated['is_active'])) {
+            Period::query()
+                ->where('id', '!=', $period->id)
+                ->update(['is_active' => false]);
+        }
+
         $period->update($validated);
 
         return redirect()->back()->with('success', 'Periodo actualizado correctamente.');
@@ -43,8 +53,11 @@ class PeriodController extends Controller
     public function destroy(Period $period): RedirectResponse
     {
         Gate::authorize('delete', $period);
+
         return $this->handleDeletion(
-            fn() => $period->delete(),
+            function () use ($period) {
+                Period::destroy($period->id);
+            },
             'Periodo eliminado correctamente.',
             'Ocurrió un error al intentar eliminar el periodo.'
         );
@@ -54,7 +67,9 @@ class PeriodController extends Controller
     {
         Gate::authorize('deleteAny', Period::class);
         return $this->handleBulkDeletion(
-            fn() => Period::whereIn('id', $request->validated()['ids'])->delete(),
+            function () use ($request) {
+                Period::destroy($request->validated()['ids']);
+            },
             'Periodos eliminados correctamente.',
             'Ocurrió un error al intentar eliminar los periodos.'
         );

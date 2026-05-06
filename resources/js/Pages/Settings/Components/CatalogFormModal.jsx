@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useForm } from "@inertiajs/react";
 import DataFormModal from "@/Components/DataTable/DataFormModal";
 import InputForm from "@/Components/Forms/InputForm";
+import CheckboxForm from "@/Components/Forms/CheckboxForm";
 import InputError from "@/Components/InputError";
 
 /**
@@ -25,9 +26,14 @@ export default function CatalogFormModal({
     const getInitialValues = () => {
         if (!activeCatalog) return {};
         return activeCatalog.formFields.reduce((acc, field) => {
+            const defaultValue = field.type === "checkbox" ? false : "";
             acc[field.name] = editingRecord
-                ? (editingRecord[field.name] ?? "")
-                : "";
+                ? (field.type === "checkbox"
+                    ? (field.name === "is_active"
+                        ? (editingRecord.status === "Activo")
+                        : Boolean(editingRecord[field.name]))
+                    : (editingRecord[field.name] ?? defaultValue))
+                : defaultValue;
             return acc;
         }, {});
     };
@@ -116,17 +122,30 @@ export default function CatalogFormModal({
             <div className="space-y-5">
                 {activeCatalog.formFields.map((field) => (
                     <div key={field.name}>
-                        <InputForm
-                            label={field.label}
-                            inputId={field.name}
-                            type={field.type}
-                            value={data[field.name]}
-                            onChange={(e) =>
-                                setData(field.name, e.target.value)
-                            }
-                            required={field.required}
-                            disabled={processing}
-                        />
+                        {field.type === "checkbox" ? (
+                            <CheckboxForm
+                                label={field.label}
+                                checkboxId={field.name}
+                                checked={Boolean(data[field.name])}
+                                onCheckedChange={(checked) =>
+                                    setData(field.name, Boolean(checked))
+                                }
+                                disabled={processing}
+                                tone="institutional"
+                            />
+                        ) : (
+                            <InputForm
+                                label={field.label}
+                                inputId={field.name}
+                                type={field.type}
+                                value={data[field.name]}
+                                onChange={(e) =>
+                                    setData(field.name, e.target.value)
+                                }
+                                required={field.required}
+                                disabled={processing}
+                            />
+                        )}
                         {/* Manejo de errores visuales de Inertia */}
                         <InputError
                             message={errors[field.name]}

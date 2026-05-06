@@ -10,6 +10,7 @@ use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PeriodController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SelfEnrollmentController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
@@ -94,8 +95,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             });
 
             Route::middleware('role:admin|coordinator|student')->group(function () {
-                Route::post('/{group}/enroll', [GroupController::class, 'enroll'])->name('groups.enroll');
                 Route::delete('/{group}/unenroll/{student}', [GroupController::class, 'unenroll'])->name('groups.unenroll');
+            });
+
+            Route::middleware('role:admin|coordinator')->group(function () {
+                Route::post('/{group}/enroll', [GroupController::class, 'enroll'])->name('groups.enroll');
             });
 
             Route::middleware('role:admin|coordinator')->group(function () {
@@ -190,6 +194,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Vistas para admin + coordinator + student (según menú principal)
     Route::middleware('role:admin|coordinator|student')->group(function () {
         Route::get('/pagos', [AdminViewsController::class, 'servicesView'])->name('pagos');
+    });
+
+    // Autoinscripción de estudiante a grupos
+    Route::middleware('role:student')->group(function () {
+        Route::get('/inscripcion', [AdminViewsController::class, 'studentEnrollmentView'])->name('student.enrollment');
+        Route::post('/grupos/{group}/auto-inscribir', [SelfEnrollmentController::class, 'enroll'])->name('self-enroll');
     });
 
     // Operaciones administrativas exclusivas de admin

@@ -13,6 +13,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 
 export default function Pagos({ auth, services = [], serviceTypes = [], serviceStatuses = [], reviewOptions = [] }) {
     const isAdmin = auth.user?.roles?.some(role => role.name === 'admin' || role.name === 'coordinator');
+    const paymentConceptOptions = serviceTypes;
 
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -143,39 +144,52 @@ export default function Pagos({ auth, services = [], serviceTypes = [], serviceS
                (isAdmin && p.student?.user?.name?.toLowerCase().includes(term));
     });
 
+    const displayedServices = isAdmin
+        ? [...filteredServices].sort((a, b) => {
+            if (a.status === 'pending' && b.status !== 'pending') return -1;
+            if (a.status !== 'pending' && b.status === 'pending') return 1;
+            return new Date(b.created_at) - new Date(a.created_at);
+        })
+        : filteredServices;
+
     return (
         <AuthenticatedLayout
             user={auth?.user}
             header={
-                <div className="flex justify-between items-center">
-                    <h2 className="font-bold text-2xl text-gray-800 leading-tight flex items-center gap-2">
-                        <Wallet className="w-7 h-7 text-indigo-600" />
-                        {isAdmin ? 'Gestión de Pagos' : 'Mis Pagos'}
+                <div className="flex items-center justify-between">
+                    <h2 className="flex items-center gap-2 text-2xl font-bold leading-tight text-gray-800">
+                        <Wallet className="text-indigo-600 w-7 h-7" />
+                        {isAdmin ? 'Aprobación de Pagos' : 'Mis Pagos'}
                     </h2>
                     {!isAdmin && (
-                        <PrimaryButton className="bg-indigo-600 hover:bg-indigo-700 rounded-full px-6 shadow-md shadow-indigo-200" onClick={handleOpenCreate}>
+                        <PrimaryButton className="px-6 bg-indigo-600 rounded-full shadow-md hover:bg-indigo-700 shadow-indigo-200" onClick={handleOpenCreate}>
                             <Plus className="w-4 h-4 mr-2" />
-                            Nuevo Pago
+                            Subir Comprobante
                         </PrimaryButton>
                     )}
                 </div>
             }
         >
-            <Head title={isAdmin ? 'Gestión de Pagos' : 'Mis Pagos'} />
+            <Head title={isAdmin ? 'Aprobación de Pagos' : 'Mis Pagos'} />
 
-            <div className="py-8 min-h-screen">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+            <div className="min-h-screen py-8">
+                <div className="mx-auto space-y-8 max-w-7xl sm:px-6 lg:px-8">
 
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 group">
-                        <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50/50">
+                    <div className="overflow-hidden bg-white border border-gray-100 shadow-sm sm:rounded-2xl group">
+                        <div className="flex flex-col items-center justify-between gap-4 p-6 border-b border-gray-100 sm:flex-row bg-gray-50/50">
+                            {isAdmin && (
+                                <div className="w-full px-4 py-3 text-sm text-gray-600 border border-indigo-100 sm:w-auto bg-indigo-50 rounded-xl">
+                                    Revisa primero los pagos pendientes y aprueba o rechaza cada comprobante.
+                                </div>
+                            )}
                             <div className="relative w-full sm:w-96">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Search className="h-4 w-4 text-gray-400" />
+                                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                    <Search className="w-4 h-4 text-gray-400" />
                                 </div>
                                 <input
                                     type="text"
                                     placeholder={isAdmin ? "Buscar por alumno o referencia..." : "Buscar por referencia..."}
-                                    className="block w-full pl-10 pr-4 py-3 border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm shadow-sm"
+                                    className="block w-full py-3 pl-10 pr-4 leading-5 placeholder-gray-400 bg-white border-gray-200 shadow-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
@@ -183,8 +197,8 @@ export default function Pagos({ auth, services = [], serviceTypes = [], serviceS
                         </div>
 
                         <div className="divide-y divide-gray-100">
-                            {filteredServices.length > 0 ? filteredServices.map((pago) => (
-                                <div key={pago.id} className="p-6 hover:bg-indigo-50/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group/row" onClick={() => handleOpenPayment(pago)}>
+                            {displayedServices.length > 0 ? displayedServices.map((pago) => (
+                                <div key={pago.id} className="flex flex-col justify-between gap-4 p-6 transition-colors cursor-pointer hover:bg-indigo-50/30 md:flex-row md:items-center group/row" onClick={() => handleOpenPayment(pago)}>
                                     <div className="flex items-center gap-5">
                                         <div className={`p-4 rounded-xl flex-shrink-0 shadow-sm border ${pago.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-white text-indigo-600 border-indigo-100'}`}>
                                             {pago.status === 'approved' ? <CheckCircle className="w-6 h-6" /> : <CreditCard className="w-6 h-6" />}
@@ -206,7 +220,7 @@ export default function Pagos({ auth, services = [], serviceTypes = [], serviceS
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between md:justify-end gap-6 sm:pl-20 md:pl-0">
+                                    <div className="flex items-center justify-between gap-6 md:justify-end sm:pl-20 md:pl-0">
                                         <div className="text-right">
                                             <p className="text-xl font-extrabold text-gray-900">{formatCurrency(pago.amount)}</p>
                                             <div className="mt-1.5 flex justify-end">
@@ -216,18 +230,18 @@ export default function Pagos({ auth, services = [], serviceTypes = [], serviceS
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 group-hover/row:text-indigo-600 group-hover/row:bg-indigo-100 transition-all">
+                                        <div className="flex items-center justify-center w-10 h-10 text-gray-400 transition-all rounded-full group-hover/row:text-indigo-600 group-hover/row:bg-indigo-100">
                                             <ChevronRight className="w-5 h-5" />
                                         </div>
                                     </div>
                                 </div>
                             )) : (
-                                <div className="px-6 py-16 text-center flex flex-col items-center justify-center">
+                                <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
                                     <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-5 border border-gray-100 shadow-sm animate-[pulse_3s_ease-in-out_infinite]">
                                         <Wallet className="w-12 h-12 text-gray-300" />
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2">No hay pagos registrados</h3>
-                                    <p className="text-gray-500 max-w-sm mx-auto leading-relaxed">No se encontraron pagos en el sistema.</p>
+                                    <h3 className="mb-2 text-xl font-bold text-gray-900">No hay pagos registrados</h3>
+                                    <p className="max-w-sm mx-auto leading-relaxed text-gray-500">No se encontraron pagos en el sistema.</p>
                                 </div>
                             )}
                         </div>
@@ -241,7 +255,7 @@ export default function Pagos({ auth, services = [], serviceTypes = [], serviceS
                     show={isPaymentModalOpen}
                     onClose={() => setIsPaymentModalOpen(false)}
                     selectedPayment={selectedPayment}
-                    serviceTypes={serviceTypes}
+                    serviceTypes={paymentConceptOptions}
                     formData={formData}
                     setFormData={setFormData}
                     errors={errors}

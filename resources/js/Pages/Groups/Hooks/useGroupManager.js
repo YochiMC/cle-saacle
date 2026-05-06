@@ -21,7 +21,7 @@ import {
  * @param {Array|{data: Array}} enrolledStudents Dataset de alumnos inscritos.
  * @returns {{state: object, handlers: object, actions: object, flashModal: object}}
  */
-export default function useGroupManager(grupo, enrolledStudents = []) {
+export default function useGroupManager(grupo, enrolledStudents = [], isStudentEnrolled = false) {
     const { hasRole } = usePermission();
     const { flashModal, closeFlashModal } = useFlashAlert();
 
@@ -59,7 +59,7 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
 
     // canEnrollStudents controla la acción de alta en el modal de inscripción: admin o coordinator
     const canEnrollStudents = useMemo(() =>
-        hasRole("admin") || hasRole("coordinator"),
+        (hasRole("admin") || hasRole("coordinator")) && !isStudentEnrolled,
     [hasRole]);
 
     const editableColumns = useMemo(() => {

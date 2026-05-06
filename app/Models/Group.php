@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GroupType;
 use App\Enums\AcademicStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -101,17 +102,54 @@ class Group extends Model
         // 3. Estudiantes: Lógica compleja encapsulada
         if ($user->hasRole('student')) {
             $student = $user->student;
+            $approvedCourseTypes = $student?->approvedCourseTypeValues() ?? [];
+
+            if (empty($approvedCourseTypes)) {
+                return $query->whereHas('qualifications', function ($enrolledQuery) use ($student) {
+                    $enrolledQuery->where('student_id', $student?->id);
+                });
+            }
 
             return $query->where(function ($q) use ($student) {
+                $approvedCourseTypes = $student?->approvedCourseTypeValues() ?? [];
+
+                if (empty($approvedCourseTypes)) {
+                    $q->whereHas('qualifications', function ($enrolledQuery) use ($student) {
+                        $enrolledQuery->where('student_id', $student?->id);
+                    });
+
+                    return;
+                }
 
                 // A) Grupos DISPONIBLES: Que sean de su nivel actual Y estén activos/en espera
-                $q->where(function ($availableQuery) use ($student) {
+                $q->where(function ($availableQuery) use ($student, $approvedCourseTypes) {
                     $availableQuery->whereIn('status', [
                         AcademicStatus::ENROLLING->value,
                         AcademicStatus::ACTIVE->value,
                         AcademicStatus::PENDING->value,
                     ])
-                        ->where('level_id', $student?->level_id);
+                        ->where(function ($typeQuery) use ($student, $approvedCourseTypes) {
+                            $regularType = GroupType::REGULAR->value;
+                            $otherCourseTypes = array_values(array_filter(
+                                $approvedCourseTypes,
+                                fn (string $typeValue) => $typeValue !== $regularType
+                            ));
+
+                            if (in_array($regularType, $approvedCourseTypes, true)) {
+                                $typeQuery->where(function ($regularQuery) use ($student, $regularType) {
+                                    $regularQuery->where('type', $regularType)
+                                        ->where('level_id', $student?->level_id);
+                                });
+                            }
+
+                            if (! empty($otherCourseTypes)) {
+                                if (in_array($regularType, $approvedCourseTypes, true)) {
+                                    $typeQuery->orWhereIn('type', $otherCourseTypes);
+                                } else {
+                                    $typeQuery->whereIn('type', $otherCourseTypes);
+                                }
+                            }
+                        });
                 })
 
                 // B) Grupos HISTÓRICOS: Donde ya está inscrito (sin importar el nivel o estado actual)

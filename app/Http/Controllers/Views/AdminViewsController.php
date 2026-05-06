@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Views;
 
+use App\Enums\AcademicStatus;
+use App\Enums\GroupType;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
 use App\Enums\GroupMode;
@@ -25,6 +27,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Services\EnrollmentWindowResolver;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -83,6 +86,7 @@ class AdminViewsController extends Controller
         $user = $request->user();
         $esEstudiante = $user?->hasRole('student') ?? false;
         $ocultarDocentes = $esEstudiante && $this->debeOcultarDocentes();
+        $currentStudentId = $user?->student?->id;
 
         $grupos = Group::with(['teacher', 'level', 'period', 'qualifications.student'])
             ->withCount('qualifications')
@@ -95,8 +99,14 @@ class AdminViewsController extends Controller
         }
 
         return Inertia::render('Groups/Index', [
-            'grupos' => GroupResource::collection($grupos)->resolve(),
-            'levels' => LevelResource::collection(Level::orderBy('level_tecnm')->get())->resolve(),
+            'grupos' => GroupResource::collection($grupos->map(function ($group) use ($currentStudentId) {
+                $group->setAttribute('is_enrolled', $currentStudentId
+                    ? $group->qualifications->contains('student_id', $currentStudentId)
+                    : false);
+
+                return $group;
+            }))->resolve(),
+            'levels' => LevelResource::collection(Level::all()->sortBy('level_tecnm')->values())->resolve(),
             'teachers' => $ocultarDocentes ? [] : TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(),
             'statuses' => array_map(fn ($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\AcademicStatus::cases()),
@@ -110,7 +120,7 @@ class AdminViewsController extends Controller
      */
     private function debeOcultarDocentes(): bool
     {
-        $fechaConfig = Setting::where('key', 'teacher_reveal_date')->value('value');
+        $fechaConfig = Setting::all()->firstWhere('key', 'teacher_reveal_date')?->value;
         $fechaRevelo = $fechaConfig ? Carbon::parse($fechaConfig) : Carbon::parse('2026-03-20');
 
         return now()->lt($fechaRevelo);
@@ -167,13 +177,14 @@ class AdminViewsController extends Controller
         $user = $request->user();
         $esEstudiante = $user?->hasRole('student') ?? false;
         $ocultarDocentes = $esEstudiante && $this->debeOcultarDocentes();
+        $currentStudentId = $user?->student?->id;
 
         $exams = Exam::with(['students', 'teacher', 'period'])
             ->visibleToUser($user)
             ->get();
 
         // Aplanamos los datos y calculamos campos derivados para el frontend
-        $examsData = $exams->map(function ($exam) use ($ocultarDocentes) {
+        $examsData = $exams->map(function ($exam) use ($ocultarDocentes, $currentStudentId) {
             $enrolledCount = $exam->students->count();
             $availableSeats = max(0, ($exam->capacity ?? 0) - $enrolledCount);
 
@@ -200,6 +211,9 @@ class AdminViewsController extends Controller
                 'registered' => $enrolledCount,
                 'enrolled_count' => $enrolledCount,
                 'available_seats' => $availableSeats,
+                'is_enrolled' => $currentStudentId
+                    ? $exam->students->contains('id', $currentStudentId)
+                    : false,
                 'students_string' => collect($exam->students)->map(fn ($s) => ($s->first_name ?? '').' '.($s->last_name ?? ''))->join(' '),
             ];
         });
@@ -237,6 +251,212 @@ class AdminViewsController extends Controller
             'serviceTypes' => \App\Enums\ServiceType::toSelect(),
             'serviceStatuses' => \App\Enums\ServiceStatus::toSelect(),
             'reviewOptions' => \App\Enums\ServiceStatus::reviewOptions(),
+        ]);
+    }
+
+    /**
+     * Renderiza la vista de autoinscripción para estudiantes.
+     * Muestra grupos disponibles dentro del período de inscripción actual.
+     * Valida que el estudiante sea elegible antes de permitir la inscripción.
+     *
+     * @return \Inertia\Response
+     */
+    public function studentEnrollmentView(Request $request, EnrollmentWindowResolver $windowResolver)
+    {
+        $user = $request->user();
+        $student = $user->student;
+
+        if (!$student) {
+            return back()->with('error', 'No eres un estudiante registrado en el sistema.');
+        }
+
+        // Cargar qualifications con la relación `group` para mostrar las inscripciones actuales en la UI
+        $student->loadMissing(['services', 'qualifications.group.teacher', 'qualifications.group.period', 'exams.teacher', 'exams.period']);
+
+        $enrolledGroupIds = $student->qualifications
+            ->pluck('group_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $enrolledGroups = empty($enrolledGroupIds)
+            ? collect()
+            : Group::with(['teacher', 'period'])
+                ->withCount('qualifications')
+                ->whereIn('id', $enrolledGroupIds)
+                ->get();
+
+        $enrolledExamIds = $student->exams
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $enrolledExams = empty($enrolledExamIds)
+            ? collect()
+            : Exam::with(['teacher', 'period'])
+                ->withCount('students')
+                ->whereIn('id', $enrolledExamIds)
+                ->get();
+
+        $activePeriod = $windowResolver->resolveActivePeriod();
+
+        $approvedCourseTypes = $student->approvedCourseTypeValues();
+        $approvedExamTypes = $student->approvedExamTypeValues();
+
+        // Grupos y exámenes disponibles en el período activo, filtrados por el concepto pagado.
+        $availableGroups = [];
+        $availableExams = [];
+        // Considerar estados que implican elegibilidad para inscribirse.
+        // Algunos flujos marcan al estudiante como VALIDATED (validado para inscripción)
+        // antes de cambiar a ELEGIBLE_INSCRIPCION, por lo que ambos deben permitir la inscripción.
+        $studentStatus = $student->status;
+        $isEligible = $studentStatus?->canAccessEnrollmentCatalog() ?? false;
+
+        $isInPeriod = $windowResolver->isOpen($activePeriod);
+        $canEnroll = $isEligible && $isInPeriod;
+
+        if ($isInPeriod && $activePeriod) {
+            $grupos = Group::with(['level', 'teacher', 'period', 'qualifications'])
+                ->where('period_id', $activePeriod->id)
+                ->where('status', AcademicStatus::ENROLLING->value)
+                ->get();
+
+            // Calcular capacidad disponible y filtrar grupos no inscritos
+            $availableGroups = $grupos
+                ->filter(function ($group) use ($student, $approvedCourseTypes) {
+                    if ($group->qualifications->contains('student_id', $student->id)) {
+                        return false;
+                    }
+
+                    $groupType = $group->type?->value ?? $group->type;
+
+                    if (!in_array($groupType, $approvedCourseTypes, true)) {
+                        return false;
+                    }
+
+                    if ($groupType === GroupType::REGULAR->value) {
+                        return (int) $group->level_id === (int) $student->level_id;
+                    }
+
+                    return true;
+                })
+                ->map(function ($group) {
+                    $enrolled = $group->qualifications->count();
+                    $capacity = $group->capacity ?? 0;
+                    $available = max(0, $capacity - $enrolled);
+
+                    return [
+                        'id' => $group->id,
+                        'name' => $group->name,
+                        'level' => $group->level ? [
+                            'id' => $group->level->id,
+                            'name' => $group->level->name,
+                            'level_tecnm' => $group->level->level_tecnm,
+                        ] : null,
+                        'teacher' => $group->teacher ? ['id' => $group->teacher->id, 'name' => $group->teacher->full_name] : null,
+                        'period' => $group->period ? ['id' => $group->period->id, 'name' => $group->period->name] : null,
+                        'type' => $group->type?->value ?? $group->type,
+                        'capacity' => $capacity,
+                        'enrolled' => $enrolled,
+                        'available' => $available,
+                        'schedule' => $group->schedule,
+                        'classroom' => $group->classroom,
+                    ];
+                })
+                ->groupBy('level.id')
+                ->map(fn ($groups) => [
+                    'level' => $groups->first()['level'],
+                    'groups' => $groups->values()->all(),
+                ])
+                ->values()
+                ->all();
+
+            $exams = Exam::with(['teacher', 'period', 'students'])
+                ->where('period_id', $activePeriod->id)
+                ->where('status', AcademicStatus::ENROLLING->value)
+                ->get();
+
+            $availableExams = $exams
+                ->filter(function ($exam) use ($student, $approvedExamTypes) {
+                    if ($exam->students->contains('id', $student->id)) {
+                        return false;
+                    }
+
+                    $examType = $exam->exam_type?->value ?? $exam->exam_type;
+
+                    return in_array($examType, $approvedExamTypes, true);
+                })
+                ->map(function ($exam) {
+                    $enrolled = $exam->students->count();
+                    $capacity = $exam->capacity ?? 0;
+                    $available = max(0, $capacity - $enrolled);
+
+                    return [
+                        'id' => $exam->id,
+                        'name' => $exam->name,
+                        'exam_type' => $exam->exam_type?->value ?? $exam->exam_type,
+                        'capacity' => $capacity,
+                        'enrolled' => $enrolled,
+                        'available' => $available,
+                        'start_date' => $exam->start_date,
+                        'end_date' => $exam->end_date,
+                        'application_time' => $exam->application_time,
+                        'mode' => $exam->mode?->value ?? $exam->mode,
+                        'classroom' => $exam->classroom,
+                        'teacher' => $exam->teacher ? ['id' => $exam->teacher->id, 'name' => $exam->teacher->full_name] : null,
+                        'period' => $exam->period ? ['id' => $exam->period->id, 'name' => $exam->period->name] : null,
+                    ];
+                })
+                ->values()
+                ->all();
+        }
+
+        return Inertia::render('Academic/StudentEnrollment', [
+            'student' => $student,
+            'activePeriod' => $activePeriod,
+            'isEligible' => $isEligible,
+            'isInPeriod' => $isInPeriod,
+            'availableGroups' => $availableGroups,
+            'availableExams' => $availableExams,
+            'enrolledGroups' => $enrolledGroups->map(function ($group) {
+                $enrolled = (int) ($group->qualifications_count ?? 0);
+                $capacity = (int) ($group->capacity ?? 0);
+
+                return [
+                    'id' => $group->id,
+                    'name' => $group->name,
+                    'type' => $group->type?->value ?? $group->type,
+                    'teacher' => $group->teacher ? ['id' => $group->teacher->id, 'name' => $group->teacher->full_name] : null,
+                    'capacity' => $capacity,
+                    'enrolled' => $enrolled,
+                    'available' => max(0, $capacity - $enrolled),
+                    'schedule' => $group->schedule,
+                    'classroom' => $group->classroom,
+                ];
+            })->all(),
+            'enrolledExams' => $enrolledExams->map(function ($exam) {
+                $enrolled = (int) ($exam->students_count ?? 0);
+                $capacity = (int) ($exam->capacity ?? 0);
+
+                return [
+                    'id' => $exam->id,
+                    'name' => $exam->name,
+                    'exam_type' => $exam->exam_type?->value ?? $exam->exam_type,
+                    'teacher' => $exam->teacher ? ['id' => $exam->teacher->id, 'name' => $exam->teacher->full_name] : null,
+                    'capacity' => $capacity,
+                    'enrolled' => $enrolled,
+                    'available' => max(0, $capacity - $enrolled),
+                    'application_time' => $exam->application_time,
+                    'mode' => $exam->mode?->value ?? $exam->mode,
+                    'classroom' => $exam->classroom,
+                ];
+            })->all(),
+            'studentStatus' => $studentStatus?->label(),
+            'studentStatusValue' => $studentStatus?->value,
+            'canEnroll' => $canEnroll,
         ]);
     }
 }

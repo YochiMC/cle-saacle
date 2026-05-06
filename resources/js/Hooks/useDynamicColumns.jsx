@@ -450,18 +450,35 @@ export function useDynamicColumns(
                     );
                 }
 
-                // Renderizar booleanos de forma legible
-                if (typeof cellValue === "boolean" || (key.startsWith("is_") || key.includes("hizo_"))) {
-                    if (key.includes("is_left")) {
-                        return cellValue ? (
-                            <span className="px-2 py-0.5 text-xs font-semibold bg-red-500 text-white rounded-full">
-                                Baja
-                            </span>
-                        ) : (
-                            <span className="text-slate-400">No</span>
-                        );
-                    }
+                // Handle is_active by showing a disabled Checkbox
+                if (key === "is_active") {
+                    const isActiveByStatus = row.original.is_active || row.original.status === "Vigente" || row.original.status === "Activo";
 
+                    return (
+                        <div className="flex justify-center w-full">
+                            <Checkbox
+                                checked={isActiveByStatus}
+                                disabled
+                                aria-label={`${formatLabel(key)} — fila ${row.original.id}`}
+                                className="border-gray-500 data-[state=checked]:bg-[#17365D] data-[state=checked]:text-white"
+                            />
+                        </div>
+                    );
+                }
+
+                // Handle is_left keys by showing 'Baja' or '-'
+                if (key.includes("is_left")) {
+                    return cellValue ? (
+                        <span className="px-2 py-0.5 text-xs font-semibold bg-red-500 text-white rounded-full">
+                            Baja
+                        </span>
+                    ) : (
+                        <span className="text-slate-400">-</span>
+                    );
+                }
+
+                // Renderizar booleanos de forma legible (Sí/No with indigo styling)
+                if (typeof cellValue === "boolean" || (key.startsWith("is_") || key.includes("hizo_"))) {
                     return cellValue ? (
                         <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-600 text-white rounded-full">
                             Sí

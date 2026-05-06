@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Enums\ServiceType;
 
 /**
  * Valida la creación de un nuevo registro de servicio o pago de alumno.
@@ -29,9 +31,11 @@ class StoreServiceRequest extends FormRequest
      */
     public function rules(): array
     {
+        $serviceTypeValues = array_column(ServiceType::toSelect(), 'value');
+
         return [
             'file'             => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-            'type'             => ['required', 'string', \Illuminate\Validation\Rule::in(array_column(\App\Enums\ServiceType::cases(), 'value'))],
+            'type'             => ['required', 'string', Rule::in($serviceTypeValues)],
             'amount'           => ['required', 'numeric', 'min:0'],
             'reference_number' => ['nullable', 'string', 'max:255'],
             'description'      => ['nullable', 'string'],
@@ -47,7 +51,8 @@ class StoreServiceRequest extends FormRequest
             'file.required'       => 'El comprobante de pago es obligatorio.',
             'file.mimes'          => 'El comprobante debe ser un archivo PDF, JPG, JPEG o PNG.',
             'file.max'            => 'El comprobante no debe superar los 5MB.',
-            'type.required'       => 'El tipo de pago es obligatorio.',
+            'type.required'       => 'Debes seleccionar un concepto de pago.',
+            'type.in'             => 'El concepto seleccionado no es válido.',
             'amount.required'     => 'El monto es obligatorio.',
             'amount.numeric'      => 'El monto debe ser numérico.',
         ];

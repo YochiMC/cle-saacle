@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -31,6 +32,8 @@ class GroupResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $currentStudentId = $request->user()?->student?->id;
+
         return [
             'id'           => $this->id,
             'name'         => $this->name,
@@ -46,6 +49,9 @@ class GroupResource extends JsonResource
             // Cálculos de inscritos y disponibilidad
             'enrolled_count'  => $this->qualifications_count ?? 0,
             'available_seats' => max(0, $this->capacity - ($this->qualifications_count ?? 0)),
+            'is_enrolled'     => $currentStudentId
+                ? $this->qualifications->contains('student_id', $currentStudentId)
+                : false,
 
             // Datos del docente (respetando la lógica de revelación en el controlador)
             'teacher_name' => $this->teacher ? $this->teacher->full_name : null,
