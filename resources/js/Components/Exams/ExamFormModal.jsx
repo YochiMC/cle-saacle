@@ -4,6 +4,7 @@ import InputLabel from "@/Components/InputLabel";
 import DataFormModal from "@/Components/DataTable/DataFormModal";
 import SelectForm from "@/components/Forms/SelectForm";
 import FormErrors from "@/Components/ui/FormErrors";
+import InputError from "@/Components/InputError";
 import {
     FieldDescription,
     FieldGroup,
@@ -62,36 +63,45 @@ export default function ExamFormModal({
                         </FieldDescription>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <SelectForm
-                                options={typeOptions}
-                                label="Tipo de Examen"
-                                selectId="exam_type"
-                                placeholder="Ej. Convalidación"
-                                value={manager.formData.exam_type}
-                                onValueChange={(v) =>
-                                    manager.setFormData("exam_type", v)
-                                }
-                            />
-                            <SelectForm
-                                options={modeOptions}
-                                label="Modalidad"
-                                selectId="mode"
-                                placeholder="Ej. Presencial"
-                                value={manager.formData.mode}
-                                onValueChange={(v) =>
-                                    manager.setFormData("mode", v)
-                                }
-                            />
-                            <SelectForm
-                                options={statuses}
-                                label="Estado del Examen"
-                                selectId="status"
-                                placeholder="Selecciona el estado"
-                                value={manager.formData.status}
-                                onValueChange={(v) =>
-                                    manager.setFormData("status", v)
-                                }
-                            />
+                            <div className="flex flex-col gap-1">
+                                <SelectForm
+                                    options={typeOptions}
+                                    label="Tipo de Examen"
+                                    selectId="exam_type"
+                                    placeholder="Ej. Convalidación"
+                                    value={manager.formData.exam_type}
+                                    onValueChange={(v) =>
+                                        manager.setFormData("exam_type", v)
+                                    }
+                                />
+                                <InputError message={manager.errors.exam_type} />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <SelectForm
+                                    options={modeOptions}
+                                    label="Modalidad"
+                                    selectId="mode"
+                                    placeholder="Ej. Presencial"
+                                    value={manager.formData.mode}
+                                    onValueChange={(v) =>
+                                        manager.setFormData("mode", v)
+                                    }
+                                />
+                                <InputError message={manager.errors.mode} />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <SelectForm
+                                    options={statuses}
+                                    label="Estado del Examen"
+                                    selectId="status"
+                                    placeholder="Selecciona el estado"
+                                    value={manager.formData.status}
+                                    onValueChange={(v) =>
+                                        manager.setFormData("status", v)
+                                    }
+                                />
+                                <InputError message={manager.errors.status} />
+                            </div>
                         </div>
                     </FieldSet>
 
@@ -123,6 +133,7 @@ export default function ExamFormModal({
                                     }
                                     required
                                 />
+                                <InputError message={manager.errors.start_date} />
                             </div>
 
                             <div>
@@ -144,20 +155,24 @@ export default function ExamFormModal({
                                     }
                                     required
                                 />
+                                <InputError message={manager.errors.end_date} />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mt-4">
-                            <SelectForm
-                                options={periodOptions}
-                                label="Periodo Escolar"
-                                selectId="period_id"
-                                placeholder="Selecciona el Periodo"
-                                value={manager.formData.period_id}
-                                onValueChange={(v) =>
-                                    manager.setFormData("period_id", v)
-                                }
-                            />
+                            <div className="flex flex-col gap-1">
+                                <SelectForm
+                                    options={periodOptions}
+                                    label="Periodo Escolar"
+                                    selectId="period_id"
+                                    placeholder="Selecciona el Periodo"
+                                    value={manager.formData.period_id}
+                                    onValueChange={(v) =>
+                                        manager.setFormData("period_id", v)
+                                    }
+                                />
+                                <InputError message={manager.errors.period_id} />
+                            </div>
                             <div>
                                 <InputLabel
                                     htmlFor="application_time"
@@ -176,6 +191,7 @@ export default function ExamFormModal({
                                     }
                                     placeholder="10:00"
                                 />
+                                <InputError message={manager.errors.application_time} />
                             </div>
                             <div>
                                 <InputLabel
@@ -196,6 +212,7 @@ export default function ExamFormModal({
                                     placeholder="Ej. 10"
                                     required
                                 />
+                                <InputError message={manager.errors.capacity} />
                             </div>
                         </div>
                     </FieldSet>
@@ -227,18 +244,22 @@ export default function ExamFormModal({
                                     }
                                     placeholder="A-101 / Zoom Link"
                                 />
+                                <InputError message={manager.errors.classroom} />
                             </div>
 
-                            <SelectForm
-                                options={teacherOptions}
-                                label="Docente a cargo"
-                                selectId="teacher_id"
-                                placeholder="Selecciona Especialista"
-                                value={manager.formData.teacher_id}
-                                onValueChange={(v) =>
-                                    manager.setFormData("teacher_id", v)
-                                }
-                            />
+                            <div className="flex flex-col gap-1">
+                                <SelectForm
+                                    options={teacherOptions}
+                                    label="Docente a cargo"
+                                    selectId="teacher_id"
+                                    placeholder="Selecciona Especialista"
+                                    value={manager.formData.teacher_id}
+                                    onValueChange={(v) =>
+                                        manager.setFormData("teacher_id", v)
+                                    }
+                                />
+                                <InputError message={manager.errors.teacher_id} />
+                            </div>
                         </div>
                     </FieldSet>
                 </FieldGroup>

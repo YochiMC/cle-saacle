@@ -9,6 +9,8 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -19,6 +21,32 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Limpiar tablas relevantes para dejar la base de datos desde cero.
+        Schema::disableForeignKeyConstraints();
+
+        $tables = [
+            'exam_student',
+            'qualifications',
+            'legacy_qualifications',
+            'exams',
+            'students',
+            'teachers',
+            'groups',
+            'periods',
+            'degrees',
+            'levels',
+            'type_students',
+            'settings',
+            'users',
+        ];
+
+        foreach ($tables as $table) {
+            DB::table($table)->truncate();
+        }
+
+        Schema::enableForeignKeyConstraints();
+
+        // Ejecutar seeders en orden
         $this->call([
             DegreeSeeder::class,
             LevelSeeder::class,
@@ -27,21 +55,5 @@ class DatabaseSeeder extends Seeder
             TestDataBaseSeeder::class,
             SettingSeeder::class,
         ]);
-        Student::factory(200)->withRole()->create();
-        Period::factory(10)->create();
-        // Creamos 5 grupos ficticios
-        Group::factory(5)->create()->each(function ($group) {
-
-            // Magia: Para cada grupo, creamos entre 15 y 25 alumnos
-            $students = Student::factory(rand(15, 25))->withRole()->create();
-
-            // Inscribimos a cada alumno en el grupo creando su registro de calificaciones
-            foreach ($students as $student) {
-                Qualification::factory()->create([
-                    'group_id'   => $group->id,
-                    'student_id' => $student->id,
-                ]);
-            }
-        });
     }
 }

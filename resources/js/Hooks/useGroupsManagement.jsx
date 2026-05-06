@@ -216,6 +216,13 @@ export const useGroupsManagement = (grupos = []) => {
 
         const onError = () => {
             setModales((prev) => ({ ...prev, confirmTypeChange: false }));
+            window.dispatchEvent(new CustomEvent('show-flash', { 
+                detail: { 
+                    type: 'error', 
+                    title: 'Error de validación', 
+                    message: 'Por favor, revisa los errores en el formulario.' 
+                } 
+            }));
         };
 
         if (itemEditando) {

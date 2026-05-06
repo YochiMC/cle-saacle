@@ -4,8 +4,8 @@ namespace App\Http\Requests;
 
 use App\Enums\StudentStatus;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 /**
  * Valida la actualización individual del estatus de acreditación de un alumno.
@@ -30,7 +30,7 @@ class UpdateAccreditationStatusRequest extends FormRequest
         $allowedStatuses = [
             StudentStatus::IN_REVIEW->value,
             StudentStatus::ACCREDITED->value,
-            StudentStatus::SUSPENDED->value,
+            StudentStatus::DISABLED->value,
         ];
 
         return [
@@ -50,8 +50,8 @@ class UpdateAccreditationStatusRequest extends FormRequest
     {
         return [
             'status.required' => 'El campo estatus es obligatorio.',
-            'status.string'   => 'El formato del estatus no es válido.',
-            'status.in'       => 'El estatus seleccionado no es válido para este módulo.',
+            'status.string' => 'El formato del estatus no es válido.',
+            'status.in' => 'El estatus seleccionado no es válido para este módulo.',
         ];
     }
 }

@@ -12,7 +12,7 @@ export const VIEW_OPTIONS = [
 export const STATUS_SELECT_OPTIONS = [
     { value: "in_review", label: "En Revisión" },
     { value: "accredited", label: "Acreditado" },
-    { value: "inhabilitado", label: "Inhabilitado" },
+    { value: "disabled", label: "Inhabilitado" },
 ];
 
 /**

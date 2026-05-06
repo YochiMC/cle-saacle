@@ -23,9 +23,9 @@ return new class extends Migration
             $table->text('comments')->nullable();
             $table->text('description')->nullable();
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
+            $table->foreignId('period_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
-            
         });
     }
 

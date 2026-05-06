@@ -16,7 +16,7 @@ const AccreditationFilters = ({
         <div className="flex flex-wrap items-end gap-4">
             <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estatus
+                    Status
                 </label>
                 <select
                     value={statusFilter}
@@ -26,20 +26,20 @@ const AccreditationFilters = ({
                     <option value="">Todos los estatus</option>
                     <option value="in_review">En Revisión</option>
                     <option value="accredited">Acreditado</option>
-                    <option value="inhabilitado">Inhabilitado</option>
+                    <option value="disabled">Inhabilitado</option>
                 </select>
             </div>
 
             <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tipo de Acreditación
+                    Accreditation Type
                 </label>
                 <select
                     value={typeFilter}
                     onChange={(e) => setTypeFilter(e.target.value)}
                     className="border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 min-w-[200px]"
                 >
-                    <option value="">Todos los tipos</option>
+                    <option value="">All types</option>
                     {accreditationTypeOptions.map((type) => (
                         <option key={type} value={type}>
                             {type}

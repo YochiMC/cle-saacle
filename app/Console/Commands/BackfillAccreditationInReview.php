@@ -45,7 +45,7 @@ class BackfillAccreditationInReview extends Command
                 'qualifications.group.level',
                 'qualifications.group.period',
             ])
-            ->where('status', '!=', StudentStatus::ACCREDITED)
+            ->whereNotIn('status', [StudentStatus::ACCREDITED])
             ->chunkById(200, function ($students) use ($dryRun, &$processed, &$updated, &$skipped) {
                 foreach ($students as $student) {
                     $processed++;
@@ -83,7 +83,7 @@ class BackfillAccreditationInReview extends Command
         $this->line("Actualizados: {$updated}");
         $this->line("Sin cambios: {$skipped}");
 
-        return self::SUCCESS;
+        return 0;
     }
 
     private function resolveLatestAccreditationCandidate(Student $student): ?array
@@ -167,7 +167,7 @@ class BackfillAccreditationInReview extends Command
         return now();
     }
 
-    private function isApprovedExamResult($pivot): bool
+    private function isApprovedExamResult(mixed $pivot): bool
     {
         $units = $this->extractUnitsBreakdown($pivot);
 
@@ -203,7 +203,7 @@ class BackfillAccreditationInReview extends Command
         return false;
     }
 
-    private function extractUnitsBreakdown($pivot): array
+    private function extractUnitsBreakdown(mixed $pivot): array
     {
         $units = $pivot->units_breakdown ?? [];
 

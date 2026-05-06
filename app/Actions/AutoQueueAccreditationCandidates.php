@@ -74,7 +74,7 @@ class AutoQueueAccreditationCandidates
     private function queueStudent(Student $student, string $source, Carbon $date): void
     {
         // Protegemos a los alumnos que ya han sido dictaminados
-        if ($student->status === StudentStatus::ACCREDITED) {
+        if (in_array($student->status, [StudentStatus::ACCREDITED])) {
             return;
         }
 
@@ -113,7 +113,7 @@ class AutoQueueAccreditationCandidates
         return now();
     }
 
-    private function isApprovedExamResult($pivot): bool
+    private function isApprovedExamResult(mixed $pivot): bool
     {
         $units = $this->extractUnitsBreakdown($pivot);
 
@@ -149,7 +149,7 @@ class AutoQueueAccreditationCandidates
         return false;
     }
 
-    private function extractUnitsBreakdown($pivot): array
+    private function extractUnitsBreakdown(mixed $pivot): array
     {
         $units = $pivot->units_breakdown ?? [];
 

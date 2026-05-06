@@ -8,7 +8,7 @@ enum StudentStatus: string
     case WAITING = 'waiting';
     case CURRENT = 'current';
 
-    case SUSPENDED = 'inhabilitado';
+    case DISABLED = 'disabled';
     case IN_REVIEW = 'in_review';
     case ACCREDITED = 'accredited';
 
@@ -43,10 +43,9 @@ enum StudentStatus: string
         return match ($this) {
             self::WAITING => 'En Espera',
             self::CURRENT => 'Vigente',
-            self::SUSPENDED => 'Inhabilitado',
+            self::DISABLED => 'Disabled',
             self::IN_REVIEW => 'En Revisión',
             self::ACCREDITED => 'Acreditado',
-            self::RELEASED => 'Liberado',
             self::PAYMENT_REVIEW => 'Revisión de Pago',
             self::VALIDATED => 'Validado para Inscripción',
             self::ELEGIBLE_INSCRIPCION => 'Elegible para Inscripción',

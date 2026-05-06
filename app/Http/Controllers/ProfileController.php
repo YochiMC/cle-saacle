@@ -173,6 +173,31 @@ class ProfileController extends Controller
 
         $data = $getKardexAction->execute($user->student);
 
+        // Calificaciones históricas (OG) con su nivel resuelto
+        $data['legacyQualifications'] = $user->student
+            ->legacyQualifications()
+            ->with('level')
+            ->orderBy('level_id')
+            ->orderBy('period')
+            ->get()
+            ->map(fn($lq) => [
+                'id'          => $lq->id,
+                'level_id'    => $lq->level_id,
+                'level_name'  => $lq->level?->level_tecnm ?? 'N/A',
+                'period'      => $lq->period,
+                'final_grade' => (int) $lq->final_grade,
+            ]);
+
+        // Catálogo de niveles para el select del modal:
+        // Solo niveles del programa Regular (excluye Programa de egresados),
+        // ordenados por id para respetar la secuencia Básico 1 → Intermedio 5.
+        $data['levels'] = Level::where('program_type', 'Regular')
+            ->orderBy('id')
+            ->get(['id', 'level_tecnm']);
+
+        // ID del usuario (necesario en el frontend para construir las rutas anidadas)
+        $data['userId'] = $user->id;
+
         return Inertia::render('Academic/Kardex', $data);
     }
 

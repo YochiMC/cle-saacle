@@ -30,7 +30,7 @@ const ESTADO_MAP = {
         etiqueta: "Acreditado",
         cls: "bg-emerald-100 text-emerald-800",
     },
-    inhabilitado: { etiqueta: "Inhabilitado", cls: "bg-red-100 text-red-800" },
+    disabled: { etiqueta: "Disabled", cls: "bg-red-100 text-red-800" },
 };
 
 /**

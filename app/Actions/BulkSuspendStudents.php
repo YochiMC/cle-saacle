@@ -19,6 +19,6 @@ class BulkSuspendStudents
     public function execute(array $studentIds): int
     {
         return Student::whereIn('id', $studentIds)
-            ->update(['status' => StudentStatus::SUSPENDED]);
+            ->update(['status' => StudentStatus::DISABLED]);
     }
 }

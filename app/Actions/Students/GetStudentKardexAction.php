@@ -22,12 +22,13 @@ class GetStudentKardexAction
 
         // 1. Obtener Cursos del alumno
         $cursos = $student->qualifications()
-            ->with(['group.level', 'group.period'])
+            ->with(['group.level', 'group.period', 'group.teacher'])
             ->get()
             ->map(function ($qualification) use ($student) {
                 $group = $qualification->group;
                 $nivel = $group?->level?->level_tecnm ?? 'N/A';
                 $modalidad = $group?->type?->value ?? 'Curso Normal';
+                $maestro = $group?->teacher?->full_name ?? 'N/A';
 
                 $row = [
                     'id' => $qualification->student_id,
@@ -53,18 +54,19 @@ class GetStudentKardexAction
                     'sort_exam' => 0,
                     'nivel' => $nivel,
                     'grupo' => $group?->name ?? 'N/A',
-                    'materia' => $nivel . ' - ' . $modalidad,
+                    'materia' => $nivel,
                     'calificacion' => $calificacion ?? 'NA',
                     'resultado' => is_numeric($calificacion) && $calificacion >= 70 ? 'Acreditado' : 'No Acreditado',
                     'periodo' => $group?->period?->name ?? 'N/A',
                     'modalidad' => 'Curso',
+                    'maestro' => $maestro,
                 ];
             });
 
         // 2. Obtener Exámenes
         $examenes = $student->exams()
             ->withPivot('calificacion', 'units_breakdown', 'final_average')
-            ->with('period')
+            ->with(['period', 'teacher'])
             ->get()
             ->map(function ($exam) use ($student) {
                 $row = [
@@ -98,6 +100,7 @@ class GetStudentKardexAction
                     'resultado' => $resultado,
                     'periodo' => $exam->period?->name ?? 'N/A',
                     'modalidad' => 'Examen',
+                    'maestro' => $exam->teacher?->full_name ?? 'N/A',
                 ];
             });
 
@@ -125,6 +128,7 @@ class GetStudentKardexAction
                     'grade' => $item['calificacion'],
                     'status' => $item['resultado'],
                     'period' => $item['periodo'],
+                    'teacher' => $item['maestro'],
                 ];
             })
             ->all();

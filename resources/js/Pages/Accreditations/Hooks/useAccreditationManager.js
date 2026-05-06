@@ -69,11 +69,11 @@ export default function useAccreditationManager(candidates) {
                 preserveScroll: true,
                 preserveState: true,
                 onSuccess: () => {
-                    showFlash("success", "El estatus de acreditación se ha actualizado.");
+                    showFlash("success", "Accreditation status updated.");
                     setEditingRowId(null);
                 },
                 onError: () => {
-                    showFlash("error", "Ha ocurrido un error al actualizar el estatus.");
+                    showFlash("error", "An error occurred while updating the status.");
                 },
             }
         );
@@ -87,7 +87,7 @@ export default function useAccreditationManager(candidates) {
 
         router.patch(
             route("accreditations.update-status", target.id),
-            { status: "inhabilitado" },
+            { status: "disabled" },
             {
                 preserveScroll: true,
                 preserveState: true,
@@ -95,7 +95,7 @@ export default function useAccreditationManager(candidates) {
                     showFlash("success", "Alumno actualizado a estatus Inhabilitado.");
                 },
                 onError: () => {
-                    showFlash("error", "No se pudo actualizar el estatus del alumno.");
+                    showFlash("error", "Could not update student status.");
                 },
             }
         );
