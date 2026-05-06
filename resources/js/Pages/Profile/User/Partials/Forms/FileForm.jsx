@@ -2,6 +2,7 @@ import FileInputForm from '@/Components/Forms/FileInputForm';
 import FormModal from '@/Components/Forms/FormModal';
 import ButtonForm from '@/Components/Forms/ButtonForm';
 import SelectForm from '@/Components/Forms/SelectForm';
+import InputForm from '@/Components/Forms/InputForm';
 import { FieldError } from '@/Components/ui/field';
 import { useForm } from '@inertiajs/react';
 
@@ -29,8 +30,10 @@ export default function FileForm({
     const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
         file: null,
         type: '',
+        custom_name: '',
     });
-    const hasFormErrors = Boolean(errors.file || errors.type);
+    const hasFormErrors = Boolean(errors.file || errors.type || errors.custom_name);
+    const isEvidenceType = data.type === 'evidencia';
 
     const handleFileChange = (event) => {
         const selectedFile = event.target.files?.[0] ?? null;
@@ -67,7 +70,7 @@ export default function FileForm({
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
-                reset('file', 'type');
+                reset('file', 'type', 'custom_name');
                 onClose?.();
             },
         });
@@ -78,7 +81,7 @@ export default function FileForm({
             return;
         }
 
-        reset('file', 'type');
+        reset('file', 'type', 'custom_name');
         clearErrors();
         onClose?.();
     };
@@ -121,6 +124,27 @@ export default function FileForm({
                     />
                     <FieldError>{errors.type}</FieldError>
                 </div>
+
+                {isEvidenceType && (
+                    <div>
+                        <InputForm
+                            id="custom_name"
+                            label="Nombre del documento (Evidencia)"
+                            name="custom_name"
+                            type="text"
+                            placeholder="Ej: Certificado de participación, Diploma, etc."
+                            value={data.custom_name}
+                            onChange={(e) => {
+                                setData('custom_name', e.target.value);
+                                clearErrors('custom_name');
+                            }}
+                            description="Proporciona un nombre descriptivo para esta evidencia que facilite la identificación."
+                            disabled={processing}
+                            required
+                        />
+                        <FieldError>{errors.custom_name}</FieldError>
+                    </div>
+                )}
 
                 <ButtonForm
                     submitLabel="Guardar documento"

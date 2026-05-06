@@ -43,6 +43,12 @@ class StoreDocumentRequest extends FormRequest
                 'required',
                 Rule::in(DocumentType::values()),
             ],
+            'custom_name' => [
+                'nullable',
+                'string',
+                'max:255',
+                'required_if:type,evidencia',
+            ],
         ];
     }
 

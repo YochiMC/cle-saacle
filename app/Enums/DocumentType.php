@@ -4,35 +4,30 @@ namespace App\Enums;
 
 enum DocumentType: string
 {
-    case INE = 'ine';
     case RFC = 'rfc';
     case CURP = 'curp';
-
-    case DOCUMENTO_DE_IDENTIDAD = 'documento_de_identidad';
+    case IDENTIFICACION_OFICIAL = 'identificacion_oficial';
     case CEDULA = 'cedula_profesional';
     case CERTIFICADO = 'certificado';
     case EVIDENCIA = 'evidencia';
-    case ACTA_NACIMIENTO = 'acta_nacimiento';
 
     public function label(): string
     {
         return match ($this) {
-            self::INE => 'INE',
             self::RFC => 'RFC',
             self::CURP => 'CURP',
-            self::DOCUMENTO_DE_IDENTIDAD => 'Documento de Identidad',
+            self::IDENTIFICACION_OFICIAL => 'Identificación Oficial',
             self::CEDULA => 'Cédula Profesional',
             self::CERTIFICADO => 'Certificado',
             self::EVIDENCIA => 'Evidencia',
-            self::ACTA_NACIMIENTO => 'Acta de Nacimiento',
         };
     }
 
     public static function requiredFor(string $role): array
     {
         return match($role) {
-            'teacher', 'docente' => [self::INE, self::RFC, self::CEDULA, self::CERTIFICADO, self::EVIDENCIA],
-            'student', 'alumno' => [self::INE, self::ACTA_NACIMIENTO, self::CURP, self::EVIDENCIA],
+            'teacher', 'docente' => [self::IDENTIFICACION_OFICIAL, self::RFC, self::CEDULA, self::CERTIFICADO, self::EVIDENCIA],
+            'student', 'alumno' => [self::IDENTIFICACION_OFICIAL, self::CURP, self::EVIDENCIA],
             default   => [],
         };
     }

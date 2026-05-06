@@ -42,7 +42,8 @@ class DocumentController extends Controller
         $action->execute(
             $request->file('file'),
             $request->validated('type'),
-            (int) Auth::id()
+            (int) Auth::id(),
+            $request->validated('custom_name')
         );
 
         return back()->with('success', 'Documento subido exitosamente.');
