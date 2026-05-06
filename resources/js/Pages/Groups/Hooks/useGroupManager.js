@@ -51,9 +51,15 @@ export default function useGroupManager(grupo, enrolledStudents = []) {
         itemData: null,
     });
 
-    // 3. Permisos Derivados
+    // 3. Permisos derivados alineados con backend.
+    // canEditQualifications controla captura/cierre académico: teacher, admin o coordinator
     const canEditQualifications = useMemo(() =>
-        hasRole("teacher") || hasRole("admin"),
+        hasRole("teacher") || hasRole("admin") || hasRole("coordinator"),
+    [hasRole]);
+
+    // canEnrollStudents controla la acción de alta en el modal de inscripción: admin o coordinator
+    const canEnrollStudents = useMemo(() =>
+        hasRole("admin") || hasRole("coordinator"),
     [hasRole]);
 
     const editableColumns = useMemo(() => {
