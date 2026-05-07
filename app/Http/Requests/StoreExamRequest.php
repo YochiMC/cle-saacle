@@ -32,7 +32,7 @@ class StoreExamRequest extends FormRequest
             'end_date'         => 'required|date|after_or_equal:start_date',
             'mode'             => 'required|string',
             'application_time' => 'nullable|string',
-            'classroom'        => 'nullable|string|max:255',
+            'site'             => 'nullable|string|max:255',
             'period_id'        => 'required|exists:periods,id',
             'teacher_id'       => 'nullable|integer|exists:teachers,id',
         ];

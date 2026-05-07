@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use App\Enums\AcademicStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -29,14 +29,14 @@ class Exam extends Model
         'start_date',
         'end_date',
         'application_time',
-        'classroom',
+        'site',
         'status',
         'period_id',
         'teacher_id',
     ];
 
     protected $casts = [
-        'status'    => \App\Enums\AcademicStatus::class,
+        'status' => \App\Enums\AcademicStatus::class,
         'exam_type' => \App\Enums\ExamType::class,
     ];
 

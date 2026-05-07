@@ -34,7 +34,7 @@ class StoreExamRequestTest extends TestCase
             'end_date'         => '2026-08-15',
             'mode'             => 'Presencial',
             'application_time' => '09:00',
-            'classroom'        => 'Aula A-101',
+            'site'             => 'Aula A-101',
             'period_id'        => $period->id,
             'teacher_id'       => $teacher->id,
         ];
@@ -164,14 +164,14 @@ class StoreExamRequestTest extends TestCase
     {
         $payload = array_merge($this->validPayload(), [
             'application_time' => null,
-            'classroom'        => null,
+            'site'             => null,
         ]);
         $this->assertFalse($this->validate($payload)->fails());
     }
 
-    public function test_fails_when_classroom_exceeds_255_characters(): void
+    public function test_fails_when_site_exceeds_255_characters(): void
     {
-        $payload = array_merge($this->validPayload(), ['classroom' => str_repeat('A', 256)]);
+        $payload = array_merge($this->validPayload(), ['site' => str_repeat('A', 256)]);
         $this->assertTrue($this->validate($payload)->fails());
     }
 

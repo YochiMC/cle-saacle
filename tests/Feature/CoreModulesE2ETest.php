@@ -38,7 +38,7 @@ class CoreModulesE2ETest extends TestCase
             'end_date'         => '2026-08-10',
             'mode'             => 'Presencial',
             'application_time' => '09:00',
-            'classroom'        => 'Aula E2E-1',
+            'site'             => 'Aula E2E-1',
             'period_id'        => $periodId,
             'teacher_id'       => $teacherId,
         ];

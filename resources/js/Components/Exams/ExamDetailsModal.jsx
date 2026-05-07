@@ -58,7 +58,7 @@ const ExamDetailsModal = memo(({ examen, onClose }) => {
     const horaDisplay = examen.application_time ?? null;
     const modalidadDisplay = examen.mode ?? "Sin definir";
 
-    /** Detecta si el valor de `classroom` es una URL válida. */
+    /** Detecta si el valor de `site` es una URL válida. */
     const esUrl = (string) => {
         try {
             new URL(string);
@@ -130,10 +130,10 @@ const ExamDetailsModal = memo(({ examen, onClose }) => {
                 <DataLabel
                     label="Aula / Sede o LINK"
                     value={
-                        examen.classroom ? (
-                            esUrl(examen.classroom) ? (
+                        examen.site ? (
+                            esUrl(examen.site) ? (
                                 <a
-                                    href={examen.classroom}
+                                    href={examen.site}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1B396A] underline underline-offset-2 hover:text-[#142952] transition-colors"
@@ -143,7 +143,7 @@ const ExamDetailsModal = memo(({ examen, onClose }) => {
                                 </a>
                             ) : (
                                 <span className="inline-block bg-blue-50 text-[#1B396A] text-sm font-semibold px-3 py-1 rounded-full">
-                                    {examen.classroom}
+                                    {examen.site}
                                 </span>
                             )
                         ) : null

@@ -228,23 +228,23 @@ export default function ExamFormModal({
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
                                 <InputLabel
-                                    htmlFor="classroom"
+                                    htmlFor="site"
                                     value="Aula / Link"
                                 />
                                 <TextInput
-                                    id="classroom"
+                                    id="site"
                                     type="text"
                                     className="mt-1 block w-full"
-                                    value={manager.formData.classroom}
+                                    value={manager.formData.site}
                                     onChange={(e) =>
                                         manager.setFormData(
-                                            "classroom",
+                                            "site",
                                             e.target.value,
                                         )
                                     }
                                     placeholder="A-101 / Zoom Link"
                                 />
-                                <InputError message={manager.errors.classroom} />
+                                <InputError message={manager.errors.site} />
                             </div>
 
                             <div className="flex flex-col gap-1">

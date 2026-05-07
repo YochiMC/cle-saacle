@@ -197,7 +197,7 @@ class AdminViewsController extends Controller
                 'end_date' => $exam->end_date,
                 'mode' => $exam->mode,
                 'application_time' => $exam->application_time,
-                'classroom' => $exam->classroom,
+                'site' => $exam->site,
                 'status' => $exam->status?->value ?? $exam->status,
                 'period_id' => $exam->period_id,
                 'teacher_id' => $ocultarDocentes ? null : $exam->teacher_id,
@@ -405,7 +405,7 @@ class AdminViewsController extends Controller
                         'end_date' => $exam->end_date,
                         'application_time' => $exam->application_time,
                         'mode' => $exam->mode?->value ?? $exam->mode,
-                        'classroom' => $exam->classroom,
+                        'site' => $exam->site,
                         'teacher' => $exam->teacher ? ['id' => $exam->teacher->id, 'name' => $exam->teacher->full_name] : null,
                         'period' => $exam->period ? ['id' => $exam->period->id, 'name' => $exam->period->name] : null,
                     ];
@@ -451,7 +451,7 @@ class AdminViewsController extends Controller
                     'available' => max(0, $capacity - $enrolled),
                     'application_time' => $exam->application_time,
                     'mode' => $exam->mode?->value ?? $exam->mode,
-                    'classroom' => $exam->classroom,
+                    'site' => $exam->site,
                 ];
             })->all(),
             'studentStatus' => $studentStatus?->label(),

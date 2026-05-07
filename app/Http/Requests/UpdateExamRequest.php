@@ -30,7 +30,7 @@ class UpdateExamRequest extends FormRequest
             'end_date'         => 'sometimes|required|date|after_or_equal:start_date',
             'mode'             => 'sometimes|required|string',
             'application_time' => 'nullable|string',
-            'classroom'        => 'nullable|string|max:255',
+            'site'             => 'nullable|string|max:255',
             'period_id'        => 'sometimes|required|exists:periods,id',
             'teacher_id'       => 'nullable|integer|exists:teachers,id',
         ];

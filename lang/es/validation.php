@@ -280,6 +280,7 @@ return [
         'clabe' => 'CLABE interbancaria',
         'meeting_link' => 'enlace de reunion',
         'classroom' => 'aula',
+        'site'      => 'sede / aula',
         'is_native' => 'docente nativo',
         'student' => 'estudiante',
         'subject' => 'asunto',

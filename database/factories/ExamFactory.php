@@ -42,7 +42,7 @@ class ExamFactory extends Factory
                 '16:00',
                 '17:00'
             ]),
-            'classroom' => $this->faker->bothify('Aula ?-##'),
+            'site' => $this->faker->bothify('Aula ?-##'),
             'status' => $this->faker->randomElement(AcademicStatus::cases())->value,
             'period_id' => Period::inRandomOrder()->value('id') ?? Period::factory(),
             'teacher_id' => Teacher::inRandomOrder()->value('id') ?? Teacher::factory(),

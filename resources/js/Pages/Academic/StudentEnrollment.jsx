@@ -385,7 +385,7 @@ export default function StudentEnrollment({
                                                     </div>
                                                     <div className="rounded-2xl bg-gray-50 p-4">
                                                         <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Aula</p>
-                                                        <p className="mt-1 text-gray-900">{exam.classroom || 'N/A'}</p>
+                                                        <p className="mt-1 text-gray-900">{exam.site || 'N/A'}</p>
                                                     </div>
                                                     <div className="rounded-2xl bg-gray-50 p-4">
                                                         <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Capacidad</p>
@@ -460,7 +460,7 @@ export default function StudentEnrollment({
                                                         </div>
                                                         <div className="rounded-2xl bg-gray-50 p-4">
                                                             <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Aula</p>
-                                                            <p className="mt-1 text-gray-900">{exam.classroom || 'N/A'}</p>
+                                                            <p className="mt-1 text-gray-900">{exam.site || 'N/A'}</p>
                                                         </div>
                                                         <div className="rounded-2xl bg-gray-50 p-4">
                                                             <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Capacidad</p>

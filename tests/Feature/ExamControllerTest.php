@@ -78,7 +78,7 @@ class ExamControllerTest extends TestCase
             'end_date'         => '2026-08-15',
             'mode'             => 'Presencial',
             'application_time' => '09:00',
-            'classroom'        => 'Aula A-1',
+            'site'             => 'Aula A-1',
             'period_id'        => ($period ?? Period::factory()->create())->id,
             'teacher_id'       => ($teacher ?? Teacher::factory()->create())->id,
         ];

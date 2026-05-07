@@ -53,7 +53,7 @@ export const useExamsManagement = (examenes = []) => {
         end_date: "",
         mode: "",
         application_time: "",
-        classroom: "",
+        site: "",
         period_id: "",
         teacher_id: "none",
     });
@@ -80,7 +80,7 @@ export const useExamsManagement = (examenes = []) => {
                         mode: payload.mode?.value ?? payload.mode ?? "",
                         period_id: payload.period_id?.toString() ?? "",
                         capacity: payload.capacity?.toString() ?? "",
-                        classroom: payload.classroom || "",
+                        site: payload.site || "",
                         teacher_id: payload.teacher_id
                             ? payload.teacher_id.toString()
                             : "none",
@@ -136,7 +136,7 @@ export const useExamsManagement = (examenes = []) => {
                     end_date: normalize(formData.end_date),
                     mode: normalize(formData.mode),
                     application_time: normalize(formData.application_time),
-                    classroom: normalize(formData.classroom),
+                    site: normalize(formData.site),
                     period_id: normalize(formData.period_id),
                     teacher_id: normalize(
                         formData.teacher_id === "none"
@@ -159,7 +159,7 @@ export const useExamsManagement = (examenes = []) => {
                         itemEditando.mode?.value ?? itemEditando.mode,
                     ),
                     application_time: normalize(itemEditando.application_time),
-                    classroom: normalize(itemEditando.classroom),
+                    site: normalize(itemEditando.site),
                     period_id: normalize(itemEditando.period_id),
                     teacher_id: normalize(itemEditando.teacher_id),
                 };

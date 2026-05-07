@@ -20,7 +20,7 @@ return new class extends Migration
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->string('application_time')->nullable();
-            $table->string('classroom')->nullable();
+            $table->string('site')->nullable();
             $table->string('status')->default('active');
             $table->foreignId('period_id')->constrained('periods')->cascadeOnDelete();
             $table->foreignId('teacher_id')->nullable()->constrained()->nullOnDelete();
