@@ -51,6 +51,7 @@ enum StudentStatus: string
             self::ELEGIBLE_INSCRIPCION => 'Elegible para Inscripción',
             self::ESPERA_INSCRIPCION => 'Esperando Inscripción',
             self::ESPERA => 'En Espera',
+            self::RELEASED => 'Liberado',
         };
     }
 }
