@@ -116,6 +116,12 @@ class ExamController extends Controller
             : false;
 
         $availableStudents = [];
+        if (!Auth::user()?->hasRole('student')) {
+            $enrolledIds = $exam->students()->pluck('student_id');
+            $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
+                ->select('id', 'first_name', 'last_name', 'num_control')
+                ->get();
+        }
 
         $levelsTecnm = \App\Models\Level::where('level_tecnm', '!=', 'Programa Egresados')
             ->pluck('level_tecnm')
