@@ -1,5 +1,5 @@
 import React from "react";
-import EnrollStudentModal from "@/Components/SharedModals/EnrollStudentModal";
+import EnrollStudentModal from "@/Components/ui/EnrollStudentModal";
 import ConfirmModal from '@/Components/ui/ConfirmModal';
 import ModalAlert from "@/Components/ui/ModalAlert";
 
@@ -82,3 +82,4 @@ const GroupModals = ({
 };
 
 export default React.memo(GroupModals);
+

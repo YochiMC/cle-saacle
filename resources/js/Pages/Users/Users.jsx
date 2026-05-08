@@ -16,10 +16,10 @@
  */
 
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
+import ResourceDashboard from "@/Components/ResourceDashboard";
 import { useState } from "react";
-import StudentModal from "@/Components/Users/StudentModal";
-import TeacherModal from "@/Components/Users/TeacherModal";
+import StudentModal from "@/Components/domain/Users/StudentModal";
+import TeacherModal from "@/Components/domain/Users/TeacherModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import { Head, router } from "@inertiajs/react";
 import useFlashAlert from "@/Hooks/useFlashAlert";
@@ -158,3 +158,5 @@ export default function Users({
         </AuthenticatedLayout>
     );
 }
+
+

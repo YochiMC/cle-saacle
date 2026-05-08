@@ -1,7 +1,7 @@
 import React from "react";
-import Modal from "@/Components/Modal";
-import PrimaryButton from "@/Components/PrimaryButton";
-import SecondaryButton from "@/Components/SecondaryButton";
+import Modal from "@/Components/ui/Modal";
+import PrimaryButton from "@/Components/ui/PrimaryButton";
+import SecondaryButton from "@/Components/ui/SecondaryButton";
 
 /**
  * Cascarón Genérico para Formularios.
@@ -55,3 +55,4 @@ export default function DataFormModal({
         </Modal>
     );
 }
+

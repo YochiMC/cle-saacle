@@ -13,11 +13,11 @@ import {
 } from "lucide-react";
 import { usePermission } from "@/Utils/auth";
 
-import CardExam from "@/Components/Exams/CardExam";
-import ExamDetailsModal from "@/Components/Exams/ExamDetailsModal";
-import ExamFormModal from "@/Components/Exams/ExamFormModal";
-import ResourceFilterBar from "@/Components/Resource/ResourceFilterBar";
-import ResourceSelectFilter from "@/Components/Resource/ResourceSelectFilter";
+import CardExam from "@/Components/domain/Exams/CardExam";
+import ExamDetailsModal from "@/Components/domain/Exams/ExamDetailsModal";
+import ExamFormModal from "@/Components/domain/Exams/ExamFormModal";
+import ResourceFilterBar from "@/Components/ui/ResourceFilterBar";
+import ResourceSelectFilter from "@/Components/ui/ResourceSelectFilter";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import ConfirmModal from "@/Components/ui/ConfirmModal";
@@ -273,3 +273,5 @@ export default function Examen({
         </AuthenticatedLayout>
     );
 }
+
+

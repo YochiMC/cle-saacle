@@ -1,6 +1,6 @@
 import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
+import ResourceDashboard from "@/Components/ResourceDashboard";
 import { Head } from "@inertiajs/react";
 
 // Hooks y Controladores
@@ -122,3 +122,4 @@ export default function View({
         </AuthenticatedLayout>
     );
 }
+

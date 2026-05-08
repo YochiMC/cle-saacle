@@ -3,7 +3,7 @@ import { useForm } from "@inertiajs/react";
 import DataFormModal from "@/Components/DataTable/DataFormModal";
 import InputForm from "@/Components/Forms/InputForm";
 import CheckboxForm from "@/Components/Forms/CheckboxForm";
-import InputError from "@/Components/InputError";
+import InputError from "@/Components/ui/InputError";
 
 /**
  * CatalogFormModal
@@ -157,3 +157,4 @@ export default function CatalogFormModal({
         </DataFormModal>
     );
 }
+

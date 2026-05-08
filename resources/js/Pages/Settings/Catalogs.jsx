@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import ResourceDashboard from '@/Components/Resource/ResourceDashboard';
+import ResourceDashboard from '@/Components/ResourceDashboard';
 import ModalAlert from '@/Components/ui/ModalAlert';
 import useFlashAlert from '@/Hooks/useFlashAlert';
 
@@ -102,3 +102,4 @@ export default function Catalogs({ catalogs = [] }) {
         </AuthenticatedLayout>
     );
 }
+

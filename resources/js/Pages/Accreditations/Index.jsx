@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
+import ResourceDashboard from "@/Components/ResourceDashboard";
 import { Head } from "@inertiajs/react";
 
 // Hooks y Controladores
@@ -99,3 +99,4 @@ export default function Index({ candidates, accreditationTypeOptions = [] }) {
         </AuthenticatedLayout>
     );
 }
+

@@ -1,6 +1,6 @@
 import React from "react";
 import ThemeButton from "@/Components/ui/ThemeButton";
-import Dropdown from "@/Components/Dropdown";
+import Dropdown from "@/Components/ui/Dropdown";
 import { Settings, Edit3 } from "lucide-react";
 import { EVALUABLE_UNITS_RANGE } from "../Constants/groupConstants";
 
@@ -74,3 +74,4 @@ const GroupToolbar = ({
 };
 
 export default React.memo(GroupToolbar);
+
