@@ -21,6 +21,7 @@ use App\Http\Requests\UpdateExamRequest;
 use App\Http\Requests\UpdateExamPivotRequest;
 use App\Models\Exam;
 use App\Models\Student;
+use App\Models\User;
 use App\Services\ExamNamingService;
 use App\Services\EnrollmentWindowResolver;
 use Illuminate\Http\RedirectResponse;
@@ -104,6 +105,9 @@ class ExamController extends Controller
     public function show(Exam $exam)
     {
         Gate::authorize('view', $exam);
+        /** @var User|null $user */
+        $user = Auth::user();
+
         $students = $exam->students()->get();
 
         $enrolledStudents = $students->map(
@@ -111,12 +115,12 @@ class ExamController extends Controller
         );
 
         // Verificar si el estudiante actual está inscrito
-        $isStudentEnrolled = Auth::user()?->hasRole('student')
-            ? $exam->students()->where('student_id', Auth::user()?->student?->id)->exists()
+        $isStudentEnrolled = $user?->hasRole('student')
+            ? $exam->students()->where('student_id', $user?->student?->id)->exists()
             : false;
 
         $availableStudents = [];
-        if (!Auth::user()?->hasRole('student')) {
+        if (!$user?->hasRole('student')) {
             $enrolledIds = $exam->students()->pluck('student_id');
             $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
                 ->select('id', 'first_name', 'last_name', 'num_control')
@@ -147,6 +151,7 @@ class ExamController extends Controller
     {
         Gate::authorize('enroll', $exam);
 
+        /** @var User|null $user */
         $user = Auth::user();
         if ($user?->hasRole('student')) {
             $student = $user->student;
@@ -189,7 +194,10 @@ class ExamController extends Controller
     public function unenroll(Exam $exam, Student $student): RedirectResponse
     {
         Gate::authorize('unenroll', $exam);
-        if (Auth::user()?->hasRole('student') && $student->user_id !== Auth::id()) {
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if ($user?->hasRole('student') && $student->user_id !== Auth::id()) {
             abort(403);
         }
 
