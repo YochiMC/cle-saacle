@@ -73,7 +73,7 @@ class ExamFactory extends Factory
             // Asociar estudiantes con calificación aleatoria en la tabla pivot
             foreach ($studentIds as $studentId) {
                 $exam->students()->attach($studentId, [
-                    'calificacion' => $this->faker->optional(0.3)->numberBetween(0, 100), // 30% sin calificación
+                    'final_average' => $this->faker->optional(0.3)->numberBetween(0, 100),
                 ]);
             }
         });

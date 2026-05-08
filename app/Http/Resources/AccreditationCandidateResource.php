@@ -194,7 +194,6 @@ class AccreditationCandidateResource extends JsonResource
 
         $numericCandidates = [
             $pivot->final_average ?? null,
-            $pivot->calificacion ?? null,
             data_get($units, 'calificacion_final'),
             data_get($units, 'promedio'),
         ];

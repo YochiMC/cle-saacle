@@ -65,7 +65,7 @@ class GetStudentKardexAction
 
         // 2. Obtener Exámenes
         $examenes = $student->exams()
-            ->withPivot('calificacion', 'units_breakdown', 'final_average')
+            ->withPivot('units_breakdown', 'final_average')
             ->with(['period', 'teacher'])
             ->get()
             ->map(function ($exam) use ($student) {

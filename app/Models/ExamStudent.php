@@ -29,7 +29,6 @@ class ExamStudent extends Pivot
     protected $fillable = [
         'exam_id',
         'student_id',
-        'calificacion',
         'units_breakdown',
         'final_average',
         'attempt',
