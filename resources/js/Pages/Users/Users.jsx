@@ -24,6 +24,7 @@ import ModalAlert from "@/Components/ui/ModalAlert";
 import { Head, router } from "@inertiajs/react";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import ConfirmModal from "@/Components/ui/ConfirmModal";
+import { USERS_HIDDEN_COLUMNS } from "@/Constants/tableColumns";
 
 // Definidas fuera del componente para mantener referencia estable entre renders.
 const VIEW_OPTIONS = [
@@ -113,12 +114,7 @@ export default function Users({
                 onDeleteRow={openDeleteModal}
                 onViewChange={(view) => setCurrentView(view)}
                 restrictedColumns={["attempt"]}
-                hiddenColumns={{
-                    user_id: false,
-                    birthdate: false,
-                    type: false,
-                    status_label: false,
-                }}
+                hiddenColumns={USERS_HIDDEN_COLUMNS}
             />
 
             {/* Modales — se monta únicamente el correspondiente a la vista activa */}
