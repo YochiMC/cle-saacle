@@ -5,20 +5,17 @@ import { formatLabel, GRADE_COLUMNS } from "@/Constants/tableDictionary";
 import EditableCell from "./EditableCell";
 
 /**
- * Helper para renderizar valores nulos o vacíos.
+ * Helper para renderizar valores nulos o vacíos con un fallback visual.
  */
 const renderCellValue = (value) => {
-    if (value === null || value === undefined || value === "" || value === "-")
-        return "—";
+    if (value === null || value === undefined || value === "" || value === "-") return "—";
     if (typeof value === "object") return JSON.stringify(value);
     return value;
 };
 
 /**
  * Componente principal para el renderizado de celdas dinámicas.
- * 
- * Rendimiento: Envuelto en React.memo con una función de comparación personalizada.
- * Garantiza que solo se re-renderice la celda que realmente cambió su valor o estado.
+ * Orquesta la visualización basada en tipos de datos y estados de edición.
  */
 const DynamicCellRenderer = memo(({
     row,
@@ -30,7 +27,6 @@ const DynamicCellRenderer = memo(({
 }) => {
     const cellValue = row.original[fieldKey];
 
-    // 1. Modo Edición: Delegar a EditableCell
     if (isRowEditing && isEditable) {
         return (
             <EditableCell
@@ -44,7 +40,6 @@ const DynamicCellRenderer = memo(({
         );
     }
 
-    // 2. Renderizado de Status
     if (fieldKey === "status") {
         return (
             <div className="flex justify-center w-full">
@@ -53,7 +48,6 @@ const DynamicCellRenderer = memo(({
         );
     }
 
-    // 3. Renderizado de is_active
     if (fieldKey === "is_active") {
         const isActiveByStatus =
             row.original.is_active ||
@@ -71,7 +65,6 @@ const DynamicCellRenderer = memo(({
         );
     }
 
-    // 4. Renderizado de is_left (Bajas)
     if (fieldKey.includes("is_left")) {
         return cellValue ? (
             <span className="px-2 py-0.5 text-xs font-semibold bg-red-500 text-white rounded-full">
@@ -82,7 +75,6 @@ const DynamicCellRenderer = memo(({
         );
     }
 
-    // 5. Renderizado de Booleanos genéricos
     if (typeof cellValue === "boolean" || fieldKey.startsWith("is_") || fieldKey.includes("hizo_")) {
         return cellValue ? (
             <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-600 text-white rounded-full">
@@ -93,7 +85,6 @@ const DynamicCellRenderer = memo(({
         );
     }
 
-    // 6. Lógica de Colores para Calificaciones
     let textColor = "text-slate-700";
     const isGradeColumn = GRADE_COLUMNS.some((col) => fieldKey.includes(col));
 
@@ -114,7 +105,6 @@ const DynamicCellRenderer = memo(({
         }
     }
 
-    // 7. Formateo de valores específicos
     let displayValue = cellValue;
     if (fieldKey === "attempt") {
         displayValue = cellValue === "second" ? "Segunda" : "Primera";
@@ -126,34 +116,17 @@ const DynamicCellRenderer = memo(({
         </span>
     );
 }, (prevProps, nextProps) => {
-    /**
-     * Función de comparación personalizada para máxima optimización.
-     * La celda NO se re-renderiza a menos que ocurra uno de estos cambios críticos:
-     */
+    // Optimización de re-renderizado: solo permitir actualizaciones si cambian valores críticos
     
-    // 1. Cambió el valor principal de la celda
-    if (prevProps.row.original[prevProps.fieldKey] !== nextProps.row.original[nextProps.fieldKey]) {
-        return false;
-    }
-
-    // 2. Cambió el estado de edición global o la editabilidad de esta columna
-    if (prevProps.isRowEditing !== nextProps.isRowEditing || prevProps.isEditable !== nextProps.isEditable) {
-        return false;
-    }
-
-    // 3. Cambiaron valores colaterales que afectan el renderizado visual (Status o Bajas)
+    if (prevProps.row.original[prevProps.fieldKey] !== nextProps.row.original[nextProps.fieldKey]) return false;
+    if (prevProps.isRowEditing !== nextProps.isRowEditing || prevProps.isEditable !== nextProps.isEditable) return false;
     if (prevProps.row.original.status !== nextProps.row.original.status || 
-        prevProps.row.original.is_left !== nextProps.row.original.is_left) {
-        return false;
-    }
+        prevProps.row.original.is_left !== nextProps.row.original.is_left) return false;
+    if (prevProps.onCellChange !== nextProps.onCellChange || prevProps.selectOptions !== nextProps.selectOptions) return false;
 
-    // 4. Cambiaron las referencias de callbacks u opciones (Prop Drilling)
-    if (prevProps.onCellChange !== nextProps.onCellChange || prevProps.selectOptions !== nextProps.selectOptions) {
-        return false;
-    }
-
-    // Si nada de lo anterior cambió, la celda es idéntica. Evitamos el render.
     return true;
 });
+
+DynamicCellRenderer.displayName = "DynamicCellRenderer";
 
 export default DynamicCellRenderer;

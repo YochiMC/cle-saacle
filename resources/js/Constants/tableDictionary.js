@@ -6,7 +6,6 @@ import { METADATA_KEYS as GROUP_METADATA_KEYS } from "@/Pages/Groups/Constants/g
  * Agnóstico de React para evitar dependencias circulares.
  */
 export const LABEL_MAP = {
-    // IDs
     id: "ID",
     user_id: "User ID",
     student_id: "Student ID",
@@ -14,8 +13,6 @@ export const LABEL_MAP = {
     group_id: "Group ID",
     exam_id: "Exam ID",
     exam_student_id: "Exam Student ID",
-
-    // Student Info
     num_control: "Num Control",
     full_name: "Name",
     first_name: "First Name",
@@ -24,16 +21,12 @@ export const LABEL_MAP = {
     gender: "Gender",
     semester: "Semester",
     birthdate: "Birth Date",
-
-    // Status & Flags
     status: "Status",
     status_label: "Status",
     is_active: "Active",
     is_left: "Left",
     is_approved: "Approved",
     is_curso_nivelacion: "Leveling Course",
-
-    // Grades & Scores
     score: "Score",
     attempt: "Attempt",
     final_average: "Final Average",
@@ -45,8 +38,6 @@ export const LABEL_MAP = {
     grade_1: "Grade 1",
     grade_2: "Grade 2",
     grade_3: "Grade 3",
-
-    // Language Skills
     certified_level: "Certified Level",
     nivel_certificado: "Certified Level",
     nivel_asignado: "Assigned Level",
@@ -54,22 +45,16 @@ export const LABEL_MAP = {
     reading: "Reading",
     writing: "Writing",
     speaking: "Speaking",
-
-    // Timestamps
     created_at: "Created",
     updated_at: "Updated",
     deleted_at: "Deleted",
     created_date: "Created Date",
     updated_date: "Updated Date",
-
-    // Common Metadata
     type: "Type",
     level: "Level",
     name: "Name",
     title: "Title",
     description: "Description",
-
-    // Actions
     select: "Select",
     actions: "Actions",
 };

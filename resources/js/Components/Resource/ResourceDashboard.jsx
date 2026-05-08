@@ -62,6 +62,7 @@ export default function ResourceDashboard({
     getRowClassName,
     bulkDeleteModal,
     baseDataMap, // NUEVO: Permite saber si hay datos antes de filtrar
+    forcedKeys = [], // NUEVO: Llaves forzadas para evitar colapso de columnas
 }) {
     const { hasRole } = usePermission();
     const debeOcultarAcciones = hasRole("student");
@@ -78,6 +79,7 @@ export default function ResourceDashboard({
     const generatedColumns = useDynamicColumns(currentBaseData, onEditRow, onDeleteRow, {
         editableColumns,
         restrictedColumns,
+        forcedKeys,
         selectOptions,
         onCellChange,
         editingRowId,
@@ -146,7 +148,7 @@ export default function ResourceDashboard({
                     {/* ── Tabla de Datos o Estado Vacío ────── */}
                     {currentBaseData.length > 0 ? (
                         <DataTable
-                            key={`table-${vistaActual}-${currentData.length}`}
+                            key={`table-${vistaActual}-${columns.map(c => c.id || c.accessorKey).join('-')}`}
                             columns={columns}
                             data={currentData}
                             hiddenColumns={hiddenColumns}

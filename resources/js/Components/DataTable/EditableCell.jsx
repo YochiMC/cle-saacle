@@ -23,14 +23,14 @@ const resolveInputType = (fieldKey) => {
         lower.includes("left") ||
         lower.includes("certificacion") ||
         lower.includes("hizo_")
-    )
+    ) {
         return "checkbox";
+    }
 
     if (lower.includes("name") || lower.includes("nombre")) return "text";
     if (lower.includes("email") || lower.includes("correo")) return "email";
     if (lower.includes("date") || lower.includes("fecha")) return "date";
-    if (lower.includes("promedio") || lower.includes("oportunidad"))
-        return "text";
+    if (lower.includes("promedio") || lower.includes("oportunidad")) return "text";
 
     if (
         lower.includes("nivel_asignado") ||
@@ -42,8 +42,9 @@ const resolveInputType = (fieldKey) => {
         lower.includes("speaking") ||
         lower.includes("status") ||
         lower.includes("attempt")
-    )
+    ) {
         return "select";
+    }
 
     return "number";
 };
@@ -69,11 +70,8 @@ const getInitialEditableValue = (fieldKey, initialValue) => {
 /**
  * EditableCell - Componente de UI para edición en línea.
  * 
- * Aplicación de SRP: Se eliminó la lógica de negocio académica (is_curso_nivelacion).
- * El componente ahora es puramente de infraestructura y solo notifica cambios.
- * 
- * Rendimiento: Envuelto en memo() para evitar re-renderizados innecesarios 
- * cuando cambian otras filas de la tabla.
+ * Implementación pura de infraestructura: gestiona el estado local del input 
+ * y notifica cambios al padre. Optimizado con memo para evitar re-renders.
  */
 const EditableCell = memo(({
     value: initialValue,
@@ -88,12 +86,10 @@ const EditableCell = memo(({
         getInitialEditableValue(fieldKey, initialValue)
     );
 
-    // Sincronización de estado cuando cambia el valor desde afuera
     useEffect(() => {
         setValue(getInitialEditableValue(fieldKey, initialValue));
     }, [fieldKey, initialValue]);
 
-    // Renderizado de Checkbox
     if (inputType === "checkbox") {
         return (
             <div className="flex justify-center w-full">
@@ -102,8 +98,7 @@ const EditableCell = memo(({
                     onCheckedChange={(checked) => {
                         const next = checked ? 1 : 0;
                         setValue(next);
-                        // SRP: El componente solo notifica, no decide lógica académica.
-                        if (onChange) onChange(fieldKey, rowId, next);
+                        onChange?.(fieldKey, rowId, next);
                     }}
                     aria-label={`${formatLabel(fieldKey)} — fila ${rowId}`}
                     className="border-gray-500 data-[state=checked]:bg-[#17365D]"
@@ -112,7 +107,6 @@ const EditableCell = memo(({
         );
     }
 
-    // Renderizado de Select
     if (inputType === "select") {
         const fallbackOptions =
             fieldKey.includes("nivel_certificado") || fieldKey.includes("certified_level")
@@ -135,7 +129,7 @@ const EditableCell = memo(({
                 value={String(value ?? "")}
                 onValueChange={(newValue) => {
                     setValue(newValue);
-                    if (onChange) onChange(fieldKey, rowId, newValue);
+                    onChange?.(fieldKey, rowId, newValue);
                 }}
             >
                 <SelectTrigger className="w-[140px] mx-auto h-8 text-xs">
@@ -156,24 +150,19 @@ const EditableCell = memo(({
         );
     }
 
-    // Renderizado de Input Numérico / Texto
-    const extraNumericProps =
-        inputType === "number"
-            ? fieldKey === "score" || fieldKey.includes("calificacion_")
-                ? { min: 0, max: fieldKey === "score" ? 2000 : 100, step: 1 }
-                : { min: 0, max: 100, step: 0.1 }
-            : {};
+    const extraNumericProps = inputType === "number"
+        ? fieldKey === "score" || fieldKey.includes("calificacion_")
+            ? { min: 0, max: fieldKey === "score" ? 2000 : 100, step: 1 }
+            : { min: 0, max: 100, step: 0.1 }
+        : {};
 
     const handleKeyDown = (e) => {
-        if (fieldKey === "score" || fieldKey.includes("calificacion_")) {
-            if (["e", "E", ".", ","].includes(e.key)) {
-                e.preventDefault();
-            }
+        if ((fieldKey === "score" || fieldKey.includes("calificacion_")) && ["e", "E", ".", ","].includes(e.key)) {
+            e.preventDefault();
         }
     };
 
-    const isLevelingDisabled =
-        fieldKey === "calificacion_curso_nivelacion" && !row.is_curso_nivelacion;
+    const isLevelingDisabled = fieldKey === "calificacion_curso_nivelacion" && !row.is_curso_nivelacion;
 
     return (
         <ThemeInput
@@ -185,12 +174,12 @@ const EditableCell = memo(({
             className={`text-sm text-center ${isLevelingDisabled ? "bg-slate-100 cursor-not-allowed opacity-50" : ""}`}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            onBlur={() => {
-                if (onChange) onChange(fieldKey, rowId, value);
-            }}
+            onBlur={() => onChange?.(fieldKey, rowId, value)}
             {...extraNumericProps}
         />
     );
 });
+
+EditableCell.displayName = "EditableCell";
 
 export default EditableCell;

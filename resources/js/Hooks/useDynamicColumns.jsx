@@ -10,8 +10,6 @@ import {
     Check,
     X,
 } from "lucide-react";
-
-// Agnostic Utilities & Constants
 import {
     formatLabel,
     BASE_STUDENT_KEYS,
@@ -19,11 +17,7 @@ import {
     FOOTER_KEYS,
     IGNORED_DYNAMIC_KEYS,
 } from "@/Constants/tableDictionary";
-
-// UI Components
 import DynamicCellRenderer from "@/Components/DataTable/DynamicCellRenderer";
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
 
 const SortIcon = ({ column }) => {
     const sorted = column.getIsSorted();
@@ -43,13 +37,9 @@ const collectRowKeys = (data) => {
     return Object.keys(rows[0] || {});
 };
 
-// ── useDynamicColumns ──────────────────────────────────────────────────────────
-
 /**
- * useDynamicColumns
- *
  * Hook factorizado para la generación de columnas TanStack Table.
- * Responsabilidad: Orquestar la estructura y el filtrado de columnas.
+ * Orquesta la estructura, filtrado y ordenación determinista de columnas.
  */
 export function useDynamicColumns(
     data,
@@ -58,7 +48,7 @@ export function useDynamicColumns(
     {
         editableColumns = [],
         restrictedColumns = [],
-        forcedKeys = [], // OCP: Permite extender las columnas sin que existan en data[0]
+        forcedKeys = [], // OCP: Permite extender columnas sin presencia en el dataset inicial
         selectOptions = {},
         onCellChange,
         editingRowId = null,
@@ -68,11 +58,8 @@ export function useDynamicColumns(
         customRowActions,
     } = {},
 ) {
-    // FASE 2: Blindaje contra Edge Cases. 
-    // Fusionamos llaves extraídas con llaves forzadas manualmente.
     const rowKeys = useMemo(() => {
         const extracted = collectRowKeys(data);
-        // Set elimina duplicados automáticamente
         return [...new Set([...extracted, ...forcedKeys])];
     }, [data, forcedKeys]);
 
@@ -80,7 +67,6 @@ export function useDynamicColumns(
         const editableSet = new Set(editableColumns);
         const restrictedSet = new Set(restrictedColumns);
 
-        // 1. Filtrado Determinista de Llaves
         const visibleBaseKeys = BASE_STUDENT_KEYS.filter(
             (key) => rowKeys.includes(key) && !restrictedSet.has(key)
         );
@@ -97,7 +83,6 @@ export function useDynamicColumns(
             (key) => !IGNORED_DYNAMIC_KEYS.has(key) && !restrictedSet.has(key)
         );
 
-        // 2. Ordenación de Columnas Dinámicas
         const convalidationKey = dynamicKeys.find(k => ["certified_level", "nivel_certificado"].includes(k));
         const preferredOrder = [
             convalidationKey, 
@@ -107,7 +92,6 @@ export function useDynamicColumns(
         
         const orderedDynamicKeys = [...new Set([...preferredOrder, ...dynamicKeys])];
 
-        // 3. Constructor de Columnas
         const buildColumn = (key) => ({
             accessorKey: key,
             header: ({ column }) => (
@@ -132,7 +116,6 @@ export function useDynamicColumns(
             ),
         });
 
-        // 4. Definición de Columnas Especiales (Selección y Acciones)
         const selectionColumn = {
             id: "select",
             header: ({ table }) => (
@@ -158,7 +141,6 @@ export function useDynamicColumns(
             enableHiding: false,
             cell: ({ row }) => {
                 const item = row.original;
-                const itemName = item.name || item.nombre || item.num_control || item.id;
                 const isRowEditing = editAllRows || item.id === editingRowId;
 
                 if (customRowActions) return customRowActions(item);
@@ -167,14 +149,14 @@ export function useDynamicColumns(
                     return (
                         <div className="flex items-center justify-center gap-2">
                             <Button
-                                onClick={() => onSaveRow ? onSaveRow(item) : null}
+                                onClick={() => onSaveRow?.(item)}
                                 className="w-8 h-8 p-0 text-white bg-green-600 rounded-md hover:bg-green-700"
                                 title="Guardar"
                             >
                                 <Check className="w-4 h-4" />
                             </Button>
                             <Button
-                                onClick={() => onCancelRow ? onCancelRow() : null}
+                                onClick={() => onCancelRow?.()}
                                 className="w-8 h-8 p-0 text-white bg-gray-500 rounded-md hover:bg-gray-600"
                                 title="Cancelar"
                             >
@@ -187,14 +169,14 @@ export function useDynamicColumns(
                 return (
                     <div className="flex items-center justify-center gap-2">
                         <Button
-                            onClick={() => onEditRow ? onEditRow(item) : null}
+                            onClick={() => onEditRow?.(item)}
                             className="w-8 h-8 p-0 text-white bg-orange-500 rounded-md hover:bg-orange-600"
                             title="Editar"
                         >
                             <Edit className="w-4 h-4" />
                         </Button>
                         <Button
-                            onClick={() => onDeleteRow ? onDeleteRow(item) : null}
+                            onClick={() => onDeleteRow?.(item)}
                             className="w-8 h-8 p-0 text-white bg-red-600 rounded-md hover:bg-red-700"
                             title="Eliminar"
                         >
@@ -205,7 +187,6 @@ export function useDynamicColumns(
             },
         };
 
-        // 5. Composición Final
         return [
             selectionColumn,
             ...visibleBaseKeys.map(buildColumn),
