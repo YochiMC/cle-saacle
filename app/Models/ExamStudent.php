@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
@@ -31,6 +32,7 @@ class ExamStudent extends Pivot
         'student_id',
         'units_breakdown',
         'final_average',
+        'is_left',
         'attempt',
     ];
 
@@ -40,5 +42,21 @@ class ExamStudent extends Pivot
     protected $casts = [
         'units_breakdown' => 'array',
         'attempt' => \App\Enums\AttemptEnum::class,
+        'is_left' => 'boolean',
     ];
+
+    /**
+     * Atributos calculados agregados a la serialización JSON.
+     */
+    protected $appends = ['is_approved'];
+
+    /**
+     * Determina dinámicamente si la calificación es aprobatoria.
+     */
+    protected function isApproved(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => is_numeric($this->final_average) && (float) $this->final_average >= 70 && !$this->is_left
+        );
+    }
 }

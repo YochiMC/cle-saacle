@@ -125,6 +125,7 @@ export const serializeQualification = (row) => {
         gender,
         semester,
         attempt,
+        is_left,
         ...dynamicUnits
     } = row;
 
@@ -132,6 +133,7 @@ export const serializeQualification = (row) => {
         student_id: id,
         final_average: final_average || 0,
         attempt: attempt ?? "first",
+        is_left: is_left ?? false,
         units_breakdown: dynamicUnits
     };
 };

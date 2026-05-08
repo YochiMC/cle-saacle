@@ -254,6 +254,7 @@ class ExamController extends Controller
         $exam->students()->updateExistingPivot($student->id, [
             'units_breakdown' => $request->validated('units_breakdown'),
             'final_average'   => $request->validated('final_average') ?? 0,
+            'is_left'         => $request->validated('is_left'),
             'attempt'         => $request->validated('attempt'),
         ]);
 

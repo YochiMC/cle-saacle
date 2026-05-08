@@ -35,7 +35,6 @@ enum ExamType: string
             ],
 
             self::CUATRO_HABILIDADES => [
-                'is_left'             => false,
                 'listening'           => '-',
                 'reading'             => '-',
                 'writing'             => '-',
@@ -51,7 +50,6 @@ enum ExamType: string
             ],
 
             self::UBICACION => [
-                'is_left'        => false,
                 'nivel_asignado' => '-', // Renderizado como <select> en el frontend
             ],
         };
