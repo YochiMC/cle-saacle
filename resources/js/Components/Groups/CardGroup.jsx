@@ -18,16 +18,14 @@ import { abreviarEtiqueta } from "@/Utils/textFormatters";
  * @param {boolean}  [props.seleccionado]   - Estado del checkbox de selección múltiple.
  * @param {Function} [props.onToggleSelect] - Notifica el cambio de selección.
  * @param {Function} props.onVerDetalles    - Abre el modal de información extendida.
- * @param {Function} [props.onInscribir]    - Dispara el flujo de inscripción.
  * @param {Function} [props.onEditar]       - Dispara el flujo de edición administrativa.
  */
 const CardGroup = memo(
-    ({ grupo, seleccionado = false, onToggleSelect, onVerDetalles, onInscribir, onEditar }) => {
+    ({ grupo, seleccionado = false, onToggleSelect, onVerDetalles, onEditar }) => {
         const { hasRole } = usePermission();
         const esEstudiante = hasRole("student");
         const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
         const esStaff = hasRole("admin") || hasRole("coordinator") || hasRole("teacher");
-        const puedeInscribirse = grupo.status === "enrolling" && !(esEstudiante && grupo.is_enrolled);
 
         // Badge de estado resuelto con el helper compartido (fuente única de verdad)
         const badge = resolverEstado(grupo.status, grupo.status_label);
@@ -48,7 +46,6 @@ const CardGroup = memo(
                 capacity={grupo.capacity}
                 isLleno={grupo.available_seats === 0}
                 onVerDetalles={() => onVerDetalles(grupo)}
-                onInscribir={onInscribir && puedeInscribirse ? () => onInscribir(grupo.id) : undefined}
                 onEditar={onEditar ? () => onEditar(grupo) : undefined}
                 openHref={route("groups.show", grupo.id)}
                 openLabel="Ver Grupo"

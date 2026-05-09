@@ -37,16 +37,14 @@ const formatDate = (dateString) => {
  * @param {boolean}  [props.seleccionado]   - Estado del checkbox de selección múltiple.
  * @param {Function} [props.onToggleSelect] - Notifica el cambio de selección.
  * @param {Function} props.onVerDetalles    - Abre el modal de información extendida.
- * @param {Function} [props.onInscribir]    - Dispara el flujo de inscripción del alumno.
  * @param {Function} [props.onEditar]       - Dispara el flujo de edición administrativa.
  */
 const CardExam = memo(
-    ({ examen, seleccionado = false, onToggleSelect, onVerDetalles, onInscribir, onEditar }) => {
+    ({ examen, seleccionado = false, onToggleSelect, onVerDetalles, onEditar }) => {
         const { hasRole } = usePermission();
         const esEstudiante = hasRole("student");
         const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
         const esStaff = hasRole("admin") || hasRole("coordinator") || hasRole("teacher");
-        const puedeInscribirse = examen.status === "enrolling" && !(esEstudiante && examen.is_enrolled);
 
         // Badge de estado resuelto con el helper compartido (fuente única de verdad)
         const badge = resolverEstado(examen.status);
@@ -90,7 +88,6 @@ const CardExam = memo(
                 enrolledCount={examen.registered ?? examen.enrolled_count}
                 capacity={examen.capacity ?? "Ilimitado"}
                 onVerDetalles={() => onVerDetalles(examen)}
-                onInscribir={onInscribir && puedeInscribirse ? () => onInscribir(examen.id) : undefined}
                 onEditar={onEditar ? () => onEditar(examen) : undefined}
                 openHref={route("exams.show", examen.id)}
                 openLabel="Ver Examen"

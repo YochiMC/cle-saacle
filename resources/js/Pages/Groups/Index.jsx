@@ -152,9 +152,9 @@ export default function Groups({
                                 <span className="flex items-center px-3 text-gray-500 bg-white border-r">
                                     <Edit2 size={16} />
                                 </span>
-                                <select 
-                                    onChange={handleStatusSelect} 
-                                    defaultValue="" 
+                                <select
+                                    onChange={handleStatusSelect}
+                                    defaultValue=""
                                     className="border-none py-2 text-sm focus:ring-0 cursor-pointer"
                                 >
                                     <option value="" disabled>Cambiar Estado</option>
@@ -187,7 +187,6 @@ export default function Groups({
                                 seleccionado={manager.seleccionados.includes(group.id)}
                                 onToggleSelect={manager.toggleSelect}
                                 onVerDetalles={(g) => manager.handleOpenModal("detalles", g)}
-                                onInscribir={() => manager.handleEnroll(group.id)}
                                 onEditar={(g) => manager.handleOpenModal("formulario", g)}
                             />
                         )}

@@ -212,9 +212,6 @@ export default function Examen({
                                 onVerDetalles={(e) =>
                                     manager.handleOpenModal("detalles", e)
                                 }
-                                onInscribir={() =>
-                                    manager.handleEnroll(exam.id)
-                                }
                                 onEditar={(e) =>
                                     manager.handleOpenModal("formulario", e)
                                 }
