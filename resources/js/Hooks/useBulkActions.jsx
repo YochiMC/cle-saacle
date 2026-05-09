@@ -22,6 +22,7 @@ import { router } from "@inertiajs/react";
 export function useBulkActions(deleteRoute, vistaActual, bulkDeleteMethod = "post") {
     const [filasSeleccionadas, setFilasSeleccionadas] = useState([]);
     const [columnasVisibles, setColumnasVisibles] = useState([]);
+    const [rowSelection, setRowSelection] = useState({});
     const [isConfirmingBulkDelete, setIsConfirmingBulkDelete] = useState(false);
     const resolvedDeleteRoute =
         typeof deleteRoute === "string" ? deleteRoute : deleteRoute?.[vistaActual];
@@ -32,10 +33,11 @@ export function useBulkActions(deleteRoute, vistaActual, bulkDeleteMethod = "pos
         setColumnasVisibles(columnas);
     }, []);
 
-    /** Limpia la selección al cambiar de vista. */
+    /** Limpia la selección al cambiar de vista o tras un borrado exitoso. */
     const resetSelection = useCallback(() => {
         setFilasSeleccionadas([]);
         setColumnasVisibles([]);
+        setRowSelection({});
     }, []);
 
     /** Copia solo las columnas visibles al portapapeles en formato TSV (Excel-friendly). */
@@ -163,6 +165,8 @@ export function useBulkActions(deleteRoute, vistaActual, bulkDeleteMethod = "pos
     return {
         filasSeleccionadas,
         columnasVisibles,
+        rowSelection,
+        setRowSelection,
         handleSelectionChange,
         handleBulkCopy,
         handleBulkDelete,

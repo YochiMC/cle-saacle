@@ -86,6 +86,8 @@ export default function ResourceDashboard({
         handleBulkCopy,
         handleBulkDelete,
         resetSelection,
+        rowSelection,
+        setRowSelection,
         isConfirmingBulkDelete,
         setIsConfirmingBulkDelete,
         executeBulkDelete
@@ -124,6 +126,8 @@ export default function ResourceDashboard({
                             columns={columns}
                             data={currentData}
                             hiddenColumns={hiddenColumns}
+                            rowSelection={rowSelection}
+                            onRowSelectionChange={setRowSelection}
                             onSelectionChange={handleSelectionChange}
                             searchPlaceholder={`Buscar en ${currentViewLabel.toLowerCase()}...`}
                             onPrint={onPrint}

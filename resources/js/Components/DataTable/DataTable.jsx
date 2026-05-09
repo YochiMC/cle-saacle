@@ -37,6 +37,8 @@ export function DataTable({
     hiddenColumns = {},
     searchPlaceholder = 'Buscar en cualquier columna...',
     noDataMessage = 'No hay registros.',
+    rowSelection: externalRowSelection,
+    onRowSelectionChange: externalOnRowSelectionChange,
     onSelectionChange,
     onPrint,
     buttonSpace,
@@ -46,8 +48,11 @@ export function DataTable({
     const [sorting, setSorting] = useState([]);
     const [columnFilters, setColumnFilters] = useState([]);
     const [columnVisibility, setColumnVisibility] = useState(hiddenColumns);
-    const [rowSelection, setRowSelection] = useState({});
+    const [internalRowSelection, setInternalRowSelection] = useState({});
     const [globalFilter, setGlobalFilter] = useState('');
+
+    const rowSelection = externalRowSelection !== undefined ? externalRowSelection : internalRowSelection;
+    const onRowSelectionChange = externalOnRowSelectionChange !== undefined ? externalOnRowSelectionChange : setInternalRowSelection;
 
     const table = useReactTable({
         data,
@@ -59,7 +64,7 @@ export function DataTable({
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         onColumnVisibilityChange: setColumnVisibility,
-        onRowSelectionChange: setRowSelection,
+        onRowSelectionChange,
         autoResetPageIndex: false,
         state: { sorting, columnFilters, columnVisibility, rowSelection, globalFilter },
     });
