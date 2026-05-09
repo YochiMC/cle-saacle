@@ -198,19 +198,14 @@ class GroupController extends Controller
      * Da de baja a un solo alumno del grupo.
      * Al desincribirse, mantiene el estado VALIDATED para permitir reinscripción.
      */
-    public function unenroll(Group $group, \App\Models\Student $student): RedirectResponse
+    public function unenroll(Group $group, \App\Models\Student $student, \App\Actions\Students\UnenrollStudentAction $action): RedirectResponse
     {
         Gate::authorize('unenroll', $group);
         if ($this->authenticatedUser()?->hasRole('student') && $student->user_id !== Auth::id()) {
             abort(403);
         }
 
-        Qualification::where('group_id', $group->id)
-            ->where('student_id', $student->id)
-            ->delete();
-
-        // Preservar estado VALIDATED para permitir reinscripción durante el mismo período
-        $student->update(['status' => StudentStatus::VALIDATED->value]);
+        $action->execute($student, $group);
 
         return redirect()->back()->with('success', 'Alumno dado de baja del grupo.');
     }
