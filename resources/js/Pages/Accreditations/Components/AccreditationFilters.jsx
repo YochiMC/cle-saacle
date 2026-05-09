@@ -8,22 +8,25 @@ import React from "react";
 const AccreditationFilters = ({
     statusFilter,
     setStatusFilter,
+    periodFilter,
+    setPeriodFilter,
+    periods = [],
     typeFilter,
     setTypeFilter,
     accreditationTypeOptions = [],
 }) => {
     return (
-        <div className="flex flex-wrap items-end gap-4">
+        <div className="flex flex-col md:flex-row items-end gap-4 w-full">
             <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    Estado
                 </label>
                 <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 min-w-[160px]"
                 >
-                    <option value="">Todos los estatus</option>
+                    <option value="all">Todos los estados</option>
                     <option value="in_review">En Revisión</option>
                     <option value="accredited">Acreditado</option>
                     <option value="disabled">Inhabilitado</option>
@@ -32,14 +35,32 @@ const AccreditationFilters = ({
 
             <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Accreditation Type
+                    Periodo
+                </label>
+                <select
+                    value={periodFilter}
+                    onChange={(e) => setPeriodFilter(e.target.value)}
+                    className="border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 min-w-[180px]"
+                >
+                    <option value="all">Todos los periodos</option>
+                    {periods.map((period) => (
+                        <option key={period.id} value={period.id}>
+                            {period.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tipo de Acreditación
                 </label>
                 <select
                     value={typeFilter}
                     onChange={(e) => setTypeFilter(e.target.value)}
                     className="border-gray-300 rounded-md shadow-sm text-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 min-w-[200px]"
                 >
-                    <option value="">All types</option>
+                    <option value="">Todos los tipos</option>
                     {accreditationTypeOptions.map((type) => (
                         <option key={type} value={type}>
                             {type}

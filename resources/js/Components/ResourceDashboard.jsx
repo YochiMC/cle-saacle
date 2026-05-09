@@ -120,7 +120,7 @@ export default function ResourceDashboard({
                 />
 
                 <div className="p-6 overflow-hidden bg-white rounded-sm shadow-sm">
-                    {currentBaseData.length > 0 ? (
+                    {currentBaseData.length > 0 || buttonSpace ? (
                         <DataTable
                             key={`table-${vistaActual}-${columns.map(c => c.id || c.accessorKey).join('-')}`}
                             columns={columns}
@@ -148,10 +148,10 @@ export default function ResourceDashboard({
                 isOpen={isConfirmingBulkDelete}
                 onClose={() => setIsConfirmingBulkDelete(false)}
                 onConfirm={executeBulkDelete}
-                title="Eliminación Masiva"
-                message={`¿Estás seguro de que deseas eliminar ${filasSeleccionadas.length} registros seleccionados de ${currentViewLabel.toLowerCase()}? Esta acción no se puede deshacer.`}
-                confirmText="Sí, eliminar"
-                variant="warning"
+                title={bulkDeleteModal?.title || "Eliminación Masiva"}
+                message={bulkDeleteModal?.message || `¿Estás seguro de que deseas eliminar ${filasSeleccionadas.length} registros seleccionados? Esta acción no se puede deshacer.`}
+                confirmText={bulkDeleteModal?.confirmText || "Sí, eliminar"}
+                variant={bulkDeleteModal?.variant || "danger"}
             />
         </div>
     );

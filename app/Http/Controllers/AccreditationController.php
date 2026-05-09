@@ -31,12 +31,17 @@ class AccreditationController extends Controller
         GetAccreditationCandidates $candidatesAction,
         GetAccreditationMetadata $metadataAction
     ): Response {
-        // Obtenemos los candidatos filtrándolos por estatus si se proporciona.
-        $candidates = $candidatesAction->execute($request->query('status'));
+        // Obtenemos los candidatos filtrándolos por estatus y periodo si se proporciona.
+        $candidates = $candidatesAction->execute(
+            $request->query('status'),
+            $request->query('period_id')
+        );
 
         return Inertia::render('Accreditations/Index', [
             'candidates' => AccreditationCandidateResource::collection($candidates)->resolve(),
             'accreditationTypeOptions' => $metadataAction->execute(),
+            'periods' => \App\Models\Period::orderBy('start_date', 'desc')->get(),
+            'filters' => $request->only(['status', 'period_id']),
         ]);
     }
 
@@ -50,7 +55,7 @@ class AccreditationController extends Controller
     ): RedirectResponse {
         $action->execute($student, $request->validated('status'));
 
-        return redirect()->back()->with('success', 'Student status updated successfully.');
+        return redirect()->back()->with('success', 'El estado del alumno se actualizó correctamente.');
     }
 
     /**
@@ -62,6 +67,6 @@ class AccreditationController extends Controller
     ): RedirectResponse {
         $action->execute($request->validated('ids'));
 
-        return redirect()->back()->with('success', 'The selected students have been updated to "Disabled" status.');
+        return redirect()->back()->with('success', 'Los alumnos seleccionados han sido actualizados al estado "Inhabilitado".');
     }
 }

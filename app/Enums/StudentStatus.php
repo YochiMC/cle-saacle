@@ -43,7 +43,7 @@ enum StudentStatus: string
         return match ($this) {
             self::WAITING => 'En Espera',
             self::CURRENT => 'Vigente',
-            self::DISABLED => 'Disabled',
+            self::DISABLED => 'Inhabilitado',
             self::IN_REVIEW => 'En Revisión',
             self::ACCREDITED => 'Acreditado',
             self::PAYMENT_REVIEW => 'Revisión de Pago',

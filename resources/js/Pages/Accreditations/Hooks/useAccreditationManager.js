@@ -8,26 +8,53 @@ import { STATUS_SELECT_OPTIONS } from "../Constants/accreditationConstants";
  *
  * Centraliza la lógica de filtrado, estados de UI y mutaciones vía Inertia.
  */
-export default function useAccreditationManager(candidates) {
+export default function useAccreditationManager(candidates, initialFilters = {}) {
     // 1. Estados de Interfaz
     const { flashModal, closeFlashModal, showFlash } = useFlashAlert();
     const [itemToSuspend, setItemToSuspend] = useState(null);
     const [itemToChange, setItemToChange] = useState(null);
     const [editingRowId, setEditingRowId] = useState(null);
 
-    // 2. Estados de Filtrado
-    const [statusFilter, setStatusFilter] = useState("");
+    // 2. Estados de Filtrado (Sincronizados con URL)
+    const [statusFilter, setStatusFilterState] = useState(initialFilters.status || "");
+    const [periodFilter, setPeriodFilterState] = useState(initialFilters.period_id || "");
     const [typeFilter, setTypeFilter] = useState("");
 
-    // 3. Lógica de Filtrado Derivada
+    // Sincronización con Backend vía Inertia
+    const updateFilters = useCallback((newFilters) => {
+        // Combinamos el estado actual con el nuevo cambio para la petición
+        const status = newFilters.hasOwnProperty('status') ? newFilters.status : statusFilter;
+        const periodId = newFilters.hasOwnProperty('period_id') ? newFilters.period_id : periodFilter;
+
+        const params = {};
+        if (status && status !== 'all') params.status = status;
+        if (periodId && periodId !== 'all') params.period_id = periodId;
+
+        router.get('/acreditaciones', params, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true
+        });
+    }, [statusFilter, periodFilter]);
+
+    const setStatusFilter = (val) => {
+        setStatusFilterState(val);
+        updateFilters({ status: val });
+    };
+
+    const setPeriodFilter = (val) => {
+        setPeriodFilterState(val);
+        updateFilters({ period_id: val });
+    };
+
+    // 3. Lógica de Filtrado Derivada (Tipo se mantiene local por ahora)
     const filteredCandidates = useMemo(() => {
         return candidates.filter((item) => {
-            const matchesStatus = statusFilter === "" || item.status === statusFilter;
             const matchesType = typeFilter === "" ||
                 (item?.achieved_by && item.achieved_by.toLowerCase() === typeFilter.toLowerCase());
-            return matchesStatus && matchesType;
+            return matchesType;
         });
-    }, [candidates, statusFilter, typeFilter]);
+    }, [candidates, typeFilter]);
 
     // 4. Handlers de Selección y Edición
     const handleEditRow = useCallback((item) => {
@@ -69,11 +96,11 @@ export default function useAccreditationManager(candidates) {
                 preserveScroll: true,
                 preserveState: true,
                 onSuccess: () => {
-                    showFlash("success", "Accreditation status updated.");
+                    showFlash("success", "El estatus de acreditación ha sido actualizado.");
                     setEditingRowId(null);
                 },
                 onError: () => {
-                    showFlash("error", "An error occurred while updating the status.");
+                    showFlash("error", "Ocurrió un error al intentar actualizar el estatus.");
                 },
             }
         );
@@ -92,10 +119,10 @@ export default function useAccreditationManager(candidates) {
                 preserveScroll: true,
                 preserveState: true,
                 onSuccess: () => {
-                    showFlash("success", "Alumno actualizado a estatus Inhabilitado.");
+                    showFlash("success", "El alumno ha sido inhabilitado correctamente.");
                 },
                 onError: () => {
-                    showFlash("error", "Could not update student status.");
+                    showFlash("error", "No se pudo actualizar el estatus del alumno.");
                 },
             }
         );
@@ -109,6 +136,7 @@ export default function useAccreditationManager(candidates) {
             itemToChange,
             filters: {
                 status: statusFilter,
+                period_id: periodFilter,
                 type: typeFilter,
             },
         },
@@ -119,6 +147,7 @@ export default function useAccreditationManager(candidates) {
             // UI Handlers
             setEditingRowId,
             setStatusFilter,
+            setPeriodFilter,
             setTypeFilter,
             handleEditRow,
             handleCancelRowEdit,
