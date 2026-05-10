@@ -24,7 +24,7 @@ class StudentController extends Controller
             // 1. Ejecutamos la acción
             $action->execute($request->validated());
 
-            return redirect()->back()->with('success', 'Estudiante creado correctamente.');
+            return redirect()->back()->with('success', 'Usuario creado correctamente.');
 
         } catch (\Exception $e) {
             // 2. Si la base de datos lanza un error, lo atrapamos y te lo mostramos
@@ -42,7 +42,7 @@ class StudentController extends Controller
 
         $action->execute($student, $request->validated());
 
-        return redirect()->back()->with('success', 'Estudiante actualizado correctamente.');
+        return redirect()->back()->with('success', 'Usuario actualizado correctamente.');
     }
 
     public function deleteStudent(
@@ -53,7 +53,7 @@ class StudentController extends Controller
 
         $action->execute($student);
 
-        return redirect()->back()->with('success', 'Estudiante eliminado correctamente.');
+        return redirect()->back()->with('success', 'Usuario eliminado correctamente.');
     }
 
     /**
@@ -77,6 +77,6 @@ class StudentController extends Controller
 
         $action->execute($users);
 
-        return redirect()->back()->with('success', 'Estudiantes eliminados correctamente.');
+        return redirect()->back()->with('success', 'Usuarios eliminados correctamente.');
     }
 }

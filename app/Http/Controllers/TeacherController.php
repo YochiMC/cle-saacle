@@ -21,7 +21,7 @@ class TeacherController extends Controller
         Gate::authorize('create', Teacher::class);
         $action->execute($request->validated());
 
-        return redirect()->back()->with('success', 'Docente creado correctamente.');
+        return redirect()->back()->with('success', 'Usuario creado correctamente.');
     }
 
     public function updateTeacher(
@@ -32,7 +32,7 @@ class TeacherController extends Controller
         Gate::authorize('update', $teacher);
         $action->execute($teacher, $request->validated());
 
-        return redirect()->back()->with('success', 'Docente actualizado correctamente.');
+        return redirect()->back()->with('success', 'Usuario actualizado correctamente.');
     }
 
     public function deleteTeacher(
@@ -42,7 +42,7 @@ class TeacherController extends Controller
         Gate::authorize('delete', $teacher);
         $action->execute($teacher);
 
-        return redirect()->back()->with('success', 'Docente eliminado correctamente.');
+        return redirect()->back()->with('success', 'Usuario eliminado correctamente.');
     }
 
     /**
@@ -66,6 +66,6 @@ class TeacherController extends Controller
 
         $action->execute($users);
 
-        return redirect()->back()->with('success', 'Docentes eliminados correctamente.');
+        return redirect()->back()->with('success', 'Usuarios eliminados correctamente.');
     }
 }
