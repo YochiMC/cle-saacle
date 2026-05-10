@@ -51,8 +51,8 @@ import FormModal from '@/Components/Forms/FormModal';
 import { FieldError } from '@/Components/ui/field';
 import SelectForm from '@/Components/Forms/SelectForm';
 import FileInputForm from '@/Components/Forms/FileInputForm';
-import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
+import PrimaryButton from '@/Components/ui/PrimaryButton';
+import SecondaryButton from '@/Components/ui/SecondaryButton';
 import { CreditCard, Download, Trash2 } from 'lucide-react';
 
 export default function PaymentModal({
@@ -223,3 +223,4 @@ export default function PaymentModal({
         </FormModal>
     );
 }
+

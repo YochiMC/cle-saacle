@@ -1,12 +1,12 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
+import ResourceDashboard from "@/Components/ResourceDashboard";
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import ConfirmModal from '@/Components/ui/ConfirmModal';
 import ModalAlert from "@/Components/ui/ModalAlert";
-import RoleModal from "@/Components/Roles/RoleModal";
-import UpdateRoleModal from "@/Components/Roles/UpdateRoleModal";
+import RoleModal from "@/Components/domain/Roles/RoleModal";
+import UpdateRoleModal from "@/Components/domain/Roles/UpdateRoleModal";
 
 // Definidas fuera del componente para mantener referencia estable entre renders.
 const VIEW_OPTIONS = [
@@ -133,3 +133,5 @@ export default function Asignation({ users, roles, permissions }) {
         </AuthenticatedLayout>
     )
 }
+
+

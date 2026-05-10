@@ -37,6 +37,7 @@ class BulkUpdateExamQualificationsRequest extends FormRequest
             'qualifications.*.student_id' => 'required|exists:students,id',
             'qualifications.*.units_breakdown' => 'required|array',
             'qualifications.*.final_average' => 'nullable|numeric',
+            'qualifications.*.is_left' => 'required|boolean',
             'qualifications.*.attempt' => ['required', Rule::enum(AttemptEnum::class)],
         ];
     }

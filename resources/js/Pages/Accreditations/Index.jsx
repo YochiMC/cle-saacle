@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
+import ResourceDashboard from "@/Components/ResourceDashboard";
 import { Head } from "@inertiajs/react";
 
 // Hooks y Controladores
@@ -24,14 +24,19 @@ import AccreditationModals from "./Components/AccreditationModals";
  * Orquestador de la vista de dictamen de acreditaciones.
  * Utiliza el patrón Headless Controller para separar la lógica de negocio de la UI.
  */
-export default function Index({ candidates, accreditationTypeOptions = [] }) {
+export default function Index({ 
+    candidates, 
+    accreditationTypeOptions = [], 
+    periods = [], 
+    filters = {} 
+}) {
     // 1. Invocación del Controlador Lógico (Custom Hook)
     const { 
         state, 
         derived, 
         handlers, 
         flashModal 
-    } = useAccreditationManager(candidates);
+    } = useAccreditationManager(candidates, filters);
 
     return (
         <AuthenticatedLayout
@@ -66,6 +71,9 @@ export default function Index({ candidates, accreditationTypeOptions = [] }) {
                     <AccreditationFilters 
                         statusFilter={state.filters.status}
                         setStatusFilter={handlers.setStatusFilter}
+                        periodFilter={state.filters.period_id}
+                        setPeriodFilter={handlers.setPeriodFilter}
+                        periods={periods}
                         typeFilter={state.filters.type}
                         setTypeFilter={handlers.setTypeFilter}
                         accreditationTypeOptions={accreditationTypeOptions}
@@ -99,3 +107,4 @@ export default function Index({ candidates, accreditationTypeOptions = [] }) {
         </AuthenticatedLayout>
     );
 }
+

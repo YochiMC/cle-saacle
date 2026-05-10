@@ -1,4 +1,4 @@
-import Modal from "@/Components/Modal";
+import Modal from "@/Components/ui/Modal";
 
 /**
  * ModalAlert — Alerta modal con variantes de tipo (success, error, warning, info).
@@ -82,3 +82,4 @@ const ModalAlert = ({ isOpen, onClose, type = "info", title, message }) => {
 };
 
 export default ModalAlert;
+

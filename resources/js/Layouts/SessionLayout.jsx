@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Sidebar from "@/components/Menus/Sidebar";
-import ApplicationLogo from "@/Components/ApplicationLogo";
+import ApplicationLogo from "@/Components/ui/ApplicationLogo";
 
 export default function SessionLayout({ children, header }) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -77,3 +77,4 @@ export default function SessionLayout({ children, header }) {
         </div>
     );
 }
+

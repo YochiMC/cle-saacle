@@ -28,6 +28,7 @@ class BulkUpdateExamQualifications
                 $exam->students()->updateExistingPivot($q['student_id'], [
                     'units_breakdown' => $q['units_breakdown'],
                     'final_average'   => $q['final_average'] ?? 0,
+                    'is_left'         => $q['is_left'] ?? false,
                     'attempt'         => $q['attempt'] ?? 'first',
                 ]);
             }

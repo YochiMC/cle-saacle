@@ -6,14 +6,14 @@ use App\Models\Group;
 use App\Enums\AcademicStatus;
 use App\Actions\Students\ResetStudentsStatusAction;
 use App\Actions\Students\AdvanceStudentsLevelAction;
-use App\Actions\AutoQueueAccreditationCandidates;
+use App\Actions\Students\RevertStudentsLevelAction;
 
 class GroupObserver
 {
     public function __construct(
         protected ResetStudentsStatusAction $resetStatusAction,
         protected AdvanceStudentsLevelAction $advanceLevelAction,
-        protected AutoQueueAccreditationCandidates $accreditationAction
+        protected RevertStudentsLevelAction $revertLevelAction
     ) {}
 
     /**
@@ -25,6 +25,13 @@ class GroupObserver
             return;
         }
 
+        $oldStatus = $group->getOriginal('status');
+
+        // Caso de Reversión: El grupo deja de estar COMPLETED
+        if ($oldStatus === AcademicStatus::COMPLETED && $group->status !== AcademicStatus::COMPLETED) {
+            $this->revertLevelAction->executeForGroup($group);
+        }
+
         // Caso A: El grupo vuelve a estar "En Espera" (Sincronización de alumnos)
         if ($group->status === AcademicStatus::PENDING) {
             $this->resetStatusAction->execute($group->students());
@@ -32,8 +39,7 @@ class GroupObserver
 
         // Caso B: El grupo se Cierra (Automatización de Avance y Acreditación)
         if ($group->status === AcademicStatus::COMPLETED) {
-            $this->accreditationAction->executeForGroup($group);
-            $this->advanceLevelAction->execute($group);
+            $this->advanceLevelAction->executeForGroup($group);
         }
     }
 

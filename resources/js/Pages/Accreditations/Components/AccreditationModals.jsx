@@ -44,9 +44,9 @@ const AccreditationModals = ({
                 isOpen={itemToChange != null}
                 onClose={() => setItemToChange(null)}
                 onConfirm={handleConfirmChange}
-                title="Confirm update"
-                message={`Are you sure you want to change the status of ${itemToChange?.targetName} to "${itemToChange?.newLabel}"? This will alter their academic record.`}
-                confirmText="Yes, update status"
+                title="Confirmar actualización"
+                message={`¿Estás seguro de que deseas cambiar el estatus de ${itemToChange?.targetName} a "${itemToChange?.newLabel}"? Esto alterará su registro académico.`}
+                confirmText="Sí, actualizar estatus"
                 variant="warning"
             />
         </>

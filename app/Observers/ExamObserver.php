@@ -5,15 +5,17 @@ namespace App\Observers;
 use App\Models\Exam;
 use App\Enums\AcademicStatus;
 use App\Actions\Students\ResetStudentsStatusAction;
+use App\Actions\Students\AdvanceStudentsLevelAction;
 use App\Actions\Students\AssignPlacementLevelAction;
-use App\Actions\AutoQueueAccreditationCandidates;
+use App\Actions\Students\RevertStudentsLevelAction;
 
 class ExamObserver
 {
     public function __construct(
         protected ResetStudentsStatusAction $resetStatusAction,
+        protected AdvanceStudentsLevelAction $advanceLevelAction,
         protected AssignPlacementLevelAction $assignLevelAction,
-        protected AutoQueueAccreditationCandidates $accreditationAction
+        protected RevertStudentsLevelAction $revertLevelAction
     ) {}
 
     /**
@@ -25,6 +27,13 @@ class ExamObserver
             return;
         }
 
+        $oldStatus = $exam->getOriginal('status');
+
+        // Caso de Reversión: El examen deja de estar COMPLETED
+        if ($oldStatus === AcademicStatus::COMPLETED && $exam->status !== AcademicStatus::COMPLETED) {
+            $this->revertLevelAction->executeForExam($exam);
+        }
+
         // Caso A: Sincronización a WAITING
         if ($exam->status === AcademicStatus::PENDING) {
             $this->resetStatusAction->execute($exam->students());
@@ -32,7 +41,7 @@ class ExamObserver
 
         // Caso B: Cierre de Examen (Automatización de Acreditación y Ubicación)
         if ($exam->status === AcademicStatus::COMPLETED) {
-            $this->accreditationAction->executeForExam($exam);
+            $this->advanceLevelAction->executeForExam($exam);
             $this->assignLevelAction->execute($exam);
         }
     }

@@ -16,14 +16,15 @@
  */
 
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
+import ResourceDashboard from "@/Components/ResourceDashboard";
 import { useState } from "react";
-import StudentModal from "@/Components/Users/StudentModal";
-import TeacherModal from "@/Components/Users/TeacherModal";
+import StudentModal from "@/Components/domain/Users/StudentModal";
+import TeacherModal from "@/Components/domain/Users/TeacherModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import { Head, router } from "@inertiajs/react";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import ConfirmModal from "@/Components/ui/ConfirmModal";
+import { USERS_HIDDEN_COLUMNS } from "@/Constants/tableColumns";
 
 // Definidas fuera del componente para mantener referencia estable entre renders.
 const VIEW_OPTIONS = [
@@ -113,12 +114,7 @@ export default function Users({
                 onDeleteRow={openDeleteModal}
                 onViewChange={(view) => setCurrentView(view)}
                 restrictedColumns={["attempt"]}
-                hiddenColumns={{
-                    user_id: false,
-                    birthdate: false,
-                    type: false,
-                    status_label: false,
-                }}
+                hiddenColumns={USERS_HIDDEN_COLUMNS}
             />
 
             {/* Modales — se monta únicamente el correspondiente a la vista activa */}
@@ -162,3 +158,5 @@ export default function Users({
         </AuthenticatedLayout>
     );
 }
+
+

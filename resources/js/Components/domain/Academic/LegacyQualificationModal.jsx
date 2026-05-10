@@ -12,7 +12,7 @@
  */
 import React, { useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
-import Modal from '@/Components/Modal';
+import Modal from '@/Components/ui/Modal';
 import ThemeButton from '@/Components/ui/ThemeButton';
 import SelectForm from '@/Components/Forms/SelectForm';
 import InputForm from '@/Components/Forms/InputForm';
@@ -142,3 +142,4 @@ export default function LegacyQualificationModal({
         </Modal>
     );
 }
+

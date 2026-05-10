@@ -57,7 +57,7 @@ class Exam extends Model
     {
         return $this->belongsToMany(Student::class, 'exam_student')
             ->using(ExamStudent::class)
-            ->withPivot('calificacion', 'units_breakdown', 'final_average', 'attempt')
+            ->withPivot('units_breakdown', 'final_average', 'is_left', 'attempt')
             ->withTimestamps();
     }
 

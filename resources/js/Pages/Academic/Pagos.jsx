@@ -6,10 +6,10 @@ import {
     ChevronRight, CreditCard,
     Search, Plus, User as UserIcon
 } from 'lucide-react';
-import PaymentModal from '@/Components/Academic/PaymentModal';
-import ReviewModal from '@/Components/Academic/ReviewModal';
-import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
+import PaymentModal from '@/Components/domain/Academic/PaymentModal';
+import ReviewModal from '@/Components/domain/Academic/ReviewModal';
+import PrimaryButton from '@/Components/ui/PrimaryButton';
+import SecondaryButton from '@/Components/ui/SecondaryButton';
 
 export default function Pagos({ auth, services = [], serviceTypes = [], serviceStatuses = [], reviewOptions = [] }) {
     const isAdmin = auth.user?.roles?.some(role => role.name === 'admin' || role.name === 'coordinator');
@@ -297,3 +297,4 @@ export default function Pagos({ auth, services = [], serviceTypes = [], serviceS
         </AuthenticatedLayout>
     );
 }
+

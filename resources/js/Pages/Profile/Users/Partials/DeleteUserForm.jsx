@@ -1,4 +1,4 @@
-import DangerButton from '@/Components/DangerButton';
+import DangerButton from '@/Components/ui/DangerButton';
 import ConfirmModal from '@/Components/ui/ConfirmModal';
 import {
     FieldDescription,
@@ -68,3 +68,4 @@ export default function DeleteUserForm({ className = '', user }) {
         </section>
     );
 }
+

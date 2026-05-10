@@ -1,6 +1,6 @@
 import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import ResourceDashboard from "@/Components/Resource/ResourceDashboard";
+import ResourceDashboard from "@/Components/ResourceDashboard";
 import { Head } from "@inertiajs/react";
 
 // Hooks y Controladores
@@ -43,6 +43,25 @@ export default function View({
             : "text-slate-700 bg-white"; 
     };
 
+    // 3. Determinación Dinámica de Columnas Obligatorias (forcedKeys)
+    const forcedKeys = React.useMemo(() => {
+        const type = examen?.exam_type?.value ?? examen?.exam_type;
+        const base = ["num_control", "full_name"];
+
+        switch (type) {
+            case "Convalidación":
+                return [...base, "certified_level", "score", "speaking"];
+            case "Planes anteriores":
+                return [...base, "is_curso_nivelacion", "calificacion_curso_nivelacion", "calificacion_examen", "calificacion_final"];
+            case "4 habilidades":
+                return [...base, "is_left", "listening", "reading", "writing", "speaking", "promedio_habilidades"];
+            case "Ubicación":
+                return [...base, "is_left", "nivel_asignado"];
+            default:
+                return base;
+        }
+    }, [examen]);
+
     return (
         <AuthenticatedLayout
             user={auth?.user}
@@ -60,6 +79,7 @@ export default function View({
                     title={`Calificaciones del Examen: ${examen?.name || "N/A"}`}
                     dataMap={{ alumnos: state.localData }}
                     viewOptions={VIEW_OPTIONS}
+                    forcedKeys={forcedKeys}
                     
                     // Configuración de mutaciones
                     deleteRoute={route("exams.unenroll-bulk", examen?.id)}

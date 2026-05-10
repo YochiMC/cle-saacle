@@ -48,8 +48,8 @@
 import FormModal from '@/Components/Forms/FormModal';
 import { FieldError } from '@/Components/ui/field';
 import SelectForm from '@/Components/Forms/SelectForm';
-import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
+import PrimaryButton from '@/Components/ui/PrimaryButton';
+import SecondaryButton from '@/Components/ui/SecondaryButton';
 import { FileText, Trash2 } from 'lucide-react';
 
 export default function ReviewModal({
@@ -173,3 +173,4 @@ export default function ReviewModal({
         </FormModal>
     );
 }
+

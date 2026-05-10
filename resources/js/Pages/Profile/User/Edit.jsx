@@ -8,7 +8,7 @@ import ConfirmModal from '@/Components/ui/ConfirmModal';
 import ModalAlert from '@/Components/ui/ModalAlert';
 import useFlashAlert from '@/Hooks/useFlashAlert';
 import FileForm from './Partials/Forms/FileForm';
-import SecondaryButton from '@/Components/SecondaryButton';
+import SecondaryButton from '@/Components/ui/SecondaryButton';
 import { useState } from 'react';
 
 /**
@@ -171,3 +171,4 @@ export default function Edit({ mustVerifyEmail, status, documents, documentTypes
         </AuthenticatedLayout>
     );
 }
+

@@ -22,6 +22,7 @@ use App\Http\Requests\UpdateUnitsGroupRequest;
 use App\Http\Resources\StudentQualificationResource;
 use App\Models\Group;
 use App\Models\Qualification;
+use App\Models\User;
 use App\Services\GroupNamingService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -138,19 +139,28 @@ class GroupController extends Controller
     public function show(Group $group): Response
     {
         Gate::authorize('view', $group);
-        $qualifications = $group->qualifications()->with('student')->get();
+        $qualifications = $group->qualifications()
+            ->with(['student' => fn($query) => $query->withTrashed()])
+            ->get();
 
         $enrolledStudents = $qualifications->map(function ($qualification) {
             $student = $qualification->student;
-            $student->qualification = $qualification;
+
+            if (!$student) {
+                return null;
+            }
+
+            $student->setRelation('qualification', $qualification);
+
             return new StudentQualificationResource($student);
-        });
+        })->filter()->values();
 
         // Seguridad de payload: el alumno no debe recibir el catálogo global de candidatos.
         $availableStudents = [];
         $isStudentEnrolled = false;
-        
-        if (!Auth::user()?->hasRole('student')) {
+        $user = $this->authenticatedUser();
+
+        if (!$user?->hasRole('student')) {
             $enrolledIds = $group->qualifications()->pluck('student_id');
             $availableStudents = \App\Models\Student::whereNotIn('id', $enrolledIds)
                 ->select('id', 'first_name', 'last_name', 'num_control')
@@ -158,7 +168,7 @@ class GroupController extends Controller
         } else {
             // Para estudiantes: verificar si ya están inscritos en este grupo
             $isStudentEnrolled = $group->qualifications()
-                ->where('student_id', Auth::user()?->student?->id)
+                ->where('student_id', $user?->student?->id)
                 ->exists();
         }
 
@@ -188,19 +198,14 @@ class GroupController extends Controller
      * Da de baja a un solo alumno del grupo.
      * Al desincribirse, mantiene el estado VALIDATED para permitir reinscripción.
      */
-    public function unenroll(Group $group, \App\Models\Student $student): RedirectResponse
+    public function unenroll(Group $group, \App\Models\Student $student, \App\Actions\Students\UnenrollStudentAction $action): RedirectResponse
     {
         Gate::authorize('unenroll', $group);
-        if (Auth::user()?->hasRole('student') && $student->user_id !== Auth::id()) {
+        if ($this->authenticatedUser()?->hasRole('student') && $student->user_id !== Auth::id()) {
             abort(403);
         }
 
-        Qualification::where('group_id', $group->id)
-            ->where('student_id', $student->id)
-            ->delete();
-
-        // Preservar estado VALIDATED para permitir reinscripción durante el mismo período
-        $student->update(['status' => StudentStatus::VALIDATED->value]);
+        $action->execute($student, $group);
 
         return redirect()->back()->with('success', 'Alumno dado de baja del grupo.');
     }
@@ -241,4 +246,10 @@ class GroupController extends Controller
         return redirect()->back()->with('success', 'El grupo ha sido cerrado exitosamente. Ya no se permiten modificaciones.');
     }
 
+    private function authenticatedUser(): ?User
+    {
+        $user = Auth::user();
+
+        return $user instanceof User ? $user : null;
+    }
 }

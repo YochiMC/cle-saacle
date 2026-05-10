@@ -1,4 +1,4 @@
-import FileCard from '@/Components/FileCard';
+import FileCard from '@/Components/ui/FileCard';
 
 /**
  * Files
@@ -42,3 +42,4 @@ export default function Files({ documents = [], onOpenDocumentForm }) {
         </section>
     );
 }
+

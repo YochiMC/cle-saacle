@@ -26,6 +26,7 @@ class UpdateExamPivotRequest extends FormRequest
         return [
             'units_breakdown' => 'required|array',
             'final_average'   => 'nullable|numeric',
+            'is_left'         => 'required|boolean',
             'attempt'         => ['required', Rule::enum(AttemptEnum::class)],
         ];
     }

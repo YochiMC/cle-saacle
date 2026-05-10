@@ -14,53 +14,30 @@ class AccreditationCandidateResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $achievedBy = 'No determinado';
-        $obtainedAt = null;
-
         $latestExam = $this->latestEligibleExam();
         $latestGroupQualification = $this->latestEligibleGroupQualification();
 
         $examPeriodEnd = $this->toCarbon($latestExam?->period?->end);
         $groupPeriodEnd = $this->toCarbon($latestGroupQualification?->group?->period?->end);
-        $examPeriodLabel = $this->resolveExamPeriodLabel($latestExam);
-        $groupPeriodLabel = $this->resolveGroupPeriodLabel($latestGroupQualification);
 
-        $normalizedStoredSource = $this->normalizeStoredSource(
-            $this->accreditation_source,
-            $latestExam,
-            $latestGroupQualification,
-        );
+        $achievedBy = 'No determinado';
+        $obtainedAt = 'N/A';
 
-        if ($normalizedStoredSource !== null) {
-            $achievedBy = $normalizedStoredSource;
-
-            if ($normalizedStoredSource === 'Cursos regulares' || $normalizedStoredSource === 'Programa de egresados') {
-                $obtainedAt = $groupPeriodLabel;
-            } else {
-                $obtainedAt = $examPeriodLabel;
-            }
-
-            if (!$obtainedAt) {
-                $obtainedAt = $this->accreditation_date?->format('d/m/Y');
-            }
-        }
-
-        if (!$this->accreditation_source || !$this->accreditation_date) {
-            if ($examPeriodEnd && $groupPeriodEnd) {
-                if ($examPeriodEnd->greaterThan($groupPeriodEnd)) {
-                    $achievedBy = $this->formatExamSource($latestExam);
-                    $obtainedAt = $examPeriodLabel;
-                } else {
-                    $achievedBy = $this->formatGroupSource($latestGroupQualification);
-                    $obtainedAt = $groupPeriodLabel;
-                }
-            } elseif ($examPeriodEnd) {
+        // Determinamos cuál es el logro más reciente
+        if ($examPeriodEnd && $groupPeriodEnd) {
+            if ($examPeriodEnd->greaterThanOrEqualTo($groupPeriodEnd)) {
                 $achievedBy = $this->formatExamSource($latestExam);
-                $obtainedAt = $examPeriodLabel;
-            } elseif ($groupPeriodEnd) {
+                $obtainedAt = $this->resolveExamPeriodLabel($latestExam);
+            } else {
                 $achievedBy = $this->formatGroupSource($latestGroupQualification);
-                $obtainedAt = $groupPeriodLabel;
+                $obtainedAt = $this->resolveGroupPeriodLabel($latestGroupQualification);
             }
+        } elseif ($examPeriodEnd) {
+            $achievedBy = $this->formatExamSource($latestExam);
+            $obtainedAt = $this->resolveExamPeriodLabel($latestExam);
+        } elseif ($groupPeriodEnd) {
+            $achievedBy = $this->formatGroupSource($latestGroupQualification);
+            $obtainedAt = $this->resolveGroupPeriodLabel($latestGroupQualification);
         }
 
         return [
@@ -71,7 +48,7 @@ class AccreditationCandidateResource extends JsonResource
             'status'         => $this->status,
             'status_label'   => $this->status->label(),
             'achieved_by'    => $achievedBy,
-            'obtained_at'    => $obtainedAt ?? 'N/A',
+            'obtained_at'    => $obtainedAt,
         ];
     }
 
@@ -129,32 +106,6 @@ class AccreditationCandidateResource extends JsonResource
         return Str::of($type)->title()->toString();
     }
 
-    private function normalizeStoredSource(?string $storedSource, $latestExam, $latestGroupQualification): ?string
-    {
-        if (!$storedSource) {
-            return null;
-        }
-
-        $normalized = Str::of($storedSource)->lower()->ascii()->squish()->toString();
-
-        if ($normalized === 'cursos regulares' || $normalized === 'programa de egresados') {
-            return Str::of($storedSource)->trim()->toString();
-        }
-
-        if (str_starts_with($normalized, 'grupo:')) {
-            return $this->formatGroupSource($latestGroupQualification);
-        }
-
-        if (str_starts_with($normalized, 'examen:') || str_starts_with($normalized, 'examen ')) {
-            return $this->formatExamSource($latestExam);
-        }
-
-        if ($latestExam && Str::of($this->formatExamSource($latestExam))->lower()->ascii()->toString() === $normalized) {
-            return $this->formatExamSource($latestExam);
-        }
-
-        return $storedSource;
-    }
 
     private function resolveGroupSourceByLevel(?string $levelName): ?string
     {
@@ -194,7 +145,6 @@ class AccreditationCandidateResource extends JsonResource
 
         $numericCandidates = [
             $pivot->final_average ?? null,
-            $pivot->calificacion ?? null,
             data_get($units, 'calificacion_final'),
             data_get($units, 'promedio'),
         ];

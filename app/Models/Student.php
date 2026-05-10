@@ -31,8 +31,6 @@ class Student extends Model
         'degree_id',
         'type_student_id',
         'level_id',
-        'accreditation_source',
-        'accreditation_date',
     ];
 
     /**
@@ -44,7 +42,6 @@ class Student extends Model
      */
     protected $casts = [
         'status' => StudentStatus::class,
-        'accreditation_date' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -177,7 +174,7 @@ class Student extends Model
     public function exams(): BelongsToMany
     {
         return $this->belongsToMany(Exam::class, 'exam_student')
-            ->withPivot('calificacion', 'units_breakdown', 'final_average', 'attempt')
+            ->withPivot('units_breakdown', 'final_average', 'is_left', 'attempt')
             ->withTimestamps();
     }
 }

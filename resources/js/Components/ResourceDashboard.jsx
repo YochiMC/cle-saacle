@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { Head } from "@inertiajs/react";
-import { PlusCircle } from "lucide-react";
 
 import { DataTable } from "@/Components/DataTable/DataTable";
 import DashboardHeader from "@/Components/Menus/DashboardHeader";
@@ -8,33 +7,16 @@ import { useDynamicColumns } from "@/Hooks/useDynamicColumns";
 import { useBulkActions } from "@/Hooks/useBulkActions";
 import { usePermission } from "@/Utils/auth";
 import ConfirmModal from "@/Components/ui/ConfirmModal";
-import ThemeButton from "@/Components/ui/ThemeButton";
+import ResourceEmptyState from "@/Components/ui/ResourceEmptyState";
 
 const EMPTY_DATA = [];
 
 /**
  * ResourceDashboard — Super-componente de gestión de datos.
  *
- * SRP aplicado: este componente orquesta la vista de datos y los controles
- * globales. La tabla (DataTable) solo tiene responsabilidad de pintar datos.
- * Los controles de acción (buttonSpace, onNew) viven en una Toolbar propia
- * que se renderiza SIEMPRE, independientemente de si hay datos o no.
- *
- * @param {string}          title           - Título principal (ej: "Carreras").
- * @param {object}          dataMap         - Datos por vista: { carreras: [], alumnos: [] }
- * @param {Array}           viewOptions     - [{ value, label }] para el selector de vistas.
- * @param {string|object}   deleteRoute     - Ruta de eliminación masiva (string) o mapa por vista.
- * @param {"post"|"delete"|"put"|"patch"} bulkDeleteMethod - Método HTTP para eliminación masiva.
- * @param {object}          hiddenColumns   - Columnas ocultas por defecto.
- * @param {Function}        onEditRow       - Callback al pulsar Editar: (item) => void.
- * @param {Function}        onDeleteRow     - Callback al pulsar Eliminar: (item) => void.
- * @param {React.ReactNode} buttonSpace     - Acciones extras para la toolbar (ej: "Capturar Calificaciones").
- * @param {Function}        onNew           - Callback para el botón "+ Nuevo" siempre visible.
- * @param {number|null}     editingRowId    - ID de la fila en edición individual.
- * @param {boolean}         editAllRows     - Activa la edición global de todas las filas.
- * @param {Function}        onSaveRow       - Callback al guardar fila individual.
- * @param {Function}        onCancelRow     - Callback al cancelar edición individual.
- * @param {string[]}        editableColumns - Keys de columnas editables durante edición de fila.
+ * Orquesta la vista de datos, los controles globales y las acciones masivas.
+ * La tabla (DataTable) se encarga de la visualización granular de los datos,
+ * mientras que ResourceEmptyState maneja los estados sin registros.
  */
 export default function ResourceDashboard({
     title,
@@ -61,7 +43,8 @@ export default function ResourceDashboard({
     selectOptions = {},
     getRowClassName,
     bulkDeleteModal,
-    baseDataMap, // NUEVO: Permite saber si hay datos antes de filtrar
+    baseDataMap,
+    forcedKeys = [],
 }) {
     const { hasRole } = usePermission();
     const debeOcultarAcciones = hasRole("student");
@@ -74,10 +57,10 @@ export default function ResourceDashboard({
     const currentViewLabel =
         viewOptions.find((o) => o.value === vistaActual)?.label ?? title;
 
-    // Generación reactiva de columnas basado en currentBaseData para que los encabezados no desaparezcan al filtrar
     const generatedColumns = useDynamicColumns(currentBaseData, onEditRow, onDeleteRow, {
         editableColumns,
         restrictedColumns,
+        forcedKeys,
         selectOptions,
         onCellChange,
         editingRowId,
@@ -86,6 +69,7 @@ export default function ResourceDashboard({
         onCancelRow,
         customRowActions,
     });
+
     const columns = useMemo(() => {
         if (!debeOcultarAcciones) {
             return generatedColumns;
@@ -96,13 +80,14 @@ export default function ResourceDashboard({
         );
     }, [generatedColumns, debeOcultarAcciones]);
 
-    // Estado y handlers de acciones masivas
     const {
         filasSeleccionadas,
         handleSelectionChange,
         handleBulkCopy,
         handleBulkDelete,
         resetSelection,
+        rowSelection,
+        setRowSelection,
         isConfirmingBulkDelete,
         setIsConfirmingBulkDelete,
         executeBulkDelete
@@ -116,14 +101,6 @@ export default function ResourceDashboard({
             onViewChange(newView);
         }
     };
-
-    const bulkModalTitle = bulkDeleteModal?.title ?? "Acción masiva";
-    const bulkModalMessage =
-        bulkDeleteModal?.message ??
-        `¿Estás seguro de que deseas aplicar esta acción a los ${filasSeleccionadas.length} registros seleccionados?`;
-    const bulkModalConfirmText =
-        bulkDeleteModal?.confirmText ?? "Sí, continuar";
-    const bulkModalVariant = bulkDeleteModal?.variant ?? "warning";
 
     return (
         <div className="min-h-screen py-12 bg-gray-100">
@@ -143,13 +120,14 @@ export default function ResourceDashboard({
                 />
 
                 <div className="p-6 overflow-hidden bg-white rounded-sm shadow-sm">
-                    {/* ── Tabla de Datos o Estado Vacío ────── */}
-                    {currentBaseData.length > 0 ? (
+                    {currentBaseData.length > 0 || buttonSpace ? (
                         <DataTable
-                            key={`table-${vistaActual}-${currentData.length}`}
+                            key={`table-${vistaActual}-${columns.map(c => c.id || c.accessorKey).join('-')}`}
                             columns={columns}
                             data={currentData}
                             hiddenColumns={hiddenColumns}
+                            rowSelection={rowSelection}
+                            onRowSelectionChange={setRowSelection}
                             onSelectionChange={handleSelectionChange}
                             searchPlaceholder={`Buscar en ${currentViewLabel.toLowerCase()}...`}
                             onPrint={onPrint}
@@ -158,27 +136,10 @@ export default function ResourceDashboard({
                             getRowClassName={getRowClassName}
                         />
                     ) : (
-                        <div className="flex flex-col items-center justify-center p-12 text-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 mt-2">
-                            <h3 className="text-lg font-medium text-[#17365D] mb-2">
-                                No hay registros en{" "}
-                                {currentViewLabel.toLowerCase()}
-                            </h3>
-                            <p className="text-sm text-slate-500 mb-6 max-w-sm">
-                                Aún no hay registros para mostrar en esta vista.
-                                {onNew
-                                    ? " Comienza agregando el primero para poder gestionar la información."
-                                    : ""}
-                            </p>
-                            {onNew && (
-                                <ThemeButton
-                                    theme="institutional"
-                                    icon={PlusCircle}
-                                    onClick={onNew}
-                                >
-                                    Registrar Nuevo
-                                </ThemeButton>
-                            )}
-                        </div>
+                        <ResourceEmptyState 
+                            label={currentViewLabel} 
+                            onNew={onNew} 
+                        />
                     )}
                 </div>
             </div>
@@ -187,11 +148,12 @@ export default function ResourceDashboard({
                 isOpen={isConfirmingBulkDelete}
                 onClose={() => setIsConfirmingBulkDelete(false)}
                 onConfirm={executeBulkDelete}
-                title="Eliminación Masiva"
-                message={`¿Estás seguro de que deseas eliminar ${filasSeleccionadas.length} registros seleccionados de ${currentViewLabel.toLowerCase()}? Esta acción no se puede deshacer.`}
-                confirmText="Sí, eliminar"
-                variant="warning"
+                title={bulkDeleteModal?.title || "Eliminación Masiva"}
+                message={bulkDeleteModal?.message || `¿Estás seguro de que deseas eliminar ${filasSeleccionadas.length} registros seleccionados? Esta acción no se puede deshacer.`}
+                confirmText={bulkDeleteModal?.confirmText || "Sí, eliminar"}
+                variant={bulkDeleteModal?.variant || "danger"}
             />
         </div>
     );
 }
+

@@ -6,6 +6,7 @@ use App\Models\Group;
 use App\Models\Period;
 use App\Models\Qualification;
 use App\Models\Student;
+use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -55,5 +56,13 @@ class DatabaseSeeder extends Seeder
             TestDataBaseSeeder::class,
             SettingSeeder::class,
         ]);
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CREAR DATOS DE PRUEBA CON FACTORIES
+        // ═══════════════════════════════════════════════════════════════════
+
+        // Crear alumnos y maestros para pruebas
+        Student::factory(15)->withRole()->create();
+        Teacher::factory(5)->withRole()->create();
     }
 }

@@ -15,8 +15,8 @@ import {
     Unlock,
 } from 'lucide-react';
 import { Trash } from 'lucide-react';
-import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
+import PrimaryButton from '@/Components/ui/PrimaryButton';
+import SecondaryButton from '@/Components/ui/SecondaryButton';
 
 export default function StudentEnrollment({
     student,

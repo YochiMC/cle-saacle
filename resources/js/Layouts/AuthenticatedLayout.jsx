@@ -1,5 +1,5 @@
-import ApplicationLogo from "@/Components/ApplicationLogo";
-import Dropdown from "@/Components/Dropdown";
+import ApplicationLogo from "@/Components/ui/ApplicationLogo";
+import Dropdown from "@/Components/ui/Dropdown";
 import Navbar from "@/Components/Menus/Navbar/Navbar";
 import ResponsiveNavbar from "@/Components/Menus/Navbar/ResponsiveNavbar";
 import ResponsiveNavLink from "@/Components/Menus/Navbar/Links/ResponsiveNavLink";
@@ -204,3 +204,4 @@ export default function AuthenticatedLayout({ header, children }) {
         </div>
     );
 }
+

@@ -58,6 +58,7 @@ class StudentExamQualificationResource extends JsonResource
 
             'attempt'         => $pivot?->attempt ?? 'first',
             'final_average'   => $pivot?->final_average ?? 0,
+            'is_left'         => (bool) ($pivot?->is_left ?? false),
         ];
 
         return array_merge($baseData, $unitsBreakdown);

@@ -26,7 +26,7 @@ class StudentExamResource extends JsonResource
             'semester'       => $this->semester,
 
             // Pivot data for exams
-            'calificacion'   => $pivot?->calificacion ?? '',
+            'final_average'   => $pivot?->final_average ?? 0,
         ];
     }
 }

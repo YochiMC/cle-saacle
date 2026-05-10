@@ -19,8 +19,15 @@ class BulkDetachStudentsFromExam
      * @param array<int> $studentIds Lista de IDs de los alumnos a desmatricular.
      * @return int Número de relaciones eliminadas del pivot.
      */
-    public function execute(Exam $exam, array $studentIds): int
+    public function execute(Exam $exam, array $studentIds): void
     {
-        return $exam->students()->detach($studentIds);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($exam, $studentIds) {
+            // 1. Detach de la relación pivot exam_student
+            $exam->students()->detach($studentIds);
+
+            // 2. Resetear estatus de los alumnos a VALIDATED
+            \App\Models\Student::whereIn('id', $studentIds)
+                ->update(['status' => \App\Enums\StudentStatus::VALIDATED]);
+        });
     }
 }

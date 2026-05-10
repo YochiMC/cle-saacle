@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import Modal from "@/Components/Modal";
+import Modal from "@/Components/ui/Modal";
 import ThemeInput from "@/Components/ui/ThemeInput";
 import ThemeButton from "@/Components/ui/ThemeButton";
 import { Checkbox } from "@/Components/ui/checkbox";
@@ -7,7 +7,7 @@ import { Checkbox } from "@/Components/ui/checkbox";
 /**
  * EnrollStudentModal — Modal de selección de alumnos para inscripción masiva.
  *
- * Componente compartido movido a `SharedModals` para ser reutilizado por
+ * Componente compartido movido a `ui/` para ser reutilizado por
  * ambos módulos: Grupos (`GroupView`) y Exámenes (cuando aplique).
  *
  * Permite buscar alumnos por nombre o número de control y seleccionar
@@ -112,3 +112,4 @@ export default function EnrollStudentModal({
         </Modal>
     );
 }
+

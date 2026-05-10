@@ -3,9 +3,9 @@ import { useForm } from "@inertiajs/react";
 import { Head } from "@inertiajs/react";
 import { PlusCircle, Pencil, Trash2, EllipsisVertical } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import StudentHeader from "@/Components/Academic/StudentHeader";
-import KardexTable from "@/Components/Academic/KardexTable";
-import LegacyQualificationModal from "@/Components/Academic/LegacyQualificationModal";
+import StudentHeader from "@/Components/domain/Academic/StudentHeader";
+import KardexTable from "@/Components/domain/Academic/KardexTable";
+import LegacyQualificationModal from "@/Components/domain/Academic/LegacyQualificationModal";
 import ConfirmModal from "@/Components/ui/ConfirmModal";
 import ThemeButton from "@/Components/ui/ThemeButton";
 import {
@@ -210,4 +210,5 @@ export default function Kardex({
         </AuthenticatedLayout>
     );
 }
+
 

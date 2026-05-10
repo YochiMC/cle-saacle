@@ -20,10 +20,20 @@ class BulkUnenrollStudentsFromGroup
      * @param array<int> $studentIds Lista de IDs de los alumnos a desvincular.
      * @return int Número de registros eliminados.
      */
-    public function execute(Group $group, array $studentIds): int
+    public function execute(Group $group, array $studentIds): void
     {
-        return Qualification::where('group_id', $group->id)
-            ->whereIn('student_id', $studentIds)
-            ->delete();
+        \Illuminate\Support\Facades\DB::transaction(function () use ($group, $studentIds) {
+            // 1. Eliminar los registros de calificación
+            Qualification::where('group_id', $group->id)
+                ->whereIn('student_id', $studentIds)
+                ->delete();
+
+            // 2. Detach masivo de la relación BelongsToMany
+            $group->students()->detach($studentIds);
+
+            // 3. Resetear estatus de los alumnos a VALIDATED
+            \App\Models\Student::whereIn('id', $studentIds)
+                ->update(['status' => \App\Enums\StudentStatus::VALIDATED]);
+        });
     }
 }

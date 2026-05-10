@@ -4,11 +4,11 @@ import { Head } from "@inertiajs/react";
 import { Layers3, Plus, ToggleRight, UsersRound, Trash2, Edit2 } from "lucide-react";
 
 import ThemeButton from "@/Components/ui/ThemeButton";
-import GroupDetailsModal from "@/Components/Groups/GroupDetailsModal";
-import CardGroup from "@/Components/Groups/CardGroup";
-import ResourceFilterBar from "@/Components/Resource/ResourceFilterBar";
-import ResourceSelectFilter from "@/Components/Resource/ResourceSelectFilter";
-import GroupModal from "@/Components/Groups/GroupModal";
+import GroupDetailsModal from "@/Components/domain/Groups/GroupDetailsModal";
+import CardGroup from "@/Components/domain/Groups/CardGroup";
+import ResourceFilterBar from "@/Components/ui/ResourceFilterBar";
+import ResourceSelectFilter from "@/Components/ui/ResourceSelectFilter";
+import GroupModal from "@/Components/domain/Groups/GroupModal";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import ConfirmModal from "@/Components/ui/ConfirmModal";
 import useFlashAlert from "@/Hooks/useFlashAlert";
@@ -241,3 +241,5 @@ export default function Groups({
         </AuthenticatedLayout>
     );
 }
+
+
