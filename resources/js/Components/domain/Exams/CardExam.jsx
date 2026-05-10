@@ -10,7 +10,7 @@ import { formatUserName } from "@/Utils/userUtils";
 
 /**
  * CardExam — Tarjeta visual de una Sesión de Examen.
- * 
+ *
  * Orquestador de dominio para CatalogCard en el contexto de Exámenes.
  */
 const CardExam = memo(

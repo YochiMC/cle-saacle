@@ -9,7 +9,7 @@ import { formatUserName } from "@/Utils/userUtils";
 
 /**
  * CardGroup — Tarjeta visual de un Grupo Académico.
- * 
+ *
  * Ahora actúa como orquestador de dominio para CatalogCard,
  * calculando los permisos y el estado del cupo antes de renderizar.
  */
