@@ -21,9 +21,10 @@ return new class extends Migration
             $table->date('birthdate');
             $table->integer('semester')->nullable();
             $table->string('status')->default('current');
+            $table->index('status');
             $table->foreignId('degree_id')->constrained()->restrictOnDelete();
             $table->foreignId('type_student_id')->constrained()->restrictOnDelete();
-            $table->foreignId('level_id')->constrained()->restrictOnDelete();
+            $table->foreignId('level_id')->nullable()->constrained()->nullOnDelete();
 
             // Campos de Acreditación (Consolidados)
             $table->string('accreditation_source')->nullable()->comment('Origen de la acreditación (Ej. Grupo Intermedio 5, Examen Ubicación, TOEFL, etc.)');

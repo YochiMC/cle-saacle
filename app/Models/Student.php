@@ -31,6 +31,8 @@ class Student extends Model
         'degree_id',
         'type_student_id',
         'level_id',
+        'accreditation_source',
+        'accreditation_date',
     ];
 
     /**
@@ -42,6 +44,7 @@ class Student extends Model
      */
     protected $casts = [
         'status' => StudentStatus::class,
+        'accreditation_date' => 'datetime',
     ];
 
     public function user(): BelongsTo

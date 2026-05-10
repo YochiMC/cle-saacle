@@ -16,8 +16,11 @@ return new class extends Migration
             $table->json('units_breakdown')->nullable();
             $table->string('final_average', 5)->nullable();
             $table->boolean('is_left')->default(false);
+            $table->string('attempt')->default('first');
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
             $table->foreignId('group_id')->constrained()->onDelete('cascade');
+            $table->unique(['student_id', 'group_id']);
+            $table->index(['student_id', 'group_id']);
             $table->timestamps();
             $table->softDeletes();
         });

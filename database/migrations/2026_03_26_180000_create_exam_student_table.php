@@ -15,9 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('exam_id')->constrained('exams')->cascadeOnDelete();
             $table->foreignId('student_id')->constrained('students')->cascadeOnDelete();
-            $table->decimal('calificacion', 5, 2)->nullable();
             $table->json('units_breakdown')->nullable();
-            $table->integer('final_average')->default(0);
+            $table->decimal('final_average', 5, 2)->default(0);
+            $table->boolean('is_left')->default(false);
+            $table->string('attempt')->default('first');
             $table->timestamps();
 
             $table->unique(['exam_id', 'student_id']);

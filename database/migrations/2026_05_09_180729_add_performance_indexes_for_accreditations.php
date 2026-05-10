@@ -13,14 +13,12 @@ return new class extends Migration
     {
         Schema::table('groups', function (Blueprint $table) {
             $table->index('period_id');
+            $table->index('status');
         });
 
         Schema::table('exams', function (Blueprint $table) {
             $table->index('period_id');
-        });
-
-        Schema::table('qualifications', function (Blueprint $table) {
-            $table->index(['student_id', 'group_id']);
+            $table->index('status');
         });
     }
 
@@ -31,14 +29,12 @@ return new class extends Migration
     {
         Schema::table('groups', function (Blueprint $table) {
             $table->dropIndex(['period_id']);
+            $table->dropIndex(['status']);
         });
 
         Schema::table('exams', function (Blueprint $table) {
             $table->dropIndex(['period_id']);
-        });
-
-        Schema::table('qualifications', function (Blueprint $table) {
-            $table->dropIndex(['student_id', 'group_id']);
+            $table->dropIndex(['status']);
         });
     }
 };
