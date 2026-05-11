@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { router } from "@inertiajs/react";
 import { useTablePagination } from "@/Hooks/useTablePagination";
 import { useTableFilters } from "@/Hooks/useTableFilters";
+import { useTableModals } from "@/Hooks/useTableModals";
 
 const isRouteFunctionAvailable = typeof route === "function";
 
@@ -98,11 +99,23 @@ export const useResourceManagement = ({
         hayFiltros,
     } = useTableFilters(initialFilters);
 
-    const [seleccionados, setSeleccionados] = useState([]);
+    const modalBehaviors = useMemo(() => ({
+        formulario: 'edit',
+        detalles: 'view'
+    }), []);
 
-    const [modales, setModales] = useState(initialModals);
-    const [itemEditando, setItemEditando] = useState(null);
-    const [itemViendo, setItemViendo] = useState(null);
+    const {
+        modales,
+        setModales,
+        itemEditando,
+        setItemEditando,
+        itemViendo,
+        setItemViendo,
+        handleOpenModal,
+        handleCloseModal,
+    } = useTableModals(initialModals, modalBehaviors);
+
+    const [seleccionados, setSeleccionados] = useState([]);
 
     const itemsFiltrados = useMemo(() => {
         if (typeof filterCallback !== "function") return items;
@@ -142,26 +155,6 @@ export const useResourceManagement = ({
 
     const handleClearSelection = useCallback(() => {
         setSeleccionados([]);
-    }, []);
-
-    const handleOpenModal = useCallback((modalKey, payload = null) => {
-        setModales((prev) => ({
-            ...prev,
-            [modalKey]: true,
-        }));
-
-        if (modalKey === "formulario") setItemEditando(payload);
-        if (modalKey === "detalles") setItemViendo(payload);
-    }, []);
-
-    const handleCloseModal = useCallback((modalKey) => {
-        setModales((prev) => ({
-            ...prev,
-            [modalKey]: false,
-        }));
-
-        if (modalKey === "formulario") setItemEditando(null);
-        if (modalKey === "detalles") setItemViendo(null);
     }, []);
 
     const handleBulkStatus = useCallback(
