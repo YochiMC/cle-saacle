@@ -38,7 +38,7 @@ export default function AuthenticatedLayout({ header, children }) {
      */
     const links = [
         { route: "dashboard", label: "Dashboard", allowedRoles: ["admin", "teacher", "student"] },
-        { route: "kardex", routeParams: [user.id], label: "Kardex", allowedRoles: ["student"] },
+        { route: "kardex", routeParams: {user: user?.id}, label: "Kardex", allowedRoles: ["student"] },
         { route: "student.enrollment", label: "Inscripción", allowedRoles: ["student"] },
         { route: "users", label: "Usuarios", allowedRoles: ["admin"] },
         { route: "groups", label: "Grupos", allowedRoles: ["admin", "teacher", "student"] },
