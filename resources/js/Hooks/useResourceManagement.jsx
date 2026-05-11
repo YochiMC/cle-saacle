@@ -1,69 +1,9 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
-import { router } from "@inertiajs/react";
+import { useMemo, useEffect } from "react";
 import { useTablePagination } from "@/Hooks/useTablePagination";
 import { useTableFilters } from "@/Hooks/useTableFilters";
 import { useTableModals } from "@/Hooks/useTableModals";
-
-const isRouteFunctionAvailable = typeof route === "function";
-
-const resolveRouteTarget = (routeConfig, routeParams = []) => {
-    if (!routeConfig) return null;
-
-    if (typeof routeConfig === "function") {
-        return routeConfig(...routeParams);
-    }
-
-    if (typeof routeConfig === "string") {
-        if (isRouteFunctionAvailable) {
-            return route(routeConfig, ...routeParams);
-        }
-
-        return routeConfig;
-    }
-
-    if (typeof routeConfig === "object") {
-        if (typeof routeConfig.resolve === "function") {
-            return routeConfig.resolve(...routeParams);
-        }
-
-        if (routeConfig.url) {
-            return routeConfig.url;
-        }
-
-        if (routeConfig.name) {
-            const params = routeConfig.params ?? routeParams;
-
-            if (isRouteFunctionAvailable) {
-                return route(routeConfig.name, ...params);
-            }
-
-            return routeConfig.name;
-        }
-    }
-
-    return null;
-};
-
-const requestWithInertia = ({
-    routeConfig,
-    method,
-    routeParams = [],
-    data = {},
-    options = {},
-}) => {
-    const target = resolveRouteTarget(routeConfig, routeParams);
-    if (!target) return;
-
-    if (method === "delete") {
-        router.delete(target, {
-            data,
-            ...options,
-        });
-        return;
-    }
-
-    router[method](target, data, options);
-};
+import { useTableSelection } from "@/Hooks/useTableSelection";
+import { useResourceNetwork } from "@/Hooks/useResourceNetwork";
 
 /**
  * Hook genérico para administración de recursos con Inertia.
@@ -115,7 +55,12 @@ export const useResourceManagement = ({
         handleCloseModal,
     } = useTableModals(initialModals, modalBehaviors);
 
-    const [seleccionados, setSeleccionados] = useState([]);
+    const {
+        seleccionados,
+        setSeleccionados,
+        handleToggleSelect,
+        handleClearSelection,
+    } = useTableSelection();
 
     const itemsFiltrados = useMemo(() => {
         if (typeof filterCallback !== "function") return items;
@@ -145,106 +90,13 @@ export const useResourceManagement = ({
         [getPaginatedItems, itemsFiltrados]
     );
 
-    const handleToggleSelect = useCallback((id) => {
-        setSeleccionados((prev) =>
-            prev.includes(id)
-                ? prev.filter((selectedId) => selectedId !== id)
-                : [...prev, id],
-        );
-    }, []);
-
-    const handleClearSelection = useCallback(() => {
-        setSeleccionados([]);
-    }, []);
-
-    const handleBulkStatus = useCallback(
-        (nuevoEstado, extraData = {}, options = {}) => {
-            if (
-                !nuevoEstado ||
-                seleccionados.length === 0 ||
-                !routes.bulkStatus
-            )
-                return;
-
-            requestWithInertia({
-                routeConfig: routes.bulkStatus,
-                method: routes.bulkStatusMethod ?? "post",
-                data: {
-                    ids: seleccionados,
-                    new_status: nuevoEstado,
-                    ...extraData,
-                },
-                options: {
-                    onSuccess: () => handleClearSelection(),
-                    ...options,
-                },
-            });
-        },
-        [
-            seleccionados,
-            routes.bulkStatus,
-            routes.bulkStatusMethod,
-            handleClearSelection,
-        ],
-    );
-
-    const handleBulkDelete = useCallback(
-        (extraData = {}, options = {}) => {
-            if (seleccionados.length === 0 || !routes.bulkDelete) return;
-
-            requestWithInertia({
-                routeConfig: routes.bulkDelete,
-                method: routes.bulkDeleteMethod ?? "delete",
-                data: {
-                    ids: seleccionados,
-                    ...extraData,
-                },
-                options: {
-                    onSuccess: () => handleClearSelection(),
-                    ...options,
-                },
-            });
-        },
-        [
-            seleccionados,
-            routes.bulkDelete,
-            routes.bulkDeleteMethod,
-            handleClearSelection,
-        ],
-    );
-
-    const handleDelete = useCallback(
-        (id, extraData = {}, options = {}) => {
-            if (!id || !routes.delete) return;
-
-            requestWithInertia({
-                routeConfig: routes.delete,
-                method: routes.deleteMethod ?? "delete",
-                routeParams: [id],
-                data: extraData,
-                options,
-            });
-        },
-        [routes.delete, routes.deleteMethod],
-    );
-
-    const handleAction = useCallback(
-        (actionKey, { routeParams = [], data = {}, options = {} } = {}) => {
-            const actionRoute = routes[actionKey];
-            if (!actionRoute) return;
-
-            const method = routes[`${actionKey}Method`] ?? "post";
-
-            requestWithInertia({
-                routeConfig: actionRoute,
-                method,
-                routeParams,
-                data,
-                options,
-            });
-        },
-        [routes],
-    );
+    // Delegamos la capa de red al hook especializado
+    const {
+        handleBulkStatus,
+        handleBulkDelete,
+        handleDelete,
+        handleAction
+    } = useResourceNetwork(routes, seleccionados, handleClearSelection);
 
     return {
         busqueda,
