@@ -13,8 +13,8 @@ use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\DeleteProfileRequest;
 use App\Models\Degree;
 use App\Models\Level;
-use App\Models\TypeStudent;
 use App\Models\User;
+use App\Enums\TypeStudent;
 use Spatie\Permission\Models\Role;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -79,7 +79,6 @@ class ProfileController extends Controller
             'teacher',
             'student.degree',
             'student.level',
-            'student.typeStudent',
         ]);
 
         $documentTypeOptions = $this->resolveDocumentTypeOptions($user);
@@ -90,7 +89,7 @@ class ProfileController extends Controller
             'hasStudent' => (bool) $user->student,
             'degrees' => Degree::all(['id', 'name']),
             'levels' => Level::all(['id', 'level_tecnm']),
-            'typeStudents' => TypeStudent::all(['id', 'name']),
+            'typeStudents' => TypeStudent::getOptions(),
             'documentStatuses' => DocumentStatus::reviewOptions(),
             'documentTypes' => $documentTypeOptions,
         ]);

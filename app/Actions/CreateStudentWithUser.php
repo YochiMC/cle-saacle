@@ -39,7 +39,7 @@ class CreateStudentWithUser
                 'birthdate'       => $data['birthdate'],
                 'semester'        => $data['semester'] ?? null,
                 'degree_id'       => $data['degree_id'],
-                'type_student_id' => $data['type_student_id'],
+                'type_student'    => $data['type_student'],
                 'level_id'        => $data['level_id'],
                 // Estado inicial de negocio para altas nuevas.
                 'status'          => StudentStatus::CURRENT->value,

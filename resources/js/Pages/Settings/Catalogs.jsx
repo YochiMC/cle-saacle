@@ -10,7 +10,7 @@ import CatalogDeleteModal from './Components/CatalogDeleteModal';
 
 /**
  * Vista centralizada de Catálogos (Periodos, Niveles, Tipos de Alumno, Carreras).
- * 
+ *
  * Orquestador principal que delega la lógica de formularios y borrado
  * a sub-componentes especializados para mantener la legibilidad y SRP.
  */
@@ -58,7 +58,6 @@ export default function Catalogs({ catalogs = [] }) {
         periods: route('periods.bulk-delete'),
         levels: route('levels.bulk-delete'),
         degrees: route('degrees.bulk-delete'),
-        'type-students': route('type-students.bulk-delete'),
     };
 
     return (
@@ -77,7 +76,7 @@ export default function Catalogs({ catalogs = [] }) {
             />
 
             {/* ── Modales Especializados ───────────────────────────────────── */}
-            
+
             <CatalogFormModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
