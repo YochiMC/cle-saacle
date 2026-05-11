@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     flexRender,
     getCoreRowModel,
@@ -69,19 +69,26 @@ export function DataTable({
         state: { sorting, columnFilters, columnVisibility, rowSelection, globalFilter },
     });
 
-    // Solo se dispara cuando cambia la selección, visibilidad o búsqueda.
-    // `table` y `onSelectionChange` quedan fuera para evitar bucles de re-render.
+    // Estabilizamos la extracción de datos y columnas para evitar disparos descontrolados y re-renders en cascada.
+    // Al usar useMemo, nos aseguramos de que las referencias solo cambien cuando el modelo de la tabla realmente lo haga.
+    const selectedData = useMemo(() => {
+        return table.getFilteredSelectedRowModel().rows.map((r) => r.original);
+    }, [table, rowSelection, globalFilter]);
+
+    const visibleCols = useMemo(() => {
+        return table.getVisibleLeafColumns().map((c) => ({
+            id: c.id,
+            header: typeof c.columnDef.header === 'string' ? c.columnDef.header : c.id
+        }));
+    }, [table, columnVisibility]);
+
+    // Notificamos los cambios al componente padre incluyendo todas las dependencias reales.
+    // Esto estabiliza la reactividad del motor visual y cumple con las reglas de hooks de React.
     useEffect(() => {
         if (onSelectionChange) {
-            const selectedData = table.getFilteredSelectedRowModel().rows.map((r) => r.original);
-            const visibleCols = table.getVisibleLeafColumns().map((c) => ({
-                id: c.id,
-                header: typeof c.columnDef.header === 'string' ? c.columnDef.header : c.id
-            }));
             onSelectionChange(selectedData, visibleCols);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rowSelection, columnVisibility, globalFilter]);
+    }, [onSelectionChange, selectedData, visibleCols]);
 
     return (
         <div>

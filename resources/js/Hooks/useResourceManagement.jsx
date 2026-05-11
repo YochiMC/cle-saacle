@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { router } from "@inertiajs/react";
+import { useTablePagination } from "@/Hooks/useTablePagination";
 
 const isRouteFunctionAvailable = typeof route === "function";
 
@@ -93,16 +94,11 @@ export const useResourceManagement = ({
 }) => {
     const [busqueda, setBusqueda] = useState("");
     const [filtros, setFiltros] = useState(initialFilters);
-    const [paginaActual, setPaginaActual] = useState(1);
     const [seleccionados, setSeleccionados] = useState([]);
 
     const [modales, setModales] = useState(initialModals);
     const [itemEditando, setItemEditando] = useState(null);
     const [itemViendo, setItemViendo] = useState(null);
-
-    useEffect(() => {
-        setPaginaActual(1);
-    }, [busqueda, filtros, items]);
 
     const itemsFiltrados = useMemo(() => {
         if (typeof filterCallback !== "function") return items;
@@ -114,19 +110,22 @@ export const useResourceManagement = ({
         });
     }, [items, busqueda, filtros, filterCallback]);
 
-    const totalPaginas = useMemo(
-        () =>
-            Math.max(1, Math.ceil(itemsFiltrados.length / elementosPorPagina)),
-        [itemsFiltrados.length, elementosPorPagina],
-    );
+    // Delegamos la lógica de paginación al hook especializado
+    const {
+        paginaActual,
+        setPaginaActual,
+        totalPaginas,
+        getPaginatedItems
+    } = useTablePagination(itemsFiltrados.length, elementosPorPagina);
+
+    // Reset de página al filtrar o buscar para asegurar que el usuario vea resultados desde el inicio
+    useEffect(() => {
+        setPaginaActual(1);
+    }, [busqueda, filtros, setPaginaActual]);
 
     const itemsPaginados = useMemo(
-        () =>
-            itemsFiltrados.slice(
-                (paginaActual - 1) * elementosPorPagina,
-                paginaActual * elementosPorPagina,
-            ),
-        [itemsFiltrados, paginaActual, elementosPorPagina],
+        () => getPaginatedItems(itemsFiltrados),
+        [getPaginatedItems, itemsFiltrados]
     );
 
     const hayFiltros = useMemo(() => {
