@@ -74,7 +74,7 @@ export default function UpdateProfileInformationForm({
         semester: user.profile?.semester ?? "",
         degree_id: user.profile?.degree_id ?? "",
         level_id: user.profile?.level_id ?? "",
-        type_student_id: user.profile?.type_student_id ?? "",
+        type_student: user.profile?.type_student ?? "",
 
         // Campos del docente (se ignoran si el perfil es student)
         category: user.profile?.category ?? "",

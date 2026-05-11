@@ -48,8 +48,8 @@ class StudentResourceTest extends TestCase
             'level_id',
             'level',
             'level_tecnm',
-            'type_student_id',
             'type_student',
+            'type_student_label',
             'type',
         ];
 
@@ -134,9 +134,9 @@ class StudentResourceTest extends TestCase
         $student  = Student::factory()->withRole()->create();
         $resource = $this->serialize($student);
 
-        $this->assertSame($student->degree_id,       $resource['degree_id']);
-        $this->assertSame($student->level_id,        $resource['level_id']);
-        $this->assertSame($student->type_student_id, $resource['type_student_id']);
+        $this->assertSame($student->degree_id,      $resource['degree_id']);
+        $this->assertSame($student->level_id,       $resource['level_id']);
+        $this->assertSame($student->type_student,   $resource['type_student']);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

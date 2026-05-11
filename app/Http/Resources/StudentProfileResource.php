@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Enums\StudentStatus;
+use App\Enums\TypeStudent;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,6 +14,7 @@ class StudentProfileResource extends JsonResource
      *
      * Se envía el estado técnico (`status`) junto con su etiqueta humana
      * (`status_label`) para mantener la presentación desacoplada del dominio.
+     * Igualmente, se envía el tipo de estudiante (`type_student`) con su etiqueta.
      *
      * @return array<string, mixed>
      */
@@ -20,6 +22,9 @@ class StudentProfileResource extends JsonResource
     {
         $rawStatus = $this->resource->getRawOriginal('status') ?? ($this->resource->getAttributes()['status'] ?? null);
         $statusEnum = is_string($rawStatus) ? StudentStatus::tryFrom($rawStatus) : null;
+
+        $rawTypeStudent = $this->resource->getRawOriginal('type_student') ?? ($this->resource->getAttributes()['type_student'] ?? null);
+        $typeStudentEnum = is_string($rawTypeStudent) ? TypeStudent::tryFrom($rawTypeStudent) : null;
 
         return [
             'id' => $this->id,
@@ -33,7 +38,8 @@ class StudentProfileResource extends JsonResource
             'status' => $statusEnum?->value ?? $rawStatus,
             'status_label' => $statusEnum?->label() ?? 'Sin estado',
             'degree_id' => $this->degree_id,
-            'type_student_id' => $this->type_student_id,
+            'type_student' => $rawTypeStudent,
+            'type_student_label' => $typeStudentEnum?->label() ?? 'Sin tipo',
             'level_id' => $this->level_id,
             'type' => 'student',
         ];

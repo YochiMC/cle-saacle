@@ -75,7 +75,7 @@ class ImportStudents extends Command
                         'birthdate' => $row[4] ?? null,
                         'semester' => $row[5] ?? null,
                         'degree_id' => $row[6] ?? null,
-                        'type_student_id' => $row[7] ?? null,
+                        'type_student' => $row[7] ?? null,
                         'level_id' => $row[8] ?? null,
                         'email' => $row[9] ?? null,
                         'password' => $row[10] ?? null,
@@ -105,7 +105,7 @@ class ImportStudents extends Command
                                 'birthdate' => $this->parseDate($data['birthdate']),
                                 'semester' => $data['semester'],
                                 'degree_id' => $data['degree_id'],
-                                'type_student_id' => $data['type_student_id'],
+                                'type_student' => $data['type_student'],
                                 'level_id' => $data['level_id'],
                                 'status' => StudentStatus::CURRENT,
                             ]);
@@ -137,7 +137,7 @@ class ImportStudents extends Command
                         'birthdate' => $this->parseDate($data['birthdate']),
                         'semester' => $data['semester'],
                         'degree_id' => $data['degree_id'],
-                        'type_student_id' => $data['type_student_id'],
+                        'type_student' => $data['type_student'],
                         'level_id' => $data['level_id'],
                         'status' => StudentStatus::CURRENT,
                     ]);

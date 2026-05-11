@@ -13,7 +13,7 @@
  * @param {string}   [title]        - Título del encabezado del modal.
  * @param {Array}    degrees        - Listado de carreras: [{ id, name }].
  * @param {Array}    levels         - Listado de niveles académicos: [{ id, level_tecnm }].
- * @param {Array}    typeStudents   - Listado de tipos de estudiante: [{ id, name }].
+ * @param {Array}    typeStudents   - Opciones de tipos de estudiante: [{ value, label }] (enum).
  *
  * @example
  * <StudentModal
@@ -45,18 +45,16 @@ export default function StudentModal({ show = false, onClose, title, degrees, le
     // Mapeamos las props que vienen de la base de datos al formato { value, label }.
     const degreesOption = degrees.map(d => ({ value: d.id.toString(), label: d.name }));
     const levelsOption = levels.map(l => ({ value: l.id.toString(), label: l.level_tecnm }));
-    const typeStudentsOption = typeStudents.map(t => ({ value: t.id.toString(), label: t.name }));
+    // typeStudents ya viene formateado como {value, label} desde TypeStudent::getOptions()
+    const typeStudentsOption = typeStudents;
 
     const { data, setData, post, processing, errors, reset, transform } = useForm({
-        type_student_id: '', first_name: '', last_name: '', birth_day: '', birth_month: '', birth_year: '',
+        type_student: '', first_name: '', last_name: '', birth_day: '', birth_month: '', birth_year: '',
         gender: '', number_control: '', degree_id: '', semester: '', level_id: '', phone: '', email: '', password: '', password_confirmation: '',
     });
 
     // Determina si el tipo seleccionado es "Egresado" para adaptar los campos del formulario.
-    const selectedType = typeStudents.find(
-        (t) => String(t.id) === String(data.type_student_id ?? "")
-    );
-    const isEgresado = selectedType?.name.toLowerCase() === 'egresado';
+    const isEgresado = data.type_student === 'egresado';
 
     const submit = (e) => {
         e.preventDefault();
@@ -93,7 +91,7 @@ export default function StudentModal({ show = false, onClose, title, degrees, le
                         <FieldLegend>Datos del Alumno</FieldLegend>
                         <FieldDescription>Información personal para alta y seguimiento.</FieldDescription>
 
-                        <SelectForm options={typeStudentsOption} label="Tipo de estudiante" selectId="type_student_id" placeholder="Selecciona un tipo" description="Define los campos académicos y de acceso." value={data.type_student_id} onValueChange={v => setData('type_student_id', v)} />
+                        <SelectForm options={typeStudentsOption} label="Tipo de estudiante" selectId="type_student" placeholder="Selecciona un tipo" description="Define los campos académicos y de acceso." value={data.type_student} onValueChange={v => setData('type_student', v)} />
 
                         <FieldGroup>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

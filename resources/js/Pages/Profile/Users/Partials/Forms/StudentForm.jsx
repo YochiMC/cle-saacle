@@ -12,7 +12,7 @@
  * @param {Function} setData                       - Setter del estado del formulario.
  * @param {Array<{id: number, name: string}>}               degrees      - Catálogo de carreras.
  * @param {Array<{id: number, level_mcer: string}>}         levels       - Catálogo de niveles MCER.
- * @param {Array<{id: number, name: string}>}               typeStudents - Catálogo de tipos de estudiante.
+ * @param {Array<{value: string, label: string}>}          typeStudents - Opciones de tipos de estudiante (enum).
  *
  * @example
  * <StudentForm
@@ -109,16 +109,11 @@ export default function StudentForm({
         label: l.level_tecnm,
     }));
 
-    const typeStudentOptions = typeStudents.map((t) => ({
-        value: String(t.id),
-        label: t.name,
-    }));
+    // typeStudents ya viene formateado como {value, label} desde TypeStudent::getOptions()
+    const typeStudentOptions = typeStudents;
 
     // Determina si el tipo seleccionado es "Egresado" para adaptar los campos del formulario.
-    const selectedType = typeStudents.find(
-        (t) => String(t.id) === String(data.type_student_id ?? "")
-    );
-    const isEgresado = selectedType?.name.toLowerCase() === 'egresado';
+    const isEgresado = data.type_student === 'egresado';
 
     return (
         <FieldSet>
@@ -133,10 +128,10 @@ export default function StudentForm({
                     placeholder="Selecciona un tipo"
                     description="Define los campos académicos y de acceso."
                     options={typeStudentOptions}
-                    value={String(data.type_student_id)}
-                    onValueChange={(val) => setData("type_student_id", Number(val))}
+                    value={data.type_student || ""}
+                    onValueChange={(val) => setData("type_student", val)}
                 />
-                <FieldError>{errors.type_student_id}</FieldError>
+                <FieldError>{errors.type_student}</FieldError>
 
                 {/* ── Nombre y apellido ── */}
                 <InputForm

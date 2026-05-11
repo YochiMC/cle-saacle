@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('status')->default('current');
             $table->index('status');
             $table->foreignId('degree_id')->constrained()->restrictOnDelete();
-            $table->foreignId('type_student_id')->constrained()->restrictOnDelete();
+            $table->string('type_student')->default('vigente')->comment('Tipo de estudiante: vigente o egresado');
             $table->foreignId('level_id')->nullable()->constrained()->nullOnDelete();
 
             // Campos de Acreditación (Consolidados)
