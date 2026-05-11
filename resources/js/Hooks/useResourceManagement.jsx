@@ -1,14 +1,9 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { router } from "@inertiajs/react";
 import { useTablePagination } from "@/Hooks/useTablePagination";
+import { useTableFilters } from "@/Hooks/useTableFilters";
 
 const isRouteFunctionAvailable = typeof route === "function";
-
-const isEmptyFilterValue = (value) => {
-    if (value === null || value === undefined || value === "") return true;
-    if (Array.isArray(value)) return value.length === 0;
-    return false;
-};
 
 const resolveRouteTarget = (routeConfig, routeParams = []) => {
     if (!routeConfig) return null;
@@ -92,8 +87,17 @@ export const useResourceManagement = ({
         detalles: false,
     },
 }) => {
-    const [busqueda, setBusqueda] = useState("");
-    const [filtros, setFiltros] = useState(initialFilters);
+    const {
+        busqueda,
+        setBusqueda,
+        filtros,
+        setFiltros,
+        handleSetFiltro,
+        handleSetFiltros,
+        handleResetFiltros,
+        hayFiltros,
+    } = useTableFilters(initialFilters);
+
     const [seleccionados, setSeleccionados] = useState([]);
 
     const [modales, setModales] = useState(initialModals);
@@ -127,32 +131,6 @@ export const useResourceManagement = ({
         () => getPaginatedItems(itemsFiltrados),
         [getPaginatedItems, itemsFiltrados]
     );
-
-    const hayFiltros = useMemo(() => {
-        const filtrosActivos = Object.values(filtros).some(
-            (value) => !isEmptyFilterValue(value),
-        );
-        return busqueda.trim() !== "" || filtrosActivos;
-    }, [busqueda, filtros]);
-
-    const handleSetFiltro = useCallback((key, value) => {
-        setFiltros((prev) => ({
-            ...prev,
-            [key]: value,
-        }));
-    }, []);
-
-    const handleSetFiltros = useCallback((newFilters) => {
-        setFiltros((prev) => ({
-            ...prev,
-            ...newFilters,
-        }));
-    }, []);
-
-    const handleResetFiltros = useCallback(() => {
-        setBusqueda("");
-        setFiltros(initialFilters);
-    }, [initialFilters]);
 
     const handleToggleSelect = useCallback((id) => {
         setSeleccionados((prev) =>
