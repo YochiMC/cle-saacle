@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ServiceStatus;
 use App\Enums\ServiceType;
+use App\Enums\TypeStudent;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\StudentStatus;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,7 +30,7 @@ class Student extends Model
         'semester',
         'status',
         'degree_id',
-        'type_student_id',
+        'type_student',
         'level_id',
         'accreditation_source',
         'accreditation_date',
@@ -38,12 +39,13 @@ class Student extends Model
     /**
      * Atributos que deben ser casteados.
      * Se usa la propiedad `$casts` para mantener compatibilidad con Eloquent.
-     * El tipo `StudentStatus::class` permite cast a enum.
+     * El tipo `StudentStatus::class` y `TypeStudent::class` permiten cast a enum.
      *
      * @var array<string,string>
      */
     protected $casts = [
         'status' => StudentStatus::class,
+        'type_student' => TypeStudent::class,
         'accreditation_date' => 'datetime',
     ];
 
@@ -55,11 +57,6 @@ class Student extends Model
     public function degree(): BelongsTo
     {
         return $this->belongsTo(Degree::class);
-    }
-
-    public function typeStudent(): BelongsTo
-    {
-        return $this->belongsTo(TypeStudent::class);
     }
 
     public function level(): BelongsTo

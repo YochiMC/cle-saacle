@@ -5,7 +5,6 @@ namespace Tests;
 use Database\Seeders\DegreeSeeder;
 use Database\Seeders\LevelSeeder;
 use Database\Seeders\RoleSeeder;
-use Database\Seeders\TypeStudentSeeder;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Schema;
 
@@ -16,8 +15,11 @@ abstract class TestCase extends BaseTestCase
      *
      * Se ejecuta después de que RefreshDatabase vacía las tablas, por lo que
      * los roles (admin, coordinator, teacher, student) y los catálogos
-     * (Level, Degree, TypeStudent) están disponibles en todos los tests sin
+     * (Level, Degree) están disponibles en todos los tests sin
      * necesidad de crearlos manualmente.
+     *
+     * Los tipos de estudiante (TypeStudent) ahora se gestionan como un enum,
+     * por lo que no requieren sembradura en base de datos.
      */
     protected function setUp(): void
     {
@@ -29,13 +31,11 @@ abstract class TestCase extends BaseTestCase
             Schema::hasTable('permissions') &&
             Schema::hasTable('roles') &&
             Schema::hasTable('levels') &&
-            Schema::hasTable('degrees') &&
-            Schema::hasTable('type_students')
+            Schema::hasTable('degrees')
         ) {
             $this->seed(RoleSeeder::class);
             $this->seed(LevelSeeder::class);
             $this->seed(DegreeSeeder::class);
-            $this->seed(TypeStudentSeeder::class);
         }
     }
 }

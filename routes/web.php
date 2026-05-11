@@ -15,7 +15,6 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\LegacyQualificationController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
-use App\Http\Controllers\TypeStudentController;
 use App\Http\Controllers\Views\AdminViewsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -65,11 +64,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Vistas y operaciones compartidas por roles base del sistema (menú principal)
     Route::middleware('role:admin|coordinator|teacher|student')->group(function () {
         Route::get('/dashboard', function () {
-            $students = \App\Http\Resources\StudentResource::collection(\App\Models\Student::with(['degree', 'level', 'typeStudent'])->get())->resolve();
+            $students = \App\Http\Resources\StudentResource::collection(\App\Models\Student::with(['degree', 'level'])->get())->resolve();
             $teachers = \App\Http\Resources\TeacherResource::collection(\App\Models\Teacher::all())->resolve();
             $degrees = \App\Models\Degree::all();
             $levels = \App\Models\Level::all();
-            $type_students = \App\Models\TypeStudent::all();
+            $type_students = \App\Enums\TypeStudent::getOptions();
             $groups = \App\Models\Group::with('students')->get();
             $exams = \App\Models\Exam::with('students')->get();
 
@@ -142,7 +141,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/{group}', [GroupController::class, 'destroy'])->name('groups.destroy');
             Route::patch('/{group}/update-units', [GroupController::class, 'updateUnits'])->name('groups.update-units');
             Route::patch('/{group}/complete', [GroupController::class, 'complete'])->name('groups.complete');
-            
+
             // Calificaciones (Nested)
             Route::patch('/{group}/qualifications/bulk', [\App\Http\Controllers\QualificationController::class, 'bulkUpdate'])->name('groups.qualifications.bulk-update');
             Route::patch('/{group}/qualifications/{qualification}', [\App\Http\Controllers\QualificationController::class, 'update'])->name('groups.qualifications.update');
@@ -245,14 +244,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/{id}', [RoleController::class, 'update'])->name('roles.update');
             Route::delete('/{id}', [RoleController::class, 'destroy'])->name('roles.destroy');
         });
-
-        // Rutas Bulk Delete para Catálogos (sólo Administradores)
-        Route::delete('type-students/bulk', [TypeStudentController::class, 'bulkDestroy'])->name('type-students.bulk-delete');
-
-        // Mutaciones de Catálogos (Thin Controllers, sólo Administradores)
-        Route::apiResource('type-students', TypeStudentController::class)->only(['store', 'update', 'destroy'])->parameters([
-            'type-students' => 'typeStudent',
-        ]);
     });
 
     // Operaciones de configuración y catálogo para admin + coordinator

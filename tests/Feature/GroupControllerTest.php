@@ -27,8 +27,8 @@ use Tests\TestCase;
  * en ese middleware, no en el FormRequest.
  *
  * Nota: LevelFactory est+�-� disponible desde database/factories/LevelFactory.php.
- * Los cat+�-�logos (Level, Degree, TypeStudent) se siembran autom+�-�ticamente
- * desde Tests\TestCase::setUp() v+�-�a sus respectivos Seeders.
+ * Los cat+�-�logos (Level, Degree) se siembran autom+�-�ticamente desde Tests\TestCase::setUp()
+ * v+�-�a sus respectivos Seeders. Los tipos de estudiante (TypeStudent) se gestionan como un enum.
  */
 class GroupControllerTest extends TestCase
 {

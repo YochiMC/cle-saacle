@@ -2,12 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Enums\TypeStudent;
 use App\Models\Degree;
 use App\Models\Level;
-use App\Models\TypeStudent;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
- use App\Enums\StudentStatus;
+use App\Enums\StudentStatus;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Student>
@@ -32,7 +32,7 @@ class StudentFactory extends Factory
             // Se generan estados válidos del dominio de estudiantes.
             'status' => $this->faker->randomElement(StudentStatus::cases())->value,
             'degree_id' => Degree::inRandomOrder()->value('id') ?? Degree::factory(),
-            'type_student_id' => TypeStudent::inRandomOrder()->value('id') ?? TypeStudent::factory(),
+            'type_student' => $this->faker->randomElement(TypeStudent::cases())->value,
             'level_id' => Level::inRandomOrder()->value('id') ?? Level::factory(),
         ];
     }

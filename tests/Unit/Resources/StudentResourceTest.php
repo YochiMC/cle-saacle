@@ -18,7 +18,7 @@ class StudentResourceTest extends TestCase
 
     private function serialize(Student $student): array
     {
-        $student->load(['degree', 'level', 'typeStudent']);
+        $student->load(['degree', 'level']);
         return (new StudentResource($student))->toArray(new Request());
     }
 

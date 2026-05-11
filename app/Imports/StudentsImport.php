@@ -3,9 +3,11 @@
 namespace App\Imports;
 
 use App\Actions\CreateStudentWithUser;
+use App\Enums\TypeStudent;
 use App\Models\Student;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rules\Enum;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -64,7 +66,7 @@ class StudentsImport implements ToCollection, WithHeadingRow, WithValidation, Sk
             'birthdate' => $this->normalizeDate($row->get('birthdate')),
             'semester' => $this->nullableInt($row->get('semester')),
             'degree_id' => $this->nullableInt($row->get('degree_id')),
-            'type_student_id' => $this->nullableInt($row->get('type_student_id')),
+            'type_student' => $this->nullableString($row->get('type_student')),
             'level_id' => $this->nullableInt($row->get('level_id')),
             'email' => $this->nullableString($row->get('email')),
             'password' => $this->nullableString($row->get('password')),
@@ -140,7 +142,7 @@ class StudentsImport implements ToCollection, WithHeadingRow, WithValidation, Sk
             '*.birthdate' => ['required', 'date'],
             '*.semester' => ['nullable', 'integer', 'min:0', 'max:13'],
             '*.degree_id' => ['required', 'exists:degrees,id'],
-            '*.type_student_id' => ['required', 'exists:type_students,id'],
+            '*.type_student' => ['required', new Enum(TypeStudent::class)],
             '*.level_id' => ['required', 'exists:levels,id'],
             '*.email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
             '*.email_recovery' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email_recovery'],

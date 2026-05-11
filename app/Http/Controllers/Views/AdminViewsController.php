@@ -8,6 +8,7 @@ use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
 use App\Enums\GroupMode;
 use App\Enums\StudentStatus;
+use App\Enums\TypeStudent;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\LevelResource;
@@ -22,7 +23,6 @@ use App\Models\Period;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Teacher;
-use App\Models\TypeStudent;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -58,19 +58,19 @@ class AdminViewsController extends Controller
     /**
      * Renderiza la vista de gestión de usuarios (Alumnos y Docentes).
      *
-     * Incluye el catálogo de estados de estudiante para que la UI use etiquetas
-     * oficiales del enum y no dependa de strings hardcodeados.
+     * Incluye los catálogos de estados de estudiante y tipos de estudiante para que la UI
+     * use etiquetas oficiales de los enums y no dependa de strings hardcodeados.
      *
      * @return \Inertia\Response
      */
     public function usersView()
     {
         return Inertia::render('Users/Users', [
-            'students' => StudentResource::collection(Student::with(['degree', 'level', 'typeStudent'])->get())->resolve(),
+            'students' => StudentResource::collection(Student::with(['degree', 'level'])->get())->resolve(),
             'teachers' => TeacherResource::collection(Teacher::all())->resolve(),
             'degrees' => Degree::all(),
             'levels' => Level::all(),
-            'typeStudents' => TypeStudent::all(),
+            'typeStudents' => TypeStudent::getOptions(),
             'studentStatuses' => array_map(fn ($status) => ['value' => $status->value, 'label' => $status->label()], StudentStatus::cases()),
         ]);
     }
@@ -130,13 +130,12 @@ class AdminViewsController extends Controller
     {
         // Cargamos las relaciones necesarias para ambos tipos de perfil.
         // Para el estudiante, cargamos sus relaciones para que StudentResource
-        // pueda resolver los IDs de los selects correctamente.
+        // pueda resolver los valores de los selects correctamente.
         $user->loadMissing([
             'documents',
             'teacher',
             'student.degree',
             'student.level',
-            'student.typeStudent',
         ]);
 
         $documentTypeOptions = $this->resolveDocumentTypeOptions($user);
@@ -147,7 +146,7 @@ class AdminViewsController extends Controller
             'hasStudent' => (bool) $user->student,
             'degrees' => Degree::all(['id', 'name']),
             'levels' => Level::all(['id', 'level_tecnm']),
-            'typeStudents' => TypeStudent::all(['id', 'name']),
+            'typeStudents' => TypeStudent::getOptions(),
             'documentStatuses' => DocumentStatus::reviewOptions(),
             'documentTypes' => $documentTypeOptions,
         ]);
@@ -155,11 +154,11 @@ class AdminViewsController extends Controller
 
     public function reportsView(Request $request)
     {
-        $students = StudentResource::collection(Student::with(['degree', 'level', 'typeStudent'])->get())->resolve();
+        $students = StudentResource::collection(Student::with(['degree', 'level'])->get())->resolve();
         $teachers = TeacherResource::collection(Teacher::all())->resolve();
         $degrees = Degree::all();
         $levels = Level::all();
-        $type_students = TypeStudent::all();
+        $type_students = TypeStudent::getOptions();
         $groups = Group::all();
 
         return Inertia::render('Academic/Reports', [

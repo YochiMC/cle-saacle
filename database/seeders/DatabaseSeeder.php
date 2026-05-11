@@ -36,7 +36,6 @@ class DatabaseSeeder extends Seeder
             'periods',
             'degrees',
             'levels',
-            'type_students',
             'settings',
             'users',
         ];
@@ -51,7 +50,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DegreeSeeder::class,
             LevelSeeder::class,
-            TypeStudentSeeder::class,
             RoleSeeder::class,
             TestDataBaseSeeder::class,
             SettingSeeder::class,

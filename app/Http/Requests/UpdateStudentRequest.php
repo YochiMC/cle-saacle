@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\TypeStudent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class UpdateStudentRequest extends FormRequest
 {
@@ -55,12 +57,12 @@ class UpdateStudentRequest extends FormRequest
                     ->whereNull('deleted_at')
                     ->ignore($student->id),
             ],
-            'gender'          => 'required|string|in:M,F',
-            'birthdate'       => 'required|date',
-            'semester'        => 'nullable|integer|min:0|max:13',
-            'degree_id'       => 'required|exists:degrees,id',
-            'type_student_id' => 'required|exists:type_students,id',
-            'level_id'        => 'required|exists:levels,id',
+            'gender'       => 'required|string|in:M,F',
+            'birthdate'    => 'required|date',
+            'semester'     => 'nullable|integer|min:0|max:13',
+            'degree_id'    => 'required|exists:degrees,id',
+            'type_student' => ['required', new Enum(TypeStudent::class)],
+            'level_id'     => 'required|exists:levels,id',
         ];
     }
 }
