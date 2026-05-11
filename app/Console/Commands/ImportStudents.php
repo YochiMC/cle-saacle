@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Student;
 use App\Models\User;
 use App\Enums\StudentStatus;
+use App\Enums\TypeStudent;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -75,7 +76,7 @@ class ImportStudents extends Command
                         'birthdate' => $row[4] ?? null,
                         'semester' => $row[5] ?? null,
                         'degree_id' => $row[6] ?? null,
-                        'type_student' => $row[7] ?? null,
+                        'type_student' => $this->parseTypeStudent($row[7] ?? null),
                         'level_id' => $row[8] ?? null,
                         'email' => $row[9] ?? null,
                         'password' => $row[10] ?? null,
@@ -195,5 +196,39 @@ class ImportStudents extends Command
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    /**
+     * Convertir valores numéricos o strings a tipo de estudiante válido.
+     *
+     * Mapea:
+     * - 1 o 'vigente' → 'vigente'
+     * - 2 o 'egresado' → 'egresado'
+     *
+     * @param mixed $value Valor numérico (1, 2) o string del enum
+     * @return string|null Valor válido del enum o null si es inválido
+     */
+    private function parseTypeStudent(mixed $value): string|null
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        // Si ya es un string válido del enum, devolverlo
+        if (is_string($value)) {
+            $value = strtolower(trim($value));
+            // Verificar que sea un valor válido del enum
+            if (TypeStudent::tryFrom($value)) {
+                return $value;
+            }
+        }
+
+        // Convertir valores numéricos a enum string
+        $numericValue = (int) $value;
+        return match ($numericValue) {
+            1 => TypeStudent::VIGENTE->value,
+            2 => TypeStudent::EGRESADO->value,
+            default => null,
+        };
     }
 }
