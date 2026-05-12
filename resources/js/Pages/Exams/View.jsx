@@ -56,18 +56,18 @@ export default function View({
         footerKeys: FOOTER_KEYS,
         ignoredKeys: IGNORED_DYNAMIC_KEYS,
         customOrder: (dynamicKeys) => {
-            // Prioridad de visualización para exámenes: Habilidades -> Niveles -> Calificaciones
-            const skillKeys = ["listening", "reading", "writing", "speaking", "promedio_habilidades"];
-            const scoreKeys = ["score", "calificacion_examen", "calificacion_final", "calificacion_curso_nivelacion", "is_curso_nivelacion"];
-            
-            const preferredOrder = [
-                ...skillKeys,
-                "nivel_asignado",
-                "certified_level",
-                ...scoreKeys
-            ].filter(k => dynamicKeys.includes(k));
+            // 1. Identificar todas las posibles llaves dinámicas de los JSON de resultados
+            const jsonResultKeys = [
+                "certified_level", "nivel_certificado", "score", "speaking", // Convalidación
+                "is_curso_nivelacion", "calificacion_curso_nivelacion", "calificacion_examen", "calificacion_final" // Planes Anteriores
+            ];
 
-            return [...new Set([...preferredOrder, ...dynamicKeys])];
+            // 2. Separar las columnas regulares de las columnas de resultados JSON
+            const standardKeys = dynamicKeys.filter(key => !jsonResultKeys.includes(key));
+            const jsonKeysPresent = jsonResultKeys.filter(key => dynamicKeys.includes(key));
+
+            // 3. Garantizar que las llaves del JSON siempre vayan al final (extremo derecho)
+            return [...new Set([...standardKeys, ...jsonKeysPresent])];
         }
     }), []);
 

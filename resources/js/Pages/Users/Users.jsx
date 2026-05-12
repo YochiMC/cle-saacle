@@ -60,21 +60,50 @@ export default function Users({
         status: student.status_label ?? student.status,
     }));
 
-    // Configuración de columnas para el dominio académico
+    // Configuración de columnas para el dominio académico (Patrón ISP)
     const academicColumnConfig = useMemo(() => ({
-        baseKeys: BASE_STUDENT_KEYS,
-        statusKeys: STATUS_KEYS,
+        // Definimos las llaves base para asegurar que el Nombre y Control siempre vayan al inicio.
+        baseKeys: ["full_name", "num_control"],
+
+        // Priorizamos el sello de estado (Etiqueta legible) y el estatus de deserción.
+        statusKeys: ["status_label", "is_left"],
+
         footerKeys: FOOTER_KEYS,
-        ignoredKeys: IGNORED_DYNAMIC_KEYS,
+
+        // Reducción de ruido visual: ignoramos IDs técnicos y campos redundantes.
+        ignoredKeys: new Set([
+            ...IGNORED_DYNAMIC_KEYS,
+            "id",
+            "user_id",
+            "first_name",
+            "last_name",
+            "birthdate",
+            "degree_id",
+            "level_id",
+            "type",
+            "type_student",
+            "status",
+            "gender",
+            "email",
+        ]),
+
         customOrder: (dynamicKeys) => {
-            const convalidationKey = dynamicKeys.find(k => ["certified_level", "nivel_certificado"].includes(k));
-            const preferredOrder = [
-                convalidationKey, 
-                dynamicKeys.includes("score") ? "score" : null,
-                dynamicKeys.includes("speaking") ? "speaking" : null
-            ].filter(Boolean);
+            // 1. Declaración de preferencias ideales para el negocio.
+            const businessPreferences = [
+                "age",
+                "semester",
+                "degree",
+                "level",
+                "type_student_label",
+            ];
+
+            // 2. Intercepción y Validación: Solo incluimos llaves que existen en el payload actual.
+            const validPreferredOrder = businessPreferences.filter(key => 
+                dynamicKeys.includes(key)
+            );
             
-            return [...new Set([...preferredOrder, ...dynamicKeys])];
+            // 3. Unión determinista: Preferencias validadas + resto de llaves dinámicas.
+            return [...new Set([...validPreferredOrder, ...dynamicKeys])];
         }
     }), []);
 
