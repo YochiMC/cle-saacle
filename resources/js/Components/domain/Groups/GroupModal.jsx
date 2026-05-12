@@ -120,6 +120,7 @@ export default function GroupModal({
                             placeholder="Selecciona una modalidad"
                             value={formData.mode}
                             onValueChange={(v) => setFormData("mode", v)}
+                            required
                         />
                         <InputError message={errors.mode} />
                     </div>
@@ -131,6 +132,7 @@ export default function GroupModal({
                             placeholder="Selecciona un tipo"
                             value={formData.type}
                             onValueChange={(v) => setFormData("type", v)}
+                            required
                         />
                         <InputError message={errors.type} />
                     </div>
@@ -146,6 +148,9 @@ export default function GroupModal({
                             description="Número máximo de estudiantes del grupo."
                             value={formData.capacity}
                             onChange={(e) => setFormData("capacity", e.target.value)}
+                            required
+                            min="1"
+                            max="999"
                         />
                         <InputError message={errors.capacity} />
                     </div>
@@ -157,6 +162,7 @@ export default function GroupModal({
                             placeholder="Selecciona un estado"
                             value={formData.status}
                             onValueChange={(v) => setFormData("status", v)}
+                            required
                         />
                         <InputError message={errors.status} />
                     </div>
@@ -181,6 +187,8 @@ export default function GroupModal({
                             description="Incluye días y rango de horas."
                             value={formData.schedule}
                             onChange={(e) => setFormData("schedule", e.target.value)}
+                            required
+                            maxLength="255"
                         />
                         <InputError message={errors.schedule} />
                     </div>
@@ -197,6 +205,7 @@ export default function GroupModal({
                             description="Opcional"
                             value={formData.classroom}
                             onChange={(e) => setFormData("classroom", e.target.value)}
+                            maxLength="255"
                         />
                         <InputError message={errors.classroom} />
                     </div>
@@ -210,6 +219,8 @@ export default function GroupModal({
                             description="Opcional para grupos virtuales o híbridos."
                             value={formData.meeting_link}
                             onChange={(e) => setFormData("meeting_link", e.target.value)}
+                            type="url"
+                            maxLength="255"
                         />
                         <InputError message={errors.meeting_link} />
                     </div>
@@ -246,6 +257,7 @@ export default function GroupModal({
                             value={formData.level_id}
                             disabled={formData.type === "Programa Egresados"}
                             onValueChange={(v) => setFormData("level_id", v)}
+                            required
                         />
                         <InputError message={errors.level_id} />
                     </div>
