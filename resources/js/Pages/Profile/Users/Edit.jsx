@@ -93,8 +93,8 @@ export default function Profile({
                                     </header>
                                     <Link
                                         href={route(
-                                            "profiles.kardex",
-                                            safeUser.id,
+                                            "kardex",
+                                            { user: safeUser.id },
                                         )}
                                         className="inline-flex items-center px-4 py-2 bg-[#1B396A] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#142952] transition ease-in-out duration-150 shadow-sm"
                                     >

@@ -83,10 +83,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ]);
         })->name('dashboard');
 
-        Route::get('/kardex', function () {
-            return Inertia::render('Academic/Kardex');
-        })->name('kardex');
-
         Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
 
         Route::prefix('groups')->group(function () {
@@ -194,6 +190,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Vistas para admin + coordinator + student (según menú principal)
     Route::middleware('role:admin|coordinator|student')->group(function () {
         Route::get('/pagos', [AdminViewsController::class, 'servicesView'])->name('pagos');
+        Route::get('/kardex/{user}', [AdminViewsController::class, 'kardex'])->name('kardex');
     });
 
     // Autoinscripción de estudiante a grupos
@@ -222,7 +219,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::prefix('profiles')->group(function () {
             Route::get('/{user}', [ProfileController::class, 'show'])->name('profiles');
-            Route::get('/{user}/kardex', [ProfileController::class, 'kardex'])->name('profiles.kardex');
             Route::delete('/{user}', [ProfileController::class, 'delete'])->name('profiles.delete');
 
             // CRUD de Calificaciones Históricas (OG) — anidadas bajo el contexto del usuario

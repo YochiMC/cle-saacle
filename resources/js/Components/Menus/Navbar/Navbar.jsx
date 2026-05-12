@@ -14,7 +14,9 @@ import { usePermission } from '@/Utils/auth';
  * route().current(routeName) para resaltar la página actual.
  *
  * @param {Array<Object>} links - Array de configuración de links de navegación.
- * @param {string} links[].route - Nombre de la ruta en Inertia (ej: 'dashboard', 'users').
+ * @param {string} [links[].route] - Nombre de la ruta en Inertia (ej: 'dashboard', 'users').
+ * @param {Array|Object} [links[].routeParams] - Parámetros opcionales para rutas dinámicas.
+ * @param {string} [links[].href] - URL absoluta o relativa ya resuelta por el layout.
  * @param {string} links[].label - Etiqueta visible del link en la UI.
  * @param {Array<string>} links[].allowedRoles - Array de roles permitidos para acceder al link.
  *
@@ -40,8 +42,8 @@ export default function Navbar({ links = [] }) {
             {protectedLinks.map((link) =>
                 <NavLink
                     key={link.route}
-                    href={route(link.route)}
-                    active={route().current(link.route)}
+                    href={link.href ?? route(link.route, link.routeParams)}
+                    active={link.route ? route().current(link.route) : false}
                     className="text-white hover:text-orangeTec"
                 >
                     {link.label}

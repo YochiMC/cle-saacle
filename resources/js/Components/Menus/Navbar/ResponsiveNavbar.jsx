@@ -37,8 +37,8 @@ export default function ResponsiveNavbar({ links = [] }) {
             {protectedLinks.map((link) => (
                 <ResponsiveNavLink
                     key={link.route}
-                    href={route(link.route)}
-                    active={route().current(link.route)}
+                    href={link.href ?? route(link.route, link.routeParams)}
+                    active={link.route ? route().current(link.route) : false}
                     className="text-white hover:text-orangeTec"
                 >
                     {link.label}

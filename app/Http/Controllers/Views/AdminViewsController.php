@@ -9,6 +9,7 @@ use App\Enums\DocumentType;
 use App\Enums\GroupMode;
 use App\Enums\StudentStatus;
 use App\Enums\TypeStudent;
+use App\Actions\Students\GetStudentKardexAction;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\LevelResource;
@@ -26,7 +27,9 @@ use App\Models\Teacher;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
+use Inertia\Response;
 use App\Services\EnrollmentWindowResolver;
 use Spatie\Permission\Models\Role;
 
@@ -457,5 +460,63 @@ class AdminViewsController extends Controller
             'studentStatusValue' => $studentStatus?->value,
             'canEnroll' => $canEnroll,
         ]);
+    }
+
+    /**
+     * Renderiza el Kardex de calificaciones (Grupos y Exámenes) de un estudiante.
+     *
+     * Regla de autorización:
+     * - El estudiante puede consultar su propio Kardex.
+     * - Los coordinadores pueden consultar el Kardex de cualquier estudiante.
+     * - Evaluada a través de la policy StudentPolicy::viewKardex().
+     *
+     * Datos compilados:
+     * - Calificaciones actuales de Grupos y Exámenes (vía GetStudentKardexAction).
+     * - Calificaciones históricas (OG) con su nivel resuelto.
+     * - Catálogo de niveles para operaciones administrativas.
+     * - Contexto del usuario para ruteo anidado en el frontend.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Actions\Students\GetStudentKardexAction  $getKardexAction
+     * @return \Inertia\Response
+     */
+    public function kardex(User $user, GetStudentKardexAction $getKardexAction): Response
+    {
+        abort_if(!$user->student, 404, 'El usuario no tiene un perfil de estudiante asociado.');
+
+        Gate::authorize('viewKardex', $user->student);
+
+        $user->loadMissing([
+            'student.degree',
+        ]);
+
+        $data = $getKardexAction->execute($user->student);
+
+        // Calificaciones históricas (OG) con su nivel resuelto
+        $data['legacyQualifications'] = $user->student
+            ->legacyQualifications()
+            ->with('level')
+            ->orderBy('level_id')
+            ->orderBy('period')
+            ->get()
+            ->map(fn($lq) => [
+                'id'          => $lq->id,
+                'level_id'    => $lq->level_id,
+                'level_name'  => $lq->level?->level_tecnm ?? 'N/A',
+                'period'      => $lq->period,
+                'final_grade' => (int) $lq->final_grade,
+            ]);
+
+        // Catálogo de niveles para el select del modal:
+        // Solo niveles del programa Regular (excluye Programa de egresados),
+        // ordenados por id para respetar la secuencia Básico 1 → Intermedio 5.
+        $data['levels'] = Level::where('program_type', 'Regular')
+            ->orderBy('id')
+            ->get(['id', 'level_tecnm']);
+
+        // ID del usuario (necesario en el frontend para construir las rutas anidadas)
+        $data['userId'] = $user->id;
+
+        return Inertia::render('Academic/Kardex', $data);
     }
 }
