@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/ResourceDashboard";
 import { Head } from "@inertiajs/react";
@@ -8,6 +8,12 @@ import useGroupManager from "./Hooks/useGroupManager";
 
 // Constantes
 import { VIEW_OPTIONS } from "./Constants/groupConstants";
+import {
+    BASE_STUDENT_KEYS,
+    STATUS_KEYS,
+    FOOTER_KEYS,
+    IGNORED_DYNAMIC_KEYS,
+} from "@/Constants/tableDictionary";
 
 // Componentes Fragmentados
 import GroupToolbar from "./Components/GroupToolbar";
@@ -19,11 +25,6 @@ import GroupModals from "./Components/GroupModals";
  *
  * Orquestador de la vista de calificaciones e inscripción.
  * Aplica el patrón Headless Controller (useGroupManager) para separar la lógica de la UI.
- *
- * Contrato esperado desde backend:
- * - grupo: objeto del grupo activo.
- * - enrolledStudents: arreglo de alumnos inscritos con datos de calificación.
- * - availableStudents: candidatos para inscripción (vacío para rol student).
  */
 export default function View({
     auth,
@@ -47,6 +48,14 @@ export default function View({
             : "text-slate-700 bg-white";
     };
 
+    // 3. Configuración de Columnas (Patrón Smart Component)
+    const groupColumnConfig = useMemo(() => ({
+        baseKeys: BASE_STUDENT_KEYS,
+        statusKeys: STATUS_KEYS,
+        footerKeys: FOOTER_KEYS,
+        ignoredKeys: IGNORED_DYNAMIC_KEYS,
+    }), []);
+
     return (
         <AuthenticatedLayout
             user={auth?.user}
@@ -64,6 +73,7 @@ export default function View({
                     title={`Calificaciones del Grupo: ${grupo?.name || "N/A"}`}
                     dataMap={{ alumnos: state.localData }}
                     viewOptions={VIEW_OPTIONS}
+                    columnConfig={groupColumnConfig}
 
                     // Configuración de mutaciones
                     deleteRoute={route('groups.unenroll-bulk', grupo.id)}
@@ -95,6 +105,7 @@ export default function View({
                     onNew={state.canEnrollStudents ? () => handlers.setIsEnrollModalOpen(true) : undefined}
                     getRowClassName={getRowClassName}
                 />
+
             </div>
 
             {/* Barra Inferior Flotante de Guardado Masivo */}

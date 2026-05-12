@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/ResourceDashboard";
 import { Head } from "@inertiajs/react";
@@ -8,6 +8,12 @@ import useExamManager from "./Hooks/useExamManager";
 
 // Constantes
 import { VIEW_OPTIONS } from "./Constants/examConstants";
+import {
+    BASE_STUDENT_KEYS,
+    STATUS_KEYS,
+    FOOTER_KEYS,
+    IGNORED_DYNAMIC_KEYS,
+} from "@/Constants/tableDictionary";
 
 // Componentes Fragmentados
 import ExamToolbar from "./Components/ExamToolbar";
@@ -43,8 +49,30 @@ export default function View({
             : "text-slate-700 bg-white"; 
     };
 
-    // 3. Determinación Dinámica de Columnas Obligatorias (forcedKeys)
-    const forcedKeys = React.useMemo(() => {
+    // 3. Configuración de Columnas (Patrón Smart Component)
+    const examColumnConfig = useMemo(() => ({
+        baseKeys: BASE_STUDENT_KEYS,
+        statusKeys: STATUS_KEYS,
+        footerKeys: FOOTER_KEYS,
+        ignoredKeys: IGNORED_DYNAMIC_KEYS,
+        customOrder: (dynamicKeys) => {
+            // Prioridad de visualización para exámenes: Habilidades -> Niveles -> Calificaciones
+            const skillKeys = ["listening", "reading", "writing", "speaking", "promedio_habilidades"];
+            const scoreKeys = ["score", "calificacion_examen", "calificacion_final", "calificacion_curso_nivelacion", "is_curso_nivelacion"];
+            
+            const preferredOrder = [
+                ...skillKeys,
+                "nivel_asignado",
+                "certified_level",
+                ...scoreKeys
+            ].filter(k => dynamicKeys.includes(k));
+
+            return [...new Set([...preferredOrder, ...dynamicKeys])];
+        }
+    }), []);
+
+    // 4. Determinación Dinámica de Columnas Obligatorias (forcedKeys)
+    const forcedKeys = useMemo(() => {
         const type = examen?.exam_type?.value ?? examen?.exam_type;
         const base = ["num_control", "full_name"];
 
@@ -79,6 +107,7 @@ export default function View({
                     title={`Calificaciones del Examen: ${examen?.name || "N/A"}`}
                     dataMap={{ alumnos: state.localData }}
                     viewOptions={VIEW_OPTIONS}
+                    columnConfig={examColumnConfig}
                     forcedKeys={forcedKeys}
                     
                     // Configuración de mutaciones
@@ -122,6 +151,7 @@ export default function View({
                     }
                     getRowClassName={getRowClassName}
                 />
+
             </div>
 
             {/* Barra Inferior Flotante de Guardado Global */}
