@@ -16,6 +16,7 @@ import {
 } from "@/Components/ui/dropdown-menu";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import ModalAlert from "@/Components/ui/ModalAlert";
+import { usePermission } from "@/Utils/auth";
 
 // ── Constantes de estilo compartidas con KardexTable ─────────────────────────
 // Fuente de verdad: KardexTable.jsx → TableHeader className + TableHead className
@@ -33,6 +34,9 @@ export default function Kardex({
     levels = [],
     userId,
 }) {
+    // ── Verificación de permisos ────────────────────────────────────────────
+    const { hasRole } = usePermission();
+    const isAdmin = hasRole("admin") || hasRole("coordinator");
 
     // ── Estado modal CRUD ────────────────────────────────────────────────────
     const [modalOpen, setModalOpen] = useState(false);
@@ -90,7 +94,7 @@ export default function Kardex({
                         <h3 className="text-base font-semibold text-[#17365D]">
                             Calificaciones Históricas (OG)
                         </h3>
-                        {userId && (
+                        {isAdmin && userId && (
                             <ThemeButton
                                 theme="institutional"
                                 icon={PlusCircle}
@@ -114,7 +118,7 @@ export default function Kardex({
                                         <th className={TABLE_TH_LEFT}>Nivel</th>
                                         <th className={TABLE_TH_LEFT}>Periodo</th>
                                         <th className={TABLE_TH_LEFT}>Calificación</th>
-                                        <th className={TABLE_TH_CENTER}>Acciones</th>
+                                        {isAdmin && <th className={TABLE_TH_CENTER}>Acciones</th>}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
@@ -134,40 +138,42 @@ export default function Kardex({
                                                     {lq.final_grade}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-3">
-                                                <div className="flex justify-center">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <button
-                                                                className="inline-flex items-center justify-center w-9 h-9 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-[#17365D] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#17365D]/10"
-                                                                title="Acciones"
-                                                            >
-                                                                <EllipsisVertical className="w-5 h-5" />
-                                                            </button>
-                                                        </DropdownMenuTrigger>
+                                            {isAdmin && (
+                                                <td className="px-6 py-3">
+                                                    <div className="flex justify-center">
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <button
+                                                                    className="inline-flex items-center justify-center w-9 h-9 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-[#17365D] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#17365D]/10"
+                                                                    title="Acciones"
+                                                                >
+                                                                    <EllipsisVertical className="w-5 h-5" />
+                                                                </button>
+                                                            </DropdownMenuTrigger>
 
-                                                        <DropdownMenuContent 
-                                                            align="end" 
-                                                            className="w-48 p-1.5 bg-white rounded-xl shadow-xl border border-gray-100"
-                                                        >
-                                                            <DropdownMenuItem
-                                                                onClick={() => openEdit(lq)}
-                                                                className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-gray-50 focus:bg-gray-50 outline-none"
+                                                            <DropdownMenuContent
+                                                                align="end"
+                                                                className="w-48 p-1.5 bg-white rounded-xl shadow-xl border border-gray-100"
                                                             >
-                                                                <Pencil className="w-4 h-4 text-slate-400" />
-                                                                Editar registro
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                onClick={() => setDeleteTarget(lq)}
-                                                                className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-red-50/50 focus:bg-red-50/50 outline-none"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                                Eliminar registro
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
-                                            </td>
+                                                                <DropdownMenuItem
+                                                                    onClick={() => openEdit(lq)}
+                                                                    className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-gray-50 focus:bg-gray-50 outline-none"
+                                                                >
+                                                                    <Pencil className="w-4 h-4 text-slate-400" />
+                                                                    Editar registro
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    onClick={() => setDeleteTarget(lq)}
+                                                                    className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-red-50/50 focus:bg-red-50/50 outline-none"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                    Eliminar registro
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
+                                                </td>
+                                            )}
                                         </tr>
                                     ))}
                                 </tbody>
@@ -178,7 +184,7 @@ export default function Kardex({
             </div>
 
             {/* ── Modal CRUD (crear / editar) ── */}
-            {userId && (
+            {isAdmin && userId && (
                 <LegacyQualificationModal
                     show={modalOpen}
                     onClose={() => setModalOpen(false)}
@@ -189,15 +195,17 @@ export default function Kardex({
             )}
 
             {/* ── Modal de confirmación de eliminación ── */}
-            <ConfirmModal
-                isOpen={deleteTarget !== null}
-                onClose={() => setDeleteTarget(null)}
-                onConfirm={handleDeleteConfirmed}
-                title="Eliminar calificación histórica"
-                message={`¿Estás seguro de que deseas eliminar la calificación de "${deleteTarget?.level_name} – ${deleteTarget?.period}"? Esta acción no se puede deshacer.`}
-                confirmText={deleting ? "Eliminando..." : "Sí, eliminar"}
-                variant="danger"
-            />
+            {isAdmin && (
+                <ConfirmModal
+                    isOpen={deleteTarget !== null}
+                    onClose={() => setDeleteTarget(null)}
+                    onConfirm={handleDeleteConfirmed}
+                    title="Eliminar calificación histórica"
+                    message={`¿Estás seguro de que deseas eliminar la calificación de "${deleteTarget?.level_name} – ${deleteTarget?.period}"? Esta acción no se puede deshacer.`}
+                    confirmText={deleting ? "Eliminando..." : "Sí, eliminar"}
+                    variant="danger"
+                />
+            )}
 
             {/* ── Alertas Flash (feedback de operación) ── */}
             <ModalAlert
