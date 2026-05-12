@@ -10,13 +10,7 @@ import {
     Check,
     X,
 } from "lucide-react";
-import {
-    formatLabel,
-    BASE_STUDENT_KEYS,
-    STATUS_KEYS,
-    FOOTER_KEYS,
-    IGNORED_DYNAMIC_KEYS,
-} from "@/Constants/tableDictionary";
+import { formatLabel } from "@/Constants/tableDictionary";
 import DynamicCellRenderer from "@/Components/DataTable/DynamicCellRenderer";
 
 const SortIcon = ({ column }) => {
@@ -56,6 +50,13 @@ export function useDynamicColumns(
         onSaveRow,
         onCancelRow,
         customRowActions,
+        columnConfig = {
+            baseKeys: [],
+            statusKeys: [],
+            footerKeys: [],
+            ignoredKeys: new Set(),
+            customOrder: null,
+        },
     } = {},
 ) {
     const rowKeys = useMemo(() => {
@@ -67,37 +68,42 @@ export function useDynamicColumns(
         const editableSet = new Set(editableColumns);
         const restrictedSet = new Set(restrictedColumns);
 
-        const visibleBaseKeys = BASE_STUDENT_KEYS.filter(
-            (key) => rowKeys.includes(key) && !restrictedSet.has(key)
+        const {
+            baseKeys = [],
+            statusKeys = [],
+            footerKeys = [],
+            ignoredKeys = new Set(),
+            customOrder,
+        } = columnConfig;
+
+        const visibleBaseKeys = baseKeys.filter(
+            (key) => rowKeys.includes(key) && !restrictedSet.has(key),
         );
 
-        const visibleStatusKeys = STATUS_KEYS.filter(
-            (key) => rowKeys.includes(key) && !restrictedSet.has(key)
+        const visibleStatusKeys = statusKeys.filter(
+            (key) => rowKeys.includes(key) && !restrictedSet.has(key),
         );
 
-        const visibleFooterKeys = FOOTER_KEYS.filter(
-            (key) => rowKeys.includes(key) && !restrictedSet.has(key)
+        const visibleFooterKeys = footerKeys.filter(
+            (key) => rowKeys.includes(key) && !restrictedSet.has(key),
         );
 
         const dynamicKeys = rowKeys.filter(
-            (key) => !IGNORED_DYNAMIC_KEYS.has(key) && !restrictedSet.has(key)
+            (key) => !ignoredKeys.has(key) && !restrictedSet.has(key),
         );
 
-        const convalidationKey = dynamicKeys.find(k => ["certified_level", "nivel_certificado"].includes(k));
-        const preferredOrder = [
-            convalidationKey, 
-            dynamicKeys.includes("score") ? "score" : null,
-            dynamicKeys.includes("speaking") ? "speaking" : null
-        ].filter(Boolean);
-        
-        const orderedDynamicKeys = [...new Set([...preferredOrder, ...dynamicKeys])];
+        const orderedDynamicKeys = customOrder
+            ? customOrder(dynamicKeys)
+            : dynamicKeys;
 
         const buildColumn = (key) => ({
             accessorKey: key,
             header: ({ column }) => (
                 <Button
                     variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    onClick={() =>
+                        column.toggleSorting(column.getIsSorted() === "asc")
+                    }
                     className="hover:bg-white/10 hover:text-white"
                 >
                     {formatLabel(key)}
@@ -108,7 +114,9 @@ export function useDynamicColumns(
                 <DynamicCellRenderer
                     row={row}
                     fieldKey={key}
-                    isRowEditing={editAllRows || row.original.id === editingRowId}
+                    isRowEditing={
+                        editAllRows || row.original.id === editingRowId
+                    }
                     isEditable={editableSet.has(key)}
                     onCellChange={onCellChange}
                     selectOptions={selectOptions}
@@ -193,7 +201,7 @@ export function useDynamicColumns(
             ...visibleStatusKeys.map(buildColumn),
             ...orderedDynamicKeys.map(buildColumn),
             ...visibleFooterKeys.map(buildColumn),
-            actionsColumn
+            actionsColumn,
         ];
     }, [
         rowKeys,
@@ -207,6 +215,8 @@ export function useDynamicColumns(
         onSaveRow,
         onCancelRow,
         customRowActions,
-        selectOptions
+        selectOptions,
+        columnConfig,
     ]);
 }
+

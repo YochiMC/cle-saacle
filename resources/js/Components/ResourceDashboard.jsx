@@ -45,6 +45,7 @@ export default function ResourceDashboard({
     bulkDeleteModal,
     baseDataMap,
     forcedKeys = [],
+    columnConfig = {}, // Inyección de configuración externa
 }) {
     const { hasRole } = usePermission();
     const debeOcultarAcciones = hasRole("student");
@@ -68,6 +69,7 @@ export default function ResourceDashboard({
         onSaveRow,
         onCancelRow,
         customRowActions,
+        columnConfig: columnConfig,
     });
 
     const columns = useMemo(() => {

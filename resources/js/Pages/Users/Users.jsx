@@ -25,6 +25,13 @@ import { Head, router } from "@inertiajs/react";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import ConfirmModal from "@/Components/ui/ConfirmModal";
 import { USERS_HIDDEN_COLUMNS } from "@/Constants/tableColumns";
+import {
+    BASE_STUDENT_KEYS,
+    STATUS_KEYS,
+    FOOTER_KEYS,
+    IGNORED_DYNAMIC_KEYS,
+} from "@/Constants/tableDictionary";
+import { useMemo } from "react";
 
 // Definidas fuera del componente para mantener referencia estable entre renders.
 const VIEW_OPTIONS = [
@@ -52,6 +59,24 @@ export default function Users({
         ...student,
         status: student.status_label ?? student.status,
     }));
+
+    // Configuración de columnas para el dominio académico
+    const academicColumnConfig = useMemo(() => ({
+        baseKeys: BASE_STUDENT_KEYS,
+        statusKeys: STATUS_KEYS,
+        footerKeys: FOOTER_KEYS,
+        ignoredKeys: IGNORED_DYNAMIC_KEYS,
+        customOrder: (dynamicKeys) => {
+            const convalidationKey = dynamicKeys.find(k => ["certified_level", "nivel_certificado"].includes(k));
+            const preferredOrder = [
+                convalidationKey, 
+                dynamicKeys.includes("score") ? "score" : null,
+                dynamicKeys.includes("speaking") ? "speaking" : null
+            ].filter(Boolean);
+            
+            return [...new Set([...preferredOrder, ...dynamicKeys])];
+        }
+    }), []);
 
     /**
      * Navega al perfil del registro seleccionado.
@@ -102,6 +127,7 @@ export default function Users({
             <Head title="Usuarios" />
             <ResourceDashboard
                 title="Gestión de usuarios"
+                columnConfig={academicColumnConfig}
                 dataMap={{ alumnos: studentsForTable, maestros: teachers }}
                 viewOptions={VIEW_OPTIONS}
                 deleteRoute={{
