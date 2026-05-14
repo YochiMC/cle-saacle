@@ -84,14 +84,16 @@ export default function DashboardHeader({
                         >
                             Copiar a Excel
                         </ThemeButton>
-                        <ThemeButton
-                            onClick={onBulkDelete}
-                            theme="danger"
-                            icon={Trash2}
-                            size="sm"
-                        >
-                            Eliminar Seleccionados
-                        </ThemeButton>
+                        {typeof onBulkDelete === 'function' && (
+                            <ThemeButton
+                                onClick={onBulkDelete}
+                                theme="danger"
+                                icon={Trash2}
+                                size="sm"
+                            >
+                                Eliminar Seleccionados
+                            </ThemeButton>
+                        )}
                     </div>
                 </div>
             )}

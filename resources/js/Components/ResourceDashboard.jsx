@@ -127,7 +127,7 @@ export default function ResourceDashboard({
                     onViewChange={handleViewChange}
                     selectionCount={filasSeleccionadas.length}
                     onBulkCopy={handleBulkCopy}
-                    onBulkDelete={handleBulkDelete}
+                    onBulkDelete={canPerformDelete ? handleBulkDelete : undefined}
                     customActions={customActions}
                 />
 
