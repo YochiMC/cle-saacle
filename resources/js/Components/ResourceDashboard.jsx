@@ -26,6 +26,7 @@ export default function ResourceDashboard({
     bulkDeleteMethod = "post",
     hiddenColumns = { created_at: false, updated_at: false },
     onEditRow,
+    canPerformEdit = true,
     onDeleteRow,
     canPerformDelete = true,
     onPrint,
@@ -71,18 +72,25 @@ export default function ResourceDashboard({
         onCancelRow,
         customRowActions,
         columnConfig: columnConfig,
+        canPerformEdit,
         canPerformDelete,
     });
 
     const columns = useMemo(() => {
-        if (!debeOcultarAcciones) {
-            return generatedColumns;
+        let cols = generatedColumns;
+
+        if (debeOcultarAcciones) {
+            cols = cols.filter(
+                (column) => column.id !== "actions" && column.id !== "select",
+            );
         }
 
-        return generatedColumns.filter(
-            (column) => column.id !== "actions" && column.id !== "select",
-        );
-    }, [generatedColumns, debeOcultarAcciones]);
+        if (!canPerformEdit && !canPerformDelete) {
+            cols = cols.filter((column) => column.id !== "actions");
+        }
+
+        return cols;
+    }, [generatedColumns, debeOcultarAcciones, canPerformEdit, canPerformDelete]);
 
     const {
         filasSeleccionadas,

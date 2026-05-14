@@ -114,6 +114,7 @@ export default function View({
                     deleteRoute={state.canDeleteEnrollments ? route("exams.unenroll-bulk", examen?.id) : undefined}
                     onDeleteRow={state.canDeleteEnrollments ? handlers.setItemToDelete : undefined}
                     canPerformDelete={state.canDeleteEnrollments}
+                    canPerformEdit={state.canEditQualifications}
                     
                     // Configuración de tabla dinámica extendida
                     editableColumns={state.editableColumns}
