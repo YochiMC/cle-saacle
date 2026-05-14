@@ -6,13 +6,13 @@ use App\Http\Controllers\CatalogUIController;
 use App\Http\Controllers\DegreeController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\LegacyQualificationController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PeriodController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SelfEnrollmentController;
 use App\Http\Controllers\SettingController;
-use App\Http\Controllers\LegacyQualificationController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\Views\AdminViewsController;
@@ -123,10 +123,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:admin|teacher|coordinator')->group(function () {
         Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
 
-        Route::prefix('acreditaciones')->group(function () {
-            Route::get('/', [AccreditationController::class, 'index'])->name('accreditations');
-            Route::post('/bulk-suspend', [AccreditationController::class, 'bulkSuspend'])->name('accreditations.bulk-suspend');
-            Route::patch('/{student}/status', [AccreditationController::class, 'updateStatus'])->name('accreditations.update-status');
+        Route::middleware('role:admin|coordinator')->group(function () {
+            Route::prefix('acreditaciones')->group(function () {
+                Route::get('/', [AccreditationController::class, 'index'])->name('accreditations');
+                Route::post('/bulk-suspend', [AccreditationController::class, 'bulkSuspend'])->name('accreditations.bulk-suspend');
+                Route::patch('/{student}/status', [AccreditationController::class, 'updateStatus'])->name('accreditations.update-status');
+            });
         });
 
         Route::prefix('groups')->group(function () {
@@ -148,7 +150,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/bulk-status', [GroupController::class, 'bulkUpdateStatus']);
             Route::delete('/bulk-delete', [GroupController::class, 'bulkDestroy']);
         });
-
 
         Route::prefix('exams')->group(function () {
             Route::post('/', [\App\Http\Controllers\ExamController::class, 'store'])->name('exams.store');
