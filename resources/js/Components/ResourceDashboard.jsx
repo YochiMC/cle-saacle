@@ -27,6 +27,7 @@ export default function ResourceDashboard({
     hiddenColumns = { created_at: false, updated_at: false },
     onEditRow,
     onDeleteRow,
+    canPerformDelete = true,
     onPrint,
     buttonSpace,
     onNew,
@@ -70,6 +71,7 @@ export default function ResourceDashboard({
         onCancelRow,
         customRowActions,
         columnConfig: columnConfig,
+        canPerformDelete,
     });
 
     const columns = useMemo(() => {

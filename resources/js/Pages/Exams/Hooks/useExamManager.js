@@ -55,6 +55,11 @@ export default function useExamManager(examen, enrolledStudents = [], isStudentE
         (hasRole("admin") || hasRole("coordinator")) && !isStudentEnrolled,
     [hasRole, isStudentEnrolled]);
 
+    // canDeleteEnrollments controla la acción de baja: admin o coordinator
+    const canDeleteEnrollments = useMemo(() =>
+        hasRole("admin") || hasRole("coordinator"),
+    [hasRole]);
+
     const unitKeys = useMemo(() => 
         getUnitKeysFromRows(normalizedData),
     [normalizedData]);
@@ -173,6 +178,7 @@ export default function useExamManager(examen, enrolledStudents = [], isStudentE
             editableColumns,
             canEditQualifications,
             canEnrollStudents,
+            canDeleteEnrollments,
         },
         handlers: {
             setEditingRowId,

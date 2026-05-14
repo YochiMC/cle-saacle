@@ -60,6 +60,11 @@ export default function useGroupManager(grupo, enrolledStudents = [], isStudentE
     // canEnrollStudents controla la acción de alta en el modal de inscripción: admin o coordinator
     const canEnrollStudents = useMemo(() =>
         (hasRole("admin") || hasRole("coordinator")) && !isStudentEnrolled,
+    [hasRole, isStudentEnrolled]);
+
+    // canDeleteEnrollments controla la acción de baja: admin o coordinator
+    const canDeleteEnrollments = useMemo(() =>
+        hasRole("admin") || hasRole("coordinator"),
     [hasRole]);
 
     const editableColumns = useMemo(() => {
@@ -186,6 +191,7 @@ export default function useGroupManager(grupo, enrolledStudents = [], isStudentE
             editableColumns,
             canEditQualifications,
             canEnrollStudents,
+            canDeleteEnrollments,
         },
         handlers: {
             setEditingRowId,
