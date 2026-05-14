@@ -29,7 +29,7 @@ export default function DataFormModal({
 }) {
     return (
         <Modal show={isOpen} onClose={onClose} maxWidth={maxWidth}>
-            <form onSubmit={onSubmit} className="flex flex-col max-h-[90vh]">
+            <form onSubmit={onSubmit} className="flex flex-col max-h-[90vh]" noValidate>
                 {/* 1. Cabecera */}
                 <div className="px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
                     <h2 className="text-xl font-bold text-gray-900 leading-tight">

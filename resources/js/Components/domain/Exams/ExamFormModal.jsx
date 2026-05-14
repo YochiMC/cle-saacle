@@ -83,6 +83,7 @@ export default function ExamFormModal({
                             placeholder="Ej. Convalidación"
                             value={manager.formData.exam_type}
                             onValueChange={(v) => manager.setFormData("exam_type", v)}
+                            required
                         />
                         <InputError message={manager.errors.exam_type} />
                     </div>
@@ -105,6 +106,7 @@ export default function ExamFormModal({
                             placeholder="Selecciona el estado"
                             value={manager.formData.status}
                             onValueChange={(v) => manager.setFormData("status", v)}
+                            required
                         />
                         <InputError message={manager.errors.status} />
                     </div>
@@ -158,6 +160,7 @@ export default function ExamFormModal({
                             placeholder="Selecciona el Periodo"
                             value={manager.formData.period_id}
                             onValueChange={(v) => manager.setFormData("period_id", v)}
+                            required
                         />
                         <InputError message={manager.errors.period_id} />
                     </div>
@@ -170,6 +173,7 @@ export default function ExamFormModal({
                             value={manager.formData.application_time}
                             onChange={(e) => manager.setFormData("application_time", e.target.value)}
                             placeholder="10:00"
+                            maxLength="255"
                         />
                         <InputError message={manager.errors.application_time} />
                     </div>
@@ -183,6 +187,8 @@ export default function ExamFormModal({
                             onChange={(e) => manager.setFormData("capacity", e.target.value)}
                             placeholder="Ej. 10"
                             required
+                            min="1"
+                            max="999"
                         />
                         <InputError message={manager.errors.capacity} />
                     </div>
@@ -208,6 +214,7 @@ export default function ExamFormModal({
                             value={manager.formData.site}
                             onChange={(e) => manager.setFormData("site", e.target.value)}
                             placeholder="A-101 / Zoom Link"
+                            maxLength="255"
                         />
                         <InputError message={manager.errors.site} />
                     </div>
