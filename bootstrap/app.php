@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Inertia\Inertia;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
@@ -33,29 +34,47 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->respond(function ($response, Throwable $e, Request $request) {
             $status = $response->getStatusCode();
 
-        if ($status === 403) {
-            // Caso A: Es una petición de Inertia (XHR) para una acción (ej. borrar, editar)
-            if ($request->header('X-Inertia')) {
-                return back()->with([
-                    'error' => 'No tienes permisos para realizar esta acción.',
-                ]);
+            if ($status === 403) {
+                // API/JSON: mantener contrato HTTP estándar para consumidores no web.
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'No tienes permisos para realizar esta acción.',
+                    ], 403);
+                }
+
+                $isInertiaRequest = (bool) $request->header('X-Inertia');
+                $isActionRequest = ! $request->isMethod('GET');
+
+                // Acciones Inertia (POST/PUT/PATCH/DELETE): volver al contexto con flash.
+                if ($isInertiaRequest && $isActionRequest) {
+                    $referer = $request->headers->get('referer');
+                    $host = $request->getSchemeAndHttpHost();
+                    $safeFallback = url('/');
+
+                    $targetUrl = ($referer && str_starts_with($referer, $host))
+                        ? $referer
+                        : $safeFallback;
+
+                    return redirect()->to($targetUrl)->with([
+                        'error' => 'No tienes permisos para realizar esta acción.',
+                    ]);
+                }
+
+                // Navegación directa a una vista protegida: mostrar página 403.
+                return Inertia::render('Errors/ErrorPage', [
+                    'status' => 403,
+                    'message' => 'Acceso restringido. No tienes los permisos necesarios para ver esta sección.',
+                ])->toResponse($request)->setStatusCode(403);
             }
 
-            // Caso B: Es una navegación directa a una página prohibida
-            return Inertia\Inertia::render('Errors/ErrorPage', [
-                'status' => 403,
-                'message' => 'Acceso restringido. No tienes los permisos necesarios para ver esta sección.'
-            ])->toResponse($request)->setStatusCode(403);
-        }
+            // Manejo de otros errores (404, 500) para vista especial en entorno no local.
+            if (!app()->environment('local') && ! $request->expectsJson() && in_array($status, [404, 500], true)) {
+                return Inertia::render('Errors/ErrorPage', [
+                    'status' => $status,
+                    'message' => $status === 404 ? 'Página no encontrada' : 'Error interno del servidor',
+                ])->toResponse($request)->setStatusCode($status);
+            }
 
-        // Manejo de otros errores (404, 500) para vista especial
-        if (!app()->environment('local') && in_array($status, [404, 500])) {
-            return Inertia\Inertia::render('Errors/ErrorPage', [
-                'status' => $status,
-                'message' => $status === 404 ? 'Página no encontrada' : 'Error interno del servidor'
-            ])->toResponse($request)->setStatusCode($status);
-        }
-
-        return $response;
+            return $response;
         });
     })->create();

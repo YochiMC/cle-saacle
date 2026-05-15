@@ -1,34 +1,35 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 
 export default function ErrorPage({ status, message }) {
-    // Diccionario para personalizar el diseño según el código
+    // Mensajes por código para mantener una UX clara y homogénea.
     const descriptions = {
         403: 'Lo sentimos, no tienes permisos para acceder a este recurso.',
         404: 'La página que buscas no existe o ha sido movida.',
         500: 'Algo salió mal en nuestros servidores. Estamos trabajando en ello.',
     }[status] || 'Ha ocurrido un error inesperado.';
 
+    const title = status === 403 ? '¡Acceso denegado!' : '¡Ups! Algo salió mal';
+
     return (
-        <AuthenticatedLayout>
+        <>
             <Head title={`Error ${status}`} />
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
-                <div className="text-9xl font-extrabold text-primary/20 absolute -z-10 select-none">
+            <div className="relative flex min-h-screen flex-col items-center justify-center p-6 text-center bg-slate-50 dark:bg-slate-950">
+                <div className="absolute -z-10 select-none text-9xl font-extrabold text-primary/20">
                     {status}
                 </div>
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mt-10">
-                    {status === 403 ? '¡Acceso Denegado!' : '¡Ups! Algo salió mal'}
+                <h1 className="mt-10 text-4xl font-bold text-gray-900 dark:text-white">
+                    {title}
                 </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-400 mt-4 max-w-md">
+                <p className="max-w-md mt-4 text-lg text-gray-600 dark:text-gray-400">
                     {message || descriptions}
                 </p>
-                <Link 
-                    href={route('dashboard')} 
-                    className="mt-8 px-6 py-3 bg-primary text-white rounded-lg shadow-lg hover:bg-primary/90 transition-all font-medium"
+                <Link
+                    href="/"
+                    className="px-6 py-3 mt-8 font-medium text-white transition-all rounded-lg shadow-lg bg-primary hover:bg-primary/90"
                 >
-                    Regresar al Dashboard
+                    Volver al inicio
                 </Link>
             </div>
-        </AuthenticatedLayout>
+        </>
     );
 }
