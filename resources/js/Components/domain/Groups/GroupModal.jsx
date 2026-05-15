@@ -64,15 +64,30 @@ export default function GroupModal({
     // ── Efectos reactivos (Lógica de Presentación de Dominio) ──────────────────
     useEffect(() => {
         if (!isOpen) return;
+        
+        // Evitar sobrescribir el nivel inicial al abrir el modal de edición
         if (itemEditando && formData.type === itemEditando.type) return;
 
-        if (formData.type === "Programa Egresados") {
-            const nivelEgresados = levels.find((l) => l.program_type === "Egresados");
-            if (nivelEgresados) setFormData("level_id", nivelEgresados.id.toString());
+        // Determinamos si el nivel actual es de tipo "Egresados" para saber si es compatible con el nuevo tipo
+        const currentLevel = levels.find(l => l.id.toString() === formData.level_id);
+        const isCurrentLevelEgresados = currentLevel?.program_type === "Egresados";
+        const isNewTypeEgresados = formData.type === "Programa Egresados";
+
+        if (isNewTypeEgresados) {
+            // Si cambiamos a Egresados y el nivel actual no lo es, forzamos el nivel único de egresados
+            if (!isCurrentLevelEgresados) {
+                const nivelEgresados = levels.find((l) => l.program_type === "Egresados");
+                if (nivelEgresados) setFormData("level_id", nivelEgresados.id.toString());
+            }
         } else {
-            setFormData("level_id", "");
+            // Si cambiamos a cualquier tipo Regular y el nivel actual es de Egresados, 
+            // debemos limpiarlo porque ya no es válido para este tipo de grupo.
+            // SI EL NIVEL YA ERA REGULAR, SE MANTIENE (Corrige bug de pérdida de nivel).
+            if (isCurrentLevelEgresados) {
+                setFormData("level_id", "");
+            }
         }
-    }, [formData.type]);
+    }, [formData.type, levels, isOpen]);
 
     useEffect(() => {
         if (!isOpen) return;
