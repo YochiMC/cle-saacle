@@ -37,12 +37,18 @@ class AcademicStatusAutoUpdater
 {
     /**
      * Tipos de grupo que siguen el calendario global de Settings.
-     * Actúa como scope de protección para los tipos especiales.
+     * Incluye a todos los tipos de grupos regulares, excluyendo a Programa de Egresados.
+     *
+     * @return array<string>
      */
-    private const TIPOS_CON_CALENDARIO_GLOBAL = [
-        GroupType::REGULAR->value,
-        GroupType::SEMI_INTENSIVO->value,
-    ];
+    private function getTiposConCalendarioGlobal(): array
+    {
+        return collect(GroupType::cases())
+            ->map->value
+            ->reject(fn($v) => $v === GroupType::PROGRAMA_EGRESADOS->value)
+            ->values()
+            ->toArray();
+    }
 
     // ──────────────────────────────────────────────────────────────────────────
     // Punto de entrada público
@@ -195,7 +201,7 @@ class AcademicStatusAutoUpdater
         // ── Un único bulk update, scoped por tipo de grupo ────────────────────
         // Delegamos a la Action dedicada para manejar DB transactions y Observers.
         $action = app(\App\Actions\System\UpdateGroupsStatusAction::class);
-        $metrics = $action->execute($estadoObjetivo, self::TIPOS_CON_CALENDARIO_GLOBAL);
+        $metrics = $action->execute($estadoObjetivo, $this->getTiposConCalendarioGlobal());
 
         return [
             'grupos_reg_estado_objetivo' => $metrics['targetStatus'],

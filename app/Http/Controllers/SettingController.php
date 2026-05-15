@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use App\Models\Setting;
+use App\Http\Requests\UpdateSettingsRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -89,16 +91,11 @@ class SettingController extends Controller
      * @param  Request  $request
      * @return RedirectResponse
      */
-    public function updateBulk(Request $request): RedirectResponse
+    public function updateBulk(UpdateSettingsRequest $request): RedirectResponse
     {
         Gate::authorize('updateAny', Setting::class);
 
-        // Construimos las reglas de validación dinámicamente desde la lista blanca
-        $reglas = collect(self::CLAVES_PERMITIDAS)
-            ->mapWithKeys(fn ($clave) => [$clave => 'nullable|date|max:255'])
-            ->toArray();
-
-        $datosValidados = $request->validate($reglas);
+        $datosValidados = $request->validated();
 
         $academicSettingsChanged = false;
 
@@ -122,6 +119,7 @@ class SettingController extends Controller
         // Disparamos la actualización asíncrona de los estados académicos
         // solo si se modificaron fechas de calendario, ignorando configuraciones visuales.
         if ($academicSettingsChanged) {
+            Log::debug('Disparador detectado', ['changed' => $academicSettingsChanged]);
             RunAcademicStatusAutoUpdater::dispatch();
         }
 

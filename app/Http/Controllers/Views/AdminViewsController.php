@@ -11,6 +11,7 @@ use App\Enums\StudentStatus;
 use App\Enums\TypeStudent;
 use App\Actions\Students\GetStudentKardexAction;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ExamResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\LevelResource;
 use App\Http\Resources\StudentResource;
@@ -84,31 +85,18 @@ class AdminViewsController extends Controller
      *
      * @return \Inertia\Response
      */
-    public function groupsView(Request $request)
+    public function groupsView(Request $request, \App\Services\TeacherVisibilityService $visibilityService)
     {
         $user = $request->user();
-        $esEstudiante = $user?->hasRole('student') ?? false;
-        $ocultarDocentes = $esEstudiante && $this->debeOcultarDocentes();
-        $currentStudentId = $user?->student?->id;
+        $ocultarDocentes = $visibilityService->isBeforeRevealDate($user);
 
         $grupos = Group::with(['teacher', 'level', 'period', 'qualifications.student'])
             ->withCount('qualifications')
             ->visibleToUser($user)
             ->get();
 
-        // Regla para ocultar al docente (excelente práctica de seguridad que ya tenías)
-        if ($ocultarDocentes) {
-            $grupos->each(fn ($g) => $g->setRelation('teacher', null));
-        }
-
         return Inertia::render('Groups/Index', [
-            'grupos' => GroupResource::collection($grupos->map(function ($group) use ($currentStudentId) {
-                $group->setAttribute('is_enrolled', $currentStudentId
-                    ? $group->qualifications->contains('student_id', $currentStudentId)
-                    : false);
-
-                return $group;
-            }))->resolve(),
+            'grupos' => GroupResource::collection($grupos)->resolve(),
             'levels' => LevelResource::collection(Level::all()->sortBy('level_tecnm')->values())->resolve(),
             'teachers' => $ocultarDocentes ? [] : TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(),
@@ -116,17 +104,6 @@ class AdminViewsController extends Controller
             'modes' => \App\Enums\GroupMode::getOptions(),
             'types' => \App\Enums\GroupType::getOptions(),
         ]);
-    }
-
-    /**
-     * Determina si el nombre de los docentes debe permanecer oculto para los estudiantes.
-     */
-    private function debeOcultarDocentes(): bool
-    {
-        $fechaConfig = Setting::all()->firstWhere('key', 'teacher_reveal_date')?->value;
-        $fechaRevelo = $fechaConfig ? Carbon::parse($fechaConfig) : Carbon::parse('2026-03-20');
-
-        return now()->lt($fechaRevelo);
     }
 
     public function profilesView(User $user)
@@ -174,57 +151,21 @@ class AdminViewsController extends Controller
         ]);
     }
 
-    public function examsView(Request $request)
+    public function examsView(Request $request, \App\Services\TeacherVisibilityService $visibilityService)
     {
         $user = $request->user();
-        $esEstudiante = $user?->hasRole('student') ?? false;
-        $ocultarDocentes = $esEstudiante && $this->debeOcultarDocentes();
-        $currentStudentId = $user?->student?->id;
+        $ocultarDocentes = $visibilityService->isBeforeRevealDate($user);
 
         $exams = Exam::with(['students', 'teacher', 'period'])
+            ->withCount('students')
             ->visibleToUser($user)
             ->get();
-
-        // Aplanamos los datos y calculamos campos derivados para el frontend
-        $examsData = $exams->map(function ($exam) use ($ocultarDocentes, $currentStudentId) {
-            $enrolledCount = $exam->students->count();
-            $availableSeats = max(0, ($exam->capacity ?? 0) - $enrolledCount);
-
-            return [
-                'id' => $exam->id,
-                'name' => $exam->name,
-                'exam_type' => $exam->exam_type?->value ?? $exam->exam_type,
-                'capacity' => $exam->capacity,
-                'start_date' => $exam->start_date,
-                'end_date' => $exam->end_date,
-                'mode' => $exam->mode,
-                'application_time' => $exam->application_time,
-                'site' => $exam->site,
-                'status' => $exam->status?->value ?? $exam->status,
-                'period_id' => $exam->period_id,
-                'teacher_id' => $ocultarDocentes ? null : $exam->teacher_id,
-                'teacher_name' => $ocultarDocentes ? 'Por asignar' : $exam->teacher?->full_name,
-                'teacher' => $ocultarDocentes || ! $exam->teacher ? null : [
-                    'name' => $exam->teacher->first_name,
-                    'last_name' => $exam->teacher->last_name,
-                ],
-                'period_name' => $exam->period?->name,
-                'period' => $exam->period ? ['id' => $exam->period->id, 'name' => $exam->period->name] : null,
-                'registered' => $enrolledCount,
-                'enrolled_count' => $enrolledCount,
-                'available_seats' => $availableSeats,
-                'is_enrolled' => $currentStudentId
-                    ? $exam->students->contains('id', $currentStudentId)
-                    : false,
-                'students_string' => collect($exam->students)->map(fn ($s) => ($s->first_name ?? '').' '.($s->last_name ?? ''))->join(' '),
-            ];
-        });
 
         $teachers = $ocultarDocentes ? [] : Teacher::all();
         $periods = Period::all();
 
         return Inertia::render('Exams/Index', [
-            'examenes' => $examsData,
+            'examenes' => ExamResource::collection($exams)->resolve(),
             'teachers' => $teachers,
             'periods' => $periods,
             'statuses' => array_map(fn ($s) => ['value' => $s->value, 'label' => $s->label()], \App\Enums\AcademicStatus::cases()),
