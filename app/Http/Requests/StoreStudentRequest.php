@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\ValidationPatterns;
 use App\Enums\TypeStudent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -31,7 +32,7 @@ class StoreStudentRequest extends FormRequest
             ],
             // ¡Cambio importante! Cambiamos 'required' por 'nullable'
             'password'       => 'nullable|string|min:8|confirmed',
-            'phone'          => 'nullable|string|max:20',
+            'phone'          => ['nullable', 'string', 'max:20', 'regex:' . ValidationPatterns::PHONE_NUMBER],
             'email_recovery' => [
                 'nullable',
                 'string',
@@ -42,8 +43,8 @@ class StoreStudentRequest extends FormRequest
             ],
 
             // ── Campos del Estudiante ───────────────────────────────────────
-            'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
+            'first_name' => ['required', 'string', 'max:255', 'regex:' . ValidationPatterns::SPANISH_NAME],
+            'last_name'  => ['required', 'string', 'max:255', 'regex:' . ValidationPatterns::SPANISH_NAME],
             'num_control' => [
                 'required',
                 'string',
@@ -52,7 +53,7 @@ class StoreStudentRequest extends FormRequest
             ],
             'gender'       => 'required|string|in:M,F',
             'birthdate'    => 'required|date',
-            'semester'     => 'nullable|integer|min:0|max:13',
+            'semester'     => 'nullable|integer|min:0|max:14',
             'degree_id'    => 'required|exists:degrees,id',
             'type_student' => ['required', new Enum(TypeStudent::class)],
             'level_id'     => 'required|exists:levels,id',

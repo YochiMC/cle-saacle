@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\ValidationPatterns;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,30 +29,33 @@ class StoreTeacherRequest extends FormRequest
                 Rule::unique('users', 'email')->whereNull('deleted_at'),
             ],
             'password'       => 'string|min:8|confirmed',
-            'phone'          => 'nullable|string|max:20',
+            'phone'          => ['nullable', 'string', 'max:20', 'regex:' . ValidationPatterns::PHONE_NUMBER],
             'email_recovery' => 'nullable|email|max:255',
 
             // ── Campos del Docente ──────────────────────────────────────────
-            'first_name' => 'required|string|max:100',
-            'last_name'  => 'required|string|max:100',
+            'first_name' => ['required', 'string', 'max:100', 'regex:' . ValidationPatterns::SPANISH_NAME],
+            'last_name'  => ['required', 'string', 'max:100', 'regex:' . ValidationPatterns::SPANISH_NAME],
             'category'   => 'required|string|in:A,B,C',
             'level'      => 'required|string|max:50',
             'rfc' => [
                 'required',
                 'string',
                 'max:13',
+                'regex:' . ValidationPatterns::RFC,
                 Rule::unique('teachers', 'rfc')->whereNull('deleted_at'),
             ],
             'curp' => [
                 'required',
                 'string',
                 'max:18',
+                'regex:' . ValidationPatterns::CURP,
                 Rule::unique('teachers', 'curp')->whereNull('deleted_at'),
             ],
             'clabe' => [
                 'required',
                 'string',
                 'max:18',
+                'digits:18',
                 Rule::unique('teachers', 'clabe')->whereNull('deleted_at'),
             ],
             'ttc_hours' => 'required|integer|min:0',
