@@ -25,6 +25,11 @@ use App\Jobs\RunAcademicStatusAutoUpdater;
  */
 class SettingController extends Controller
 {
+    private function abortIfProduction(): void
+    {
+        abort_if(app()->isProduction(), 404);
+    }
+
     /**
      * Claves de configuración reconocidas por el sistema.
      * Actúa como "lista blanca" (allowlist) para evitar escrituras arbitrarias.
@@ -67,6 +72,8 @@ class SettingController extends Controller
      */
     public function index(): Response
     {
+        $this->abortIfProduction();
+
         Gate::authorize('viewAny', Setting::class);
         // Convertimos la colección a un objeto plano { key => value, ... }
         $configuraciones = Setting::all()
@@ -93,6 +100,8 @@ class SettingController extends Controller
      */
     public function updateBulk(UpdateSettingsRequest $request): RedirectResponse
     {
+        $this->abortIfProduction();
+
         Gate::authorize('updateAny', Setting::class);
 
         $datosValidados = $request->validated();
