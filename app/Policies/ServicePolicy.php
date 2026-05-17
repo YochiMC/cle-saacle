@@ -85,7 +85,11 @@ class ServicePolicy
      */
     public function delete(User $user, Service $service): bool
     {
-        return $user->hasRole('student') && $service->student_id === $user->student?->id;
+        // Students may delete their own services only if they are still pending or were rejected.
+        $allowedStatuses = ['pending', 'rejected'];
+        return $user->hasRole('student')
+            && $service->student_id === $user->student?->id
+            && in_array($service->status, $allowedStatuses, true);
     }
 
     /**
