@@ -16,14 +16,14 @@ enum ServiceType: string
     public function label(): string
     {
         return match($this) {
-            self::REGULAR => 'Regular',
-            self::INTENSIVO => 'Intensivo',
-            self::SEMI_INTENSIVO => 'Semi intensivo',
-            self::PROGRAMA_EGRESADOS => 'Programa Egresados',
-            self::CONVALIDACION => 'Convalidación',
-            self::PLANES_ANTERIORES => 'Planes anteriores',
-            self::CUATRO_HABILIDADES => '4 habilidades',
-            self::UBICACION => 'Ubicación',
+            self::REGULAR => 'Curso Regular',
+            self::INTENSIVO => 'Curso Intensivo',
+            self::SEMI_INTENSIVO => 'Curso Semi intensivo',
+            self::PROGRAMA_EGRESADOS => 'Curso Programa Egresados',
+            self::CONVALIDACION => 'Examen de Convalidación',
+            self::PLANES_ANTERIORES => 'Examen para Planes anteriores',
+            self::CUATRO_HABILIDADES => 'Examen de 4 habilidades',
+            self::UBICACION => 'Examen de Ubicación',
         };
     }
 
