@@ -11,8 +11,9 @@ import FileCard from '@/Components/ui/FileCard';
  * @param {Array} props.documents Colección de documentos del perfil.
  * @param {Function} [props.onDeleteDocument] Callback para eliminar un documento.
  * @param {Function} [props.onOpenDocumentInfo] Callback para abrir el modal de información.
+ * @param {Function} [props.onOpenDocumentPreview] Callback para abrir el modal de vista previa.
  */
-export default function Files({ documents = [], onDeleteDocument, onOpenDocumentInfo }) {
+export default function Files({ documents = [], onDeleteDocument, onOpenDocumentInfo, onOpenDocumentPreview }) {
     return (
         <section className="rounded-lg border border-blueTec/20 bg-white p-6 shadow sm:p-8">
             <div className="mb-5 border-b border-slate-100 pb-4">
@@ -33,6 +34,7 @@ export default function Files({ documents = [], onDeleteDocument, onOpenDocument
                             key={doc.id}
                             document={doc}
                             onDelete={onDeleteDocument}
+                            onPreview={onOpenDocumentPreview}
                             showMoreAction
                             onMoreAction={onOpenDocumentInfo}
                         />

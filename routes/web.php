@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Documentos personales (el controlador resuelve permisos finos por propietario/rol)
     Route::prefix('documents')->group(function () {
         Route::post('/', [DocumentController::class, 'store'])->name('documents.store');
+        Route::get('/{document}/preview', [DocumentController::class, 'preview'])->name('documents.preview');
         Route::get('/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
         Route::delete('/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     });

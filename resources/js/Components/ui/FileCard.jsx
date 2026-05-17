@@ -1,5 +1,5 @@
 
-import { Download, EllipsisVertical, FileText, Trash2 } from 'lucide-react';
+import { Download, EllipsisVertical, Eye, FileText, Trash2 } from 'lucide-react';
 import { formatDocumentDate, getDocumentStatusMeta } from '@/Utils/documentStatus';
 
 /**
@@ -16,7 +16,9 @@ import { formatDocumentDate, getDocumentStatusMeta } from '@/Utils/documentStatu
  * @param {string} props.document.type Tipo de documento (INE, RFC, CURP, etc.).
  * @param {string|null} props.document.uploaded_at Fecha de subida.
  * @param {Function} [props.onDelete] Callback al solicitar eliminación: (document) => void.
+ * @param {Function} [props.onPreview] Callback al solicitar vista previa: (document) => void.
  * @param {Function} [props.onMoreAction] Callback para acción contextual: (document) => void.
+ * @param {boolean} [props.showPreview=true] Indica si se muestra acción de vista previa.
  * @param {boolean} [props.showDownload=true] Indica si se muestra acción de descarga.
  * @param {boolean} [props.showDelete=true] Indica si se muestra acción de eliminación.
  * @param {boolean} [props.showMoreAction=false] Indica si se muestra acción de menú contextual.
@@ -24,7 +26,9 @@ import { formatDocumentDate, getDocumentStatusMeta } from '@/Utils/documentStatu
 export default function FileCard({
     document,
     onDelete,
+    onPreview,
     onMoreAction,
+    showPreview = true,
     showDownload = true,
     showDelete = true,
     showMoreAction = false,
@@ -43,6 +47,12 @@ export default function FileCard({
     const handleMoreAction = () => {
         if (onMoreAction) {
             onMoreAction(document);
+        }
+    };
+
+    const handlePreview = () => {
+        if (onPreview) {
+            onPreview(document);
         }
     };
 
@@ -68,6 +78,18 @@ export default function FileCard({
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1">
+                    {showPreview && document?.previewable && (
+                        <button
+                            type="button"
+                            onClick={handlePreview}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-600 transition-colors hover:bg-slate-100 hover:text-[#17365D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#17365D]/30"
+                            aria-label={`Vista previa de ${document?.original_name || ''}`.trim()}
+                            title="Vista previa"
+                        >
+                            <Eye className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                    )}
+
                     {showDownload && (
                         <a
                             href={route('documents.download', document?.id)}

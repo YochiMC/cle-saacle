@@ -76,10 +76,24 @@ class DocumentController extends Controller
      */
     public function download(Document $document): BinaryFileResponse
     {
-        Gate::authorize('view', $document);    
+        Gate::authorize('view', $document);
 
         $absolutePath = $this->resolveDocumentAbsolutePath($document);
 
         return response()->download($absolutePath, $document->original_name);
+    }
+
+    /**
+     * Muestra el documento en modo inline para formatos compatibles.
+     */
+    public function preview(Document $document): BinaryFileResponse
+    {
+        Gate::authorize('view', $document);
+
+        $absolutePath = $this->resolveDocumentAbsolutePath($document);
+
+        return response()->file($absolutePath, [
+            'Content-Disposition' => 'inline; filename="' . addslashes($document->original_name) . '"',
+        ]);
     }
 }

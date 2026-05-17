@@ -7,6 +7,7 @@ import ModalAlert from "@/Components/ui/ModalAlert";
 import useFlashAlert from "@/Hooks/useFlashAlert";
 import Files from "./Partials/Files";
 import FileForm from "./Partials/Forms/FileForm";
+import DocumentPreviewModal from "@/Components/ui/DocumentPreviewModal";
 import { useState } from "react";
 
 /**
@@ -44,6 +45,7 @@ export default function Profile({
     const userDocuments =
         documents.length > 0 ? documents : safeUser?.documents ?? [];
     const [showFileForm, setShowFileForm] = useState(false);
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
     const [selectedDocument, setSelectedDocument] = useState(null);
 
     const openDocumentForm = (document) => {
@@ -51,8 +53,22 @@ export default function Profile({
         setShowFileForm(true);
     };
 
+    const openDocumentPreview = (document) => {
+        if (!document?.previewable) {
+            return;
+        }
+
+        setSelectedDocument(document ?? null);
+        setShowPreviewModal(true);
+    };
+
     const closeDocumentForm = () => {
         setShowFileForm(false);
+        setSelectedDocument(null);
+    };
+
+    const closePreviewModal = () => {
+        setShowPreviewModal(false);
         setSelectedDocument(null);
     };
 
@@ -117,7 +133,11 @@ export default function Profile({
                     </div>
 
                     <div className="mt-6">
-                        <Files documents={userDocuments} onOpenDocumentForm={openDocumentForm} />
+                        <Files
+                            documents={userDocuments}
+                            onOpenDocumentForm={openDocumentForm}
+                            onOpenDocumentPreview={openDocumentPreview}
+                        />
                     </div>
                 </div>
             </div>
@@ -128,6 +148,13 @@ export default function Profile({
                 title="Detalle del documento"
                 document={selectedDocument}
                 statusOptions={documentStatuses}
+            />
+
+            <DocumentPreviewModal
+                show={showPreviewModal}
+                onClose={closePreviewModal}
+                document={selectedDocument}
+                title="Vista previa del documento"
             />
 
             <ModalAlert

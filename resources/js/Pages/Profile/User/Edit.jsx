@@ -8,6 +8,7 @@ import ConfirmModal from '@/Components/ui/ConfirmModal';
 import ModalAlert from '@/Components/ui/ModalAlert';
 import useFlashAlert from '@/Hooks/useFlashAlert';
 import FileForm from './Partials/Forms/FileForm';
+import DocumentPreviewModal from '@/Components/ui/DocumentPreviewModal';
 import SecondaryButton from '@/Components/ui/SecondaryButton';
 import { useState } from 'react';
 
@@ -31,6 +32,7 @@ export default function Edit({ mustVerifyEmail, status, documents, documentTypes
     const { flashModal, closeFlashModal } = useFlashAlert();
     const [isOpen, setIsOpen] = useState(false);
     const [isInfoOpen, setIsInfoOpen] = useState(false);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [selectedDocument, setSelectedDocument] = useState(null);
     const [confirmingDocumentDelete, setConfirmingDocumentDelete] = useState(false);
     const [documentToDelete, setDocumentToDelete] = useState(null);
@@ -44,8 +46,22 @@ export default function Edit({ mustVerifyEmail, status, documents, documentTypes
         setIsInfoOpen(true);
     };
 
+    const openDocumentPreview = (document) => {
+        if (!document?.previewable) {
+            return;
+        }
+
+        setSelectedDocument(document ?? null);
+        setIsPreviewOpen(true);
+    };
+
     const closeDocumentInfo = () => {
         setIsInfoOpen(false);
+        setSelectedDocument(null);
+    };
+
+    const closeDocumentPreview = () => {
+        setIsPreviewOpen(false);
         setSelectedDocument(null);
     };
 
@@ -131,6 +147,7 @@ export default function Edit({ mustVerifyEmail, status, documents, documentTypes
                             documents={documents}
                             onDeleteDocument={handleDeleteDocument}
                             onOpenDocumentInfo={openDocumentInfo}
+                            onOpenDocumentPreview={openDocumentPreview}
                         />
                     </div>
                 </div>
@@ -148,6 +165,13 @@ export default function Edit({ mustVerifyEmail, status, documents, documentTypes
                 onClose={closeDocumentInfo}
                 document={selectedDocument}
                 title="Información del documento"
+            />
+
+            <DocumentPreviewModal
+                show={isPreviewOpen}
+                onClose={closeDocumentPreview}
+                document={selectedDocument}
+                title="Vista previa del documento"
             />
 
             <ConfirmModal

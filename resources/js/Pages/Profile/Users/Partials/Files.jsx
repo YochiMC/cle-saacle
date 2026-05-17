@@ -11,8 +11,9 @@ import FileCard from '@/Components/ui/FileCard';
  * @param {Object} props
  * @param {Array} [props.documents=[]] Colección de documentos del usuario.
  * @param {Function} [props.onOpenDocumentForm] Callback al abrir acciones del documento.
+ * @param {Function} [props.onOpenDocumentPreview] Callback al abrir la vista previa del documento.
  */
-export default function Files({ documents = [], onOpenDocumentForm }) {
+export default function Files({ documents = [], onOpenDocumentForm, onOpenDocumentPreview }) {
     return (
         <section className="rounded-lg border border-blueTec/20 bg-white p-6 shadow sm:p-8">
             <div className="mb-5 border-b border-slate-100 pb-4">
@@ -33,6 +34,7 @@ export default function Files({ documents = [], onOpenDocumentForm }) {
                             key={document?.id ?? `${document?.original_name ?? 'documento'}-${index}`}
                             document={document}
                             showDelete={false}
+                            onPreview={onOpenDocumentPreview}
                             showMoreAction
                             onMoreAction={onOpenDocumentForm}
                         />
