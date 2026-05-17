@@ -177,4 +177,31 @@ class Student extends Model
             ->withPivot('units_breakdown', 'final_average', 'is_left', 'attempt')
             ->withTimestamps();
     }
+
+    /**
+     * Determina si el estudiante puede transicionar a un nuevo estatus.
+     *
+     * Reglas aplicadas:
+     * - Si el alumno está `ACCREDITED` o `DISABLED`, no puede volver a
+     *   `ELIGIBLE_FOR_ENROLLMENT` por procesos automáticos (p.ej. aprobación de pago).
+     *
+     * @param StudentStatus|string $newStatus
+     * @return bool
+     */
+    public function canTransitionTo(StudentStatus|string $newStatus): bool
+    {
+        $current = $this->status;
+        $target = $newStatus instanceof StudentStatus ? $newStatus : StudentStatus::tryFrom($newStatus);
+
+        if (! $target) {
+            return false;
+        }
+
+        if (in_array($current, [StudentStatus::ACCREDITED, StudentStatus::DISABLED], true)
+            && $target === StudentStatus::ELIGIBLE_FOR_ENROLLMENT) {
+            return false;
+        }
+
+        return true;
+    }
 }

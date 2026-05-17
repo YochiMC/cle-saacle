@@ -28,7 +28,10 @@ class ApproveServiceAction
             }
 
             if (($attributes['status'] ?? null) === ServiceStatus::APPROVED->value) {
-                $student->update(['status' => StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value]);
+                // Only update student status if the transition is permitted
+                if ($student->canTransitionTo(StudentStatus::ELIGIBLE_FOR_ENROLLMENT)) {
+                    $student->update(['status' => StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value]);
+                }
 
                 $activePeriod = Period::where('is_active', true)->first();
                 if ($activePeriod) {

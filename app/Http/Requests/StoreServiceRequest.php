@@ -5,6 +5,9 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Enums\ServiceType;
+use App\Models\Service;
+use App\Models\Period;
+use App\Enums\ServiceStatus;
 
 /**
  * Valida la creación de un nuevo registro de servicio o pago de alumno.
@@ -40,6 +43,42 @@ class StoreServiceRequest extends FormRequest
             'reference_number' => ['nullable', 'string', 'max:255'],
             'description'      => ['nullable', 'string'],
         ];
+    }
+
+    /**
+     * Añade validaciones adicionales después de las reglas básicas.
+     * Evita que un estudiante suba un comprobante del mismo tipo si ya tiene
+     * uno `PENDING` o `APPROVED` en el periodo activo.
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $user = $this->user();
+            $studentId = $user?->student?->id;
+            $type = $this->input('type');
+
+            if (! $studentId || ! $type) {
+                return;
+            }
+
+            $activePeriod = Period::where('is_active', true)->first();
+            if (! $activePeriod) {
+                return;
+            }
+
+            $exists = Service::where('student_id', $studentId)
+                ->where('type', $type)
+                ->whereIn('status', [ServiceStatus::PENDING->value, ServiceStatus::APPROVED->value])
+                ->where(function ($q) use ($activePeriod) {
+                    $q->where('period_id', $activePeriod->id)
+                        ->orWhereNull('period_id');
+                })
+                ->exists();
+
+            if ($exists) {
+                $validator->errors()->add('type', 'Ya existe un comprobante del mismo concepto en revisión o aprobado para este periodo activo.');
+            }
+        });
     }
 
     /**
