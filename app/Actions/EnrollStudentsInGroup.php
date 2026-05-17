@@ -58,6 +58,15 @@ class EnrollStudentsInGroup
         }
 
         DB::transaction(function () use ($group, $studentIds, $defaultUnitsBreakdown, $initialAverage) {
+            // Lock the group row to prevent concurrent seat allocation
+            $lockedGroup = \App\Models\Group::where('id', $group->id)->lockForUpdate()->first();
+            $current = $lockedGroup->qualifications()->count();
+            $toAdd = count($studentIds);
+
+            if (($lockedGroup->capacity ?? 0) < ($current + $toAdd)) {
+                throw new \App\Exceptions\GroupCapacityExceededException('Group capacity exceeded');
+            }
+
             foreach ($studentIds as $studentId) {
                 Qualification::create([
                     'group_id'        => $group->id,

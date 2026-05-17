@@ -32,6 +32,15 @@ class EnrollStudentsInExam
         $defaultBreakdown = $exam->exam_type->defaultUnitsBreakdown();
 
         DB::transaction(function () use ($exam, $studentIds, $defaultBreakdown) {
+            // Lock the exam row to ensure capacity checks are reliable under concurrency
+            $lockedExam = \App\Models\Exam::where('id', $exam->id)->lockForUpdate()->first();
+            $current = $lockedExam->students()->count();
+            $toAdd = count($studentIds);
+
+            if (($lockedExam->capacity ?? 0) < ($current + $toAdd)) {
+                throw new \App\Exceptions\ExamCapacityExceededException('Exam capacity exceeded');
+            }
+
             foreach ($studentIds as $studentId) {
                 if (!$exam->students()->where('students.id', $studentId)->exists()) {
                     $exam->students()->attach($studentId, [

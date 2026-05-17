@@ -36,9 +36,9 @@ class UnenrollStudentAction
             // Se realiza por seguridad para asegurar la limpieza total de la relación BelongsToMany.
             $group->students()->detach($student->id);
 
-            // 3. Restaurar el estado del alumno a VALIDATED
+            // 3. Restaurar el estado del alumno a ELIGIBLE_FOR_ENROLLMENT
             // Esto permite que el alumno sea elegible para reinscripción en el mismo nivel/periodo.
-            $student->update(['status' => StudentStatus::VALIDATED]);
+            $student->update(['status' => StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value]);
         });
     }
 }

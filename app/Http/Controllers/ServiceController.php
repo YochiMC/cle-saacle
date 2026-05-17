@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Gate;
 use App\Actions\DeleteStudentService;
 use App\Actions\StoreStudentService;
+use App\Actions\ApproveServiceAction;
 use App\Http\Requests\StoreServiceRequest;
 use App\Http\Requests\UpdateServiceRequest;
 use App\Models\Service;
@@ -53,25 +54,10 @@ class ServiceController extends Controller
     /**
      * Actualiza el estatus y comentarios de un pago (Revisión Administrativa).
      */
-    public function update(UpdateServiceRequest $request, Service $service): RedirectResponse
+    public function update(UpdateServiceRequest $request, Service $service, ApproveServiceAction $approveAction): RedirectResponse
     {
         Gate::authorize('update', $service);
-
-        $service->update($request->validated());
-
-        $student = $service->student;
-        if ($student) {
-            if ($request->status === \App\Enums\ServiceStatus::APPROVED->value) {
-                $student->update(['status' => \App\Enums\StudentStatus::VALIDATED]);
-
-                $activePeriod = \App\Models\Period::where('is_active', true)->first();
-                if ($activePeriod) {
-                    $service->update(['period_id' => $activePeriod->id]);
-                }
-            } elseif ($request->status === \App\Enums\ServiceStatus::REJECTED->value) {
-                $student->update(['status' => \App\Enums\StudentStatus::WAITING]);
-            }
-        }
+        $approveAction->execute($service, $request->validated());
 
         return back()->with('success', 'Pago actualizado exitosamente.');
     }

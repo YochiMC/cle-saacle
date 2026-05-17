@@ -203,8 +203,8 @@ class ExamController extends Controller
 
         $exam->students()->detach($student->id);
 
-        // Preservar estado VALIDATED para permitir reinscripción durante el mismo período
-        $student->update(['status' => StudentStatus::VALIDATED->value]);
+        // Preservar estado ELIGIBLE_FOR_ENROLLMENT para permitir reinscripción durante el mismo período
+        $student->update(['status' => StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value]);
 
         return redirect()->back()->with('success', 'Alumno dado de baja del examen.');
     }

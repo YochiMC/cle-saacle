@@ -25,9 +25,9 @@ class BulkDetachStudentsFromExam
             // 1. Detach de la relación pivot exam_student
             $exam->students()->detach($studentIds);
 
-            // 2. Resetear estatus de los alumnos a VALIDATED
+            // 2. Resetear estatus de los alumnos a ELIGIBLE_FOR_ENROLLMENT
             \App\Models\Student::whereIn('id', $studentIds)
-                ->update(['status' => \App\Enums\StudentStatus::VALIDATED]);
+                ->update(['status' => \App\Enums\StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value]);
         });
     }
 }

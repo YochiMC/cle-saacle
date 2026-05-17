@@ -51,7 +51,7 @@ class RevertStudentsLevelAction
                 ->get();
 
             foreach ($students as $student) {
-                $student->status = StudentStatus::VALIDATED;
+                $student->status = StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value;
                 $student->save();
 
                 $this->purgeAccreditationData($student);
@@ -73,8 +73,8 @@ class RevertStudentsLevelAction
                 $shouldSave = false;
 
                 // 1. Reversión de Estado: Al reabrir un examen, regresan a validación si estaban en WAITING o IN_REVIEW
-                if ($student->status === StudentStatus::WAITING || $student->status === StudentStatus::IN_REVIEW) {
-                    $student->status = StudentStatus::VALIDATED;
+                    if ($student->status === StudentStatus::WAITING || $student->status === StudentStatus::IN_REVIEW) {
+                    $student->status = StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value;
                     $shouldSave = true;
                     
                     // Limpieza de datos residuales si el examen otorgaba acreditación

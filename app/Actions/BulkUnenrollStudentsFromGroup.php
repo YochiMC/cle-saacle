@@ -31,9 +31,9 @@ class BulkUnenrollStudentsFromGroup
             // 2. Detach masivo de la relación BelongsToMany
             $group->students()->detach($studentIds);
 
-            // 3. Resetear estatus de los alumnos a VALIDATED
+            // 3. Resetear estatus de los alumnos a ELIGIBLE_FOR_ENROLLMENT
             \App\Models\Student::whereIn('id', $studentIds)
-                ->update(['status' => \App\Enums\StudentStatus::VALIDATED]);
+                ->update(['status' => \App\Enums\StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value]);
         });
     }
 }

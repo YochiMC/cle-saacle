@@ -13,9 +13,9 @@ enum StudentStatus: string
     case ACCREDITED = 'accredited';
 
     case PAYMENT_REVIEW = 'payment_review';
-    case VALIDATED = 'validated';
 
-    case ELEGIBLE_INSCRIPCION = 'elegible_inscripcion';
+    // Unified enrollment status: use English constant name, Spanish label preserved
+    case ELIGIBLE_FOR_ENROLLMENT = 'eligible_for_enrollment';
     case ESPERA_INSCRIPCION = 'espera_inscripcion';
     case ESPERA = 'espera';
     case RELEASED = 'released';
@@ -27,7 +27,7 @@ enum StudentStatus: string
      */
     public static function enrollmentEligibleCases(): array
     {
-        return [self::VALIDATED, self::ELEGIBLE_INSCRIPCION];
+        return [self::ELIGIBLE_FOR_ENROLLMENT];
     }
 
     /**
@@ -47,8 +47,7 @@ enum StudentStatus: string
             self::IN_REVIEW => 'En Revisión',
             self::ACCREDITED => 'Acreditado',
             self::PAYMENT_REVIEW => 'Revisión de Pago',
-            self::VALIDATED => 'Validado para Inscripción',
-            self::ELEGIBLE_INSCRIPCION => 'Elegible para Inscripción',
+            self::ELIGIBLE_FOR_ENROLLMENT => 'Elegible para Inscripción',
             self::ESPERA_INSCRIPCION => 'Esperando Inscripción',
             self::ESPERA => 'En Espera',
             self::RELEASED => 'Liberado',
