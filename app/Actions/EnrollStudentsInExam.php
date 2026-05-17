@@ -4,6 +4,8 @@ namespace App\Actions;
 
 use App\Models\Exam;
 use Illuminate\Support\Facades\DB;
+use App\Services\EnrollmentWindowResolver;
+use App\Exceptions\EnrollmentWindowClosedException;
 
 /**
  * Action: Inscribir alumnos en un examen académico.
@@ -27,8 +29,14 @@ class EnrollStudentsInExam
      * @param Exam  $exam       El examen al que se inscriben los alumnos.
      * @param array $studentIds Array de IDs de alumnos a inscribir.
      */
-    public function execute(Exam $exam, array $studentIds): void
+    public function execute(Exam $exam, array $studentIds, ?EnrollmentWindowResolver $windowResolver = null): void
     {
+        $windowResolver = $windowResolver ?? app(EnrollmentWindowResolver::class);
+
+        $period = $exam->period ?? $windowResolver->resolveActivePeriod();
+        if (! $period || ! $windowResolver->isOpen($period)) {
+            throw new EnrollmentWindowClosedException('Enrollment window is closed for this exam');
+        }
         $defaultBreakdown = $exam->exam_type->defaultUnitsBreakdown();
 
         DB::transaction(function () use ($exam, $studentIds, $defaultBreakdown) {

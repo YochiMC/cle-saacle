@@ -5,6 +5,8 @@ namespace App\Actions;
 use App\Models\Group;
 use App\Models\Qualification;
 use Illuminate\Support\Facades\DB;
+use App\Services\EnrollmentWindowResolver;
+use App\Exceptions\EnrollmentWindowClosedException;
 
 /**
  * Action: Inscribir alumnos en un grupo académico.
@@ -28,8 +30,14 @@ class EnrollStudentsInGroup
      * @param Group $group      El grupo al que se inscriben los alumnos.
      * @param array $studentIds Array de IDs de alumnos a inscribir.
      */
-    public function execute(Group $group, array $studentIds): void
+    public function execute(Group $group, array $studentIds, ?EnrollmentWindowResolver $windowResolver = null): void
     {
+        $windowResolver = $windowResolver ?? app(EnrollmentWindowResolver::class);
+
+        $period = $group->period ?? $windowResolver->resolveActivePeriod();
+        if (! $period || ! $windowResolver->isOpen($period)) {
+            throw new EnrollmentWindowClosedException('Enrollment window is closed for this group');
+        }
         $existingQualification = $group->qualifications()->first();
         $existingUnitsBreakdown = $existingQualification?->units_breakdown ?? [];
 

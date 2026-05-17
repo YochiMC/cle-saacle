@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Enums\ServiceStatus;
 use App\Models\Service;
 use App\Models\Student;
+use App\Models\Period;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 
@@ -29,6 +30,8 @@ class StoreStudentService
         // Almacenar en disco 'local' (storage/app).
         $path = $file->storeAs("servicios/student_{$studentId}", $fileName, 'local');
 
+        $activePeriod = Period::where('is_active', true)->first();
+
         $service = Service::create([
             'student_id'       => $studentId,
             'type'             => $data['type'],
@@ -39,6 +42,7 @@ class StoreStudentService
             'file_path'        => $path,
             'disk'             => 'local',
             'status'           => ServiceStatus::PENDING->value,
+            'period_id'        => $activePeriod?->id,
         ]);
 
         $student = Student::find($studentId);
