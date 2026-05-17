@@ -64,15 +64,30 @@ export default function GroupModal({
     // ── Efectos reactivos (Lógica de Presentación de Dominio) ──────────────────
     useEffect(() => {
         if (!isOpen) return;
+        
+        // Evitar sobrescribir el nivel inicial al abrir el modal de edición
         if (itemEditando && formData.type === itemEditando.type) return;
 
-        if (formData.type === "Programa Egresados") {
-            const nivelEgresados = levels.find((l) => l.program_type === "Egresados");
-            if (nivelEgresados) setFormData("level_id", nivelEgresados.id.toString());
+        // Determinamos si el nivel actual es de tipo "Egresados" para saber si es compatible con el nuevo tipo
+        const currentLevel = levels.find(l => l.id.toString() === formData.level_id);
+        const isCurrentLevelEgresados = currentLevel?.program_type === "Egresados";
+        const isNewTypeEgresados = formData.type === "Programa Egresados";
+
+        if (isNewTypeEgresados) {
+            // Si cambiamos a Egresados y el nivel actual no lo es, forzamos el nivel único de egresados
+            if (!isCurrentLevelEgresados) {
+                const nivelEgresados = levels.find((l) => l.program_type === "Egresados");
+                if (nivelEgresados) setFormData("level_id", nivelEgresados.id.toString());
+            }
         } else {
-            setFormData("level_id", "");
+            // Si cambiamos a cualquier tipo Regular y el nivel actual es de Egresados, 
+            // debemos limpiarlo porque ya no es válido para este tipo de grupo.
+            // SI EL NIVEL YA ERA REGULAR, SE MANTIENE (Corrige bug de pérdida de nivel).
+            if (isCurrentLevelEgresados) {
+                setFormData("level_id", "");
+            }
         }
-    }, [formData.type]);
+    }, [formData.type, levels, isOpen]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -120,6 +135,7 @@ export default function GroupModal({
                             placeholder="Selecciona una modalidad"
                             value={formData.mode}
                             onValueChange={(v) => setFormData("mode", v)}
+                            required
                         />
                         <InputError message={errors.mode} />
                     </div>
@@ -131,6 +147,7 @@ export default function GroupModal({
                             placeholder="Selecciona un tipo"
                             value={formData.type}
                             onValueChange={(v) => setFormData("type", v)}
+                            required
                         />
                         <InputError message={errors.type} />
                     </div>
@@ -146,6 +163,9 @@ export default function GroupModal({
                             description="Número máximo de estudiantes del grupo."
                             value={formData.capacity}
                             onChange={(e) => setFormData("capacity", e.target.value)}
+                            required
+                            min="1"
+                            max="999"
                         />
                         <InputError message={errors.capacity} />
                     </div>
@@ -157,6 +177,7 @@ export default function GroupModal({
                             placeholder="Selecciona un estado"
                             value={formData.status}
                             onValueChange={(v) => setFormData("status", v)}
+                            required
                         />
                         <InputError message={errors.status} />
                     </div>
@@ -181,6 +202,8 @@ export default function GroupModal({
                             description="Incluye días y rango de horas."
                             value={formData.schedule}
                             onChange={(e) => setFormData("schedule", e.target.value)}
+                            required
+                            maxLength="255"
                         />
                         <InputError message={errors.schedule} />
                     </div>
@@ -197,6 +220,7 @@ export default function GroupModal({
                             description="Opcional"
                             value={formData.classroom}
                             onChange={(e) => setFormData("classroom", e.target.value)}
+                            maxLength="255"
                         />
                         <InputError message={errors.classroom} />
                     </div>
@@ -210,6 +234,8 @@ export default function GroupModal({
                             description="Opcional para grupos virtuales o híbridos."
                             value={formData.meeting_link}
                             onChange={(e) => setFormData("meeting_link", e.target.value)}
+                            type="url"
+                            maxLength="255"
                         />
                         <InputError message={errors.meeting_link} />
                     </div>
@@ -246,6 +272,7 @@ export default function GroupModal({
                             value={formData.level_id}
                             disabled={formData.type === "Programa Egresados"}
                             onValueChange={(v) => setFormData("level_id", v)}
+                            required
                         />
                         <InputError message={errors.level_id} />
                     </div>

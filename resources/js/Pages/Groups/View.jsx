@@ -76,8 +76,10 @@ export default function View({
                     columnConfig={groupColumnConfig}
 
                     // Configuración de mutaciones
-                    deleteRoute={route('groups.unenroll-bulk', grupo.id)}
-                    onDeleteRow={handlers.requestDeleteRow}
+                    deleteRoute={state.canDeleteEnrollments ? route('groups.unenroll-bulk', grupo.id) : undefined}
+                    onDeleteRow={state.canDeleteEnrollments ? handlers.requestDeleteRow : undefined}
+                    canPerformDelete={state.canDeleteEnrollments}
+                    canPerformEdit={state.canEditQualifications}
 
                     // Configuración de tabla dinámica
                     editableColumns={state.editableColumns}

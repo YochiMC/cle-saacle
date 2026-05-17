@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Enums\AttemptEnum;
+use App\Enums\AcademicStatus;
 
 /**
  * FormRequest para actualizar la calificación individual de un alumno en un examen.
@@ -15,7 +16,20 @@ class UpdateExamPivotRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() && $this->user()->hasAnyRole(['admin', 'teacher', 'coordinator']);
+        $user = $this->user();
+        if (!$user) return false;
+
+        if ($user->hasAnyRole(['admin', 'coordinator'])) {
+            return true;
+        }
+
+        if ($user->hasRole('teacher')) {
+            $exam = $this->route('exam');
+            return $exam && $exam->teacher?->id === $user->teacher?->id
+                && $exam->status === AcademicStatus::GRADING;
+        }
+
+        return false;
     }
 
     /**

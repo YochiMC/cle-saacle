@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Services\TeacherVisibilityService;
 
 /**
  * Recurso de API para el modelo Group.
@@ -32,7 +33,9 @@ class GroupResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $currentStudentId = $request->user()?->student?->id;
+        $user = $request->user();
+        $currentStudentId = $user?->student?->id;
+        $visibilityService = app(TeacherVisibilityService::class);
 
         return [
             'id'           => $this->id,
@@ -53,9 +56,9 @@ class GroupResource extends JsonResource
                 ? $this->qualifications->contains('student_id', $currentStudentId)
                 : false,
 
-            // Datos del docente (respetando la lógica de revelación en el controlador)
-            'teacher_name' => $this->teacher ? $this->teacher->full_name : null,
-            'teacher_id'   => $this->teacher_id,
+            // Datos del docente filtrados por TeacherVisibilityService
+            'teacher_name' => $visibilityService->filterTeacherName($this->teacher ? $this->teacher->full_name : null, $user, $this->status, $this->type),
+            'teacher_id'   => $visibilityService->filterTeacherId($this->teacher_id, $user, $this->status, $this->type),
 
             // Datos del periodo
             'period_name'  => $this->period?->name ?? 'Sin asignar',

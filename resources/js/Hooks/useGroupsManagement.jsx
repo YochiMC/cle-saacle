@@ -57,7 +57,7 @@ export const useGroupsManagement = (grupos = []) => {
         schedule: "",
         classroom: "",
         meeting_link: "",
-        status: "Activo",
+        status: "enrolling",
         period_id: "",
         teacher_id: "none",
         level_id: "",
@@ -128,6 +128,32 @@ export const useGroupsManagement = (grupos = []) => {
     const submitForm = useCallback(
         (e) => {
             if (e) e.preventDefault();
+
+            // --- VALIDACIONES PRE-FLIGHT (Programación Defensiva) ---
+            if (!formData.mode) {
+                setError("mode", "El campo modalidad es obligatorio.");
+                return;
+            }
+            if (!formData.type) {
+                setError("type", "El campo tipo es obligatorio.");
+                return;
+            }
+            if (!formData.capacity) {
+                setError("capacity", "El campo capacidad es obligatorio.");
+                return;
+            }
+            if (!formData.schedule) {
+                setError("schedule", "El campo horario es obligatorio.");
+                return;
+            }
+            if (!formData.level_id) {
+                setError("level_id", "El campo nivel es obligatorio.");
+                return;
+            }
+            if (!formData.period_id) {
+                setError("period_id", "El campo periodo es obligatorio.");
+                return;
+            }
 
             if (itemEditando) {
                 const normalize = (value) => {

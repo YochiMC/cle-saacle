@@ -47,13 +47,23 @@ export default function useExamManager(examen, enrolledStudents = [], isStudentE
     });
 
     // 3. Lógica Derivada
-    const canEditQualifications = useMemo(() =>
-        hasRole("teacher") || hasRole("admin") || hasRole("coordinator"),
-    [hasRole]);
+    const canEditQualifications = useMemo(() => {
+        if (hasRole("admin") || hasRole("coordinator")) return true;
+        if (hasRole("teacher")) {
+            const status = examen?.status?.value ?? examen?.status;
+            return status === "grading";
+        }
+        return false;
+    }, [hasRole, examen?.status]);
 
     const canEnrollStudents = useMemo(() => 
         (hasRole("admin") || hasRole("coordinator")) && !isStudentEnrolled,
     [hasRole, isStudentEnrolled]);
+
+    // canDeleteEnrollments controla la acción de baja: admin o coordinator
+    const canDeleteEnrollments = useMemo(() =>
+        hasRole("admin") || hasRole("coordinator"),
+    [hasRole]);
 
     const unitKeys = useMemo(() => 
         getUnitKeysFromRows(normalizedData),
@@ -173,6 +183,7 @@ export default function useExamManager(examen, enrolledStudents = [], isStudentE
             editableColumns,
             canEditQualifications,
             canEnrollStudents,
+            canDeleteEnrollments,
         },
         handlers: {
             setEditingRowId,

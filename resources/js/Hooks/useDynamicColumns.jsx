@@ -50,6 +50,8 @@ export function useDynamicColumns(
         onSaveRow,
         onCancelRow,
         customRowActions,
+        canPerformEdit = true,
+        canPerformDelete = true,
         columnConfig = {
             baseKeys: [],
             statusKeys: [],
@@ -176,20 +178,24 @@ export function useDynamicColumns(
 
                 return (
                     <div className="flex items-center justify-center gap-2">
-                        <Button
-                            onClick={() => onEditRow?.(item)}
-                            className="w-8 h-8 p-0 text-white bg-orange-500 rounded-md hover:bg-orange-600"
-                            title="Editar"
-                        >
-                            <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                            onClick={() => onDeleteRow?.(item)}
-                            className="w-8 h-8 p-0 text-white bg-red-600 rounded-md hover:bg-red-700"
-                            title="Eliminar"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
+                        {canPerformEdit && (
+                            <Button
+                                onClick={() => onEditRow?.(item)}
+                                className="w-8 h-8 p-0 text-white bg-orange-500 rounded-md hover:bg-orange-600"
+                                title="Editar"
+                            >
+                                <Edit className="w-4 h-4" />
+                            </Button>
+                        )}
+                        {canPerformDelete && (
+                            <Button
+                                onClick={() => onDeleteRow?.(item)}
+                                className="w-8 h-8 p-0 text-white bg-red-600 rounded-md hover:bg-red-700"
+                                title="Eliminar"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        )}
                     </div>
                 );
             },
@@ -217,6 +223,8 @@ export function useDynamicColumns(
         customRowActions,
         selectOptions,
         columnConfig,
+        canPerformEdit,
+        canPerformDelete,
     ]);
 }
 

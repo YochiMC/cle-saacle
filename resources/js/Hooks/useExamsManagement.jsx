@@ -114,6 +114,28 @@ export const useExamsManagement = (examenes = []) => {
         (e) => {
             if (e) e.preventDefault();
 
+            // --- VALIDACIONES PRE-FLIGHT (Programación Defensiva) ---
+            if (!formData.exam_type) {
+                setError("exam_type", "El campo tipo de examen es obligatorio.");
+                return;
+            }
+            if (!formData.capacity) {
+                setError("capacity", "El campo cupo es obligatorio.");
+                return;
+            }
+            if (!formData.period_id) {
+                setError("period_id", "El campo periodo escolar es obligatorio.");
+                return;
+            }
+            if (!formData.start_date) {
+                setError("start_date", "La fecha de inicio es obligatoria.");
+                return;
+            }
+            if (!formData.end_date) {
+                setError("end_date", "La fecha de fin es obligatoria.");
+                return;
+            }
+
             if (formData.start_date && formData.end_date) {
                 if (new Date(formData.start_date) > new Date(formData.end_date)) {
                     setError("end_date", "La fecha de fin no puede ser anterior a la fecha de inicio.");

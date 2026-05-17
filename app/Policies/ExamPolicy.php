@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Exam;
 use App\Models\User;
+use App\Enums\AcademicStatus;
 
 /**
  * Policy para autorización del módulo de exámenes académicos.
@@ -55,16 +56,28 @@ class ExamPolicy
         return $user->hasRole('coordinator');
     }
 
-    /** Permite actualizar un examen. */
+    /** Permite actualizar un examen (metadata) o sus calificaciones individuales. */
     public function update(User $user, Exam $exam): bool
     {
-        return $user->hasRole('coordinator');
+        if ($user->hasRole('coordinator')) {
+            return true;
+        }
+
+        return $user->hasRole('teacher')
+            && $exam->teacher?->id === $user->teacher?->id
+            && $exam->status === AcademicStatus::GRADING;
     }
 
-    /** Permite actualización masiva de exámenes. */
-    public function updateAny(User $user): bool
+    /** Permite actualización masiva de calificaciones del examen. */
+    public function updateAny(User $user, Exam $exam): bool
     {
-        return $user->hasRole('coordinator');
+        if ($user->hasRole('coordinator')) {
+            return true;
+        }
+
+        return $user->hasRole('teacher')
+            && $exam->teacher?->id === $user->teacher?->id
+            && $exam->status === AcademicStatus::GRADING;
     }
 
     /** Permite eliminar un examen. */

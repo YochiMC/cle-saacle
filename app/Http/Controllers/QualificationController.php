@@ -45,6 +45,7 @@ class QualificationController extends Controller
      */
     public function bulkUpdate(BulkUpdateGroupQualificationsRequest $request, BulkUpdateGroupQualifications $action, \App\Models\Group $group): RedirectResponse
     {
+        Gate::authorize('updateAny', [Qualification::class, $group]);
         $action->execute($request->validated('qualifications'));
 
         return redirect()->back()->with('success', 'Calificaciones del grupo guardadas exitosamente.');

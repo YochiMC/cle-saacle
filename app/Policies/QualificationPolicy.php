@@ -4,6 +4,8 @@ namespace App\Policies;
 
 use App\Models\Qualification;
 use App\Models\User;
+use App\Enums\AcademicStatus;
+use App\Models\Group;
 
 /**
  * Policy para autorización del módulo de calificaciones de grupos.
@@ -51,14 +53,25 @@ class QualificationPolicy
     /** Permite actualizar una calificación de forma individual. */
     public function update(User $user, Qualification $qualification): bool
     {
-        return $user->hasRole('coordinator')
-            || ($user->hasRole('teacher') && $qualification->group?->teacher_id === $user->teacher?->id);
+        if ($user->hasRole('coordinator')) {
+            return true;
+        }
+
+        return $user->hasRole('teacher') 
+            && $qualification->group?->teacher_id === $user->teacher?->id
+            && $qualification->group?->status === AcademicStatus::GRADING;
     }
 
-    /** Permite actualización masiva de calificaciones. */
-    public function updateAny(User $user): bool
+    /** Permite actualización masiva de calificaciones dentro de un grupo específico. */
+    public function updateAny(User $user, Group $group): bool
     {
-        return $user->hasAnyRole(['coordinator', 'teacher']);
+        if ($user->hasRole('coordinator')) {
+            return true;
+        }
+
+        return $user->hasRole('teacher') 
+            && $group->teacher_id === $user->teacher?->id
+            && $group->status === AcademicStatus::GRADING;
     }
 
     /** Permite eliminar una calificación. */

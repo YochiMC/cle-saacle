@@ -247,10 +247,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Operaciones de configuración y catálogo para admin + coordinator
     Route::middleware('role:admin|coordinator')->group(function () {
         // ── Configuraciones del Sistema (Administrador y Coordinador) ───────────
-        Route::prefix('settings')->name('settings.')->group(function () {
-            Route::get('/', [SettingController::class, 'index'])->name('index');
-            Route::put('/bulk', [SettingController::class, 'updateBulk'])->name('update-bulk');
+        if (! app()->isProduction()) {
+            Route::prefix('settings')->name('settings.')->group(function () {
+                Route::get('/', [SettingController::class, 'index'])->name('index');
+                Route::put('/bulk', [SettingController::class, 'updateBulk'])->name('update-bulk');
+            });
+        }
 
+        Route::prefix('settings')->name('settings.')->group(function () {
             // UI Centralizada de Catálogos
             Route::get('/catalogs', [CatalogUIController::class, 'index'])->name('catalogs');
         });
