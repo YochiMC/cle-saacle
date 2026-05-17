@@ -45,7 +45,8 @@ class ServiceController extends Controller
         $action->execute(
             $request->file('file'),
             $request->validated(),
-            (int) $studentId
+            (int) $studentId,
+            $request->validated()['service_id'] ?? null,
         );
 
         return back()->with('success', 'Pago subido exitosamente.');

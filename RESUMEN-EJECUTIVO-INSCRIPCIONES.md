@@ -142,6 +142,20 @@ Ver `PLAN-TRABAJO-INSCRIPCIONES.md` → Implementación #2
 - [ ] `app/Exceptions/GroupCapacityExceededException.php` - Nueva
 - [ ] Tests nuevos - `tests/Feature/EnrollmentCapacityTest.php`
 
+### Paso 6: Flujo de Rechazo Transparente (Fase 4)
+
+**Cambios**:
+- [ ] `database/migrations/...` - Añadir columna `rejection_reason` a `services`
+- [ ] `app/Models/Service.php` - Añadir `rejection_reason` a `fillable`
+- [ ] `app/Http/Requests/StoreServiceRequest.php` - Permitir `service_id` para reintentos y validar pertenencia/estatus
+- [ ] `app/Actions/StoreStudentService.php` - Soportar reintento sobre servicio rechazado: reemplaza archivo, limpia `rejection_reason`, deja `period_id` intacto
+- [ ] `docs/...` - Actualizar instrucciones y notas de auditoría
+
+**Comportamiento esperado**:
+- Cuando un admin rechaza un comprobante, puede registrar una razón en `rejection_reason`.
+- El alumno verá el motivo y podrá reintentar subiendo un nuevo archivo sobre el mismo registro (manteniendo `period_id`).
+
+
 ### Paso 4: Tests
 ```bash
 php artisan test --filter="ServiceApproval|EnrollmentCapacity|StudentStatusProtection"

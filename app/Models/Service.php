@@ -26,6 +26,7 @@ class Service extends Model
         'file_path',
         'disk',
         'comments',
+        'rejection_reason',
         'student_id',
         'period_id',
     ];

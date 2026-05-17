@@ -42,6 +42,7 @@ class StoreServiceRequest extends FormRequest
             'amount'           => ['required', 'numeric', 'min:0'],
             'reference_number' => ['nullable', 'string', 'max:255'],
             'description'      => ['nullable', 'string'],
+            'service_id'       => ['nullable', 'integer', 'exists:services,id'],
         ];
     }
 
@@ -77,6 +78,17 @@ class StoreServiceRequest extends FormRequest
 
             if ($exists) {
                 $validator->errors()->add('type', 'Ya existe un comprobante del mismo concepto en revisión o aprobado para este periodo activo.');
+            }
+
+            // If an existing service_id was provided, ensure it belongs to the student and is REJECTED
+            $serviceId = $this->input('service_id');
+            if ($serviceId) {
+                $service = \App\Models\Service::find($serviceId);
+                if (! $service || $service->student_id !== $studentId) {
+                    $validator->errors()->add('service_id', 'El servicio especificado no existe o no pertenece al alumno.');
+                } elseif ($service->status !== \App\Enums\ServiceStatus::REJECTED->value) {
+                    $validator->errors()->add('service_id', 'Solo se puede reintentar sobre un servicio con estatus rechazado.');
+                }
             }
         });
     }
