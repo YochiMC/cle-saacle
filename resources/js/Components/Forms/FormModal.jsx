@@ -11,6 +11,7 @@
  * @param {Function}  onClose       - Callback invocado al cerrar el modal.
  * @param {string}    [title]       - Texto del encabezado del modal.
  * @param {ReactNode} children      - Contenido interno (formulario, etc.).
+ * @param {string}    [panelClassName] - Clases adicionales para el contenedor principal.
  *
  * @example
  * <FormModal
@@ -24,7 +25,7 @@
 
 import { useEffect } from 'react';
 
-export default function FormModal({ show = false, onClose, title, children }) {
+export default function FormModal({ show = false, onClose, title, children, panelClassName = '' }) {
 
     // Cerrar con la tecla Escape
     useEffect(() => {
@@ -41,7 +42,7 @@ export default function FormModal({ show = false, onClose, title, children }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
 
             {/* Contenedor del Modal modificado */}
-            <div className="w-fit min-w-[300px] max-w-[90vw] max-h-[90vh] overflow-y-auto transition-all transform bg-white rounded-lg shadow-xl flex flex-col">
+            <div className={`max-h-[90vh] overflow-y-auto transition-all transform bg-white rounded-lg shadow-xl flex flex-col ${panelClassName || 'w-fit min-w-[300px] max-w-[90vw]'}`}>
 
                 {/* Header estático en la parte superior */}
                 <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b border-gray-100">

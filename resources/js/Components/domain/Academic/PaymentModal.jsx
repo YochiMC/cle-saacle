@@ -51,6 +51,7 @@ import FormModal from '@/Components/Forms/FormModal';
 import { FieldError } from '@/Components/ui/field';
 import SelectForm from '@/Components/Forms/SelectForm';
 import FileInputForm from '@/Components/Forms/FileInputForm';
+import FilePreviewPanel from '@/Components/ui/FilePreviewPanel';
 import PrimaryButton from '@/Components/ui/PrimaryButton';
 import SecondaryButton from '@/Components/ui/SecondaryButton';
 import { CreditCard, Download, Trash2 } from 'lucide-react';
@@ -75,9 +76,10 @@ export default function PaymentModal({
     formatCurrency,
 }) {
     const title = selectedPayment ? 'Detalles del Pago' : 'Nuevo Pago';
+    const modalPanelClassName = selectedPayment ? 'w-full min-w-0 max-w-[72rem]' : '';
 
     return (
-        <FormModal title={title} show={show} onClose={onClose}>
+        <FormModal title={title} show={show} onClose={onClose} panelClassName={modalPanelClassName}>
             <form onSubmit={onSubmit} className="space-y-6">
                 {/* Encabezado con ícono y estado (si aplica) */}
                 <div className="flex items-center justify-between border-b border-gray-100 pb-4">
@@ -100,30 +102,44 @@ export default function PaymentModal({
                         <div className="text-center mb-6">
                             <p className="text-5xl font-black text-gray-900 tracking-tight">{formatCurrency(selectedPayment.amount)}</p>
                         </div>
-                        <div className="flex justify-between items-center text-sm border-b pb-2">
-                            <span className="text-gray-500 font-medium">Concepto</span>
-                            <span className="font-bold text-gray-900">{getTypeLabel(selectedPayment.type)}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm border-b pb-2">
-                            <span className="text-gray-500 font-medium">Ref / Folio</span>
-                            <span className="font-bold text-gray-900">{selectedPayment.reference_number || 'N/A'}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm border-b pb-2">
-                            <span className="text-gray-500 font-medium">Fecha</span>
-                            <span className="font-bold text-gray-900">{new Date(selectedPayment.created_at).toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm border-b pb-2">
-                            <span className="text-gray-500 font-medium">Comprobante</span>
-                            <button type="button" onClick={() => onDownload(selectedPayment.id)} className="text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
-                                <Download className="w-4 h-4" /> Descargar
-                            </button>
-                        </div>
-                        {selectedPayment.comments && (
-                            <div className="mt-4 p-3 bg-red-50 text-red-800 rounded-xl text-sm">
-                                <p className="font-bold mb-1">Comentarios de revisión:</p>
-                                <p>{selectedPayment.comments}</p>
+                        <div className="grid gap-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center text-sm border-b pb-2">
+                                    <span className="text-gray-500 font-medium">Concepto</span>
+                                    <span className="font-bold text-gray-900">{getTypeLabel(selectedPayment.type)}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm border-b pb-2">
+                                    <span className="text-gray-500 font-medium">Ref / Folio</span>
+                                    <span className="font-bold text-gray-900">{selectedPayment.reference_number || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm border-b pb-2">
+                                    <span className="text-gray-500 font-medium">Fecha</span>
+                                    <span className="font-bold text-gray-900">{new Date(selectedPayment.created_at).toLocaleDateString()}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm border-b pb-2">
+                                    <span className="text-gray-500 font-medium">Comprobante</span>
+                                    <button type="button" onClick={() => onDownload(selectedPayment.id)} className="text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
+                                        <Download className="w-4 h-4" /> Descargar
+                                    </button>
+                                </div>
+                                {selectedPayment.comments && (
+                                    <div className="mt-4 p-3 bg-red-50 text-red-800 rounded-xl text-sm">
+                                        <p className="font-bold mb-1">Comentarios de revisión:</p>
+                                        <p>{selectedPayment.comments}</p>
+                                    </div>
+                                )}
                             </div>
-                        )}
+
+                            <div>
+                                <FilePreviewPanel
+                                    file={selectedPayment}
+                                    previewUrl={route('services.preview', selectedPayment.id)}
+                                    className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
+                                    emptyMessage="Todavía no hay un comprobante disponible para este pago."
+                                    unsupportedMessage="Este comprobante no admite vista previa directa. Usa la descarga para abrirlo."
+                                />
+                            </div>
+                        </div>
                     </div>
                 ) : (
                     // MODO FORMULARIO: Nuevo pago

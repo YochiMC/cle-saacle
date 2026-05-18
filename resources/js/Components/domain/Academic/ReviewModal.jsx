@@ -48,6 +48,7 @@
 import FormModal from '@/Components/Forms/FormModal';
 import { FieldError } from '@/Components/ui/field';
 import SelectForm from '@/Components/Forms/SelectForm';
+import FilePreviewPanel from '@/Components/ui/FilePreviewPanel';
 import PrimaryButton from '@/Components/ui/PrimaryButton';
 import SecondaryButton from '@/Components/ui/SecondaryButton';
 import { FileText, Trash2 } from 'lucide-react';
@@ -70,8 +71,10 @@ export default function ReviewModal({
     getTypeLabel,
     formatCurrency,
 }) {
+    const modalPanelClassName = selectedPayment ? 'w-full min-w-0 max-w-[72rem]' : '';
+
     return (
-        <FormModal title="Aprobar o Rechazar Pago" show={show} onClose={onClose}>
+        <FormModal title="Aprobar o Rechazar Pago" show={show} onClose={onClose} panelClassName={modalPanelClassName}>
             <form onSubmit={onSubmit} className="space-y-6">
                 {/* Encabezado con estado actual */}
                 <div className="flex items-center justify-between border-b border-gray-100 pb-4">
@@ -91,28 +94,40 @@ export default function ReviewModal({
                             <p className="text-4xl font-black text-gray-900 tracking-tight">{formatCurrency(selectedPayment.amount)}</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <div>
-                                <p className="text-sm text-gray-500 font-medium">Alumno</p>
-                                <p className="font-bold text-gray-900 text-sm">{selectedPayment.student?.user?.name}</p>
+                        <div className="grid gap-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+                            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100 h-fit">
+                                <div>
+                                    <p className="text-sm text-gray-500 font-medium">Alumno</p>
+                                    <p className="font-bold text-gray-900 text-sm">{selectedPayment.student?.user?.name}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 font-medium">Concepto</p>
+                                    <p className="font-bold text-gray-900 text-sm">{getTypeLabel(selectedPayment.type)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 font-medium">Referencia</p>
+                                    <p className="font-bold text-gray-900 text-sm">{selectedPayment.reference_number || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 font-medium">Comprobante</p>
+                                    <button
+                                        type="button"
+                                        onClick={() => onDownload(selectedPayment.id)}
+                                        className="text-indigo-600 hover:underline font-bold flex items-center text-sm gap-1"
+                                    >
+                                        <FileText className="w-4 h-4" /> Descargar
+                                    </button>
+                                </div>
                             </div>
+
                             <div>
-                                <p className="text-sm text-gray-500 font-medium">Concepto</p>
-                                <p className="font-bold text-gray-900 text-sm">{getTypeLabel(selectedPayment.type)}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 font-medium">Referencia</p>
-                                <p className="font-bold text-gray-900 text-sm">{selectedPayment.reference_number || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 font-medium">Comprobante</p>
-                                <button
-                                    type="button"
-                                    onClick={() => onDownload(selectedPayment.id)}
-                                    className="text-indigo-600 hover:underline font-bold flex items-center text-sm gap-1"
-                                >
-                                    <FileText className="w-4 h-4" /> Descargar
-                                </button>
+                                <FilePreviewPanel
+                                    file={selectedPayment}
+                                    previewUrl={route('services.preview', selectedPayment.id)}
+                                    className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
+                                    emptyMessage="Todavía no hay un comprobante disponible para este pago."
+                                    unsupportedMessage="Este comprobante no admite vista previa directa. Usa la descarga para abrirlo."
+                                />
                             </div>
                         </div>
                     </div>

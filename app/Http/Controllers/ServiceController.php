@@ -85,4 +85,18 @@ class ServiceController extends Controller
 
         return response()->download($absolutePath, $service->original_name);
     }
+
+    /**
+     * Muestra un comprobante de pago en modo inline para formatos compatibles.
+     */
+    public function preview(Service $service): BinaryFileResponse
+    {
+        Gate::authorize('view', $service);
+
+        $absolutePath = $this->resolveServiceAbsolutePath($service);
+
+        return response()->file($absolutePath, [
+            'Content-Disposition' => 'inline; filename="' . addslashes($service->original_name) . '"',
+        ]);
+    }
 }

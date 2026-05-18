@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Pagos/Servicios personales (estudiante/admin/coordinator)
     Route::prefix('services')->group(function () {
         Route::post('/', [\App\Http\Controllers\ServiceController::class, 'store'])->name('services.store');
+        Route::get('/{service}/preview', [\App\Http\Controllers\ServiceController::class, 'preview'])->name('services.preview');
         Route::get('/{service}/download', [\App\Http\Controllers\ServiceController::class, 'download'])->name('services.download');
         Route::delete('/{service}', [\App\Http\Controllers\ServiceController::class, 'destroy'])->name('services.destroy');
     });
