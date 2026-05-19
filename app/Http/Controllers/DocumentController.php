@@ -9,9 +9,10 @@ use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
 use App\Models\Document;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Controlador de Documentos de Usuario.
@@ -22,15 +23,18 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class DocumentController extends Controller
 {
     /**
-     * Devuelve la ruta física del archivo y valida su existencia.
+     * Devuelve el disco configurado para el documento y valida su existencia.
      */
-    private function resolveDocumentAbsolutePath(Document $document): string
+    private function resolveDocumentDisk(Document $document): FilesystemAdapter
     {
-        if (! Storage::disk($document->disk)->exists($document->file_path)) {
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk($document->disk);
+
+        if (! $disk->exists($document->file_path)) {
             abort(404, 'Archivo no encontrado.');
         }
 
-        return Storage::disk($document->disk)->path($document->file_path);
+        return $disk;
     }
 
     /**
@@ -74,26 +78,24 @@ class DocumentController extends Controller
     /**
      * Descarga un documento autorizado conservando su nombre original.
      */
-    public function download(Document $document): BinaryFileResponse
+    public function download(Document $document): StreamedResponse
     {
         Gate::authorize('view', $document);
 
-        $absolutePath = $this->resolveDocumentAbsolutePath($document);
+        $disk = $this->resolveDocumentDisk($document);
 
-        return response()->download($absolutePath, $document->original_name);
+        return $disk->download($document->file_path, $document->original_name);
     }
 
     /**
      * Muestra el documento en modo inline para formatos compatibles.
      */
-    public function preview(Document $document): BinaryFileResponse
+    public function preview(Document $document): StreamedResponse
     {
         Gate::authorize('view', $document);
 
-        $absolutePath = $this->resolveDocumentAbsolutePath($document);
+        $disk = $this->resolveDocumentDisk($document);
 
-        return response()->file($absolutePath, [
-            'Content-Disposition' => 'inline; filename="' . addslashes($document->original_name) . '"',
-        ]);
+        return $disk->response($document->file_path, $document->original_name);
     }
 }

@@ -10,10 +10,11 @@ use App\Http\Requests\StoreServiceRequest;
 use App\Http\Requests\UpdateServiceRequest;
 use App\Models\Service;
 use App\Models\User;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Controlador de Pagos/Servicios de Usuario.
@@ -24,13 +25,16 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class ServiceController extends Controller
 {
 
-    private function resolveServiceAbsolutePath(Service $service): string
+    private function resolveServiceDisk(Service $service): FilesystemAdapter
     {
-        if (! Storage::disk($service->disk)->exists($service->file_path)) {
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk($service->disk);
+
+        if (! $disk->exists($service->file_path)) {
             abort(404, 'Archivo no encontrado.');
         }
 
-        return Storage::disk($service->disk)->path($service->file_path);
+        return $disk;
     }
 
     /**
@@ -77,26 +81,24 @@ class ServiceController extends Controller
     /**
      * Descarga un comprobante de pago autorizado.
      */
-    public function download(Service $service): BinaryFileResponse
+    public function download(Service $service): StreamedResponse
     {
         Gate::authorize('download', $service);
 
-        $absolutePath = $this->resolveServiceAbsolutePath($service);
+        $disk = $this->resolveServiceDisk($service);
 
-        return response()->download($absolutePath, $service->original_name);
+        return $disk->download($service->file_path, $service->original_name);
     }
 
     /**
      * Muestra un comprobante de pago en modo inline para formatos compatibles.
      */
-    public function preview(Service $service): BinaryFileResponse
+    public function preview(Service $service): StreamedResponse
     {
         Gate::authorize('view', $service);
 
-        $absolutePath = $this->resolveServiceAbsolutePath($service);
+        $disk = $this->resolveServiceDisk($service);
 
-        return response()->file($absolutePath, [
-            'Content-Disposition' => 'inline; filename="' . addslashes($service->original_name) . '"',
-        ]);
+        return $disk->response($service->file_path, $service->original_name);
     }
 }
