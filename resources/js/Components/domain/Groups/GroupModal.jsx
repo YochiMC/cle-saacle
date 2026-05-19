@@ -12,7 +12,7 @@ import BaseResourceModal from "@/Components/ui/BaseResourceModal";
 
 /**
  * GroupModal — Formulario de dominio para la gestión de Grupos.
- * 
+ *
  * Refactoreado para usar BaseResourceModal, eliminando la duplicación estructural
  * y centrando el archivo en la lógica de negocio y campos del grupo.
  */
@@ -46,7 +46,10 @@ export default function GroupModal({
     // ── Opciones de selects (Lógica de Dominio) ───────────────────────────────
     const teacherOptions = [
         { value: "none", label: "Sin docente asignado" },
-        ...teachers.map((t) => ({ value: t.id.toString(), label: t.full_name })),
+        ...teachers.map((t) => ({
+            value: t.id.toString(),
+            label: t.full_name,
+        })),
     ];
 
     const levelOptions = levels
@@ -58,29 +61,41 @@ export default function GroupModal({
         })
         .map((l) => ({ value: l.id.toString(), label: l.level_tecnm }));
 
-    const periodOptions = periods.map((p) => ({ value: p.id.toString(), label: p.name }));
-    const statusOptions = statuses.map((s) => ({ value: s.value, label: s.label }));
+    const periodOptions = periods.map((p) => ({
+        value: p.id.toString(),
+        label: p.name,
+    }));
+    const statusOptions = statuses.map((s) => ({
+        value: s.value,
+        label: s.label,
+    }));
 
     // ── Efectos reactivos (Lógica de Presentación de Dominio) ──────────────────
     useEffect(() => {
         if (!isOpen) return;
-        
+
         // Evitar sobrescribir el nivel inicial al abrir el modal de edición
         if (itemEditando && formData.type === itemEditando.type) return;
 
         // Determinamos si el nivel actual es de tipo "Egresados" para saber si es compatible con el nuevo tipo
-        const currentLevel = levels.find(l => l.id.toString() === formData.level_id);
-        const isCurrentLevelEgresados = currentLevel?.program_type === "Egresados";
+        const currentLevel = levels.find(
+            (l) => l.id.toString() === formData.level_id,
+        );
+        const isCurrentLevelEgresados =
+            currentLevel?.program_type === "Egresados";
         const isNewTypeEgresados = formData.type === "Programa Egresados";
 
         if (isNewTypeEgresados) {
             // Si cambiamos a Egresados y el nivel actual no lo es, forzamos el nivel único de egresados
             if (!isCurrentLevelEgresados) {
-                const nivelEgresados = levels.find((l) => l.program_type === "Egresados");
-                if (nivelEgresados) setFormData("level_id", nivelEgresados.id.toString());
+                const nivelEgresados = levels.find(
+                    (l) => l.program_type === "Egresados",
+                );
+                if (nivelEgresados)
+                    setFormData("level_id", nivelEgresados.id.toString());
             }
         } else {
-            // Si cambiamos a cualquier tipo Regular y el nivel actual es de Egresados, 
+            // Si cambiamos a cualquier tipo Regular y el nivel actual es de Egresados,
             // debemos limpiarlo porque ya no es válido para este tipo de grupo.
             // SI EL NIVEL YA ERA REGULAR, SE MANTIENE (Corrige bug de pérdida de nivel).
             if (isCurrentLevelEgresados) {
@@ -100,12 +115,17 @@ export default function GroupModal({
     // Configuración de la advertencia para cambios de tipo (DIP)
     const confirmConfig = {
         isOpen: modales.confirmTypeChange,
-        onClose: () => manager.setModales(prev => ({ ...prev, confirmTypeChange: false })),
+        onClose: () =>
+            manager.setModales((prev) => ({
+                ...prev,
+                confirmTypeChange: false,
+            })),
         onConfirm: manager.confirmSubmit,
         title: "Atención: Cambio de Tipo de Grupo",
-        message: "Has cambiado el tipo de grupo. Si confirmas este cambio, se reiniciarán a cero TODAS las calificaciones de los alumnos inscritos para adaptarse a las nuevas unidades de evaluación. ¿Deseas continuar y guardar de todos modos?",
+        message:
+            "Has cambiado el tipo de grupo. Si confirmas este cambio, se reiniciarán a cero TODAS las calificaciones de los alumnos inscritos para adaptarse a las nuevas unidades de evaluación. ¿Deseas continuar y guardar de todos modos?",
         confirmText: "Sí, reiniciar y guardar",
-        variant: "warning"
+        variant: "warning",
     };
 
     return (
@@ -162,7 +182,9 @@ export default function GroupModal({
                             placeholder="Ej. 25"
                             description="Número máximo de estudiantes del grupo."
                             value={formData.capacity}
-                            onChange={(e) => setFormData("capacity", e.target.value)}
+                            onChange={(e) =>
+                                setFormData("capacity", e.target.value)
+                            }
                             required
                             min="1"
                             max="999"
@@ -201,7 +223,9 @@ export default function GroupModal({
                             placeholder="Ej. Lunes y Miércoles 16:00 - 18:00"
                             description="Incluye días y rango de horas."
                             value={formData.schedule}
-                            onChange={(e) => setFormData("schedule", e.target.value)}
+                            onChange={(e) =>
+                                setFormData("schedule", e.target.value)
+                            }
                             required
                             maxLength="255"
                         />
@@ -219,7 +243,9 @@ export default function GroupModal({
                             placeholder="Ej. B-203"
                             description="Opcional"
                             value={formData.classroom}
-                            onChange={(e) => setFormData("classroom", e.target.value)}
+                            onChange={(e) =>
+                                setFormData("classroom", e.target.value)
+                            }
                             maxLength="255"
                         />
                         <InputError message={errors.classroom} />
@@ -233,7 +259,9 @@ export default function GroupModal({
                             placeholder="https://..."
                             description="Opcional para grupos virtuales o híbridos."
                             value={formData.meeting_link}
-                            onChange={(e) => setFormData("meeting_link", e.target.value)}
+                            onChange={(e) =>
+                                setFormData("meeting_link", e.target.value)
+                            }
                             type="url"
                             maxLength="255"
                         />
@@ -260,6 +288,7 @@ export default function GroupModal({
                             placeholder="Selecciona un periodo"
                             value={formData.period_id}
                             onValueChange={(v) => setFormData("period_id", v)}
+                            required
                         />
                         <InputError message={errors.period_id} />
                     </div>
@@ -292,4 +321,3 @@ export default function GroupModal({
         </BaseResourceModal>
     );
 }
-

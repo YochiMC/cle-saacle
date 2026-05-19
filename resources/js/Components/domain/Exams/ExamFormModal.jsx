@@ -13,7 +13,7 @@ import {
 
 /**
  * ExamFormModal — Formulario de dominio para la gestión de Exámenes.
- * 
+ *
  * Refactoreado para usar BaseResourceModal, eliminando la duplicación estructural
  * y centrándose únicamente en los campos y la lógica del examen.
  */
@@ -48,12 +48,17 @@ export default function ExamFormModal({
     // Configuración del diálogo de advertencia para cambios críticos
     const confirmConfig = {
         isOpen: manager.modales.confirmTypeChange,
-        onClose: () => manager.setModales(prev => ({ ...prev, confirmTypeChange: false })),
+        onClose: () =>
+            manager.setModales((prev) => ({
+                ...prev,
+                confirmTypeChange: false,
+            })),
         onConfirm: manager.confirmSubmit,
         title: "Atención: Cambio de Tipo de Examen",
-        message: "Has cambiado el tipo de examen. Si confirmas este cambio, se reiniciarán a cero TODAS las calificaciones de los alumnos inscritos para adaptarse a las nuevas unidades de evaluación. ¿Deseas continuar y guardar de todos modos?",
+        message:
+            "Has cambiado el tipo de examen. Si confirmas este cambio, se reiniciarán a cero TODAS las calificaciones de los alumnos inscritos para adaptarse a las nuevas unidades de evaluación. ¿Deseas continuar y guardar de todos modos?",
         confirmText: "Sí, reiniciar y guardar",
-        variant: "warning"
+        variant: "warning",
     };
 
     return (
@@ -82,7 +87,9 @@ export default function ExamFormModal({
                             selectId="exam_type"
                             placeholder="Ej. Convalidación"
                             value={manager.formData.exam_type}
-                            onValueChange={(v) => manager.setFormData("exam_type", v)}
+                            onValueChange={(v) =>
+                                manager.setFormData("exam_type", v)
+                            }
                             required
                         />
                         <InputError message={manager.errors.exam_type} />
@@ -94,7 +101,10 @@ export default function ExamFormModal({
                             selectId="mode"
                             placeholder="Ej. Presencial"
                             value={manager.formData.mode}
-                            onValueChange={(v) => manager.setFormData("mode", v)}
+                            onValueChange={(v) =>
+                                manager.setFormData("mode", v)
+                            }
+                            required
                         />
                         <InputError message={manager.errors.mode} />
                     </div>
@@ -105,7 +115,9 @@ export default function ExamFormModal({
                             selectId="status"
                             placeholder="Selecciona el estado"
                             value={manager.formData.status}
-                            onValueChange={(v) => manager.setFormData("status", v)}
+                            onValueChange={(v) =>
+                                manager.setFormData("status", v)
+                            }
                             required
                         />
                         <InputError message={manager.errors.status} />
@@ -119,18 +131,27 @@ export default function ExamFormModal({
             <FieldSet>
                 <FieldLegend>Horario y Apertura</FieldLegend>
                 <FieldDescription>
-                    Configura las fechas exactas, el periodo escolar y el horario de aplicación.
+                    Configura las fechas exactas, el periodo escolar y el
+                    horario de aplicación.
                 </FieldDescription>
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                        <InputLabel htmlFor="start_date" value="Fecha de Inicio" />
+                        <InputLabel
+                            htmlFor="start_date"
+                            value="Fecha de Inicio"
+                        />
                         <TextInput
                             id="start_date"
                             type="date"
                             className="mt-1 block w-full"
                             value={manager.formData.start_date}
-                            onChange={(e) => manager.setFormData("start_date", e.target.value)}
+                            onChange={(e) =>
+                                manager.setFormData(
+                                    "start_date",
+                                    e.target.value,
+                                )
+                            }
                             required
                         />
                         <InputError message={manager.errors.start_date} />
@@ -144,7 +165,9 @@ export default function ExamFormModal({
                             className="mt-1 block w-full"
                             value={manager.formData.end_date}
                             min={manager.formData.start_date || undefined}
-                            onChange={(e) => manager.setFormData("end_date", e.target.value)}
+                            onChange={(e) =>
+                                manager.setFormData("end_date", e.target.value)
+                            }
                             required
                         />
                         <InputError message={manager.errors.end_date} />
@@ -159,20 +182,32 @@ export default function ExamFormModal({
                             selectId="period_id"
                             placeholder="Selecciona el Periodo"
                             value={manager.formData.period_id}
-                            onValueChange={(v) => manager.setFormData("period_id", v)}
+                            onValueChange={(v) =>
+                                manager.setFormData("period_id", v)
+                            }
                             required
                         />
                         <InputError message={manager.errors.period_id} />
                     </div>
                     <div>
-                        <InputLabel htmlFor="application_time" value="Hora (Opcional)" />
+                        <InputLabel
+                            htmlFor="application_time"
+                            value="Hora (Opcional)"
+                        />
                         <TextInput
                             id="application_time"
-                            type="text"
+                            type="time"
                             className="mt-1 block w-full"
                             value={manager.formData.application_time}
-                            onChange={(e) => manager.setFormData("application_time", e.target.value)}
-                            placeholder="10:00"
+                            onChange={(e) =>
+                                manager.setFormData(
+                                    "application_time",
+                                    e.target.value,
+                                )
+                            }
+                            min="08:00"
+                            max="20:59"
+                            step="60"
                             maxLength="255"
                         />
                         <InputError message={manager.errors.application_time} />
@@ -184,7 +219,9 @@ export default function ExamFormModal({
                             type="number"
                             className="mt-1 block w-full"
                             value={manager.formData.capacity}
-                            onChange={(e) => manager.setFormData("capacity", e.target.value)}
+                            onChange={(e) =>
+                                manager.setFormData("capacity", e.target.value)
+                            }
                             placeholder="Ej. 10"
                             required
                             min="1"
@@ -212,7 +249,9 @@ export default function ExamFormModal({
                             type="text"
                             className="mt-1 block w-full"
                             value={manager.formData.site}
-                            onChange={(e) => manager.setFormData("site", e.target.value)}
+                            onChange={(e) =>
+                                manager.setFormData("site", e.target.value)
+                            }
                             placeholder="A-101 / Zoom Link"
                             maxLength="255"
                         />
@@ -226,7 +265,9 @@ export default function ExamFormModal({
                             selectId="teacher_id"
                             placeholder="Selecciona Especialista"
                             value={manager.formData.teacher_id}
-                            onValueChange={(v) => manager.setFormData("teacher_id", v)}
+                            onValueChange={(v) =>
+                                manager.setFormData("teacher_id", v)
+                            }
                         />
                         <InputError message={manager.errors.teacher_id} />
                     </div>
@@ -235,4 +276,3 @@ export default function ExamFormModal({
         </BaseResourceModal>
     );
 }
-

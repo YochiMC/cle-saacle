@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Enums\AcademicStatus;
+use App\Enums\GroupMode;
+use App\Enums\GroupType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,10 +27,30 @@ class UpdateGroupRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'mode'         => 'sometimes|required|string|max:255',
-            'type'         => 'sometimes|required|string|max:255',
+            'mode'         => ['sometimes', 'required', Rule::enum(GroupMode::class)],
+            'type'         => ['sometimes', 'required', Rule::enum(GroupType::class)],
             'capacity'     => 'sometimes|required|integer|min:1',
-            'schedule'     => 'sometimes|required|string|max:255',
+            'schedule'     => [
+                'sometimes',
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $value = trim((string) $value);
+
+                    if (! preg_match('/\b(\d{2}):([0-5]\d)\b/u', $value, $matches)) {
+                        $fail('El horario debe incluir una hora en formato HH:MM entre 08:00 y 20:59.');
+
+                        return;
+                    }
+
+                    $hour = (int) $matches[1];
+
+                    if ($hour < 8 || $hour > 20) {
+                        $fail('El horario debe usar una hora entre 08:00 y 20:59.');
+                    }
+                },
+            ],
             'classroom'    => ['nullable', 'string', 'max:255'],
             'meeting_link' => ['nullable', 'url', 'max:255'],
             'status'       => ['sometimes', 'required', 'string', Rule::enum(AcademicStatus::class)],
@@ -45,8 +67,11 @@ class UpdateGroupRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'mode.enum'         => 'La modalidad seleccionada no es válida.',
+            'type.enum'         => 'El tipo de grupo no es válido.',
             'capacity.integer'   => 'La capacidad debe ser un número entero.',
             'period_id.exists'   => 'El periodo seleccionado no existe.',
+            'status.enum'       => 'El estado seleccionado no es válido.',
         ];
     }
 }
