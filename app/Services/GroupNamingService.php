@@ -86,45 +86,46 @@ class GroupNamingService
 
     /**
      * Mapea el horario a una letra de identificación.
-     *
-     * Agrega más reglas `elseif` según la tabla de horarios institucional.
+     * Trunca los minutos y evalúa solo la hora entera de inicio.
      */
     private function getScheduleLetter(string $schedule): string
     {
-        // 1. Extraer todas las horas en formato HH:MM (ej. 08:00 o 8:00) del string
-        preg_match_all('/\b\d{1,2}:\d{2}\b/', $schedule, $matches);
+        // 1. Extraer la primera hora encontrada en formato HH:MM (ej. 08:30 o 8:00)
+        preg_match('/\b\d{1,2}:\d{2}\b/', $schedule, $matches);
         
-        // Si no encontró ninguna hora, devolvemos Z
-        if (empty($matches[0])) {
+        if (empty($matches)) {
             return 'Z';
         }
 
-        // 2. Tomamos la PRIMERA hora encontrada como la "hora de inicio"
-        $startTime = $matches[0][0];
+        $startTime = $matches[0];
 
-        // Normalizamos a formato de 2 dígitos (ej. "8:00" -> "08:00")
-        if (strlen($startTime) == 4) {
-            $startTime = '0' . $startTime;
+        // Separar por ':' y castear el primer elemento (la hora) a entero
+        $parts = explode(':', $startTime);
+        $hour = (int) $parts[0];
+
+        // Cláusula de guardia: validar que la hora esté en el rango permitido (8 a 20)
+        if ($hour < 8 || $hour > 20) {
+            return 'Z';
         }
 
-        // 3. Diccionario exacto basado en la tabla oficial (Hora de inicio => Letra)
+        // Diccionario basado en llaves enteras (de 8 a 20 mapeado a 'A' hasta 'M')
         $scheduleMap = [
-            '08:00' => 'A',
-            '09:00' => 'B',
-            '10:00' => 'C',
-            '11:00' => 'D',
-            '12:00' => 'E',
-            '13:00' => 'F',
-            '14:00' => 'G',
-            '15:00' => 'H',
-            '16:00' => 'I',
-            '17:00' => 'J',
-            '18:00' => 'K',
-            '19:00' => 'L',
-            '20:00' => 'M',
+            8  => 'A',
+            9  => 'B',
+            10 => 'C',
+            11 => 'D',
+            12 => 'E',
+            13 => 'F',
+            14 => 'G',
+            15 => 'H',
+            16 => 'I',
+            17 => 'J',
+            18 => 'K',
+            19 => 'L',
+            20 => 'M',
         ];
 
-        return $scheduleMap[$startTime] ?? 'Z';
+        return $scheduleMap[$hour] ?? 'Z';
     }
 
     /**
