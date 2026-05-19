@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Gate;
 use App\Actions\DeleteStudentDocument;
+use App\Actions\ServeStoredFile;
 use App\Actions\StoreStudentDocument;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
 use App\Models\Document;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -22,21 +21,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class DocumentController extends Controller
 {
-    /**
-     * Devuelve el disco configurado para el documento y valida su existencia.
-     */
-    private function resolveDocumentDisk(Document $document): FilesystemAdapter
-    {
-        /** @var FilesystemAdapter $disk */
-        $disk = Storage::disk($document->disk);
-
-        if (! $disk->exists($document->file_path)) {
-            abort(404, 'Archivo no encontrado.');
-        }
-
-        return $disk;
-    }
-
     /**
      * Almacena un nuevo documento para el usuario autenticado.
      */
@@ -78,24 +62,20 @@ class DocumentController extends Controller
     /**
      * Descarga un documento autorizado conservando su nombre original.
      */
-    public function download(Document $document): StreamedResponse
+    public function download(Document $document, ServeStoredFile $action): StreamedResponse
     {
         Gate::authorize('view', $document);
 
-        $disk = $this->resolveDocumentDisk($document);
-
-        return $disk->download($document->file_path, $document->original_name);
+        return $action->execute($document->disk, $document->file_path, $document->original_name);
     }
 
     /**
      * Muestra el documento en modo inline para formatos compatibles.
      */
-    public function preview(Document $document): StreamedResponse
+    public function preview(Document $document, ServeStoredFile $action): StreamedResponse
     {
         Gate::authorize('view', $document);
 
-        $disk = $this->resolveDocumentDisk($document);
-
-        return $disk->response($document->file_path, $document->original_name);
+        return $action->execute($document->disk, $document->file_path, $document->original_name, 'inline');
     }
 }

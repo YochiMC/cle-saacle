@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Gate;
-use App\Actions\DeleteStudentService;
-use App\Actions\StoreStudentService;
 use App\Actions\ApproveServiceAction;
+use App\Actions\DeleteStudentService;
+use App\Actions\ServeStoredFile;
+use App\Actions\StoreStudentService;
 use App\Http\Requests\StoreServiceRequest;
 use App\Http\Requests\UpdateServiceRequest;
 use App\Models\Service;
 use App\Models\User;
-use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -24,19 +23,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ServiceController extends Controller
 {
-
-    private function resolveServiceDisk(Service $service): FilesystemAdapter
-    {
-        /** @var FilesystemAdapter $disk */
-        $disk = Storage::disk($service->disk);
-
-        if (! $disk->exists($service->file_path)) {
-            abort(404, 'Archivo no encontrado.');
-        }
-
-        return $disk;
-    }
-
     /**
      * Almacena un nuevo pago para el alumno autenticado.
      */
@@ -81,24 +67,20 @@ class ServiceController extends Controller
     /**
      * Descarga un comprobante de pago autorizado.
      */
-    public function download(Service $service): StreamedResponse
+    public function download(Service $service, ServeStoredFile $action): StreamedResponse
     {
         Gate::authorize('download', $service);
 
-        $disk = $this->resolveServiceDisk($service);
-
-        return $disk->download($service->file_path, $service->original_name);
+        return $action->execute($service->disk, $service->file_path, $service->original_name);
     }
 
     /**
      * Muestra un comprobante de pago en modo inline para formatos compatibles.
      */
-    public function preview(Service $service): StreamedResponse
+    public function preview(Service $service, ServeStoredFile $action): StreamedResponse
     {
         Gate::authorize('view', $service);
 
-        $disk = $this->resolveServiceDisk($service);
-
-        return $disk->response($service->file_path, $service->original_name);
+        return $action->execute($service->disk, $service->file_path, $service->original_name, 'inline');
     }
 }
