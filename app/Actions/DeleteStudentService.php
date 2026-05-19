@@ -21,7 +21,8 @@ class DeleteStudentService
     public function execute(Service $service): bool
     {
         $filePath = (string) $service->file_path;
-        $disk = Storage::disk('local');
+        $diskName = $service->disk ?: config('filesystems.default');
+        $disk = Storage::disk($diskName);
 
         // 1. Validar ruta y verificar existencia en disco privado fijo.
         if ($filePath === '' || !$disk->exists($filePath)) {

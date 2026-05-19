@@ -13,10 +13,11 @@ class UploadFile
      *
      * @return array{path: string, disk: string, original_name: string, extension: string}
      */
-    public function execute(UploadedFile $file, string $folder, string $disk = 'local'): array
+    public function execute(UploadedFile $file, string $folder, ?string $disk = null): array
     {
+        $diskName = $disk ?? config('filesystems.default');
         $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs($folder, $fileName, $disk);
+        $path = $file->storeAs($folder, $fileName, $diskName);
 
         if (! $path) {
             throw new RuntimeException('Error al guardar el archivo en el disco.');
@@ -24,7 +25,7 @@ class UploadFile
 
         return [
             'path' => $path,
-            'disk' => $disk,
+            'disk' => $diskName,
             'original_name' => $file->getClientOriginalName(),
             'extension' => $file->getClientOriginalExtension(),
         ];

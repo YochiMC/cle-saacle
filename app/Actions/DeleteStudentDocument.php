@@ -21,7 +21,8 @@ class DeleteStudentDocument
     public function execute(Document $document): bool
     {
         $filePath = (string) $document->file_path;
-        $disk = Storage::disk('local');
+        $diskName = $document->disk ?: config('filesystems.default');
+        $disk = Storage::disk($diskName);
 
         // 1. Validar ruta y verificar existencia en disco privado fijo.
         if ($filePath === '' || !$disk->exists($filePath)) {

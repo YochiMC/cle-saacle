@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 class StoreStudentDocument
 {
     /**
-     * Almacena el archivo en el disco local restringido y crea el registro en BD.
+     * Almacena el archivo en el disco configurado y crea el registro en BD.
      *
      * @param UploadedFile $file El archivo binario recibido del request.
      * @param string $type El tipo de documento (ine, curp, etc).
@@ -30,16 +30,16 @@ class StoreStudentDocument
         // Generar nombre descriptivo del archivo basado en enum, usuario y nombre personalizado
         $fileName = $this->generateFileName($type, $user, $customName, $file->getClientOriginalExtension());
 
-        // Almacenar en disco 'local' (storage/app). 
-        // No es accesible públicamente, protegiendo la privacidad del alumno.
-        $path = $file->storeAs("documentos/user_{$userId}", $fileName, 'local');
+        $disk = config('filesystems.default');
+
+        $path = $file->storeAs("documentos/user_{$userId}", $fileName, $disk);
 
         return Document::create([
             'user_id'       => $userId,
             'type'          => $type,
             'original_name' => $fileName,
             'file_path'     => $path,
-            'disk'          => 'local',
+            'disk'          => $disk,
             'status'        => DocumentStatus::PENDING,
         ]);
     }
