@@ -41,7 +41,7 @@ class StudentEnrollmentModuleTest extends TestCase
             'is_active' => true,
         ]);
 
-        $student = $this->createStudentWithStatus(StudentStatus::ELEGIBLE_INSCRIPCION->value);
+        $student = $this->createStudentWithStatus(StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value);
         $student->update(['level_id' => $level->id]);
 
         Service::create([
@@ -96,8 +96,8 @@ class StudentEnrollmentModuleTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Academic/StudentEnrollment')
                 ->where('canEnroll', true)
-                ->where('studentStatus', StudentStatus::ELEGIBLE_INSCRIPCION->label())
-                ->where('studentStatusValue', StudentStatus::ELEGIBLE_INSCRIPCION->value)
+                ->where('studentStatus', StudentStatus::ELIGIBLE_FOR_ENROLLMENT->label())
+                ->where('studentStatusValue', StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value)
                 ->has('availableGroups')
                 ->has('availableExams')
                 ->has('enrolledGroups')
@@ -116,7 +116,7 @@ class StudentEnrollmentModuleTest extends TestCase
             'is_active' => true,
         ]);
 
-        $student = $this->createStudentWithStatus(StudentStatus::ELEGIBLE_INSCRIPCION->value);
+        $student = $this->createStudentWithStatus(StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value);
         $student->update(['level_id' => $level->id]);
 
         Service::create([
@@ -165,7 +165,7 @@ class StudentEnrollmentModuleTest extends TestCase
             'is_active' => true,
         ]);
 
-        $student = $this->createStudentWithStatus(StudentStatus::ELEGIBLE_INSCRIPCION->value);
+        $student = $this->createStudentWithStatus(StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value);
 
         Service::create([
             'type' => ServiceType::REGULAR->value,
@@ -203,7 +203,7 @@ class StudentEnrollmentModuleTest extends TestCase
         ]);
     }
 
-    public function test_unenroll_preserves_validated_status(): void
+    public function test_unenroll_restores_eligible_for_enrollment_status(): void
     {
         $level = Level::factory()->create();
         $teacher = Teacher::factory()->create();
@@ -214,7 +214,7 @@ class StudentEnrollmentModuleTest extends TestCase
             'is_active' => true,
         ]);
 
-        $student = $this->createStudentWithStatus(StudentStatus::ELEGIBLE_INSCRIPCION->value);
+        $student = $this->createStudentWithStatus(StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value);
         $student->update(['level_id' => $level->id]);
 
         Service::create([
@@ -263,8 +263,8 @@ class StudentEnrollmentModuleTest extends TestCase
             'student_id' => $student->id,
         ]);
 
-        // Verificar que el estado se mantiene como VALIDATED
-        $this->assertSame(StudentStatus::VALIDATED->value, $student->fresh()->status->value);
+        // Verificar que el estado regresa a elegible para reinscripción
+        $this->assertSame(StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value, $student->fresh()->status->value);
     }
 
     public function test_student_can_re_enroll_after_unenroll(): void
@@ -278,7 +278,7 @@ class StudentEnrollmentModuleTest extends TestCase
             'is_active' => true,
         ]);
 
-        $student = $this->createStudentWithStatus(StudentStatus::VALIDATED->value);
+        $student = $this->createStudentWithStatus(StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value);
         $student->update(['level_id' => $level->id]);
 
         Service::create([
@@ -325,7 +325,7 @@ class StudentEnrollmentModuleTest extends TestCase
             'student_id' => $student->id,
         ]);
 
-        // Reinscribirse - debería funcionar porque el estado es VALIDATED
+        // Reinscribirse - debería funcionar porque el estado sigue siendo elegible
         $response = $this->actingAs($student->user)
             ->post(route('self-enroll', $group));
 
