@@ -7,7 +7,6 @@ use App\Enums\TypeStudent;
 use App\Models\Student;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Validation\Rules\Enum;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -66,7 +65,7 @@ class StudentsImport implements ToCollection, WithHeadingRow, WithValidation, Sk
             'birthdate' => $this->normalizeDate($row->get('birthdate')),
             'semester' => $this->nullableInt($row->get('semester')),
             'degree_id' => $this->nullableInt($row->get('degree_id')),
-            'type_student' => $this->nullableString($row->get('type_student')),
+            'type_student' => $this->normalizeTypeStudent($row->get('type_student_id', $row->get('type_student'))),
             'level_id' => $this->nullableInt($row->get('level_id')),
             'email' => $this->nullableString($row->get('email')),
             'password' => $this->nullableString($row->get('password')),
@@ -99,6 +98,28 @@ class StudentsImport implements ToCollection, WithHeadingRow, WithValidation, Sk
         $cleanValue = trim((string) $value);
 
         return $cleanValue === '' ? null : $cleanValue;
+    }
+
+    /**
+     * @param mixed $value
+     */
+    private function normalizeTypeStudent(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return match ((int) $value) {
+                1 => TypeStudent::VIGENTE->value,
+                2 => TypeStudent::EGRESADO->value,
+                default => null,
+            };
+        }
+
+        $cleanValue = strtolower(trim((string) $value));
+
+        return TypeStudent::tryFrom($cleanValue)?->value;
     }
 
     /**
@@ -142,7 +163,7 @@ class StudentsImport implements ToCollection, WithHeadingRow, WithValidation, Sk
             '*.birthdate' => ['required', 'date'],
             '*.semester' => ['nullable', 'integer', 'min:0', 'max:13'],
             '*.degree_id' => ['required', 'exists:degrees,id'],
-            '*.type_student' => ['required', new Enum(TypeStudent::class)],
+            '*.type_student_id' => ['required', 'integer', 'in:1,2'],
             '*.level_id' => ['required', 'exists:levels,id'],
             '*.email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
             '*.email_recovery' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email_recovery'],
