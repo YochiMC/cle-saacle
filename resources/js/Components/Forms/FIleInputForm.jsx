@@ -36,8 +36,8 @@ export default function FileInputForm({
     disabled = false,
     helperText = 'Or click to browse files',
     buttonText = 'Browse files',
-    description = 'Selecciona un archivo para subir. Formatos permitidos: PDF, JPG, JPEG y PNG. Tamaño máximo sugerido: 10MB.',
-    maxFileSizeMb = 10,
+    description = 'Selecciona un archivo PDF para subir. Tamaño máximo sugerido: 5 MB.',
+    maxFileSizeMb = 5,
     onValidationError,
     className = '',
 }) {

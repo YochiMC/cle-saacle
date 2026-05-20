@@ -6,8 +6,8 @@ import InputForm from '@/Components/Forms/InputForm';
 import { FieldError } from '@/Components/ui/field';
 import { useForm } from '@inertiajs/react';
 
-const MAX_FILE_SIZE_MB = 10;
-const ACCEPTED_FILE_TYPES = '.pdf,.doc,.docx,.jpg,.jpeg,.png';
+const MAX_FILE_SIZE_MB = 5;
+const ACCEPTED_FILE_TYPES = '.pdf';
 
 /**
  * FileForm
@@ -102,7 +102,7 @@ export default function FileForm({
                     maxFileSizeMb={MAX_FILE_SIZE_MB}
                     helperText="Da clic aquí para buscar"
                     buttonText="Seleccionar archivo"
-                    description="Sube tus documentos. Formatos permitidos: PDF, DOC, DOCX, JPG, JPEG y PNG. Tamaño máximo: 10 MB."
+                    description="Sube tu documento en formato PDF. Tamaño máximo: 5 MB."
                     required
                     disabled={processing}
                 />

@@ -37,7 +37,7 @@ class StoreServiceRequest extends FormRequest
         $serviceTypeValues = array_column(ServiceType::toSelect(), 'value');
 
         return [
-            'file'             => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'file'             => ['required', 'file', 'mimes:pdf', 'max:5120'],
             'type'             => ['required', 'string', Rule::in($serviceTypeValues)],
             'amount'           => ['required', 'numeric', 'min:0'],
             'reference_number' => ['nullable', 'string', 'max:255'],
@@ -90,8 +90,8 @@ class StoreServiceRequest extends FormRequest
     {
         return [
             'file.required'       => 'El comprobante de pago es obligatorio.',
-            'file.mimes'          => 'El comprobante debe ser un archivo PDF, JPG, JPEG o PNG.',
-            'file.max'            => 'El comprobante no debe superar los 5MB.',
+            'file.mimes'          => 'El comprobante debe ser un archivo PDF.',
+            'file.max'            => 'El comprobante no debe superar los 5 MB.',
             'type.required'       => 'Debes seleccionar un concepto de pago.',
             'type.in'             => 'El concepto seleccionado no es válido.',
             'amount.required'     => 'El monto es obligatorio.',
