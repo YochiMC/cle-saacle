@@ -6,6 +6,7 @@ namespace App\Actions;
 
 use App\Models\Document;
 use Illuminate\Support\Facades\Storage;
+use App\Actions\DeleteStoredFile;
 
 /**
  * Acción encargada de la eliminación segura de un documento (física y lógica).
@@ -21,19 +22,17 @@ class DeleteStudentDocument
     public function execute(Document $document): bool
     {
         $filePath = (string) $document->file_path;
-        $disk = Storage::disk('local');
+        $diskName = $document->disk ?: config('filesystems.default');
 
-        // 1. Validar ruta y verificar existencia en disco privado fijo.
-        if ($filePath === '' || !$disk->exists($filePath)) {
+        if ($filePath === '') {
             return false;
         }
 
-        // 2. Eliminar archivo físico. Si falla, no se elimina el registro.
-        if (!$disk->delete($filePath)) {
+        $deleter = new DeleteStoredFile();
+        if (! $deleter->execute($diskName, $filePath)) {
             return false;
         }
 
-        // 3. Eliminar registro de la base de datos (atomicidad lógica).
         return (bool) $document->delete();
     }
 }

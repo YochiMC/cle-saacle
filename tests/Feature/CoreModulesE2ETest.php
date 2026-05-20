@@ -20,6 +20,16 @@ class CoreModulesE2ETest extends TestCase
 {
     use RefreshDatabase;
 
+    private function openPeriod(): Period
+    {
+        return Period::create([
+            'name'       => 'Periodo E2E',
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date'   => now()->addDay()->toDateString(),
+            'is_active'  => true,
+        ]);
+    }
+
     private function admin(): User
     {
         $user = User::factory()->create();
@@ -64,7 +74,7 @@ class CoreModulesE2ETest extends TestCase
     public function test_e2e_exam_main_flow_from_creation_to_completion(): void
     {
         $admin = $this->admin();
-        $period = Period::factory()->create();
+        $period = $this->openPeriod();
         $teacher = Teacher::factory()->create();
         $students = Student::factory()->withRole()->count(2)->create();
 
@@ -86,6 +96,8 @@ class CoreModulesE2ETest extends TestCase
             'student_id'      => $student->id,
             'units_breakdown' => ['is_left' => false, 'nivel_asignado' => 'Basico I'],
             'final_average'   => 88,
+            'is_left'         => false,
+            'attempt'         => 'first',
         ])->values()->all();
 
         $this->actingAs($admin)
@@ -117,7 +129,7 @@ class CoreModulesE2ETest extends TestCase
     public function test_e2e_group_main_flow_from_creation_to_completion(): void
     {
         $admin = $this->admin();
-        $period = Period::factory()->create();
+        $period = $this->openPeriod();
         $teacher = Teacher::factory()->create();
         $level = Level::factory()->create();
         $students = Student::factory()->withRole()->count(2)->create();

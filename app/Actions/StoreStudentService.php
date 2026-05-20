@@ -8,7 +8,7 @@ use App\Models\Student;
 use App\Models\Period;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
+use App\Actions\UploadFile;
 
 /**
  * Acción encargada de procesar el almacenamiento físico y lógico de un pago/servicio.
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 class StoreStudentService
 {
     /**
-     * Almacena el archivo en el disco local restringido y crea el registro en BD.
+     * Almacena el archivo en el disco configurado y crea el registro en BD.
      *
      * @param UploadedFile $file El archivo binario recibido del request.
      * @param array $data Los datos validados del servicio.
@@ -28,8 +28,8 @@ class StoreStudentService
         // Generar nombre único basado en UUID para evitar colisiones
         $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
 
-        // Almacenar en disco 'local' (storage/app).
-        $path = $file->storeAs("servicios/student_{$studentId}", $fileName, 'local');
+        $uploader = new UploadFile();
+        $meta = $uploader->execute($file, "servicios/student_{$studentId}", null, $fileName);
 
         $activePeriod = Period::where('is_active', true)->first();
 
@@ -40,8 +40,8 @@ class StoreStudentService
             'reference_number' => $data['reference_number'] ?? null,
             'description'      => $data['description'] ?? null,
             'original_name'    => $file->getClientOriginalName(),
-            'file_path'        => $path,
-            'disk'             => 'local',
+            'file_path'        => $meta['path'],
+            'disk'             => $meta['disk'],
             'status'           => ServiceStatus::PENDING->value,
             'period_id'        => $activePeriod?->id,
         ]);

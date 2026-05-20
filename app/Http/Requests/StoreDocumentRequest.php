@@ -14,8 +14,8 @@ use Illuminate\Validation\Rule;
  */
 class StoreDocumentRequest extends FormRequest
 {
-    private const ALLOWED_MIMES = 'pdf,doc,docx,jpg,jpeg,png';
-    private const MAX_FILE_SIZE_KB = 10240;
+    private const ALLOWED_MIMES = 'pdf';
+    private const MAX_FILE_SIZE_KB = 5120;
 
     /**
      * Determina si el usuario autenticado puede enviar esta solicitud.
@@ -59,8 +59,8 @@ class StoreDocumentRequest extends FormRequest
     {
         return [
             'file.required' => 'Debes seleccionar un archivo para continuar.',
-            'file.mimes' => 'El formato del archivo no es válido. Verifica que cumpla con los tipos permitidos.',
-            'file.max' => 'El archivo supera el tamaño permitido. El límite máximo es de 10 MB.',
+            'file.mimes' => 'El formato del archivo no es válido. Solo se permiten archivos PDF.',
+            'file.max' => 'El archivo supera el tamaño permitido. El límite máximo es de 5 MB.',
             'type.required' => 'Debes seleccionar un tipo de documento.',
             'type.in' => 'El tipo de documento seleccionado no es válido.',
         ];

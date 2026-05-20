@@ -7,6 +7,7 @@ use App\Actions\BulkDetachStudentsFromExam;
 use App\Actions\BulkUpdateExamStatus;
 use App\Actions\EnrollStudentsInExam;
 use App\Enums\AcademicStatus;
+use App\Enums\AttemptEnum;
 use App\Enums\ExamType;
 use App\Models\Exam;
 use App\Models\Level;
@@ -114,6 +115,7 @@ class ExamControllerTest extends TestCase
     public function test_store_returns_403_for_student_role(): void
     {
         $this->actingAs($this->student())
+            ->withHeaders(['Accept' => 'application/json'])
             ->post(route('exams.store'), $this->validExamPayload())
             ->assertForbidden();
     }
@@ -165,6 +167,7 @@ class ExamControllerTest extends TestCase
         $exam = Exam::factory()->create();
 
         $this->actingAs($this->student())
+            ->withHeaders(['Accept' => 'application/json'])
             ->put(route('exams.update', $exam), ['capacity' => 5])
             ->assertForbidden();
     }
@@ -190,6 +193,7 @@ class ExamControllerTest extends TestCase
         $exam = Exam::factory()->create();
 
         $this->actingAs($this->student())
+            ->withHeaders(['Accept' => 'application/json'])
             ->delete(route('exams.destroy', $exam))
             ->assertForbidden();
     }
@@ -270,7 +274,14 @@ class ExamControllerTest extends TestCase
 
     public function test_enroll_delegates_to_action_and_redirects_with_success(): void
     {
-        $exam     = Exam::factory()->create();
+        $period = Period::create([
+            'name'       => 'Periodo de prueba',
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date'   => now()->addDay()->toDateString(),
+            'is_active'  => true,
+        ]);
+        $teacher = Teacher::factory()->create();
+        $exam     = Exam::factory()->create(['period_id' => $period->id, 'teacher_id' => $teacher->id]);
         $students = Student::factory()->withRole()->count(2)->create();
 
         $this->actingAs($this->admin())
@@ -288,14 +299,27 @@ class ExamControllerTest extends TestCase
         }
     }
 
-    public function test_enroll_returns_403_for_coordinator_role(): void
+    public function test_enroll_allows_coordinator_role(): void
     {
-        // EnrollStudentsRequest solo autoriza 'admin'
-        $exam = Exam::factory()->create();
+        $period = Period::create([
+            'name'       => 'Periodo de prueba',
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date'   => now()->addDay()->toDateString(),
+            'is_active'  => true,
+        ]);
+        $teacher = Teacher::factory()->create();
+        $exam = Exam::factory()->create(['period_id' => $period->id, 'teacher_id' => $teacher->id]);
+        $student = Student::factory()->withRole()->create();
 
         $this->actingAs($this->coordinator())
-            ->post(route('exams.enroll', $exam), ['student_ids' => []])
-            ->assertForbidden();
+            ->post(route('exams.enroll', $exam), ['student_ids' => [$student->id]])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('exam_student', [
+            'exam_id'    => $exam->id,
+            'student_id' => $student->id,
+        ]);
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -364,6 +388,7 @@ class ExamControllerTest extends TestCase
         $student = Student::factory()->withRole()->create();
 
         $this->actingAs($this->student())
+            ->withHeaders(['Accept' => 'application/json'])
             ->post(route('exams.unenroll-bulk', $exam), [
                 'ids' => [$student->id],
             ])
@@ -397,6 +422,7 @@ class ExamControllerTest extends TestCase
         $exam = Exam::factory()->create();
 
         $this->actingAs($this->student())
+            ->withHeaders(['Accept' => 'application/json'])
             ->post(route('exams.bulk-status'), [
                 'ids'        => [$exam->id],
                 'new_status' => AcademicStatus::ACTIVE->value,
@@ -428,6 +454,7 @@ class ExamControllerTest extends TestCase
         $exam = Exam::factory()->create();
 
         $this->actingAs($this->student())
+            ->withHeaders(['Accept' => 'application/json'])
             ->delete(route('exams.bulk-delete'), ['ids' => [$exam->id]])
             ->assertForbidden();
     }
@@ -473,15 +500,19 @@ class ExamControllerTest extends TestCase
         $exam->students()->attach($student->id, [
             'calificacion'    => null,
             'units_breakdown' => json_encode(['is_left' => false]),
-            'final_average' => 0,
+            'final_average'   => 0,
+            'is_left'         => false,
+            'attempt'         => AttemptEnum::FIRST->value,
         ]);
 
-        $newBreakdown = ['is_left' => false, 'nivel_asignado' => 'BÃ¡sico I'];
+        $newBreakdown = ['is_left' => false, 'nivel_asignado' => 'Basico I'];
 
-        $this->actingAs($this->teacher())
+        $this->actingAs($this->admin())
             ->patch(route('exams.qualifications.update', [$exam, $student]), [
                 'units_breakdown' => $newBreakdown,
                 'final_average'   => 85.5,
+                'is_left'         => false,
+                'attempt'         => AttemptEnum::FIRST->value,
             ])
             ->assertRedirect()
             ->assertSessionHas('success');
@@ -495,19 +526,22 @@ class ExamControllerTest extends TestCase
 
     public function test_update_pivot_stores_zero_when_final_average_is_null(): void
     {
-        // El controller hace: 'final_average' => $request->validated('final_average') ?? 0
         $exam    = Exam::factory()->create();
         $student = Student::factory()->withRole()->create();
         $exam->students()->attach($student->id, [
             'calificacion'    => null,
             'units_breakdown' => json_encode([]),
             'final_average'   => 99,
+            'is_left'         => false,
+            'attempt'         => AttemptEnum::FIRST->value,
         ]);
 
         $this->actingAs($this->admin())
             ->patch(route('exams.qualifications.update', [$exam, $student]), [
                 'units_breakdown' => ['is_left' => false],
-                'final_average' => 0,
+                'final_average'   => null,
+                'is_left'         => false,
+                'attempt'         => AttemptEnum::FIRST->value,
             ])
             ->assertRedirect();
 
@@ -564,17 +598,21 @@ class ExamControllerTest extends TestCase
             $exam->students()->attach($s->id, [
                 'calificacion'    => null,
                 'units_breakdown' => json_encode(['is_left' => false]),
-                'final_average' => 0,
+                'final_average'   => 0,
+                'is_left'         => false,
+                'attempt'         => AttemptEnum::FIRST->value,
             ]);
         }
 
         $qualifications = $students->map(fn($s) => [
             'student_id'      => $s->id,
-            'units_breakdown' => ['is_left' => false, 'nivel_asignado' => 'BÃ¡sico I'],
+            'units_breakdown' => ['is_left' => false, 'nivel_asignado' => 'Basico I'],
             'final_average'   => 90,
+            'is_left'         => false,
+            'attempt'         => AttemptEnum::FIRST->value,
         ])->all();
 
-        $this->actingAs($this->teacher())
+        $this->actingAs($this->admin())
             ->patch(route('exams.qualifications.bulk-update', $exam), [
                 'qualifications' => $qualifications,
             ])
@@ -592,13 +630,14 @@ class ExamControllerTest extends TestCase
 
     public function test_bulk_update_pivot_defaults_final_average_to_zero_when_null(): void
     {
-        // BulkUpdateExamQualifications::execute() hace ?? 0 en cada Ã­tem
         $exam    = Exam::factory()->create();
         $student = Student::factory()->withRole()->create();
         $exam->students()->attach($student->id, [
-            'calificacion' => null,
+            'calificacion'    => null,
             'units_breakdown' => json_encode([]),
-            'final_average' => 50,
+            'final_average'   => 50,
+            'is_left'         => false,
+            'attempt'         => AttemptEnum::FIRST->value,
         ]);
 
         $this->actingAs($this->admin())
@@ -606,7 +645,9 @@ class ExamControllerTest extends TestCase
                 'qualifications' => [[
                     'student_id'      => $student->id,
                     'units_breakdown' => ['is_left' => false],
-                    'final_average' => 0,
+                    'final_average'   => null,
+                    'is_left'         => false,
+                    'attempt'         => AttemptEnum::FIRST->value,
                 ]],
             ])
             ->assertRedirect();

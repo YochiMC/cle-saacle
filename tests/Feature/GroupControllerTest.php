@@ -430,10 +430,18 @@ class GroupControllerTest extends TestCase
 
     public function test_show_is_accessible_for_student_role(): void
     {
-        // groups.show est+�-� bajo role:admin|teacher|student +������ el student S+�-� tiene acceso
         $group = Group::factory()->create();
+        $student = Student::factory()->withRole()->create();
 
-        $this->actingAs($this->student())
+        Qualification::create([
+            'group_id'        => $group->id,
+            'student_id'      => $student->id,
+            'units_breakdown' => json_encode([]),
+            'final_average'   => null,
+            'is_left'         => false,
+        ]);
+
+        $this->actingAs($student->user)
             ->get(route('groups.show', $group))
             ->assertOk();
     }
@@ -463,14 +471,28 @@ class GroupControllerTest extends TestCase
         }
     }
 
-    public function test_enroll_returns_403_for_coordinator_role(): void
+    public function test_enroll_allows_coordinator_role(): void
     {
-        // EnrollStudentsRequest solo autoriza 'admin'
-        $group = Group::factory()->create();
+        $period = Period::create([
+            'name'       => 'Periodo de prueba',
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date'   => now()->addDay()->toDateString(),
+            'is_active'  => true,
+        ]);
+        $group = Group::factory()->create(['period_id' => $period->id]);
+        $students = Student::factory()->withRole()->count(2)->create();
 
         $this->actingAs($this->coordinator())
-            ->post(route('groups.enroll', $group), ['student_ids' => []])
-            ->assertForbidden();
+            ->post(route('groups.enroll', $group), ['student_ids' => $students->pluck('id')->all()])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        foreach ($students as $student) {
+            $this->assertDatabaseHas('qualifications', [
+                'group_id'   => $group->id,
+                'student_id' => $student->id,
+            ]);
+        }
     }
 
     // +������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������
@@ -580,14 +602,19 @@ class GroupControllerTest extends TestCase
             ->assertSessionHasErrors(['evaluable_units']);
     }
 
-    public function test_update_units_returns_403_for_coordinator_role(): void
+    public function test_update_units_allows_coordinator_role(): void
     {
-        // UpdateUnitsGroupRequest solo autoriza admin|teacher
-        $group = Group::factory()->create();
+        $group = Group::factory()->create(['evaluable_units' => 3]);
 
         $this->actingAs($this->coordinator())
             ->patch(route('groups.update-units', $group), ['evaluable_units' => 4])
-            ->assertForbidden();
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('groups', [
+            'id' => $group->id,
+            'evaluable_units' => 4,
+        ]);
     }
 
     public function test_update_units_returns_403_for_student_role(): void

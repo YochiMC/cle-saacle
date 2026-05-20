@@ -198,7 +198,7 @@ export default function PaymentModal({
                                 name="file"
                                 label="Comprobante de Pago"
                                 onChange={onFileChange}
-                                accept=".pdf,.jpg,.jpeg,.png"
+                                accept=".pdf"
                                 maxFileSizeMb={5}
                                 required
                             />

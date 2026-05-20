@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Gate;
-use App\Actions\DeleteStudentService;
-use App\Actions\StoreStudentService;
 use App\Actions\ApproveServiceAction;
+use App\Actions\DeleteStudentService;
+use App\Actions\ServeStoredFile;
+use App\Actions\StoreStudentService;
 use App\Http\Requests\StoreServiceRequest;
 use App\Http\Requests\UpdateServiceRequest;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Controlador de Pagos/Servicios de Usuario.
@@ -23,16 +23,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class ServiceController extends Controller
 {
-
-    private function resolveServiceAbsolutePath(Service $service): string
-    {
-        if (! Storage::disk($service->disk)->exists($service->file_path)) {
-            abort(404, 'Archivo no encontrado.');
-        }
-
-        return Storage::disk($service->disk)->path($service->file_path);
-    }
-
     /**
      * Almacena un nuevo pago para el alumno autenticado.
      */
@@ -77,26 +67,20 @@ class ServiceController extends Controller
     /**
      * Descarga un comprobante de pago autorizado.
      */
-    public function download(Service $service): BinaryFileResponse
+    public function download(Service $service, ServeStoredFile $action): StreamedResponse
     {
         Gate::authorize('download', $service);
 
-        $absolutePath = $this->resolveServiceAbsolutePath($service);
-
-        return response()->download($absolutePath, $service->original_name);
+        return $action->execute($service->disk, $service->file_path, $service->original_name);
     }
 
     /**
      * Muestra un comprobante de pago en modo inline para formatos compatibles.
      */
-    public function preview(Service $service): BinaryFileResponse
+    public function preview(Service $service, ServeStoredFile $action): StreamedResponse
     {
         Gate::authorize('view', $service);
 
-        $absolutePath = $this->resolveServiceAbsolutePath($service);
-
-        return response()->file($absolutePath, [
-            'Content-Disposition' => 'inline; filename="' . addslashes($service->original_name) . '"',
-        ]);
+        return $action->execute($service->disk, $service->file_path, $service->original_name, 'inline');
     }
 }
