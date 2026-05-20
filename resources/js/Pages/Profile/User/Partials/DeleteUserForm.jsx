@@ -2,7 +2,7 @@ import ButtonForm from '@/Components/Forms/ButtonForm';
 import FormModal from '@/Components/Forms/FormModal';
 import InputForm from '@/Components/Forms/InputForm';
 import ConfirmModal from '@/Components/ui/ConfirmModal';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import { FieldError } from '@/Components/ui/field';
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
