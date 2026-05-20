@@ -1,7 +1,7 @@
 import { Head } from "@inertiajs/react";
 import Graficas from "@/Components/Charts/Graphics";
 import { useState } from "react";
-import ModalAlert from "@/Components/UI/ModalAlert";
+import ModalAlert from "@/Components/ui/ModalAlert";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
 
