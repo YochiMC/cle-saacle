@@ -5,31 +5,37 @@ FROM node:22 AS frontend
 
 WORKDIR /app
 
-# Instalar dependencias de Node
+# Copiar archivos de dependencias
 COPY package*.json ./
-RUN npm install
 
-# Copiar el resto del proyecto y compilar
+# Instalar dependencias
+RUN npm ci || npm install
+
+# Copiar el resto del proyecto
 COPY . .
+
+# Variables mínimas para Vite
+ENV NODE_ENV=production
+ENV APP_ENV=production
+
+# Compilar assets
 RUN npm run build
 
 
 # ============================================
-# Etapa 2: Aplicación Laravel con PHP
+# Etapa 2: Laravel con PHP
 # ============================================
 FROM php:8.3-cli
 
 WORKDIR /var/www/html
 
-# Instalar dependencias del sistema y extensiones PHP necesarias
+# Dependencias del sistema y extensiones PHP
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
     zip \
     libzip-dev \
     libpq-dev \
-    libonig-dev \
-    libxml2-dev \
     && docker-php-ext-install \
         zip \
         pdo \
@@ -38,29 +44,24 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar Composer
+# Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copiar código fuente
+# Copiar proyecto
 COPY . .
 
 # Instalar dependencias PHP
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Copiar assets compilados desde la etapa frontend
+# Copiar assets compilados
 COPY --from=frontend /app/public/build ./public/build
 
-# Crear directorios necesarios y ajustar permisos
+# Preparar directorios
 RUN mkdir -p storage/framework/{cache,sessions,views} bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Cachear configuración (si APP_KEY no está disponible, no falla)
-RUN php artisan config:cache || true
-RUN php artisan route:cache || true
-RUN php artisan view:cache || true
-
-# Exponer el puerto utilizado por Render
+# Exponer puerto
 EXPOSE 10000
 
-# Comando de inicio
+# Iniciar Laravel
 CMD php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
