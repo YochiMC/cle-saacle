@@ -8,6 +8,7 @@ use App\Models\Document;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
+use App\Actions\UploadFile;
 
 /**
  * Acción encargada de procesar el almacenamiento físico y lógico de un documento.
@@ -30,16 +31,15 @@ class StoreStudentDocument
         // Generar nombre descriptivo del archivo basado en enum, usuario y nombre personalizado
         $fileName = $this->generateFileName($type, $user, $customName, $file->getClientOriginalExtension());
 
-        $disk = config('filesystems.default');
-
-        $path = $file->storeAs("documentos/user_{$userId}", $fileName, $disk);
+        $uploader = new UploadFile();
+        $meta = $uploader->execute($file, "documentos/user_{$userId}", null, $fileName);
 
         return Document::create([
             'user_id'       => $userId,
             'type'          => $type,
             'original_name' => $fileName,
-            'file_path'     => $path,
-            'disk'          => $disk,
+            'file_path'     => $meta['path'],
+            'disk'          => $meta['disk'],
             'status'        => DocumentStatus::PENDING,
         ]);
     }

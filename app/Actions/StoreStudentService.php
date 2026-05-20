@@ -8,6 +8,7 @@ use App\Models\Student;
 use App\Models\Period;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
+use App\Actions\UploadFile;
 
 /**
  * Acción encargada de procesar el almacenamiento físico y lógico de un pago/servicio.
@@ -27,9 +28,8 @@ class StoreStudentService
         // Generar nombre único basado en UUID para evitar colisiones
         $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
 
-        $disk = config('filesystems.default');
-
-        $path = $file->storeAs("servicios/student_{$studentId}", $fileName, $disk);
+        $uploader = new UploadFile();
+        $meta = $uploader->execute($file, "servicios/student_{$studentId}", null, $fileName);
 
         $activePeriod = Period::where('is_active', true)->first();
 
@@ -40,8 +40,8 @@ class StoreStudentService
             'reference_number' => $data['reference_number'] ?? null,
             'description'      => $data['description'] ?? null,
             'original_name'    => $file->getClientOriginalName(),
-            'file_path'        => $path,
-            'disk'             => $disk,
+            'file_path'        => $meta['path'],
+            'disk'             => $meta['disk'],
             'status'           => ServiceStatus::PENDING->value,
             'period_id'        => $activePeriod?->id,
         ]);

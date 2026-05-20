@@ -13,7 +13,7 @@ class UploadFile
      *
      * @return array{path: string, disk: string, original_name: string, extension: string}
      */
-    public function execute(UploadedFile $file, string $folder, ?string $disk = null): array
+    public function execute(UploadedFile $file, string $folder, ?string $disk = null, ?string $fileName = null): array
     {
         $diskName = $disk ?? config('filesystems.default');
         // Defensive checks: enforce PDF-only and size limit (5 MB) even if frontend validated.
@@ -30,7 +30,9 @@ class UploadFile
         if (($file->getSize() ?? 0) > $maxBytes) {
             throw new RuntimeException('El archivo supera el tamaño máximo permitido de 5 MB.');
         }
-        $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        // Allow caller to provide a filename; otherwise generate a UUID-based name.
+        $fileName = $fileName ?? (Str::uuid() . '.' . $file->getClientOriginalExtension());
+
         $path = $file->storeAs($folder, $fileName, $diskName);
 
         if (! $path) {
