@@ -56,25 +56,32 @@ export default function ResourceDashboard({
     const [vistaActual, setVistaActual] = useState(firstView);
 
     const currentData = dataMap[vistaActual] || EMPTY_DATA;
-    const currentBaseData = baseDataMap ? (baseDataMap[vistaActual] || EMPTY_DATA) : currentData;
+    const currentBaseData = baseDataMap
+        ? baseDataMap[vistaActual] || EMPTY_DATA
+        : currentData;
     const currentViewLabel =
         viewOptions.find((o) => o.value === vistaActual)?.label ?? title;
 
-    const generatedColumns = useDynamicColumns(currentBaseData, onEditRow, onDeleteRow, {
-        editableColumns,
-        restrictedColumns,
-        forcedKeys,
-        selectOptions,
-        onCellChange,
-        editingRowId,
-        editAllRows,
-        onSaveRow,
-        onCancelRow,
-        customRowActions,
-        columnConfig: columnConfig,
-        canPerformEdit,
-        canPerformDelete,
-    });
+    const generatedColumns = useDynamicColumns(
+        currentBaseData,
+        onEditRow,
+        onDeleteRow,
+        {
+            editableColumns,
+            restrictedColumns,
+            forcedKeys,
+            selectOptions,
+            onCellChange,
+            editingRowId,
+            editAllRows,
+            onSaveRow,
+            onCancelRow,
+            customRowActions,
+            columnConfig: columnConfig,
+            canPerformEdit,
+            canPerformDelete,
+        },
+    );
 
     const columns = useMemo(() => {
         let cols = generatedColumns;
@@ -90,7 +97,12 @@ export default function ResourceDashboard({
         }
 
         return cols;
-    }, [generatedColumns, debeOcultarAcciones, canPerformEdit, canPerformDelete]);
+    }, [
+        generatedColumns,
+        debeOcultarAcciones,
+        canPerformEdit,
+        canPerformDelete,
+    ]);
 
     const {
         filasSeleccionadas,
@@ -102,7 +114,7 @@ export default function ResourceDashboard({
         setRowSelection,
         isConfirmingBulkDelete,
         setIsConfirmingBulkDelete,
-        executeBulkDelete
+        executeBulkDelete,
     } = useBulkActions(deleteRoute, vistaActual, bulkDeleteMethod);
 
     const handleViewChange = (newView) => {
@@ -127,16 +139,18 @@ export default function ResourceDashboard({
                     onViewChange={handleViewChange}
                     selectionCount={filasSeleccionadas.length}
                     onBulkCopy={handleBulkCopy}
-                    onBulkDelete={canPerformDelete ? handleBulkDelete : undefined}
+                    onBulkDelete={
+                        canPerformDelete ? handleBulkDelete : undefined
+                    }
                     customActions={customActions}
                 />
 
                 <div className="p-6 overflow-hidden bg-white rounded-sm shadow-sm">
                     {currentBaseData.length > 0 || buttonSpace ? (
                         <DataTable
-                            key={`table-${vistaActual}-${columns.map(c => c.id || c.accessorKey).join('-')}`}
+                            key={`table-${vistaActual}-${columns.map((c) => c.id || c.accessorKey).join("-")}`}
                             columns={columns}
-                            data={currentData}
+                            data={currentBaseData}
                             hiddenColumns={hiddenColumns}
                             rowSelection={rowSelection}
                             onRowSelectionChange={setRowSelection}
@@ -148,9 +162,9 @@ export default function ResourceDashboard({
                             getRowClassName={getRowClassName}
                         />
                     ) : (
-                        <ResourceEmptyState 
-                            label={currentViewLabel} 
-                            onNew={onNew} 
+                        <ResourceEmptyState
+                            label={currentViewLabel}
+                            onNew={onNew}
                         />
                     )}
                 </div>
@@ -161,11 +175,13 @@ export default function ResourceDashboard({
                 onClose={() => setIsConfirmingBulkDelete(false)}
                 onConfirm={executeBulkDelete}
                 title={bulkDeleteModal?.title || "Eliminación Masiva"}
-                message={bulkDeleteModal?.message || `¿Estás seguro de que deseas eliminar ${filasSeleccionadas.length} registros seleccionados? Esta acción no se puede deshacer.`}
+                message={
+                    bulkDeleteModal?.message ||
+                    `¿Estás seguro de que deseas eliminar ${filasSeleccionadas.length} registros seleccionados? Esta acción no se puede deshacer.`
+                }
                 confirmText={bulkDeleteModal?.confirmText || "Sí, eliminar"}
                 variant={bulkDeleteModal?.variant || "danger"}
             />
         </div>
     );
 }
-
