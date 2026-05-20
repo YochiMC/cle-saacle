@@ -5,6 +5,7 @@ namespace Tests\Unit\Requests;
 use App\Enums\AcademicStatus;
 use App\Http\Requests\BulkUpdateGroupStatusRequest;
 use App\Models\Group;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -17,10 +18,9 @@ use Tests\TestCase;
  *  - rules():    ids (required/array/min:1/exists:groups), new_status (required/Rule::enum)
  *  - messages(): textos de error en español
  *
- * Nota de seguridad detectada:
- *   authorize() devuelve `true` sin verificar rol. La protección efectiva
- *   viene del middleware `role:admin|teacher|coordinator` en la ruta.
- *   Se documenta con un test explícito para que quede en el histórico.
+ * Nota de seguridad:
+ *   authorize() valida que el usuario tenga rol `admin` o `coordinator`.
+ *   La protección efectiva de la ruta sigue reforzándose con middleware.
  */
 class BulkUpdateGroupStatusRequestTest extends TestCase
 {
@@ -164,16 +164,28 @@ class BulkUpdateGroupStatusRequestTest extends TestCase
     // ─────────────────────────────────────────────────────────────────────────
     // authorize()
     //
-    // Nota: authorize() devuelve true incondicionalmente.
-    // La protección real la ejerce el middleware de ruta.
-    // Este test lo documenta explícitamente.
+    // La autorización depende del rol del usuario autenticado.
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function test_authorize_always_returns_true_regardless_of_user(): void
+    public function test_authorize_allows_admin_and_coordinator_but_denies_guest(): void
     {
-        $request = new BulkUpdateGroupStatusRequest();
-        $request->setUserResolver(fn() => null); // sin usuario
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
 
-        $this->assertTrue($request->authorize());
+        $coordinator = User::factory()->create();
+        $coordinator->assignRole('coordinator');
+
+        $adminRequest = new BulkUpdateGroupStatusRequest();
+        $adminRequest->setUserResolver(fn() => $admin);
+
+        $coordinatorRequest = new BulkUpdateGroupStatusRequest();
+        $coordinatorRequest->setUserResolver(fn() => $coordinator);
+
+        $guestRequest = new BulkUpdateGroupStatusRequest();
+        $guestRequest->setUserResolver(fn() => null);
+
+        $this->assertTrue($adminRequest->authorize());
+        $this->assertTrue($coordinatorRequest->authorize());
+        $this->assertFalse($guestRequest->authorize());
     }
 }
