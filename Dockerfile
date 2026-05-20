@@ -27,7 +27,8 @@ RUN npm run build
 # ============================================
 # Etapa 2: Laravel con PHP
 # ============================================
-FROM php:8.3-cli-slim
+# Regresamos a la imagen que tenías originalmente
+FROM php:8.3-cli
 
 WORKDIR /var/www/html
 
