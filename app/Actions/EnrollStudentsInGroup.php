@@ -68,22 +68,39 @@ class EnrollStudentsInGroup
         DB::transaction(function () use ($group, $studentIds, $defaultUnitsBreakdown, $initialAverage) {
             // Lock the group row to prevent concurrent seat allocation
             $lockedGroup = \App\Models\Group::where('id', $group->id)->lockForUpdate()->first();
+
+            // Filter out students who are already enrolled in this group to ensure idempotency
+            $alreadyEnrolledIds = $lockedGroup->qualifications()
+                ->whereIn('student_id', $studentIds)
+                ->pluck('student_id')
+                ->toArray();
+
+            $newStudentIds = array_diff($studentIds, $alreadyEnrolledIds);
+
+            if (empty($newStudentIds)) {
+                return;
+            }
+
             $current = $lockedGroup->qualifications()->count();
-            $toAdd = count($studentIds);
+            $toAdd = count($newStudentIds);
 
             if (($lockedGroup->capacity ?? 0) < ($current + $toAdd)) {
                 throw new \App\Exceptions\GroupCapacityExceededException('Group capacity exceeded');
             }
 
-            foreach ($studentIds as $studentId) {
-                Qualification::create([
-                    'group_id'        => $group->id,
-                    'student_id'      => $studentId,
-                    'units_breakdown' => $defaultUnitsBreakdown,
-                    'final_average'   => $initialAverage,
-                    'is_left'         => false,
-                    'attempt'         => \App\Enums\AttemptEnum::FIRST->value,
-                ]);
+            foreach ($newStudentIds as $studentId) {
+                Qualification::firstOrCreate(
+                    [
+                        'group_id'   => $group->id,
+                        'student_id' => $studentId,
+                    ],
+                    [
+                        'units_breakdown' => $defaultUnitsBreakdown,
+                        'final_average'   => $initialAverage,
+                        'is_left'         => false,
+                        'attempt'         => \App\Enums\AttemptEnum::FIRST->value,
+                    ]
+                );
             }
         });
     }

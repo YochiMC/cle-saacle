@@ -42,21 +42,32 @@ class EnrollStudentsInExam
         DB::transaction(function () use ($exam, $studentIds, $defaultBreakdown) {
             // Lock the exam row to ensure capacity checks are reliable under concurrency
             $lockedExam = \App\Models\Exam::where('id', $exam->id)->lockForUpdate()->first();
+
+            // Filter out students who are already enrolled in this exam to ensure idempotency
+            $alreadyEnrolledIds = $lockedExam->students()
+                ->whereIn('students.id', $studentIds)
+                ->pluck('students.id')
+                ->toArray();
+
+            $newStudentIds = array_diff($studentIds, $alreadyEnrolledIds);
+
+            if (empty($newStudentIds)) {
+                return;
+            }
+
             $current = $lockedExam->students()->count();
-            $toAdd = count($studentIds);
+            $toAdd = count($newStudentIds);
 
             if (($lockedExam->capacity ?? 0) < ($current + $toAdd)) {
                 throw new \App\Exceptions\ExamCapacityExceededException('Exam capacity exceeded');
             }
 
-            foreach ($studentIds as $studentId) {
-                if (!$exam->students()->where('students.id', $studentId)->exists()) {
-                    $exam->students()->attach($studentId, [
-                        'units_breakdown' => $defaultBreakdown,
-                        'final_average'   => 0,
-                        'attempt'         => \App\Enums\AttemptEnum::FIRST->value,
-                    ]);
-                }
+            foreach ($newStudentIds as $studentId) {
+                $exam->students()->attach($studentId, [
+                    'units_breakdown' => $defaultBreakdown,
+                    'final_average'   => 0,
+                    'attempt'         => \App\Enums\AttemptEnum::FIRST->value,
+                ]);
             }
         });
     }
