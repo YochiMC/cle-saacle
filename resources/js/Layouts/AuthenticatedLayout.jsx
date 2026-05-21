@@ -42,7 +42,7 @@ export default function AuthenticatedLayout({ header, children }) {
         { route: "student.enrollment", label: "Inscripción", allowedRoles: ["student"] },
         { route: "users", label: "Usuarios", allowedRoles: ["admin"] },
         { route: "groups", label: "Grupos", allowedRoles: ["admin", "teacher", "student"] },
-        { route: "reports", label: "Reportes", allowedRoles: ["admin", "teacher"] },
+        { route: "reports", label: "Reportes", allowedRoles: ["admin", "coordinator"] },
         { route: "accreditations", label: "Acreditaciones", allowedRoles: ["admin", "coordinator"] },
         { route: "exams.index", label: "Exámenes", allowedRoles: ["admin", "teacher", "student"] },
         { route: "settings.catalogs", label: "Catálogos", allowedRoles: ["admin"] },
