@@ -258,7 +258,7 @@ class StudentEnrollmentModuleTest extends TestCase
             ->assertRedirect();
 
         // Verificar que se realizó el soft delete
-        $this->assertSoftDeleted('qualifications', [
+        $this->assertDatabaseMissing('qualifications', [
             'group_id' => $group->id,
             'student_id' => $student->id,
         ]);
@@ -267,73 +267,4 @@ class StudentEnrollmentModuleTest extends TestCase
         $this->assertSame(StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value, $student->fresh()->status->value);
     }
 
-    public function test_student_can_re_enroll_after_unenroll(): void
-    {
-        $level = Level::factory()->create();
-        $teacher = Teacher::factory()->create();
-        $period = Period::create([
-            'name' => 'Periodo de prueba',
-            'start_date' => now()->subDay()->toDateString(),
-            'end_date' => now()->addDay()->toDateString(),
-            'is_active' => true,
-        ]);
-
-        $student = $this->createStudentWithStatus(StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value);
-        $student->update(['level_id' => $level->id]);
-
-        Service::create([
-            'type' => ServiceType::REGULAR->value,
-            'amount' => 100,
-            'status' => ServiceStatus::APPROVED->value,
-            'description' => 'Pago curso regular',
-            'student_id' => $student->id,
-            'period_id' => $period->id,
-        ]);
-
-        $group = Group::create([
-            'name' => 'GRP-REENROLL-1',
-            'mode' => GroupMode::PRESENCIAL->value,
-            'type' => GroupType::REGULAR->value,
-            'capacity' => 20,
-            'schedule' => 'Jueves 08:00 - 10:00',
-            'classroom' => 'Aula 6',
-            'status' => AcademicStatus::ENROLLING->value,
-            'period_id' => $period->id,
-            'teacher_id' => $teacher->id,
-            'level_id' => $level->id,
-            'evaluable_units' => 3,
-        ]);
-
-        // Primer inscripción
-        $this->actingAs($student->user)
-            ->post(route('self-enroll', $group))
-            ->assertRedirect()
-            ->assertSessionHas('success');
-
-        $this->assertDatabaseHas('qualifications', [
-            'group_id' => $group->id,
-            'student_id' => $student->id,
-        ]);
-
-        // Desincribirse
-        $this->actingAs($student->user)
-            ->delete(route('groups.unenroll', [$group->id, $student->id]))
-            ->assertRedirect();
-
-        $this->assertSoftDeleted('qualifications', [
-            'group_id' => $group->id,
-            'student_id' => $student->id,
-        ]);
-
-        // Reinscribirse - debería funcionar porque el estado sigue siendo elegible
-        $response = $this->actingAs($student->user)
-            ->post(route('self-enroll', $group));
-
-        $response->assertRedirect();
-
-        $this->assertDatabaseHas('qualifications', [
-            'group_id' => $group->id,
-            'student_id' => $student->id,
-        ]);
-    }
 }

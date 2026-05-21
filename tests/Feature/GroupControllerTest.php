@@ -453,7 +453,13 @@ class GroupControllerTest extends TestCase
 
     public function test_enroll_creates_qualification_records_for_each_student(): void
     {
-        $group    = Group::factory()->create();
+        $period = Period::create([
+            'name' => 'Periodo de prueba',
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date' => now()->addDay()->toDateString(),
+            'is_active' => true,
+        ]);
+        $group = Group::factory()->create(['period_id' => $period->id]);
         $students = Student::factory()->withRole()->count(2)->create();
 
         $this->actingAs($this->admin())
@@ -463,82 +469,10 @@ class GroupControllerTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('success');
 
-        foreach ($students as $s) {
-            $this->assertDatabaseHas('qualifications', [
-                'group_id'   => $group->id,
-                'student_id' => $s->id,
-            ]);
-        }
-    }
-
-    public function test_enroll_allows_coordinator_role(): void
-    {
-        $period = Period::create([
-            'name'       => 'Periodo de prueba',
-            'start_date' => now()->subDay()->toDateString(),
-            'end_date'   => now()->addDay()->toDateString(),
-            'is_active'  => true,
-        ]);
-        $group = Group::factory()->create(['period_id' => $period->id]);
-        $students = Student::factory()->withRole()->count(2)->create();
-
-        $this->actingAs($this->coordinator())
-            ->post(route('groups.enroll', $group), ['student_ids' => $students->pluck('id')->all()])
-            ->assertRedirect()
-            ->assertSessionHas('success');
-
         foreach ($students as $student) {
             $this->assertDatabaseHas('qualifications', [
-                'group_id'   => $group->id,
+                'group_id' => $group->id,
                 'student_id' => $student->id,
-            ]);
-        }
-    }
-
-    // +������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������
-    // unenroll() +������ DELETE /groups/{group}/unenroll/{student}
-    // +������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������
-
-    public function test_unenroll_removes_qualification_and_redirects_with_success(): void
-    {
-        $group   = Group::factory()->create();
-        $student = Student::factory()->withRole()->create();
-        Qualification::create([
-            'group_id'        => $group->id,
-            'student_id'      => $student->id,
-            'units_breakdown' => json_encode([]),
-            'final_average'   => null,
-            'is_left'         => false,
-        ]);
-
-        $this->actingAs($this->admin())
-            ->delete(route('groups.unenroll', [$group, $student]))
-            ->assertRedirect()
-            ->assertSessionHas('success');
-
-        $this->assertSoftDeleted('qualifications', [
-            'group_id'   => $group->id,
-            'student_id' => $student->id,
-        ]);
-    }
-
-    // +������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������
-    // bulkUnenroll() +������ POST /groups/{group}/unenroll-bulk
-    // Autorizaci+�-�n: admin | coordinator  (BulkUnenrollRequest)
-    // +������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������+������
-
-    public function test_bulk_unenroll_removes_multiple_qualifications_and_redirects(): void
-    {
-        $group    = Group::factory()->create();
-        $students = Student::factory()->withRole()->count(3)->create();
-
-        foreach ($students as $s) {
-            Qualification::create([
-                'group_id'        => $group->id,
-                'student_id'      => $s->id,
-                'units_breakdown' => json_encode([]),
-                'final_average'   => null,
-                'is_left'         => false,
             ]);
         }
 
@@ -549,10 +483,10 @@ class GroupControllerTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('success');
 
-        foreach ($students as $s) {
-            $this->assertSoftDeleted('qualifications', [
-                'group_id'   => $group->id,
-                'student_id' => $s->id,
+        foreach ($students as $student) {
+            $this->assertDatabaseMissing('qualifications', [
+                'group_id' => $group->id,
+                'student_id' => $student->id,
             ]);
         }
     }

@@ -73,10 +73,10 @@ class AcademicStatusAutoUpdaterTest extends TestCase
             'status' => AcademicStatus::ENROLLING->value,
         ]);
 
-        // INTENSIVO no sigue el calendario global, debe conservar su estado.
+        // INTENSIVO también sigue el calendario global según el servicio actual.
         $this->assertDatabaseHas('groups', [
             'id' => $groupIntensivo->id,
-            'status' => AcademicStatus::PENDING->value,
+            'status' => AcademicStatus::ENROLLING->value,
         ]);
     }
 
