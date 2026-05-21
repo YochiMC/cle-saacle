@@ -65,24 +65,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Vistas y operaciones compartidas por roles base del sistema (menú principal)
     Route::middleware('role:admin|coordinator|teacher|student')->group(function () {
-        Route::get('/dashboard', function () {
-            $students = \App\Http\Resources\StudentResource::collection(\App\Models\Student::with(['degree', 'level'])->get())->resolve();
-            $teachers = \App\Http\Resources\TeacherResource::collection(\App\Models\Teacher::all())->resolve();
-            $degrees = \App\Models\Degree::all();
-            $levels = \App\Models\Level::all();
-            $type_students = \App\Enums\TypeStudent::getOptions();
-            $groups = \App\Models\Group::with('students')->get();
-            $exams = \App\Models\Exam::with('students')->get();
+        Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
+            $data = [
+                'students' => [],
+                'teachers' => [],
+                'degrees' => [],
+                'levels' => [],
+                'groups' => [],
+                'typeStudents' => [],
+                'exams' => [],
+            ];
 
-            return Inertia::render('Dashboard', [
-                'students' => $students,
-                'teachers' => $teachers,
-                'degrees' => $degrees,
-                'levels' => $levels,
-                'groups' => $groups,
-                'typeStudents' => $type_students,
-                'exams' => $exams,
-            ]);
+            if ($request->user()->hasRole(['admin', 'coordinator'])) {
+                $data['students'] = \App\Http\Resources\StudentResource::collection(\App\Models\Student::with(['degree', 'level'])->get())->resolve();
+                $data['teachers'] = \App\Http\Resources\TeacherResource::collection(\App\Models\Teacher::all())->resolve();
+                $data['degrees'] = \App\Models\Degree::all();
+                $data['levels'] = \App\Models\Level::all();
+                $data['groups'] = \App\Models\Group::with('students')->get();
+                $data['typeStudents'] = \App\Enums\TypeStudent::getOptions();
+                $data['exams'] = \App\Models\Exam::with('students')->get();
+            }
+
+            return Inertia::render('Dashboard', $data);
         })->name('dashboard');
 
         Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
@@ -121,9 +125,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
+    // Vistas y operaciones para admin + coordinator (Reportes)
+    Route::middleware('role:admin|coordinator')->group(function () {
+        Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
+    });
+
     // Vistas y operaciones para admin + teacher + coordinator
     Route::middleware('role:admin|teacher|coordinator')->group(function () {
-        Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
 
         Route::middleware('role:admin|coordinator')->group(function () {
             Route::prefix('acreditaciones')->group(function () {

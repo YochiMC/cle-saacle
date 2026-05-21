@@ -3,8 +3,12 @@ import { Head } from "@inertiajs/react";
 import Graficas from "@/Components/Charts/Graphics";
 import { useState } from "react";
 import { Mail, ShieldCheck, Activity, Users } from "lucide-react";
+import { usePermission } from "@/Utils/auth";
 
 export default function Dashboard({ auth, degrees = [], students = [], levels = [], groups = [], exams = [] }) {
+    const { hasRole } = usePermission();
+    const isAdminOrCoordinator = hasRole('admin') || hasRole('coordinator');
+
     // SELECTORES DE LAS 4 GRAFICAS
     const [chartType1, setChartType1] = useState("carrera");
     const [chartType2, setChartType2] = useState("genero");
@@ -118,60 +122,72 @@ export default function Dashboard({ auth, degrees = [], students = [], levels = 
                     </div>
 
                     {/* GRÁFICAS */}
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-3 px-2 border-b border-gray-200 pb-4">
-                            <Users className="w-7 h-7 text-indigo-500" />
-                            <h3 className="text-2xl font-bold text-gray-800 tracking-tight">Estadísticas Generales</h3>
-                        </div>
+                    {isAdminOrCoordinator ? (
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3 px-2 border-b border-gray-200 pb-4">
+                                <Users className="w-7 h-7 text-indigo-500" />
+                                <h3 className="text-2xl font-bold text-gray-800 tracking-tight">Estadísticas Generales</h3>
+                            </div>
 
-                        {/* GRAFICA GRANDE ARRIBA */}
-                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
-                            <Graficas
-                                title="Total de alumnos inscritos"
-                                chartData={totalStudentsData}
-                            />
-                        </div>
+                            {/* GRAFICA GRANDE ARRIBA */}
+                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                                <Graficas
+                                    title="Total de alumnos inscritos"
+                                    chartData={totalStudentsData}
+                                />
+                            </div>
 
-                        {/* 4 GRAFICAS CON SELECTOR */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
-                                <Graficas
-                                    title="Cursos ordinarios"
-                                    chartData={getChartData(chartType1, "Cursos ordinarios")}
-                                    showSelector={true}
-                                    chartType={chartType1}
-                                    setChartType={setChartType1}
-                                />
-                            </div>
-                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
-                                <Graficas
-                                    title="Egresados próximos a egresar"
-                                    chartData={getChartData(chartType2, "Egresados próximos a egresar")}
-                                    showSelector={true}
-                                    chartType={chartType2}
-                                    setChartType={setChartType2}
-                                />
-                            </div>
-                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
-                                <Graficas
-                                    title="Examen 4 Habilidades"
-                                    chartData={getChartData(chartType3, "Examen 4 Habilidades")}
-                                    showSelector={true}
-                                    chartType={chartType3}
-                                    setChartType={setChartType3}
-                                />
-                            </div>
-                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
-                                <Graficas
-                                    title="Examen de Validación"
-                                    chartData={getChartData(chartType4, "Examen de Validación")}
-                                    showSelector={true}
-                                    chartType={chartType4}
-                                    setChartType={setChartType4}
-                                />
+                            {/* 4 GRAFICAS CON SELECTOR */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                                    <Graficas
+                                        title="Cursos ordinarios"
+                                        chartData={getChartData(chartType1, "Cursos ordinarios")}
+                                        showSelector={true}
+                                        chartType={chartType1}
+                                        setChartType={setChartType1}
+                                    />
+                                </div>
+                                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                                    <Graficas
+                                        title="Egresados próximos a egresar"
+                                        chartData={getChartData(chartType2, "Egresados próximos a egresar")}
+                                        showSelector={true}
+                                        chartType={chartType2}
+                                        setChartType={setChartType2}
+                                    />
+                                </div>
+                                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                                    <Graficas
+                                        title="Examen 4 Habilidades"
+                                        chartData={getChartData(chartType3, "Examen 4 Habilidades")}
+                                        showSelector={true}
+                                        chartType={chartType3}
+                                        setChartType={setChartType3}
+                                    />
+                                </div>
+                                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                                    <Graficas
+                                        title="Examen de Validación"
+                                        chartData={getChartData(chartType4, "Examen de Validación")}
+                                        showSelector={true}
+                                        chartType={chartType4}
+                                        setChartType={setChartType4}
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 text-center mt-6">
+                            <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <Activity className="w-10 h-10" />
+                            </div>
+                            <h3 className="text-3xl font-extrabold text-gray-900 mb-4 tracking-tight">¡Te damos la bienvenida a SAACLE!</h3>
+                            <p className="text-gray-500 text-lg max-w-2xl mx-auto leading-relaxed">
+                                Tu panel de control está listo. Utiliza el menú de navegación para acceder a tus grupos, consultar tu información académica y gestionar tus actividades en el sistema.
+                            </p>
+                        </div>
+                    )}
 
                 </div>
             </div>

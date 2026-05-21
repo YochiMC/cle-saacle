@@ -19,6 +19,7 @@ const CardExam = memo(
         const esEstudiante = hasRole("student");
         const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
         const esStaff = hasRole("admin") || hasRole("coordinator") || hasRole("teacher");
+        const isExamAccessible = !["enrolling", "pending"].includes(examen.status);
 
         const badge = resolverEstado(examen.status);
         const examTypeCompleto = (examen.exam_type?.value ?? examen.exam_type ?? "Sin tipo").toString();
@@ -49,7 +50,7 @@ const CardExam = memo(
                     </button>
                 )}
 
-                {esStaff && (
+                {(esStaff || (esEstudiante && isExamAccessible)) && (
                     <Link
                         href={route("exams.show", examen.id)}
                         className="w-full py-2.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 active:scale-95 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
@@ -57,6 +58,16 @@ const CardExam = memo(
                         <ExternalLink size={15} strokeWidth={2.5} />
                         Ver Examen
                     </Link>
+                )}
+
+                {esEstudiante && !isExamAccessible && (
+                    <button
+                        disabled
+                        className="w-full py-2.5 bg-gray-200 text-gray-500 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+                    >
+                        <ExternalLink size={15} strokeWidth={2.5} />
+                        Examen no disponible
+                    </button>
                 )}
 
                 <button
