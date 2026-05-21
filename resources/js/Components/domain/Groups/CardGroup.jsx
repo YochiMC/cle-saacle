@@ -19,6 +19,7 @@ const CardGroup = memo(
         const esEstudiante = hasRole("student");
         const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
         const esStaff = hasRole("admin") || hasRole("coordinator") || hasRole("teacher");
+        const isGroupAccessible = !["enrolling", "pending"].includes(grupo.status);
 
         const badge = resolverEstado(grupo.status, grupo.status_label);
         const nivelCompleto = (grupo.level?.level_tecnm || grupo.type || "NIVEL NO DEFINIDO").toString();
@@ -45,7 +46,7 @@ const CardGroup = memo(
                     </button>
                 )}
 
-                {esStaff && (
+                {(esStaff || (esEstudiante && isGroupAccessible)) && (
                     <Link
                         href={route("groups.show", grupo.id)}
                         className="w-full py-2.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 active:scale-95 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
@@ -53,6 +54,16 @@ const CardGroup = memo(
                         <ExternalLink size={15} strokeWidth={2.5} />
                         Ver Grupo
                     </Link>
+                )}
+
+                {esEstudiante && !isGroupAccessible && (
+                    <button
+                        disabled
+                        className="w-full py-2.5 bg-gray-200 text-gray-500 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+                    >
+                        <ExternalLink size={15} strokeWidth={2.5} />
+                        Grupo no disponible
+                    </button>
                 )}
 
                 <button
