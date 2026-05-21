@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from "react";
 import {
     flexRender,
     getCoreRowModel,
@@ -6,7 +6,7 @@ import {
     getSortedRowModel,
     getFilteredRowModel,
     useReactTable,
-} from '@tanstack/react-table';
+} from "@tanstack/react-table";
 
 import {
     Table,
@@ -15,10 +15,10 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '@/Components/ui/table';
+} from "@/Components/ui/table";
 
-import DataTableToolbar from '@/Components/DataTable/DataTableToolbar';
-import DataTablePagination from '@/Components/DataTable/DataTablePagination';
+import DataTableToolbar from "@/Components/DataTable/DataTableToolbar";
+import DataTablePagination from "@/Components/DataTable/DataTablePagination";
 
 /**
  * DataTable — Componente genérico y reutilizable.
@@ -35,8 +35,8 @@ export function DataTable({
     columns,
     data,
     hiddenColumns = {},
-    searchPlaceholder = 'Buscar en cualquier columna...',
-    noDataMessage = 'No hay registros.',
+    searchPlaceholder = "Buscar en cualquier columna...",
+    noDataMessage = "No hay registros.",
     rowSelection: externalRowSelection,
     onRowSelectionChange: externalOnRowSelectionChange,
     onSelectionChange,
@@ -49,10 +49,16 @@ export function DataTable({
     const [columnFilters, setColumnFilters] = useState([]);
     const [columnVisibility, setColumnVisibility] = useState(hiddenColumns);
     const [internalRowSelection, setInternalRowSelection] = useState({});
-    const [globalFilter, setGlobalFilter] = useState('');
+    const [globalFilter, setGlobalFilter] = useState("");
 
-    const rowSelection = externalRowSelection !== undefined ? externalRowSelection : internalRowSelection;
-    const onRowSelectionChange = externalOnRowSelectionChange !== undefined ? externalOnRowSelectionChange : setInternalRowSelection;
+    const rowSelection =
+        externalRowSelection !== undefined
+            ? externalRowSelection
+            : internalRowSelection;
+    const onRowSelectionChange =
+        externalOnRowSelectionChange !== undefined
+            ? externalOnRowSelectionChange
+            : setInternalRowSelection;
 
     const table = useReactTable({
         data,
@@ -65,8 +71,15 @@ export function DataTable({
         onColumnFiltersChange: setColumnFilters,
         onColumnVisibilityChange: setColumnVisibility,
         onRowSelectionChange,
+        onGlobalFilterChange: setGlobalFilter,
         autoResetPageIndex: false,
-        state: { sorting, columnFilters, columnVisibility, rowSelection, globalFilter },
+        state: {
+            sorting,
+            columnFilters,
+            columnVisibility,
+            rowSelection,
+            globalFilter,
+        },
     });
 
     // Estabilizamos la extracción de datos y columnas para evitar disparos descontrolados y re-renders en cascada.
@@ -78,7 +91,10 @@ export function DataTable({
     const visibleCols = useMemo(() => {
         return table.getVisibleLeafColumns().map((c) => ({
             id: c.id,
-            header: typeof c.columnDef.header === 'string' ? c.columnDef.header : c.id
+            header:
+                typeof c.columnDef.header === "string"
+                    ? c.columnDef.header
+                    : c.id,
         }));
     }, [table, columnVisibility]);
 
@@ -117,7 +133,11 @@ export function DataTable({
                                     >
                                         {header.isPlaceholder
                                             ? null
-                                            : flexRender(header.column.columnDef.header, header.getContext())}
+                                            : flexRender(
+                                                  header.column.columnDef
+                                                      .header,
+                                                  header.getContext(),
+                                              )}
                                     </TableHead>
                                 ))}
                             </TableRow>
@@ -129,15 +149,20 @@ export function DataTable({
                             table.getRowModel().rows.map((row, index) => (
                                 <TableRow
                                     key={row.id}
-                                    data-state={row.getIsSelected() && 'selected'}
-                                    className={`border-b border-slate-200 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'} hover:bg-slate-100/70 data-[state=selected]:bg-blue-50 ${getRowClassName ? getRowClassName(row) : ''}`}
+                                    data-state={
+                                        row.getIsSelected() && "selected"
+                                    }
+                                    className={`border-b border-slate-200 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-slate-50/40"} hover:bg-slate-100/70 data-[state=selected]:bg-blue-50 ${getRowClassName ? getRowClassName(row) : ""}`}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell
                                             key={cell.id}
                                             className="px-3 py-3 text-sm text-center text-slate-700 align-middle"
                                         >
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            {flexRender(
+                                                cell.column.columnDef.cell,
+                                                cell.getContext(),
+                                            )}
                                         </TableCell>
                                     ))}
                                 </TableRow>
