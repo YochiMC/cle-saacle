@@ -29,9 +29,7 @@ export default function CatalogFormModal({
             const defaultValue = field.type === "checkbox" ? false : "";
             acc[field.name] = editingRecord
                 ? (field.type === "checkbox"
-                    ? (field.name === "is_active"
-                        ? (editingRecord.status === "Activo")
-                        : Boolean(editingRecord[field.name]))
+                    ? Boolean(editingRecord[field.name])
                     : (editingRecord[field.name] ?? defaultValue))
                 : defaultValue;
             return acc;

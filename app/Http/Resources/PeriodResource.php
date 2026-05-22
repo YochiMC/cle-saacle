@@ -25,9 +25,6 @@ class PeriodResource extends JsonResource
             'start_date' => $startDate?->toDateString(),
             'end_date' => $endDate?->toDateString(),
             'is_active' => (bool) $this->is_active,
-            'status' => $hasDateRange && now()->between($startDate, $endDate)
-                ? 'Activo'
-                : 'Inactivo',
         ];
     }
 }

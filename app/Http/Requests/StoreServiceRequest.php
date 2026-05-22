@@ -6,8 +6,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Enums\ServiceType;
 use App\Models\Service;
-use App\Models\Period;
 use App\Enums\ServiceStatus;
+use App\Services\PeriodActivationService;
 
 /**
  * Valida la creación de un nuevo registro de servicio o pago de alumno.
@@ -61,16 +61,16 @@ class StoreServiceRequest extends FormRequest
                 return;
             }
 
-            $activePeriod = Period::where('is_active', true)->first();
+            $activePeriod = app(PeriodActivationService::class)->syncForDate(now());
             if (! $activePeriod) {
                 return;
             }
 
-            $exists = Service::where('student_id', $studentId)
-                ->where('type', $type)
+            $exists = Service::where('student_id', '=', $studentId)
+                ->where('type', '=', $type)
                 ->whereIn('status', [ServiceStatus::PENDING->value, ServiceStatus::APPROVED->value])
                 ->where(function ($q) use ($activePeriod) {
-                    $q->where('period_id', $activePeriod->id)
+                    $q->where('period_id', '=', $activePeriod->id)
                         ->orWhereNull('period_id');
                 })
                 ->exists();

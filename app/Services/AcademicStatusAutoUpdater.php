@@ -68,6 +68,9 @@ class AcademicStatusAutoUpdater
         $settings = Setting::pluck('value', 'key')->toArray();
         $hoy      = now()->startOfDay();
 
+        // Mantener is_active sincronizado por fecha sin depender de un job exclusivo.
+        app(PeriodActivationService::class)->syncForDate($hoy);
+
         // ── Parseo seguro: fechas de Grupos ───────────────────────────────────
         $cursosInscripcionInicio = $this->parsearFecha($settings['courses_enrollment_start'] ?? null);
         $cursosInscripcionFin    = $this->parsearFecha($settings['courses_enrollment_end']   ?? null);

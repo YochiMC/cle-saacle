@@ -5,7 +5,7 @@ namespace App\Actions;
 use App\Models\Service;
 use App\Enums\ServiceStatus;
 use App\Enums\StudentStatus;
-use App\Models\Period;
+use App\Services\EnrollmentWindowResolver;
 use Illuminate\Support\Facades\DB;
 
 class ApproveServiceAction
@@ -33,7 +33,7 @@ class ApproveServiceAction
                     $student->update(['status' => StudentStatus::ELIGIBLE_FOR_ENROLLMENT->value]);
                 }
 
-                $activePeriod = Period::where('is_active', true)->first();
+                $activePeriod = app(EnrollmentWindowResolver::class)->resolveActivePeriod();
                 if ($activePeriod) {
                     $service->update(['period_id' => $activePeriod->id]);
                 }

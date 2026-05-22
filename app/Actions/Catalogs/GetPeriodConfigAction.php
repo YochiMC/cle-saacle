@@ -4,6 +4,7 @@ namespace App\Actions\Catalogs;
 
 use App\Models\Period;
 use App\Http\Resources\PeriodResource;
+use App\Services\PeriodActivationService;
 
 /**
  * Action: GetPeriodConfigAction
@@ -20,6 +21,8 @@ class GetPeriodConfigAction
      */
     public function execute(): array
     {
+        app(PeriodActivationService::class)->syncForDate(now());
+
         return [
             'id' => 'periods',
             'title' => 'Periodos',
@@ -28,8 +31,7 @@ class GetPeriodConfigAction
                 ['accessorKey' => 'name', 'header' => 'Nombre'],
                 ['accessorKey' => 'start_date', 'header' => 'Fecha de Inicio'],
                 ['accessorKey' => 'end_date', 'header' => 'Fecha de Fin'],
-                ['accessorKey' => 'status', 'header' => 'Estado'],
-                ['accessorKey' => 'is_active', 'header' => 'Activo'],
+                ['accessorKey' => 'is_active', 'header' => 'Activo por Fecha'],
             ],
             'formFields' => [
                 [
@@ -43,12 +45,6 @@ class GetPeriodConfigAction
                     'label' => 'Fecha de Fin',
                     'type' => 'date',
                     'required' => true,
-                ],
-                [
-                    'name' => 'is_active',
-                    'label' => 'Activo',
-                    'type' => 'checkbox',
-                    'required' => false,
                 ],
             ],
             'data' => PeriodResource::collection(Period::all())->resolve(),
