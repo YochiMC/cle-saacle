@@ -1,6 +1,5 @@
 import React, { memo } from "react";
 import StatusBadge from "@/Components/ui/StatusBadge";
-import { Checkbox } from "@/Components/ui/checkbox";
 import { formatLabel, GRADE_COLUMNS } from "@/Constants/tableDictionary";
 import EditableCell from "./EditableCell";
 
@@ -49,18 +48,19 @@ const DynamicCellRenderer = memo(({
     }
 
     if (fieldKey === "is_active") {
-        const isActiveByStatus =
-            row.original.is_active ||
-            row.original.status === "Vigente" ||
-            row.original.status === "Activo";
+        const isActive = Boolean(row.original.is_active);
 
         return (
             <div className="flex justify-center w-full">
-                <Checkbox
-                    checked={isActiveByStatus}
-                    disabled
-                    className="border-gray-500 data-[state=checked]:bg-[#17365D] data-[state=checked]:text-white"
-                />
+                <span
+                    className={
+                        isActive
+                            ? "px-2 py-0.5 text-xs font-semibold bg-emerald-600 text-white rounded-full"
+                            : "px-2 py-0.5 text-xs font-semibold bg-slate-300 text-slate-700 rounded-full"
+                    }
+                >
+                    {isActive ? "Activo" : "Inactivo"}
+                </span>
             </div>
         );
     }

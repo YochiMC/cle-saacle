@@ -12,15 +12,7 @@ class EnrollmentWindowResolver
      */
     public function resolveActivePeriod(): ?Period
     {
-        $today = now()->startOfDay();
-
-        return Period::query()
-            ->where('is_active', true)
-            ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
-            ->orderByDesc('start_date')
-            ->first()
-            ?? Period::query()->where('is_active', true)->orderByDesc('start_date')->first();
+        return app(PeriodActivationService::class)->syncForDate(now());
     }
 
     /**

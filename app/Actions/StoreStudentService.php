@@ -5,7 +5,7 @@ namespace App\Actions;
 use App\Enums\ServiceStatus;
 use App\Models\Service;
 use App\Models\Student;
-use App\Models\Period;
+use App\Services\EnrollmentWindowResolver;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use App\Actions\UploadFile;
@@ -31,7 +31,7 @@ class StoreStudentService
         $uploader = new UploadFile();
         $meta = $uploader->execute($file, "servicios/student_{$studentId}", null, $fileName);
 
-        $activePeriod = Period::where('is_active', true)->first();
+        $activePeriod = app(EnrollmentWindowResolver::class)->resolveActivePeriod();
 
         $service = Service::create([
             'student_id'       => $studentId,
@@ -46,7 +46,7 @@ class StoreStudentService
             'period_id'        => $activePeriod?->id,
         ]);
 
-        $student = Student::find($studentId);
+        $student = Student::find($studentId, ['*']);
         if ($student) {
             $student->update(['status' => \App\Enums\StudentStatus::PAYMENT_REVIEW]);
         }
