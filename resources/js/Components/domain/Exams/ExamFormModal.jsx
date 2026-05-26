@@ -4,6 +4,7 @@ import InputLabel from "@/Components/ui/InputLabel";
 import SelectForm from "@/components/Forms/SelectForm";
 import InputError from "@/Components/ui/InputError";
 import BaseResourceModal from "@/Components/ui/BaseResourceModal";
+import { limpiarTextoBasico, limpiarTextoUrl } from "@/Utils/textFormatters";
 import {
     FieldDescription,
     FieldLegend,
@@ -249,9 +250,13 @@ export default function ExamFormModal({
                             type="text"
                             className="mt-1 block w-full"
                             value={manager.formData.site}
-                            onChange={(e) =>
-                                manager.setFormData("site", e.target.value)
-                            }
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                const cleaned = manager.formData.mode === "Presencial"
+                                    ? limpiarTextoBasico(value)
+                                    : limpiarTextoUrl(value);
+                                manager.setFormData("site", cleaned);
+                            }}
                             placeholder="A-101 / Zoom Link"
                             maxLength="255"
                         />

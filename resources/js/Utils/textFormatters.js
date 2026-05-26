@@ -44,3 +44,27 @@ export const abreviarEtiqueta = (texto) => {
     // 4. Fallback: original en mayúsculas
     return textoNormalizado.toUpperCase();
 };
+
+/**
+ * Limpia el texto para permitir únicamente letras (incluyendo acentos y ñ), números, espacios y guiones medios.
+ *
+ * @param {string} texto - El texto original a limpiar.
+ * @returns {string} - El texto limpio.
+ */
+export const limpiarTextoBasico = (texto) => {
+    if (!texto) return "";
+    // Permitir también los dos puntos ':' además del guión medio
+    return String(texto).replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s:\-]/g, "");
+};
+
+/**
+ * Limpia el texto para permitir letras, números, espacios y caracteres válidos para URLs.
+ *
+ * @param {string} texto - El texto original a limpiar.
+ * @returns {string} - El texto limpio.
+ */
+export const limpiarTextoUrl = (texto) => {
+    if (!texto) return "";
+    return String(texto).replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s:\/\.\?=&_\-]/g, "");
+};
+

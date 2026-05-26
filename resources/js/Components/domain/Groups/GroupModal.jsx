@@ -9,6 +9,7 @@ import SelectForm from "@/components/Forms/SelectForm";
 import InputForm from "@/components/Forms/InputForm";
 import InputError from "@/Components/ui/InputError";
 import BaseResourceModal from "@/Components/ui/BaseResourceModal";
+import { limpiarTextoBasico } from "@/Utils/textFormatters";
 
 /**
  * GroupModal — Formulario de dominio para la gestión de Grupos.
@@ -224,7 +225,7 @@ export default function GroupModal({
                             description="Incluye días y rango de horas."
                             value={formData.schedule}
                             onChange={(e) =>
-                                setFormData("schedule", e.target.value)
+                                setFormData("schedule", limpiarTextoBasico(e.target.value))
                             }
                             required
                             maxLength="255"
@@ -244,7 +245,7 @@ export default function GroupModal({
                             description="Opcional"
                             value={formData.classroom}
                             onChange={(e) =>
-                                setFormData("classroom", e.target.value)
+                                setFormData("classroom", limpiarTextoBasico(e.target.value))
                             }
                             maxLength="255"
                         />
