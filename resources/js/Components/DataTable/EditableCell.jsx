@@ -9,6 +9,7 @@ import {
     SelectValue,
 } from "@/Components/ui/select";
 import { formatLabel } from "@/Constants/tableDictionary";
+import { limpiarTextoCalificacion } from "@/Utils/textFormatters";
 
 /** 
  * Devuelve el tipo de <input> adecuado basándose en el nombre del campo. 
@@ -172,7 +173,24 @@ const EditableCell = memo(({
             aria-label={`${formatLabel(fieldKey)} — fila ${rowId}`}
             wrapperClassName="w-28"
             className={`text-sm text-center ${isLevelingDisabled ? "bg-slate-100 cursor-not-allowed opacity-50" : ""}`}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => {
+                let val = e.target.value;
+                if (inputType === "number") {
+                    val = limpiarTextoCalificacion(val);
+                    if (val !== "") {
+                        const num = parseInt(val, 10);
+                        if (!isNaN(num)) {
+                            const maxLimit = fieldKey === "score" ? 2000 : 100;
+                            if (num > maxLimit) {
+                                val = String(maxLimit);
+                            } else if (num < 0) {
+                                val = "0";
+                            }
+                        }
+                    }
+                }
+                setValue(val);
+            }}
             onKeyDown={handleKeyDown}
             onBlur={() => onChange?.(fieldKey, rowId, value)}
             {...extraNumericProps}

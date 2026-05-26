@@ -68,3 +68,16 @@ export const limpiarTextoUrl = (texto) => {
     return String(texto).replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s:\/\.\?=&_\-]/g, "");
 };
 
+/**
+ * Limpia el texto de calificación para permitir únicamente números enteros.
+ *
+ * @param {string|number} texto - La calificación original a limpiar.
+ * @returns {string} - La calificación limpia.
+ */
+export const limpiarTextoCalificacion = (texto) => {
+    if (texto === null || texto === undefined) return "";
+    return String(texto).replace(/[^0-9]/g, "");
+};
+
+
+
