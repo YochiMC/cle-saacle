@@ -30,8 +30,8 @@
  * />
  */
 
-import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
-import { Textarea } from '@/components/ui/textarea';
+import { Field, FieldLabel, FieldDescription } from '@/Components/ui/field';
+import { Textarea } from '@/Components/ui/textarea';
 
 export default function TextAreaForm({
     label,

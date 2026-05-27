@@ -41,8 +41,8 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select';
-import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
+} from '@/Components/ui/select';
+import { Field, FieldLabel, FieldDescription } from '@/Components/ui/field';
 
 export default function SelectForm({
     options = [],
