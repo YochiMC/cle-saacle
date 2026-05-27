@@ -29,7 +29,7 @@ export default {
                 sans: ["Montserrat", ...defaultTheme.fontFamily.sans],
             },
             backgroundImage: {
-                "layout-bg": "url('/images/images.jpeg')",
+                "layout-bg": "url('../../images/images.jpeg')",
             },
             borderRadius: {
                 lg: "var(--radius)",

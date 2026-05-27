@@ -217,7 +217,7 @@ export default function FileInputForm({
                 aria-describedby={describedById}
             >
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 bg-white text-[#17365D]/85 shadow-sm">
-                    <Upload className="h-5 w-5" aria-hidden="true" />
+                    <Upload className="w-5 h-5" aria-hidden="true" />
                 </div>
 
                 <Input
@@ -234,14 +234,14 @@ export default function FileInputForm({
                     className="sr-only"
                 />
 
-                <p className="text-center text-base font-semibold text-slate-800">
+                <p className="text-base font-semibold text-center text-slate-800">
                     Arrastra y suelta tu archivo aquí
                 </p>
-                <p className="mt-1 text-center text-sm text-slate-500">
+                <p className="mt-1 text-sm text-center text-slate-500">
                     {helperText}
                 </p>
 
-                <div className="mt-4 flex justify-center">
+                <div className="flex justify-center mt-4">
                     <button
                         type="button"
                         onClick={(event) => {

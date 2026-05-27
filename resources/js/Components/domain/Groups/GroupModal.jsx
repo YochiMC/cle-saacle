@@ -5,8 +5,8 @@ import {
     FieldSeparator,
     FieldSet,
 } from "@/Components/ui/field";
-import SelectForm from "@/components/Forms/SelectForm";
-import InputForm from "@/components/Forms/InputForm";
+import SelectForm from "@/Components/Forms/SelectForm";
+import InputForm from "@/Components/Forms/InputForm";
 import InputError from "@/Components/ui/InputError";
 import BaseResourceModal from "@/Components/ui/BaseResourceModal";
 import { limpiarTextoBasico } from "@/Utils/textFormatters";

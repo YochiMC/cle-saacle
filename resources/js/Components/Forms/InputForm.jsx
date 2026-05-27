@@ -30,8 +30,8 @@
  * />
  */
 
-import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { Field, FieldLabel, FieldDescription } from '@/Components/ui/field';
+import { Input } from '@/Components/ui/input';
 import { forwardRef } from 'react';
 
 const InputForm = forwardRef(function InputForm({

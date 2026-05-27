@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Sidebar from "@/components/Menus/Sidebar";
+import Sidebar from "@/Components/Menus/Sidebar";
 import ApplicationLogo from "@/Components/ui/ApplicationLogo";
 
 export default function SessionLayout({ children, header }) {

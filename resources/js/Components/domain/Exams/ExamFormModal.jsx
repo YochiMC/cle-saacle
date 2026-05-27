@@ -1,7 +1,7 @@
 import React from "react";
 import TextInput from "@/Components/ui/TextInput";
 import InputLabel from "@/Components/ui/InputLabel";
-import SelectForm from "@/components/Forms/SelectForm";
+import SelectForm from "@/Components/Forms/SelectForm";
 import InputError from "@/Components/ui/InputError";
 import BaseResourceModal from "@/Components/ui/BaseResourceModal";
 import { limpiarTextoBasico, limpiarTextoUrl } from "@/Utils/textFormatters";
