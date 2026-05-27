@@ -1,4 +1,4 @@
-import FileInputForm from '@/Components/Forms/FIleInputForm';
+import FileInputForm from '@/Components/Forms/FileInputForm';
 import FormModal from '@/Components/Forms/FormModal';
 import ButtonForm from '@/Components/Forms/ButtonForm';
 import SelectForm from '@/Components/Forms/SelectForm';

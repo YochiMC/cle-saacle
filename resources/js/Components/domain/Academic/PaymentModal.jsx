@@ -50,7 +50,7 @@
 import FormModal from '@/Components/Forms/FormModal';
 import { FieldError } from '@/Components/ui/field';
 import SelectForm from '@/Components/Forms/SelectForm';
-import FileInputForm from '@/Components/Forms/FIleInputForm';
+import FileInputForm from '@/Components/Forms/FileInputForm';
 import FilePreviewPanel from '@/Components/ui/FilePreviewPanel';
 import PrimaryButton from '@/Components/ui/PrimaryButton';
 import SecondaryButton from '@/Components/ui/SecondaryButton';
