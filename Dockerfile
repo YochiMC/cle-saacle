@@ -72,8 +72,8 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
 # 1. HACK DEFINITIVO PARA RENDER: Copiar y reemplazar el binario elimina el 100% de los privilegios anclados al archivo (Adiós error 126)
 RUN cp /usr/local/bin/frankenphp /tmp/fphp && mv /tmp/fphp /usr/local/bin/frankenphp
 
-# 2. OBLIGAR IPV4: Forzamos a que escuche en 0.0.0.0 para que el escáner de Render lo detecte y no cancele el despliegue
-ENV SERVER_NAME="http://0.0.0.0:${PORT:-80}"
+# Configuración que acepta cualquier dominio (el catch-all de Caddy)
+ENV SERVER_NAME=":${PORT:-80}"
 
 # ENTRYPOINT limpio
-ENTRYPOINT ["sh", "-c", "php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache && exec frankenphp run --config /etc/caddy/Caddyfile"]
+ENTRYPOINT ["sh", "-lc", "export SERVER_NAME=:${PORT:-80}; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache && exec frankenphp run"]
