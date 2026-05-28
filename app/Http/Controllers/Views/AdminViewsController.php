@@ -40,6 +40,31 @@ use Spatie\Permission\Models\Role;
  */
 class AdminViewsController extends Controller
 {
+    public function dashboardView(Request $request)
+    {
+        $data = [
+            'students' => [],
+            'teachers' => [],
+            'degrees' => [],
+            'levels' => [],
+            'groups' => [],
+            'typeStudents' => [],
+            'exams' => [],
+        ];
+
+        if ($request->user()->hasRole(['admin', 'coordinator'])) {
+            $data['students'] = StudentResource::collection(Student::with(['degree', 'level'])->get())->resolve();
+            $data['teachers'] = TeacherResource::collection(Teacher::all())->resolve();
+            $data['degrees'] = Degree::all();
+            $data['levels'] = Level::all();
+            $data['groups'] = Group::with('students')->get();
+            $data['typeStudents'] = TypeStudent::getOptions();
+            $data['exams'] = Exam::with('students')->get();
+        }
+
+        return Inertia::render('Dashboard', $data);
+    }
+
     /**
      * Resuelve los tipos de documento visibles según el rol principal del usuario.
      * Mantiene el mismo contrato de datos usado en la vista administrativa del perfil.
@@ -75,7 +100,7 @@ class AdminViewsController extends Controller
             'degrees' => Degree::all(),
             'levels' => Level::all(),
             'typeStudents' => TypeStudent::getOptions(),
-            'studentStatuses' => array_map(fn ($status) => ['value' => $status->value, 'label' => $status->label()], StudentStatus::cases()),
+            'studentStatuses' => array_map(fn($status) => ['value' => $status->value, 'label' => $status->label()], StudentStatus::cases()),
         ]);
     }
 
@@ -100,7 +125,7 @@ class AdminViewsController extends Controller
             'levels' => LevelResource::collection(Level::all()->sortBy('level_tecnm')->values())->resolve(),
             'teachers' => $ocultarDocentes ? [] : TeacherResource::collection(Teacher::all())->resolve(),
             'periods' => Period::all(),
-            'statuses' => array_map(fn ($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\AcademicStatus::cases()),
+            'statuses' => array_map(fn($status) => ['value' => $status->value, 'label' => $status->label()], \App\Enums\AcademicStatus::cases()),
             'modes' => \App\Enums\GroupMode::getOptions(),
             'types' => \App\Enums\GroupType::getOptions(),
         ]);
@@ -168,7 +193,7 @@ class AdminViewsController extends Controller
             'examenes' => ExamResource::collection($exams)->resolve(),
             'teachers' => $teachers,
             'periods' => $periods,
-            'statuses' => array_map(fn ($s) => ['value' => $s->value, 'label' => $s->label()], \App\Enums\AcademicStatus::cases()),
+            'statuses' => array_map(fn($s) => ['value' => $s->value, 'label' => $s->label()], \App\Enums\AcademicStatus::cases()),
             'typeOptions' => \App\Enums\ExamType::getOptions(),
             'modeOptions' => GroupMode::getOptions(),
         ]);
@@ -226,9 +251,9 @@ class AdminViewsController extends Controller
         $enrolledGroups = empty($enrolledGroupIds)
             ? collect()
             : Group::with(['teacher', 'period'])
-                ->withCount('qualifications')
-                ->whereIn('id', $enrolledGroupIds)
-                ->get();
+            ->withCount('qualifications')
+            ->whereIn('id', $enrolledGroupIds)
+            ->get();
 
         $enrolledExamIds = $student->exams
             ->pluck('id')
@@ -240,9 +265,9 @@ class AdminViewsController extends Controller
         $enrolledExams = empty($enrolledExamIds)
             ? collect()
             : Exam::with(['teacher', 'period'])
-                ->withCount('students')
-                ->whereIn('id', $enrolledExamIds)
-                ->get();
+            ->withCount('students')
+            ->whereIn('id', $enrolledExamIds)
+            ->get();
 
         $activePeriod = $windowResolver->resolveActivePeriod();
 
@@ -310,7 +335,7 @@ class AdminViewsController extends Controller
                     ];
                 })
                 ->groupBy('level.id')
-                ->map(fn ($groups) => [
+                ->map(fn($groups) => [
                     'level' => $groups->first()['level'],
                     'groups' => $groups->values()->all(),
                 ])

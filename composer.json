@@ -9,7 +9,7 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "ext-bcmath": "*",
         "ext-gd": "*",
         "ext-zip": "*",
@@ -94,8 +94,8 @@
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
         },
-            "platform": {
-            "php": "8.2.12"
+        "platform": {
+            "php": "8.3.0"
         }
     },
     "minimum-stability": "stable",
