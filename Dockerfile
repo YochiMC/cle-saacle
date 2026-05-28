@@ -31,7 +31,6 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV SERVER_ROOT=/app/public
-ENV SERVER_NAME=:80
 
 # ==========================================
 # Etapa 2: Construcción del Frontend (Node)
@@ -70,11 +69,11 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwX storage bootstrap/cache
 
-# Quitar la capacidad de red que Render bloquea por seguridad (Evita el error 126)
-RUN setcap -r /usr/local/bin/frankenphp || true
+# 1. HACK DEFINITIVO PARA RENDER: Copiar y reemplazar el binario elimina el 100% de los privilegios anclados al archivo (Adiós error 126)
+RUN cp /usr/local/bin/frankenphp /tmp/fphp && mv /tmp/fphp /usr/local/bin/frankenphp
 
-# Configuración crucial para Render (Manejo dinámico de puertos)
-ENV SERVER_NAME=":${PORT:-80}"
+# 2. OBLIGAR IPV4: Forzamos a que escuche en 0.0.0.0 para que el escáner de Render lo detecte y no cancele el despliegue
+ENV SERVER_NAME="http://0.0.0.0:${PORT:-80}"
 
-# ENTRYPOINT SIN MIGRACIONES: Solo cachea la configuración y arranca el servidor
-ENTRYPOINT ["sh", "-lc", "export SERVER_NAME=:${PORT:-80}; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache && exec frankenphp run"]
+# ENTRYPOINT limpio
+ENTRYPOINT ["sh", "-c", "php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache && exec frankenphp run --config /etc/caddy/Caddyfile"]
