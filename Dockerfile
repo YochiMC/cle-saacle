@@ -69,11 +69,8 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwX storage bootstrap/cache
 
-# 1. HACK DEFINITIVO PARA RENDER: Copiar y reemplazar el binario elimina el 100% de los privilegios anclados al archivo (Adiós error 126)
+# Quitar la capacidad de red que Render bloquea por seguridad
 RUN cp /usr/local/bin/frankenphp /tmp/fphp && mv /tmp/fphp /usr/local/bin/frankenphp
 
-# Configuración que acepta cualquier dominio (el catch-all de Caddy)
-ENV SERVER_NAME=":${PORT:-80}"
-
-# ENTRYPOINT limpio
-ENTRYPOINT ["sh", "-lc", "export SERVER_NAME=:${PORT:-80}; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache && exec frankenphp run"]
+# ENTRYPOINT: Forzamos IPv4 (0.0.0.0) y habilitamos el dominio oficial de Render
+ENTRYPOINT ["sh", "-lc", "export SERVER_NAME=\"http://0.0.0.0:${PORT:-80}, http://${RENDER_EXTERNAL_HOSTNAME:-localhost}:${PORT:-80}\"; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache && exec frankenphp run"]
