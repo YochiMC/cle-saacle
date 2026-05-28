@@ -72,5 +72,5 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
 # Quitar la capacidad de red que Render bloquea por seguridad
 RUN cp /usr/local/bin/frankenphp /tmp/fphp && mv /tmp/fphp /usr/local/bin/frankenphp
 
-# ENTRYPOINT: Forzamos IPv4 (0.0.0.0) y habilitamos el dominio oficial de Render
-ENTRYPOINT ["sh", "-lc", "export SERVER_NAME=\"http://0.0.0.0:${PORT:-80}, http://${RENDER_EXTERNAL_HOSTNAME:-localhost}:${PORT:-80}\"; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache && exec frankenphp run"]
+# ENTRYPOINT: Generamos un Caddyfile explícito para Render y escuchamos en el puerto expuesto
+ENTRYPOINT ["sh", "-lc", "set -eu; PORT_VALUE=${PORT:-80}; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache && { printf '%s\n' '{' '  auto_https off' '}'; printf '%s\n' \":$PORT_VALUE {\"; printf '%s\n' '  root * /app/public' '  encode zstd br gzip' '  php_server' '}'; } > /tmp/Caddyfile && exec frankenphp run --config /tmp/Caddyfile"]
