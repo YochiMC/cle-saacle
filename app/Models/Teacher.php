@@ -36,7 +36,7 @@ class Teacher extends Model
     protected function fullName(): Attribute
     {
         return Attribute::make(
-            get: fn() => "{$this->first_name} {$this->last_name}",
+            get: fn() => "{$this->last_name} {$this->first_name}",
         );
     }
 

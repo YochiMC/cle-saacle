@@ -143,7 +143,7 @@ class StudentResourceTest extends TestCase
     // full_name
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function test_full_name_concatenates_first_and_last_name(): void
+    public function test_full_name_returns_last_and_first_name(): void
     {
         $student  = Student::factory()->withRole()->create([
             'first_name' => 'Juan',
@@ -151,7 +151,7 @@ class StudentResourceTest extends TestCase
         ]);
         $resource = $this->serialize($student);
 
-        $this->assertSame('Juan Pérez López', $resource['full_name']);
+        $this->assertSame('Pérez López Juan', $resource['full_name']);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

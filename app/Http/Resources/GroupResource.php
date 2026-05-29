@@ -75,7 +75,7 @@ class GroupResource extends JsonResource
 
             // Cadena de alumnos para búsqueda frontend
             'students_string' => $this->whenLoaded('qualifications', function () {
-                return $this->qualifications->map(fn($q) => ($q->student->first_name ?? '') . ' ' . ($q->student->last_name ?? ''))->join(' ');
+                return $this->qualifications->map(fn($q) => $q->student->full_name)->join(' ');
             }, ''),
         ];
     }
