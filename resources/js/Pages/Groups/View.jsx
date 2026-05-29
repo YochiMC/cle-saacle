@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ResourceDashboard from "@/Components/ResourceDashboard";
 import { Head } from "@inertiajs/react";
+import { GRADES_HIDDEN_COLUMNS } from "@/Constants/tableColumns";
 
 // Hooks y Controladores
 import useGroupManager from "./Hooks/useGroupManager";
@@ -31,15 +32,14 @@ export default function View({
     grupo,
     enrolledStudents = [],
     availableStudents = [],
-    isStudentEnrolled = false
+    isStudentEnrolled = false,
 }) {
     // 1. Invocación del Controlador Lógico (Custom Hook)
-    const {
-        state,
-        handlers,
-        actions,
-        flashModal
-    } = useGroupManager(grupo, enrolledStudents, isStudentEnrolled);
+    const { state, handlers, actions, flashModal } = useGroupManager(
+        grupo,
+        enrolledStudents,
+        isStudentEnrolled,
+    );
 
     // 2. Lógica Visual: Determinación de estilos de fila
     const getRowClassName = (row) => {
@@ -49,12 +49,15 @@ export default function View({
     };
 
     // 3. Configuración de Columnas (Patrón Smart Component)
-    const groupColumnConfig = useMemo(() => ({
-        baseKeys: BASE_STUDENT_KEYS,
-        statusKeys: STATUS_KEYS,
-        footerKeys: FOOTER_KEYS,
-        ignoredKeys: IGNORED_DYNAMIC_KEYS,
-    }), []);
+    const groupColumnConfig = useMemo(
+        () => ({
+            baseKeys: BASE_STUDENT_KEYS,
+            statusKeys: STATUS_KEYS,
+            footerKeys: FOOTER_KEYS,
+            ignoredKeys: IGNORED_DYNAMIC_KEYS,
+        }),
+        [],
+    );
 
     return (
         <AuthenticatedLayout
@@ -74,25 +77,29 @@ export default function View({
                     dataMap={{ alumnos: state.localData }}
                     viewOptions={VIEW_OPTIONS}
                     columnConfig={groupColumnConfig}
-
                     // Configuración de mutaciones
-                    deleteRoute={state.canDeleteEnrollments ? route('groups.unenroll-bulk', grupo.id) : undefined}
-                    onDeleteRow={state.canDeleteEnrollments ? handlers.requestDeleteRow : undefined}
+                    deleteRoute={
+                        state.canDeleteEnrollments
+                            ? route("groups.unenroll-bulk", grupo.id)
+                            : undefined
+                    }
+                    onDeleteRow={
+                        state.canDeleteEnrollments
+                            ? handlers.requestDeleteRow
+                            : undefined
+                    }
                     canPerformDelete={state.canDeleteEnrollments}
                     canPerformEdit={state.canEditQualifications}
-
                     // Configuración de tabla dinámica
                     editableColumns={state.editableColumns}
                     editAllRows={state.isEditingMode}
-                    hiddenColumns={{ qualification_id: false }}
+                    hiddenColumns={GRADES_HIDDEN_COLUMNS}
                     onCellChange={handlers.handleCellChange}
-
                     // Edición Individual de Filas
                     editingRowId={state.editingRowId}
                     onEditRow={(item) => handlers.setEditingRowId(item.id)}
                     onSaveRow={handlers.requestSaveRow}
                     onCancelRow={() => handlers.setEditingRowId(null)}
-
                     // Inyección de Controles Fragmentados
                     buttonSpace={
                         <GroupToolbar
@@ -104,10 +111,13 @@ export default function View({
                             setIsEditingMode={handlers.setIsEditingMode}
                         />
                     }
-                    onNew={state.canEnrollStudents ? () => handlers.setIsEnrollModalOpen(true) : undefined}
+                    onNew={
+                        state.canEnrollStudents
+                            ? () => handlers.setIsEnrollModalOpen(true)
+                            : undefined
+                    }
                     getRowClassName={getRowClassName}
                 />
-
             </div>
 
             {/* Barra Inferior Flotante de Guardado Masivo */}
@@ -135,4 +145,3 @@ export default function View({
         </AuthenticatedLayout>
     );
 }
-
