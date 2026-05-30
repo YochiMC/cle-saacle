@@ -186,7 +186,9 @@
 
         // Operaciones administrativas exclusivas de admin
         Route::middleware('role:admin')->group(function () {
-            Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
+            if (! app()->isProduction()) {
+                Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
+            }
 
             Route::prefix('students')->group(function () {
                 Route::post('/', [StudentController::class, 'createStudent'])->name('students');
@@ -220,7 +222,10 @@
             });
 
             Route::prefix('roles')->group(function () {
-                Route::get('/', [RoleController::class, 'index'])->name('roles.index');
+                if (! app()->isProduction()) {
+                    Route::get('/', [RoleController::class, 'index'])->name('roles.index');
+                }
+
                 Route::post('/', [RoleController::class, 'store'])->name('roles.store');
                 Route::put('/{id}', [RoleController::class, 'update'])->name('roles.update');
                 Route::delete('/{id}', [RoleController::class, 'destroy'])->name('roles.destroy');
