@@ -47,12 +47,17 @@ class BulkUpdateExamQualificationsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'qualifications' => 'required|array',
-            'qualifications.*.student_id' => 'required|exists:students,id',
-            'qualifications.*.units_breakdown' => 'required|array',
-            'qualifications.*.final_average' => 'nullable|numeric',
-            'qualifications.*.is_left' => 'required|boolean',
-            'qualifications.*.attempt' => ['required', Rule::enum(AttemptEnum::class)],
+            'qualifications'                             => 'required|array',
+            'qualifications.*.student_id'                => 'required|exists:students,id',
+            'qualifications.*.units_breakdown'           => 'required|array',
+            'qualifications.*.units_breakdown.*'         => 'sometimes|nullable',
+            'qualifications.*.units_breakdown.listening' => 'sometimes|nullable|integer|min:0|max:100',
+            'qualifications.*.units_breakdown.reading'   => 'sometimes|nullable|integer|min:0|max:100',
+            'qualifications.*.units_breakdown.writing'   => 'sometimes|nullable|integer|min:0|max:100',
+            'qualifications.*.units_breakdown.speaking'  => 'sometimes|nullable|integer|min:0|max:100',
+            'qualifications.*.final_average'             => 'nullable|numeric',
+            'qualifications.*.is_left'                   => 'required|boolean',
+            'qualifications.*.attempt'                   => ['required', Rule::enum(AttemptEnum::class)],
         ];
     }
 }

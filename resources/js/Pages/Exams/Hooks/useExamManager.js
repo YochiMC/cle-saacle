@@ -110,6 +110,7 @@ export default function useExamManager(examen, enrolledStudents = [], isStudentE
 
                 if (examen?.exam_type === "4 habilidades") {
                     updatedRow.promedio_habilidades = calculateMcerOutcome(updatedRow);
+                    updatedRow.final_average = updatedRow.promedio_habilidades === "NA" ? null : updatedRow.promedio_habilidades;
                 } else if (!restrictedColumns.includes("final_average") && examen?.exam_type !== "Planes anteriores") {
                     // Recalcular promedio numérico si no está oculto y no es el caso especial arriba
                     const isNumeric = !isNaN(Number(newValue)) && newValue !== "";

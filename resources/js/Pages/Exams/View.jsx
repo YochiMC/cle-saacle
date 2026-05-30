@@ -154,10 +154,6 @@ export default function View({
                     restrictedColumns={state.restrictedColumns}
                     selectOptions={{
                         nivel_asignado: levelsTecnm,
-                        listening: ["A1", "A2", "B1", "B2", "C1", "C2"],
-                        reading: ["A1", "A2", "B1", "B2", "C1", "C2"],
-                        writing: ["A1", "A2", "B1", "B2", "C1", "C2"],
-                        speaking: ["A1", "A2", "B1", "B2", "C1", "C2"],
                     }}
                     editAllRows={state.isEditingMode}
                     hiddenColumns={GRADES_HIDDEN_COLUMNS}

@@ -37,10 +37,6 @@ const resolveInputType = (fieldKey) => {
         lower.includes("nivel_asignado") ||
         lower.includes("nivel_certificado") ||
         lower.includes("certified_level") ||
-        lower.includes("listening") ||
-        lower.includes("reading") ||
-        lower.includes("writing") ||
-        lower.includes("speaking") ||
         lower.includes("status") ||
         lower.includes("attempt")
     ) {
@@ -152,13 +148,18 @@ const EditableCell = memo(({
     }
 
     const extraNumericProps = inputType === "number"
-        ? fieldKey === "score" || fieldKey.includes("calificacion_")
+        ? fieldKey === "score" || fieldKey.includes("calificacion_") || ["listening", "reading", "writing", "speaking"].includes(fieldKey.toLowerCase())
             ? { min: 0, max: fieldKey === "score" ? 2000 : 100, step: 1 }
             : { min: 0, max: 100, step: 0.1 }
         : {};
 
     const handleKeyDown = (e) => {
-        if ((fieldKey === "score" || fieldKey.includes("calificacion_")) && ["e", "E", ".", ","].includes(e.key)) {
+        if (
+            (fieldKey === "score" ||
+                fieldKey.includes("calificacion_") ||
+                ["listening", "reading", "writing", "speaking"].includes(fieldKey.toLowerCase())) &&
+            ["e", "E", ".", ","].includes(e.key)
+        ) {
             e.preventDefault();
         }
     };

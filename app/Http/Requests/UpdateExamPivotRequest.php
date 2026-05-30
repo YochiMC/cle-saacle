@@ -38,10 +38,15 @@ class UpdateExamPivotRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'units_breakdown' => 'required|array',
-            'final_average'   => 'nullable|numeric',
-            'is_left'         => 'required|boolean',
-            'attempt'         => ['required', Rule::enum(AttemptEnum::class)],
+            'units_breakdown'           => 'required|array',
+            'units_breakdown.*'         => 'sometimes|nullable',
+            'units_breakdown.listening' => 'sometimes|nullable|integer|min:0|max:100',
+            'units_breakdown.reading'   => 'sometimes|nullable|integer|min:0|max:100',
+            'units_breakdown.writing'   => 'sometimes|nullable|integer|min:0|max:100',
+            'units_breakdown.speaking'  => 'sometimes|nullable|integer|min:0|max:100',
+            'final_average'             => 'nullable|numeric',
+            'is_left'                   => 'required|boolean',
+            'attempt'                   => ['required', Rule::enum(AttemptEnum::class)],
         ];
     }
 }
