@@ -27,12 +27,7 @@ use Inertia\Response;
 class ProfileController extends Controller
 {
     /**
-     * Resuelve los tipos de documento visibles según el rol principal del usuario.
-     *
-     * Regla:
-     * - Teacher/Docente: usa los tipos requeridos para docente.
-     * - Student/Alumno: usa los tipos requeridos para alumno.
-     * - Otros roles: usa catálogo completo para evitar bloquear la UI.
+    * Devuelve los tipos de documento permitidos según el rol del usuario.
      *
      * @param User $user
      * @return array<int, array{value: string, label: string}>
@@ -51,29 +46,56 @@ class ProfileController extends Controller
     }
 
     /**
-     * Display the user's profile form.
+     * Determina si la autoedición debe exponer el módulo de documentos.
+     */
+    private function canManageDocuments(User $user): bool
+    {
+        return $user->hasAnyRole('teacher', 'student');
+    }
+
+    /**
+     * Construye el contrato de documentos para la vista de autoedición.
+     *
+     * @return array{canManageDocuments: bool, documents: array<int, mixed>, documentTypes: array<int, array{value: string, label: string}>}
+     */
+    private function resolveSelfDocumentProps(User $user): array
+    {
+        $canManageDocuments = $this->canManageDocuments($user);
+
+        return [
+            'canManageDocuments' => $canManageDocuments,
+            'documents' => $canManageDocuments
+                ? DocumentResource::collection($user->documents()->latest()->get())->resolve()
+                : [],
+            'documentTypes' => $canManageDocuments
+                ? $this->resolveDocumentTypeOptions($user)
+                : [],
+        ];
+    }
+
+    /**
+     * Muestra el formulario de autoedición del usuario autenticado.
      */
     public function edit(Request $request): Response
     {
         Gate::authorize('view', $request->user());
-        $documentTypeOptions = $this->resolveDocumentTypeOptions($request->user());
+
+        $user = $request->user();
+        $documentProps = $this->resolveSelfDocumentProps($user);
 
         return Inertia::render('Profile/User/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
-            'documents' => DocumentResource::collection($request->user()->documents()->latest()->get())->resolve(),
-            'documentTypes' => $documentTypeOptions,
-        ]);
+        ] + $documentProps);
     }
 
     /**
-     * Display an admin profile view for a specific user.
+     * Muestra el perfil administrativo de un usuario específico.
      */
     public function show(User $user): Response
     {
         Gate::authorize('view', $user);
 
-        // Cargamos las relaciones para mapear correctamente teacher/student en UserResource.
         $user->loadMissing([
             'documents',
             'teacher',

@@ -6,20 +6,23 @@ use App\Models\Document;
 use App\Models\User;
 
 /**
- * Policy para autorización del módulo de documentos.
+ * Policy de autorización para documentos.
  *
- * Reglas generales:
- * - Administrador: acceso total mediante `before`.
- * - Coordinador: revisión administrativa de documentos.
- * - Propietario del documento: puede consultar y eliminar sus documentos.
+ * - `create` solo para `teacher` y `student`.
+ * - `admin` conserva acceso total en el resto de acciones.
+ * - `coordinator` revisa y consulta documentos.
  */
 class DocumentPolicy
 {
     /**
-     * Otorga acceso total al administrador antes de evaluar habilidades específicas.
+     * Conserva acceso total para admin, excepto al crear documentos.
      */
     public function before(User $user, string $ability): ?bool
     {
+        if ($ability === 'create') {
+            return null;
+        }
+
         if ($user->hasRole('admin')) {
             return true;
         }
@@ -42,7 +45,7 @@ class DocumentPolicy
     /** Permite subir documentos al usuario autenticado. */
     public function create(User $user): bool
     {
-        return true;
+        return $user->hasAnyRole('teacher', 'student');
     }
 
     /** Permite revisar/actualizar estatus de documentos. */

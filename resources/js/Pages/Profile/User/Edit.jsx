@@ -14,21 +14,16 @@ import { useState } from 'react';
 
 /**
  * Vista principal del perfil del usuario autenticado.
- *
- * Distribución:
- * - Columna izquierda: actualización de información del perfil.
- * - Columna derecha: acciones secundarias (contraseña y documentos).
- *
- * También integra el feedback global con ModalAlert a partir de mensajes flash.
+ * Expone el módulo de documentos solo para docentes y alumnos.
  *
  * @param {Object} props
  * @param {boolean} props.mustVerifyEmail Indica si el usuario requiere verificación de correo.
  * @param {string|null} props.status Estado de operaciones relacionadas con verificación.
+ * @param {boolean} [props.canManageDocuments=false] Indica si el usuario puede ver y subir documentos.
  * @param {Array} props.documents Lista de documentos del usuario.
  * @param {Array} [props.documentTypes=[]] Tipos de documento permitidos para carga.
  */
-export default function Edit({ mustVerifyEmail, status, documents, documentTypes = [] }) {
-    // Normaliza los mensajes flash del backend para mostrarlos en un modal consistente.
+export default function Edit({ mustVerifyEmail, status, canManageDocuments = false, documents = [], documentTypes = [] }) {
     const { flashModal, closeFlashModal } = useFlashAlert();
     const [isOpen, setIsOpen] = useState(false);
     const [isInfoOpen, setIsInfoOpen] = useState(false);
@@ -113,7 +108,6 @@ export default function Edit({ mustVerifyEmail, status, documents, documentTypes
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    {/* Estructura responsiva: 1 columna en móvil, 3 columnas en escritorio */}
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                         <div className="bg-white p-4 shadow border border-blueTec/20 lg:col-span-2 sm:rounded-lg sm:p-8">
                             <UpdateProfileInformationForm
@@ -127,38 +121,43 @@ export default function Edit({ mustVerifyEmail, status, documents, documentTypes
                                 <UpdatePasswordForm className="w-full" />
                             </div>
 
-                            <div className="bg-white p-4 shadow border border-blueTec/20 sm:rounded-lg sm:p-6">
-                                <p className="text-sm font-semibold text-gray-800">Documentos de identidad</p>
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Sube INE, RFC, CURP u otros documentos personales requeridos para validación.
-                                </p>
-                                <div className="mt-4">
-                                    <SecondaryButton onClick={openFileModal} className="w-full justify-center">
-                                        Subir documento
-                                    </SecondaryButton>
+                            {canManageDocuments && (
+                                <div className="bg-white p-4 shadow border border-blueTec/20 sm:rounded-lg sm:p-6">
+                                    <p className="text-sm font-semibold text-gray-800">Documentos de identidad</p>
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        Sube INE, RFC, CURP u otros documentos personales requeridos para validación.
+                                    </p>
+                                    <div className="mt-4">
+                                        <SecondaryButton onClick={openFileModal} className="w-full justify-center">
+                                            Subir documento
+                                        </SecondaryButton>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Bloque de expediente integrado en el mismo contexto visual del perfil */}
-                    <div className="mt-6">
-                        <Files
-                            documents={documents}
-                            onDeleteDocument={handleDeleteDocument}
-                            onOpenDocumentInfo={openDocumentInfo}
-                            onOpenDocumentPreview={openDocumentPreview}
-                        />
-                    </div>
+                    {canManageDocuments && (
+                        <div className="mt-6">
+                            <Files
+                                documents={documents}
+                                onDeleteDocument={handleDeleteDocument}
+                                onOpenDocumentInfo={openDocumentInfo}
+                                onOpenDocumentPreview={openDocumentPreview}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <FileForm
-                show={isOpen}
-                onClose={closeFileModal}
-                title="Subir documento"
-                typeOptions={documentTypes}
-            />
+            {canManageDocuments && (
+                <FileForm
+                    show={isOpen}
+                    onClose={closeFileModal}
+                    title="Subir documento"
+                    typeOptions={documentTypes}
+                />
+            )}
 
             <FileInfo
                 show={isInfoOpen}
