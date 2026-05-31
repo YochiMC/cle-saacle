@@ -21,12 +21,12 @@ const GroupToolbar = ({
     if (!canEditQualifications || isEditingMode) return null;
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
             {/* 1. Selector de Esquema de Unidades (Egresados tiene esquema fijo) */}
             {grupo?.type !== "Programa Egresados" && (
-                <Dropdown>
+                    <Dropdown>
                     <Dropdown.Trigger>
-                        <button className="flex items-center gap-2 px-3 py-1.5 border border-slate-300 bg-white text-slate-700 rounded-md hover:bg-slate-50 focus:ring-2 focus:ring-[#1B396A] transition-all font-medium text-sm shadow-sm">
+                        <button className="flex w-full items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:ring-2 focus:ring-[#1B396A] sm:w-auto">
                             <Settings size={16} />
                             <span className="hidden sm:inline">Esquema</span>
                         </button>
@@ -53,7 +53,7 @@ const GroupToolbar = ({
                 <ThemeButton
                     theme="danger"
                     size="sm"
-                    className="whitespace-nowrap"
+                    className="w-full whitespace-nowrap sm:w-auto"
                     onClick={requestCloseGroup}
                 >
                     Cerrar Grupo
@@ -65,6 +65,7 @@ const GroupToolbar = ({
                 theme="institutional"
                 icon={Edit3}
                 size="sm"
+                className="w-full sm:w-auto"
                 onClick={() => setIsEditingMode(true)}
             >
                 Capturar Calificaciones

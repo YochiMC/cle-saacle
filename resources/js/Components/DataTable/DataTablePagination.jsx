@@ -10,12 +10,12 @@ import { ThemeButton } from '@/Components/ui/ThemeButton';
  */
 export default function DataTablePagination({ table }) {
     return (
-        <div className="flex items-center justify-between space-x-2 py-4">
-            <div className="text-sm text-slate-500">
+        <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:space-x-2">
+            <div className="text-center text-sm text-slate-500 sm:text-left">
                 {table.getFilteredSelectedRowModel().rows.length} de{' '}
                 {table.getFilteredRowModel().rows.length} fila(s) seleccionada(s).
             </div>
-            <div className="flex space-x-2">
+            <div className="flex justify-center gap-2 sm:justify-end">
                 <ThemeButton
                     theme="outline"
                     size="sm"

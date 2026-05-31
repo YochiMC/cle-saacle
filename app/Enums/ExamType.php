@@ -35,11 +35,11 @@ enum ExamType: string
             ],
 
             self::CUATRO_HABILIDADES => [
-                'listening'           => '-',
-                'reading'             => '-',
-                'writing'             => '-',
-                'speaking'            => '-',
-                'promedio_habilidades' => '-',
+                'listening'            => 0,
+                'reading'              => 0,
+                'writing'              => 0,
+                'speaking'             => 0,
+                'promedio_habilidades' => 0,
             ],
 
             self::CONVALIDACION => [

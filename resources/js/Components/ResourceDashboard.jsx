@@ -127,10 +127,10 @@ export default function ResourceDashboard({
     };
 
     return (
-        <div className="min-h-screen py-12 bg-gray-100">
+        <div className="min-h-screen bg-gray-100 py-6 sm:py-12">
             <Head title={currentViewLabel} />
 
-            <div className="mx-auto w-full max-w-[96rem] sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-[96rem] px-3 sm:px-6 lg:px-8">
                 <DashboardHeader
                     title={title}
                     currentViewLabel={currentViewLabel}
@@ -145,7 +145,7 @@ export default function ResourceDashboard({
                     customActions={customActions}
                 />
 
-                <div className="p-6 overflow-hidden bg-white rounded-sm shadow-sm">
+                <div className="overflow-hidden rounded-sm bg-white p-4 shadow-sm sm:p-6">
                     {currentBaseData.length > 0 || buttonSpace ? (
                         <DataTable
                             key={`table-${vistaActual}-${columns.map((c) => c.id || c.accessorKey).join("-")}`}

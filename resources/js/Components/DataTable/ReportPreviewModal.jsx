@@ -84,7 +84,7 @@ export default function ReportPreviewModal({
          * overlay mismo, no en un elemento hijo (el panel blanco).
          */
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4"
             role="dialog"
             aria-modal="true"
             aria-labelledby="report-modal-title"
@@ -100,34 +100,35 @@ export default function ReportPreviewModal({
              * `max-h-[90vh]` + `flex flex-col` + `overflow-hidden` en el padre
              * permiten que el área de vista previa (hijo) tenga scroll independiente.
              */}
-            <div className="bg-white rounded-xl shadow-2xl w-[95vw] max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="flex max-h-[90vh] w-[calc(100vw-1.5rem)] max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl sm:w-[95vw]">
 
                 {/*
                  * ── HEADER DEL MODAL ──────────────────────────────────────────
                  * `flex-shrink-0` evita que este header se comprima cuando el
                  * contenido de abajo es muy largo y ocupa todo el espacio.
                  */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-xl flex-shrink-0">
-                    <div>
+                <div className="flex flex-col gap-3 border-b border-gray-200 bg-gray-50 px-4 py-4 flex-shrink-0 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                    <div className="min-w-0">
                         {/* id aquí para ser referenciado por aria-labelledby del overlay */}
                         <h2
                             id="report-modal-title"
-                            className="text-base font-bold text-[#17365D]"
+                            className="text-sm font-bold text-[#17365D] sm:text-base"
                         >
                             Vista previa del reporte
                         </h2>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="mt-0.5 text-xs text-gray-500 leading-5">
                             Revisa el documento antes de guardar como PDF.
                         </p>
                     </div>
 
                     {/* ── Botones de acción ─────────────────────────────────── */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                         {/* Cancelar: cierra el modal sin imprimir */}
                         <ThemeButton
                             theme="outline"
                             icon={X}
                             size="sm"
+                            className="w-full sm:w-auto"
                             onClick={onClose}
                         >
                             Cancelar
@@ -138,6 +139,7 @@ export default function ReportPreviewModal({
                             theme="institutional"
                             icon={Printer}
                             size="sm"
+                            className="w-full sm:w-auto"
                             onClick={handlePrint}
                         >
                             Confirmar y Guardar PDF
@@ -152,7 +154,7 @@ export default function ReportPreviewModal({
                  * `bg-gray-100`: imita el fondo gris de los visores de PDF,
                  * ayudando a percibir los bordes de la hoja blanca.
                  */}
-                <div className="flex-1 overflow-auto bg-gray-100 p-6">
+                <div className="flex-1 overflow-auto bg-gray-100 p-3 sm:p-6">
                     {/*
                      * La ref `componentRef` se pasa a PrintableReport via forwardRef.
                      * react-to-print leerá componentRef.current para capturar el DOM.

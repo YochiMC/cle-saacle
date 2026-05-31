@@ -77,7 +77,7 @@ export default function DataTableToolbar({
     const showLegacyNewButton = Boolean(onNew);
 
     return (
-        <div className="flex flex-col md:flex-row items-end py-4 gap-4 w-full">
+        <div className="flex w-full flex-col items-stretch gap-3 py-4 md:flex-row md:items-end md:gap-4">
             {/* ── BUSCADOR GLOBAL ──────────────────────────────────────────── */}
             {/*
              * Input controlado: `value` y `onChange` sincronizan el estado
@@ -93,18 +93,19 @@ export default function DataTableToolbar({
             />
 
             {/* ── ACCIONES Y FILTROS PERSONALIZADOS ────────────────────────── */}
-            <div className="flex-1 flex flex-col md:flex-row items-end gap-4 w-full">
+            <div className="flex w-full flex-1 flex-col gap-3 md:flex-row md:items-end md:gap-4">
                 {hasCustomButtons && (
-                    <div className="flex-1 w-full">{buttonSpace}</div>
+                    <div className="w-full flex-1">{buttonSpace}</div>
                 )}
 
-                <div className="flex items-end gap-2 ml-auto">
+                <div className="flex w-full flex-wrap items-stretch gap-2 md:ml-auto md:w-auto md:items-end">
                     {/* Compatibilidad hacia atrás: onNew convive con buttonSpace */}
                     {showLegacyNewButton && (
                         <ThemeButton
                             theme="institutional"
                             icon={Plus}
                             size="sm"
+                                className="w-full sm:w-auto"
                             onClick={onNew}
                         >
                             Registrar Nuevo
@@ -123,11 +124,12 @@ export default function DataTableToolbar({
                                 theme="outline"
                                 icon={Download}
                                 size="sm"
+                                className="w-full sm:w-auto"
                             >
                                 Exportar
                             </ThemeButton>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuContent align="end" className="w-60 sm:w-56">
                             {/*
                              * PDF — abre el modal de vista previa en lugar de descargar
                              * directamente. El usuario puede revisar antes de imprimir.
@@ -169,7 +171,7 @@ export default function DataTableToolbar({
                     {/* ── MENÚ DE VISIBILIDAD DE COLUMNAS ──────────────────────── */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <ThemeButton theme="outline" size="sm">
+                            <ThemeButton theme="outline" size="sm" className="w-full sm:w-auto">
                                 Columnas
                             </ThemeButton>
                         </DropdownMenuTrigger>

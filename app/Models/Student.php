@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Student extends Model
@@ -133,9 +134,15 @@ class Student extends Model
         return abs((int) (now()->diffInYears($this->birthdate)));
     }
 
-    public function getFullNameAttribute(): string
+    /**
+     * Accessor moderno para el nombre completo.
+     * Uso: $student->full_name
+     */
+    protected function fullName(): Attribute
     {
-        return "{$this->first_name} {$this->last_name}";
+        return Attribute::make(
+            get: fn() => "{$this->last_name} {$this->first_name}",
+        );
     }
 
     public function scopeSearch($query, $searchTerm): void

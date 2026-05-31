@@ -54,7 +54,7 @@ class ExamResource extends JsonResource
                 ? $this->students->contains('id', $currentStudentId)
                 : false,
             'students_string' => $this->whenLoaded('students', function () {
-                return collect($this->students)->map(fn ($s) => ($s->first_name ?? '').' '.($s->last_name ?? ''))->join(' ');
+                return collect($this->students)->map(fn ($s) => $s->full_name)->join(' ');
             }, ''),
         ];
     }

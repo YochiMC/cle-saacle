@@ -77,11 +77,12 @@ class GroupController extends Controller
         $mergedAttributes = array_merge($group->toArray(), $validated);
         $validated['name'] = $namingService->generateName($mergedAttributes);
 
-        if (isset($validated['type']) && $validated['type'] !== $group->type->value) {
+        $oldType = $group->type->value;
+        $group->fill($validated);
+
+        if (isset($validated['type']) && $validated['type'] !== $oldType) {
             $resetAction->execute($group);
         }
-
-        $group->fill($validated);
 
         if (!$group->isDirty()) {
             return redirect()->back()->with('warning', 'No se detectaron cambios enviados desde el formulario de grupo.');

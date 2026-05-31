@@ -67,11 +67,12 @@ class ExamController extends Controller
         $mergedAttributes = array_merge($exam->toArray(), $validated);
         $validated['name'] = $this->namingService->generateName($mergedAttributes);
 
-        if (isset($validated['exam_type']) && $validated['exam_type'] !== $exam->exam_type->value) {
+        $oldType = $exam->exam_type->value;
+        $exam->fill($validated);
+
+        if (isset($validated['exam_type']) && $validated['exam_type'] !== $oldType) {
             $resetAction->execute($exam);
         }
-
-        $exam->fill($validated);
 
         if (!$exam->isDirty()) {
             return redirect()->back()->with('warning', 'No se detectaron cambios enviados desde el formulario de examen.');

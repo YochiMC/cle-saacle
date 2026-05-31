@@ -69,31 +69,22 @@ export const calculateAverage = (unitsBreakdown) => {
  */
 export const calculateMcerOutcome = (row) => {
     const skills = ["listening", "reading", "writing", "speaking"];
-    let lowestWeight = Infinity;
-    let allSkillsValid = true;
+    const values = [];
 
     for (const skill of skills) {
-        const val = row[skill]?.toString().toUpperCase().trim();
-
-        if (!val || !(val in MCER_WEIGHTS)) {
-            allSkillsValid = false;
-            break;
+        const val = row[skill];
+        if (val === "-" || val === "" || val === null || val === undefined) {
+            return "NA";
         }
-
-        const weight = MCER_WEIGHTS[val];
-        if (weight < lowestWeight) lowestWeight = weight;
-
-        // Regla académica: Mínimo B1 para acreditar
-        if (weight < 3) {
-            allSkillsValid = false;
-            break;
+        const num = Number(val);
+        if (isNaN(num) || num < 70) {
+            return "NA";
         }
+        values.push(num);
     }
 
-    if (!allSkillsValid || lowestWeight < 3) return "NA";
-
-    // Retorna el nombre del nivel correspondiente al peso más bajo
-    return Object.keys(MCER_WEIGHTS).find(k => MCER_WEIGHTS[k] === lowestWeight) || "NA";
+    const average = Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
+    return average < 70 ? "NA" : average;
 };
 
 /**
