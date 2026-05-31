@@ -1,10 +1,10 @@
 import ApplicationLogo from "@/Components/ui/ApplicationLogo";
 import Dropdown from "@/Components/ui/Dropdown";
 import Navbar from "@/Components/Menus/Navbar/Navbar";
-import ResponsiveNavbar from "@/Components/Menus/Navbar/ResponsiveNavbar";
-import ResponsiveNavLink from "@/Components/Menus/Navbar/Links/ResponsiveNavLink";
+import Sidebar from "@/Components/Menus/Sidebar";
 import { Link, usePage } from "@inertiajs/react";
 import { useState } from "react";
+import { usePermission } from "@/Utils/auth";
 
 /**
  * Layout autenticado con barra de navegación integrada.
@@ -29,6 +29,17 @@ import { useState } from "react";
  */
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+    const { hasRole } = usePermission();
+
+    const hasNamedRoute = (name) => {
+        if (!name) return false;
+
+        try {
+            return typeof route === "function" && route().has(name);
+        } catch {
+            return false;
+        }
+    };
 
     /**
      * Configuración de links de navegación con protección por roles.
@@ -49,6 +60,23 @@ export default function AuthenticatedLayout({ header, children }) {
         { route: "pagos", label: "Pagos", allowedRoles: ["admin", "coordinator", "student"] },
     ];
 
+    const visibleLinks = links.filter((link) => {
+        const hasAllowedRole = link.allowedRoles.some((role) => hasRole(role));
+
+        if (!hasAllowedRole) {
+            return false;
+        }
+
+        return link.href ? true : hasNamedRoute(link.route);
+    });
+
+    const mobileLinks = visibleLinks.map((link) => ({
+        key: link.route,
+        href: link.href ?? route(link.route, link.routeParams),
+        title: link.label,
+        active: link.route ? route().current(link.route) : false,
+    }));
+
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
@@ -61,12 +89,12 @@ export default function AuthenticatedLayout({ header, children }) {
                         <div className="flex">
                             <div className="flex items-center shrink-0">
                                 <Link href="/">
-                                    <ApplicationLogo className="block w-auto text-white h-9 fill-white" />
+                                    <ApplicationLogo className="block w-auto h-9 fill-white text-white" />
                                 </Link>
                             </div>
                         </div>
                         <Navbar links={links} />
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
+                        <div className="hidden lg:ms-6 lg:flex lg:items-center">
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
@@ -111,7 +139,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
 
-                        <div className="flex items-center -me-2 sm:hidden">
+                        <div className="flex items-center -me-2 lg:hidden">
                             <button
                                 onClick={() =>
                                     setShowingNavigationDropdown(
@@ -119,6 +147,8 @@ export default function AuthenticatedLayout({ header, children }) {
                                     )
                                 }
                                 className="inline-flex items-center justify-center p-2 text-white transition duration-150 ease-in-out rounded-md hover:bg-blueTec/80 hover:text-orangeTec focus:bg-blueTec/80 focus:text-orangeTec focus:outline-none"
+                                aria-label={showingNavigationDropdown ? "Cerrar menú" : "Abrir menú"}
+                                aria-expanded={showingNavigationDropdown}
                             >
                                 <svg
                                     fill="none"
@@ -154,53 +184,26 @@ export default function AuthenticatedLayout({ header, children }) {
                     </div>
                 </div>
 
-                <div
-                    className={
-                        (showingNavigationDropdown ? "block" : "hidden") +
-                        " sm:hidden"
-                    }
-                >
-                    <ResponsiveNavbar links={links} />
-
-                    <div className="pt-4 pb-1 border-t border-blueTec/30 bg-blueTec/80">
-                        <div className="px-4">
-                            <div className="text-base font-medium text-white">
-                                {user.name}
-                            </div>
-                            <div className="text-sm font-medium text-blueTec/70">
-                                {user.email}
-                            </div>
-                        </div>
-
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink
-                                href={route("profile.edit")}
-                                className="text-white hover:text-orangeTec"
-                            >
-                                Perfil
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
-                                href={route("logout")}
-                                as="button"
-                                className="text-white hover:text-orangeTec"
-                            >
-                                Cerrar Sesión
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-                </div>
+                <Sidebar
+                    isOpen={showingNavigationDropdown}
+                    onToggle={setShowingNavigationDropdown}
+                    links={mobileLinks}
+                    user={user}
+                    profileHref={route("profile.edit")}
+                    logoutHref={route("logout")}
+                    onNavigate={() => setShowingNavigationDropdown(false)}
+                />
             </nav>
 
             {header && (
                 <header className="bg-white shadow">
-                    <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <div className="px-4 py-4 mx-auto max-w-7xl sm:px-6 sm:py-6 lg:px-8">
                         {header}
                     </div>
                 </header>
             )}
 
-            <main className="p-6">{children}</main>
+            <main className="p-4 sm:p-6">{children}</main>
         </div>
     );
 }

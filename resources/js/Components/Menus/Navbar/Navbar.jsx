@@ -53,7 +53,7 @@ export default function Navbar({ links = [] }) {
     });
 
     return (
-        <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+        <div className="hidden space-x-8 lg:-my-px lg:ms-10 lg:flex">
             {protectedLinks.map((link) =>
                 <NavLink
                     key={link.route}

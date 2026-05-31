@@ -119,7 +119,7 @@ export function DataTable({
             />
 
             <div className="overflow-hidden border bg-white border-slate-200 rounded-lg shadow-sm">
-                <Table>
+                <Table className="min-w-[860px] lg:min-w-full">
                     <TableHeader className="bg-[#17365D]">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow

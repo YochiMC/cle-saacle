@@ -1,103 +1,134 @@
 import { Link } from '@inertiajs/react';
+import ResponsiveNavLink from '@/Components/Menus/Navbar/Links/ResponsiveNavLink';
 
 /**
- * Sidebar lateral para escritorio y moviles.
+ * Drawer lateral para navegación móvil.
  *
  * Contrato de datos esperado en links:
- * - Forma A: { url, title, active }
+ * - Forma A: { href, title, active }
  * - Forma B: { route, label, active }
  *
  * Ejemplo de uso:
- * <Sidebar
- *   links={[{ url: '/dashboard', title: 'Dashboard', active: true }]}
- *   isOpen={isOpen}
- *   onToggle={setIsOpen}
- * />
+ * <Sidebar links={[{ href: '/dashboard', title: 'Dashboard', active: true }]} isOpen={isOpen} />
  */
-export default function Sidebar({ links = [], isOpen, onToggle }) {
+export default function Sidebar({
+    links = [],
+    isOpen,
+    onToggle,
+    onNavigate,
+    user,
+    profileHref,
+    logoutHref,
+}) {
     const normalizedLinks = links.map((link, index) => ({
         key: link.key ?? link.route ?? link.url ?? `sidebar-link-${index}`,
-        href: link.url ?? '#',
+        href: link.href ?? link.url ?? '#',
         title: link.title ?? link.label ?? `Enlace ${index + 1}`,
         active: Boolean(link.active),
     }));
 
     return (
         <>
-            {/* Overlay (móviles) */}
-            {isOpen && (
+            <div
+                className={`fixed inset-0 z-40 lg:hidden transition-opacity duration-300 ${
+                    isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+                }`}
+                aria-hidden={!isOpen}
+            >
                 <div
-                    className="md:hidden fixed inset-0 bg-black/50 z-30"
+                    className="absolute inset-0 bg-black/50"
                     onClick={() => onToggle?.(false)}
                 />
-            )}
 
-            {/* Desktop Sidebar */}
-            <aside className="hidden md:flex md:flex-col md:w-64 md:min-h-screen md:bg-blueTec md:text-white md:shadow-lg md:fixed md:left-0 md:top-0">
-                {/* Logo/Título */}
-                <div className="p-6 border-b border-blueTec/30">
-                    <h2 className="text-2xl font-bold tracking-wide">SAACLE</h2>
-                </div>
+                <aside
+                    className={`absolute left-0 top-0 flex h-full w-72 max-w-[85vw] flex-col bg-blueTec text-white shadow-2xl transition-transform duration-300 ${
+                        isOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
+                >
+                    <div className="flex items-center justify-between border-b border-blueTec/30 p-5">
+                        <div>
+                            <h2 className="text-lg font-bold tracking-wide">SAACLE</h2>
+                            {user?.name && (
+                                <p className="text-xs text-white/70">{user.name}</p>
+                            )}
+                        </div>
 
-                {/* Lista de enlaces */}
-                <ul className="flex flex-col space-y-1 mt-6 flex-grow px-3">
-                    {normalizedLinks.map((link) => (
-                        <li key={link.key}>
-                            <Link
-                                href={link.href}
-                                className={`block px-4 py-3 rounded-md transition-colors duration-200 font-medium ${
-                                    link.active
-                                        ? 'bg-orangeTec text-white shadow-sm'
-                                        : 'text-gray-300 hover:bg-blueTec/80 hover:text-white'
-                                }`}
-                            >
-                                {link.title}
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
+                        <button
+                            type="button"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/15 bg-white/5 text-white transition hover:bg-white/10"
+                            onClick={() => onToggle?.(false)}
+                            aria-label="Cerrar menú"
+                        >
+                            <span className="text-xl leading-none">×</span>
+                        </button>
+                    </div>
 
-                {/* Footer */}
-                <div className="p-6 border-t border-blueTec/30">
-                    <p className="text-xs text-gray-400">© 2026 SAACLE</p>
-                </div>
-            </aside>
+                    <div className="flex-1 overflow-y-auto p-3">
+                        <div className="space-y-1">
+                            {normalizedLinks.map((link) => (
+                                <Link
+                                    key={link.key}
+                                    href={link.href}
+                                    className={`block rounded-md px-4 py-3 text-sm font-medium transition-colors duration-200 ${
+                                        link.active
+                                            ? 'bg-orangeTec text-white shadow-sm'
+                                            : 'text-gray-200 hover:bg-blueTec/80 hover:text-white'
+                                    }`}
+                                    onClick={() => {
+                                        onNavigate?.();
+                                        onToggle?.(false);
+                                    }}
+                                >
+                                    {link.title}
+                                </Link>
+                            ))}
+                        </div>
 
-            {/* Mobile Sidebar */}
-            <aside
-                className={`fixed top-0 left-0 z-40 w-64 min-h-screen bg-blueTec text-white flex flex-col shadow-lg transition-transform duration-300 md:hidden ${
-                    isOpen ? 'translate-x-0' : '-translate-x-full'
-                }`}
-            >
-                {/* Logo/Título */}
-                <div className="p-6 border-b border-blueTec/30">
-                    <h2 className="text-2xl font-bold tracking-wide">SAACLE</h2>
-                </div>
+                        {(profileHref || logoutHref) && (
+                            <div className="mt-6 border-t border-white/10 pt-4">
+                                <div className="px-1 pb-3">
+                                    <p className="text-sm font-semibold text-white">
+                                        {user?.name || 'Usuario'}
+                                    </p>
+                                    <p className="text-xs text-white/70">
+                                        {user?.email || ''}
+                                    </p>
+                                </div>
 
-                {/* Lista de enlaces */}
-                <ul className="flex flex-col space-y-1 mt-6 flex-grow px-3">
-                    {normalizedLinks.map((link) => (
-                        <li key={link.key}>
-                            <Link
-                                href={link.href}
-                                className={`block px-4 py-3 rounded-md transition-colors duration-200 font-medium ${
-                                    link.active
-                                        ? 'bg-orangeTec text-white shadow-sm'
-                                        : 'text-gray-300 hover:bg-blueTec/80 hover:text-white'
-                                }`}
-                                onClick={() => onToggle?.(false)}
-                            >
-                                {link.title}
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
+                                <div className="space-y-1">
+                                    {profileHref && (
+                                        <ResponsiveNavLink
+                                            href={profileHref}
+                                            className="text-white hover:text-orangeTec"
+                                            onClick={() => {
+                                                onNavigate?.();
+                                                onToggle?.(false);
+                                            }}
+                                        >
+                                            Perfil
+                                        </ResponsiveNavLink>
+                                    )}
 
-                {/* Footer */}
-                <div className="p-6 border-t border-blueTec/30">
-                    <p className="text-xs text-gray-400">© 2026 SAACLE</p>
-                </div>
-            </aside>
+                                    {logoutHref && (
+                                        <ResponsiveNavLink
+                                            method="post"
+                                            href={logoutHref}
+                                            as="button"
+                                            className="text-white hover:text-orangeTec"
+                                            onClick={() => {
+                                                onNavigate?.();
+                                                onToggle?.(false);
+                                            }}
+                                        >
+                                            Cerrar Sesión
+                                        </ResponsiveNavLink>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </aside>
+            </div>
         </>
     );
 }

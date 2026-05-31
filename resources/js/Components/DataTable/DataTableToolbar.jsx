@@ -77,7 +77,7 @@ export default function DataTableToolbar({
     const showLegacyNewButton = Boolean(onNew);
 
     return (
-        <div className="flex flex-col md:flex-row items-end py-4 gap-4 w-full">
+        <div className="flex w-full flex-col items-stretch gap-4 py-4 md:flex-row md:items-end">
             {/* ── BUSCADOR GLOBAL ──────────────────────────────────────────── */}
             {/*
              * Input controlado: `value` y `onChange` sincronizan el estado
@@ -93,12 +93,12 @@ export default function DataTableToolbar({
             />
 
             {/* ── ACCIONES Y FILTROS PERSONALIZADOS ────────────────────────── */}
-            <div className="flex-1 flex flex-col md:flex-row items-end gap-4 w-full">
+            <div className="flex w-full flex-1 flex-col gap-4 md:flex-row md:items-end">
                 {hasCustomButtons && (
                     <div className="flex-1 w-full">{buttonSpace}</div>
                 )}
 
-                <div className="flex items-end gap-2 ml-auto">
+                <div className="flex flex-wrap items-end gap-2 md:ml-auto">
                     {/* Compatibilidad hacia atrás: onNew convive con buttonSpace */}
                     {showLegacyNewButton && (
                         <ThemeButton
