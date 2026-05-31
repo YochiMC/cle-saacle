@@ -20,10 +20,10 @@ export default function GridPagination({ paginaActual, totalPaginas, onPageChang
          * Misma estructura visual que DataTablePagination:
          * flex justify-between con el contador a la izquierda y los botones a la derecha.
          */
-        <div className="flex items-center justify-between space-x-2 py-4">
+        <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:space-x-2">
 
             {/* ── CONTADOR ──────────────────────────────────────────────── */}
-            <div className="text-sm text-slate-500">
+            <div className="text-center text-sm text-slate-500 sm:text-left">
                 Página{' '}
                 <span className="font-semibold">{paginaActual}</span>
                 {' '}de{' '}
@@ -31,7 +31,7 @@ export default function GridPagination({ paginaActual, totalPaginas, onPageChang
             </div>
 
             {/* ── BOTONES ───────────────────────────────────────────────── */}
-            <div className="flex space-x-2">
+            <div className="flex justify-center gap-2 sm:justify-end">
                 {/*
                  * Mismos ThemeButton con theme="outline" y size="sm"
                  * que usa DataTablePagination.

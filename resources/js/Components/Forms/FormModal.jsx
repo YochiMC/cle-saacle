@@ -39,15 +39,15 @@ export default function FormModal({ show = false, onClose, title, children, pane
     if (!show) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 backdrop-blur-sm sm:p-4">
 
             {/* Contenedor del Modal modificado */}
-            <div className={`max-h-[90vh] overflow-y-auto transition-all transform bg-white rounded-lg shadow-xl flex flex-col ${panelClassName || 'w-fit min-w-[300px] max-w-[90vw]'}`}>
+            <div className={`max-h-[90vh] w-full max-w-[calc(100vw-1.5rem)] overflow-y-auto transition-all transform bg-white rounded-lg shadow-xl flex flex-col sm:w-fit sm:min-w-[300px] sm:max-w-[90vw] ${panelClassName}`}>
 
                 {/* Header estático en la parte superior */}
-                <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b border-gray-100">
+                <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-4 py-3 sm:px-6 sm:py-4">
                     {title && (
-                        <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+                        <h2 className="text-base font-semibold text-gray-800 sm:text-lg">{title}</h2>
                     )}
                     <button
                         onClick={onClose}
@@ -59,7 +59,7 @@ export default function FormModal({ show = false, onClose, title, children, pane
                 </div>
 
                 {/* Body (Aquí va tu formulario) */}
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                     {children}
                 </div>
 

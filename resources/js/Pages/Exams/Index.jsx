@@ -119,7 +119,7 @@ export default function Examen({
                                     )
                                 }
                                 ariaLabel="Filtrar por estado"
-                                minWidthClassName="min-w-[180px]"
+                                minWidthClassName="w-full sm:min-w-[180px]"
                                 placeholder="Todos los estados"
                                 options={statuses}
                             />
@@ -134,7 +134,7 @@ export default function Examen({
                                     )
                                 }
                                 ariaLabel="Filtrar por tipo de examen"
-                                minWidthClassName="min-w-[200px]"
+                                minWidthClassName="w-full sm:min-w-[200px]"
                                 placeholder="Todos los tipos"
                                 options={typeOptions}
                             />
@@ -144,7 +144,7 @@ export default function Examen({
                                 value={manager.filtrosAdicionales.ordenCupo || ""}
                                 onChange={(e) => manager.setFiltroAdicional("ordenCupo", e.target.value || null)}
                                 ariaLabel="Ordenar por disponibilidad"
-                                minWidthClassName="min-w-[220px]"
+                                minWidthClassName="w-full sm:min-w-[220px]"
                                 placeholder="Orden: Por defecto"
                                 options={[
                                     { value: "desc", label: "Disponibilidad: Alta a Baja" },

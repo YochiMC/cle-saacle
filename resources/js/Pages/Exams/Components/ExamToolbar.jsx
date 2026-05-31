@@ -18,13 +18,13 @@ const ExamToolbar = ({
     if (!canEditQualifications || isEditingMode) return null;
 
     return (
-        <div className="flex gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
             {/* 1. Botón para Cerrar Examen Definitivamente */}
             {examen?.status !== 'completed' && (
                 <ThemeButton
                     theme="danger"
                     size="sm"
-                    className="whitespace-nowrap"
+                    className="w-full whitespace-nowrap sm:w-auto"
                     onClick={requestCloseGroup}
                 >
                     Cerrar Examen
@@ -36,6 +36,7 @@ const ExamToolbar = ({
                 theme="institutional"
                 icon={Edit3}
                 size="sm"
+                className="w-full sm:w-auto"
                 onClick={() => setIsEditingMode(true)}
             >
                 Capturar Calificaciones
