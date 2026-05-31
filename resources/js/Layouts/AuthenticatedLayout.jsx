@@ -94,7 +94,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
                         <Navbar links={links} />
-                        <div className="hidden lg:ms-6 lg:flex lg:items-center">
+                        <div className="hidden xl:ms-6 xl:flex xl:items-center">
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
@@ -139,7 +139,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
 
-                        <div className="flex items-center -me-2 lg:hidden">
+                        <div className="flex items-center -me-2 xl:hidden">
                             <button
                                 onClick={() =>
                                     setShowingNavigationDropdown(

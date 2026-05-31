@@ -30,7 +30,7 @@ export default function Sidebar({
     return (
         <>
             <div
-                className={`fixed inset-0 z-40 lg:hidden transition-opacity duration-300 ${
+                className={`fixed inset-0 z-40 xl:hidden transition-opacity duration-300 ${
                     isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
                 }`}
                 aria-hidden={!isOpen}
