@@ -106,7 +106,7 @@ export default function Groups({
                                 value={manager.filtrosAdicionales.estado}
                                 onChange={(e) => manager.setFiltroAdicional("estado", e.target.value)}
                                 ariaLabel="Filtrar por estado"
-                                minWidthClassName="min-w-[180px]"
+                                minWidthClassName="w-full sm:min-w-[180px]"
                                 placeholder="Todos los estados"
                                 options={statuses}
                             />
@@ -116,7 +116,7 @@ export default function Groups({
                                 value={manager.filtrosAdicionales.nivel}
                                 onChange={(e) => manager.setFiltroAdicional("nivel", e.target.value)}
                                 ariaLabel="Filtrar por nivel"
-                                minWidthClassName="min-w-[200px]"
+                                minWidthClassName="w-full sm:min-w-[200px]"
                                 placeholder="Todos los niveles"
                                 options={levels.map((nivel) => ({
                                     value: String(nivel.id),
@@ -129,7 +129,7 @@ export default function Groups({
                                 value={manager.filtrosAdicionales.ordenCupo || ""}
                                 onChange={(e) => manager.setFiltroAdicional("ordenCupo", e.target.value || null)}
                                 ariaLabel="Ordenar por disponibilidad"
-                                minWidthClassName="min-w-[220px]"
+                                minWidthClassName="w-full sm:min-w-[220px]"
                                 placeholder="Orden: Por defecto"
                                 options={[
                                     { value: "desc", label: "Disponibilidad: Alta a Baja" },

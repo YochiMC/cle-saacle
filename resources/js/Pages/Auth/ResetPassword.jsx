@@ -23,11 +23,20 @@ export default function ResetPassword({ token, email }) {
 
     return (
         <GuestLayout>
-            <Head title="Reset Password" />
+            <Head title="Restablecer contraseña" />
+
+            <div className="mb-4 space-y-1 text-sm text-gray-600">
+                <h1 className="text-base font-semibold text-gray-900">
+                    Restablecer contraseña
+                </h1>
+                <p className="leading-5">
+                    Elige una nueva contraseña para continuar con tu acceso.
+                </p>
+            </div>
 
             <form onSubmit={submit}>
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                    <InputLabel htmlFor="email" value="Correo" />
 
                     <TextInput
                         id="email"
@@ -43,7 +52,7 @@ export default function ResetPassword({ token, email }) {
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                    <InputLabel htmlFor="password" value="Contraseña" />
 
                     <TextInput
                         id="password"
@@ -62,7 +71,7 @@ export default function ResetPassword({ token, email }) {
                 <div className="mt-4">
                     <InputLabel
                         htmlFor="password_confirmation"
-                        value="Confirm Password"
+                        value="Confirmar contraseña"
                     />
 
                     <TextInput
@@ -84,8 +93,11 @@ export default function ResetPassword({ token, email }) {
                 </div>
 
                 <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Reset Password
+                    <PrimaryButton
+                        className="w-full sm:ms-4 sm:w-auto"
+                        disabled={processing}
+                    >
+                        Guardar nueva contraseña
                     </PrimaryButton>
                 </div>
             </form>

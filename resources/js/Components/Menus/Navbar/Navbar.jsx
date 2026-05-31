@@ -33,12 +33,27 @@ import { usePermission } from '@/Utils/auth';
 export default function Navbar({ links = [] }) {
     const { hasRole } = usePermission();
 
-    const protectedLinks = links.filter(link => {
+    const hasNamedRoute = (name) => {
+        if (!name) return false;
+
+        try {
+            return typeof route === 'function' && route().has(name);
+        } catch {
+            return false;
+        }
+    };
+
+    const protectedLinks = links.filter((link) => {
         // Verifica si el usuario actual tiene alguno de los roles permitidos en el link
-        return link.allowedRoles.some(role => hasRole(role));
+        const hasAllowedRole = link.allowedRoles.some((role) => hasRole(role));
+        if (!hasAllowedRole) return false;
+
+        // Evita construir links de rutas deshabilitadas por entorno.
+        return link.href ? true : hasNamedRoute(link.route);
     });
+
     return (
-        <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+        <div className="hidden space-x-8 xl:-my-px xl:ms-10 xl:flex">
             {protectedLinks.map((link) =>
                 <NavLink
                     key={link.route}

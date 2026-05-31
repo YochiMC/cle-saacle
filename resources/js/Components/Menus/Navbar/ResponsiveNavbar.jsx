@@ -27,9 +27,23 @@ import { usePermission } from '@/Utils/auth';
 export default function ResponsiveNavbar({ links = [] }) {
     const { hasRole } = usePermission();
 
-    const protectedLinks = links.filter(link => {
+    const hasNamedRoute = (name) => {
+        if (!name) return false;
+
+        try {
+            return typeof route === 'function' && route().has(name);
+        } catch {
+            return false;
+        }
+    };
+
+    const protectedLinks = links.filter((link) => {
         // Verifica si el usuario actual tiene alguno de los roles permitidos en el link
-        return link.allowedRoles.some(role => hasRole(role));
+        const hasAllowedRole = link.allowedRoles.some((role) => hasRole(role));
+        if (!hasAllowedRole) return false;
+
+        // Evita construir links de rutas deshabilitadas por entorno.
+        return link.href ? true : hasNamedRoute(link.route);
     });
 
     return (

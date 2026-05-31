@@ -45,22 +45,22 @@ export default function DataViewModal({ isOpen, onClose, title, children }) {
             onClick={onClose}
         >
             <div
-                className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200"
+                className="relative flex max-h-[90vh] w-full max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:max-w-lg"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* ── Franja institucional ─────────────────────────── */}
                 <div className="h-2 bg-gradient-to-r from-[#1B396A] to-[#142952] shrink-0" />
 
                 {/* ── ENCABEZADO ─────────────────────────────────── */}
-                <div className="px-6 pt-5 pb-4 border-b border-gray-100 flex items-start justify-between gap-4 shrink-0">
-                    <div className="space-y-0.5 w-full">
+                <div className="flex shrink-0 items-start justify-between gap-3 border-b border-gray-100 px-4 pb-4 pt-4 sm:gap-4 sm:px-6 sm:pt-5">
+                    <div className="w-full space-y-1 min-w-0">
                         {title}
                     </div>
 
                     {/* Botón Cerrar "X" */}
                     <button
                         onClick={onClose}
-                        className="shrink-0 p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                        className="shrink-0 rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
                         aria-label="Cerrar modal"
                     >
                         <X size={20} />
@@ -68,12 +68,12 @@ export default function DataViewModal({ isOpen, onClose, title, children }) {
                 </div>
 
                 {/* ── CUERPO (Children Inyectado) ─────────────── */}
-                <div className="px-6 py-5 overflow-y-auto flex-grow grid grid-cols-2 gap-x-8 gap-y-5">
+                <div className="grid flex-grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto px-4 py-4 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-5 sm:px-6 sm:py-5">
                     {children}
                 </div>
 
                 {/* ── PIE ESTÁNDAR ───────────────────────────────── */}
-                <div className="px-6 py-4 border-t border-gray-100 flex justify-end shrink-0">
+                <div className="flex shrink-0 justify-end border-t border-gray-100 px-4 py-4 sm:px-6">
                     <button
                         onClick={onClose}
                         className="px-5 py-2 bg-[#1B396A] text-white text-sm font-semibold rounded-lg hover:bg-[#142952] active:scale-95 transition-all duration-200 shadow-sm"

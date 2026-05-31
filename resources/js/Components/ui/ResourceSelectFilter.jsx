@@ -22,7 +22,7 @@ const ResourceSelectFilter = memo(
         className = baseSelectClass,
     }) => {
         return (
-            <div className={`relative ${minWidthClassName}`}>
+            <div className={`relative w-full ${minWidthClassName}`}>
                 {Icon && (
                     <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 size-5 pointer-events-none" />
                 )}

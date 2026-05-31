@@ -27,7 +27,7 @@ export default function BulkActionBar({
         selectedCount === 1 ? selectedSingularLabel : selectedPluralLabel;
 
     return (
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-4 duration-300 gap-4">
+        <div className="mb-6 flex flex-col gap-4 rounded-lg border border-blue-200 bg-blue-50 p-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
                 <div className="bg-blue-100 p-2 rounded-md">
                     <CheckSquare size={20} className="text-blue-600" />
@@ -39,12 +39,12 @@ export default function BulkActionBar({
                     <span className="text-blue-600/80">{selectedLabel}</span>
                 </div>
             </div>
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
                 <ThemeButton
                     theme="secondary"
                     icon={X}
                     onClick={onClearSelection}
-                    className="flex-1 sm:flex-none"
+                    className="w-full sm:w-auto"
                 >
                     Limpiar selección
                 </ThemeButton>

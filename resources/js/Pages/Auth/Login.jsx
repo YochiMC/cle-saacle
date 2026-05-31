@@ -4,9 +4,9 @@ import InputLabel from '@/Components/ui/InputLabel';
 import PrimaryButton from '@/Components/ui/PrimaryButton';
 import TextInput from '@/Components/ui/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 
-export default function Login({ status, canResetPassword }) {
+export default function Login({ status }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -70,9 +70,7 @@ export default function Login({ status, canResetPassword }) {
                         <Checkbox
                             name="remember"
                             checked={data.remember}
-                            onChange={(e) =>
-                                setData('remember', e.target.checked)
-                            }
+                            onCheckedChange={(checked) => setData('remember', checked === true)}
                         />
                         <span className="ms-2 text-sm text-gray-600">
                             Recuerdame
@@ -81,15 +79,6 @@ export default function Login({ status, canResetPassword }) {
                 </div>
 
                 <div className="mt-4 flex items-center justify-end">
-                    {canResetPassword && (
-                        <Link
-                            href={route('password.request')}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        >
-                            ¿Olvidaste tu contraseña?
-                        </Link>
-                    )}
-
                     <PrimaryButton className="ms-4" disabled={processing}>
                         Iniciar Sesión
                     </PrimaryButton>
