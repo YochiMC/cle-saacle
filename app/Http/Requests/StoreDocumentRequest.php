@@ -46,8 +46,9 @@ class StoreDocumentRequest extends FormRequest
             'custom_name' => [
                 'nullable',
                 'string',
-                'max:255',
+                'max:100',
                 'required_if:type,evidencia',
+                'regex:/^[\\p{L}\\p{N}\\s\\-_]+$/u',
             ],
         ];
     }
@@ -63,6 +64,7 @@ class StoreDocumentRequest extends FormRequest
             'file.max' => 'El archivo supera el tamaño permitido. El límite máximo es de 5 MB.',
             'type.required' => 'Debes seleccionar un tipo de documento.',
             'type.in' => 'El tipo de documento seleccionado no es válido.',
+            'custom_name.regex' => 'El nombre personalizado contiene caracteres no permitidos.',
         ];
     }
 }
