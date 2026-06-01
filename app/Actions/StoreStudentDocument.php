@@ -59,67 +59,17 @@ class StoreStudentDocument
     {
         $documentEnum = DocumentType::from($type);
 
-        // Normalizar y sanear cada parte antes de formar el nombre final
-        $typeLabel = $this->sanitizeBasename($documentEnum->label());
-        $userName = $this->sanitizeBasename($user->name);
+        $sanitizer = app(\App\Services\FileNameSanitizer::class);
 
-        $baseName = "{$typeLabel}_{$userName}";
+        $typeLabel = $sanitizer->sanitizeSegment($documentEnum->label());
+        $userName = $sanitizer->sanitizeSegment($user->name);
 
+        $parts = [$typeLabel, $userName];
         if ($type === 'evidencia' && !empty($customName)) {
-            $customNameSanitized = $this->sanitizeBasename($customName);
-            $baseName .= "_{$customNameSanitized}";
+            $parts[] = $customName;
         }
 
-        // Añadir sufijo corto único para evitar colisiones en el bucket
-        $suffix = now()->format('YmdHis') . '_' . Str::upper(Str::random(6));
-
-        $extension = Str::lower($extension);
-
-        $final = "{$baseName}_{$suffix}.{$extension}";
-
-        // Limitar longitud total del nombre para evitar problemas con DB y storage
-        $maxLength = 200;
-        if (mb_strlen($final) > $maxLength) {
-            $keep = $maxLength - (mb_strlen("_{$suffix}.{$extension}"));
-            $baseNameTrimmed = mb_substr($baseName, 0, max(1, $keep));
-            $final = "{$baseNameTrimmed}_{$suffix}.{$extension}";
-        }
-
-        return $final;
+        return $sanitizer->generateStoredName($parts, $extension);
     }
 
-    /**
-     * Sanea una porción de texto para usarla en el basename de un archivo.
-     * - Quita acentos/transliteración
-     * - Elimina caracteres no deseados
-     * - Reemplaza espacios por guiones bajos y pasa a mayúsculas
-     */
-    private function sanitizeBasename(string $input): string
-    {
-        $ascii = Str::ascii($input);
-
-        // Permitir solo letras, números, espacios, guion y guion bajo
-        $clean = preg_replace('/[^A-Za-z0-9\\s\\-_]/u', '', $ascii);
-
-        // Reemplazar espacios por guion bajo y colapsar guiones/guiones bajos repetidos
-        $clean = preg_replace('/\\s+/', '_', $clean);
-        $clean = preg_replace('/_+/', '_', $clean);
-        $clean = preg_replace('/-+/', '-', $clean);
-
-        $clean = trim($clean, "_- ");
-        $clean = Str::upper($clean);
-
-        // Limitar longitud de cada segmento
-        $maxSegment = 120;
-        if (mb_strlen($clean) > $maxSegment) {
-            $clean = mb_substr($clean, 0, $maxSegment);
-        }
-
-        // Si quedó vacío, usar un identificador corto
-        if ($clean === '') {
-            $clean = 'FILE' . Str::upper(Str::random(4));
-        }
-
-        return $clean;
-    }
 }

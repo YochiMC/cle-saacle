@@ -35,7 +35,8 @@ class UploadFile
             // Sanear el nombre recibido por si viene de otros flujos
             $extFromName = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
             $baseFromName = pathinfo($fileName, PATHINFO_FILENAME);
-            $baseSanitized = $this->sanitizeBasename($baseFromName);
+            $sanitizer = app(\App\Services\FileNameSanitizer::class);
+            $baseSanitized = $sanitizer->sanitizeSegment($baseFromName);
             $fileName = $baseSanitized . '.' . ($extFromName ?: $extension);
         } else {
             $fileName = (string) Str::uuid() . '.' . $extension;
@@ -56,21 +57,5 @@ class UploadFile
         ];
     }
 
-    /**
-     * Sanea el basename para usar en filenames.
-     */
-    private function sanitizeBasename(string $input): string
-    {
-        $ascii = Str::ascii($input);
-        $clean = preg_replace('/[^A-Za-z0-9\s\-_]/u', '', $ascii);
-        $clean = preg_replace('/\s+/', '_', $clean);
-        $clean = preg_replace('/_+/', '_', $clean);
-        $clean = preg_replace('/-+/', '-', $clean);
-        $clean = trim($clean, "_- ");
-        $clean = Str::upper($clean);
-        if ($clean === '') {
-            return 'FILE' . Str::upper(Str::random(4));
-        }
-        return mb_substr($clean, 0, 120);
-    }
+
 }
