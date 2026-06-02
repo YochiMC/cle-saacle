@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\DeleteStudentDocument;
+use App\Actions\DeleteStoredDocument;
 use App\Actions\ServeStoredFile;
-use App\Actions\StoreStudentDocument;
+use App\Actions\StoreUserDocument;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
 use App\Models\Document;
@@ -24,7 +24,7 @@ class DocumentController extends Controller
     /**
      * Almacena un nuevo documento para el usuario autenticado.
      */
-    public function store(StoreDocumentRequest $request, StoreStudentDocument $action): RedirectResponse
+    public function store(StoreDocumentRequest $request, StoreUserDocument $action): RedirectResponse
     {
         Gate::authorize('create', Document::class);
         $action->execute(
@@ -51,7 +51,7 @@ class DocumentController extends Controller
     /**
      * Elimina un documento del sistema (Físico y Lógico).
      */
-    public function destroy(Document $document, DeleteStudentDocument $action): RedirectResponse
+    public function destroy(Document $document, DeleteStoredDocument $action): RedirectResponse
     {
         Gate::authorize('delete', $document);
         $action->execute($document);

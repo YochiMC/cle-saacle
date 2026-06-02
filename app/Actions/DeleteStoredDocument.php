@@ -5,19 +5,14 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\Document;
-use Illuminate\Support\Facades\Storage;
-use App\Actions\DeleteStoredFile;
 
 /**
- * Acción encargada de la eliminación segura de un documento (física y lógica).
+ * Acción genérica para eliminar un documento de forma física y lógica.
  */
-class DeleteStudentDocument
+class DeleteStoredDocument
 {
     /**
      * Elimina el archivo del disco y remueve el registro de la base de datos.
-     *
-     * @param Document $document El modelo del documento a eliminar.
-     * @return bool True si se eliminó archivo y registro; false en caso contrario.
      */
     public function execute(Document $document): bool
     {
@@ -33,6 +28,6 @@ class DeleteStudentDocument
             return false;
         }
 
-        return (bool) $document->delete();
+        return (bool) $document->newQuery()->whereKey($document->getKey())->delete();
     }
 }

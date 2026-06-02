@@ -11,7 +11,7 @@ class UploadFile
     /**
      * Sube un archivo al disco y devuelve su metadata persistible.
      *
-     * @return array{path: string, disk: string, original_name: string, extension: string}
+     * @return array{path: string, disk: string, client_original_name: string, stored_name: string, extension: string}
      */
     public function execute(UploadedFile $file, string $folder, ?string $disk = null, ?string $fileName = null): array
     {
@@ -51,8 +51,8 @@ class UploadFile
         return [
             'path' => $path,
             'disk' => $diskName,
-            // Devolvemos el nombre final almacenado para mantener coherencia
-            'original_name' => $fileName,
+            'client_original_name' => $file->getClientOriginalName(),
+            'stored_name' => $fileName,
             'extension' => $extension,
         ];
     }
