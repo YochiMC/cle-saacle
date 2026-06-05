@@ -9,16 +9,22 @@
     ],
     "license": "MIT",
     "require": {
+<<<<<<< HEAD
         "php": "^8.3",
         "ext-bcmath": "*",
         "ext-gd": "*",
         "ext-zip": "*",
+=======
+        "php": "^8.2",
+        "barryvdh/laravel-dompdf": "^3.1",
+>>>>>>> Cartas
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "league/flysystem-aws-s3-v3": "^3.0",
         "maatwebsite/excel": "^3.1",
+        "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "^6.24",
         "tightenco/ziggy": "^2.0"
     },

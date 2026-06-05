@@ -482,7 +482,73 @@ class AdminViewsController extends Controller
 
         // ID del usuario (necesario en el frontend para construir las rutas anidadas)
         $data['userId'] = $user->id;
+        // ID del estudiante (necesario para generar la constancia)
+        $data['studentId'] = $user->student->id;
+        // Estado del estudiante (útil para mostrar acciones condicionadas en la UI)
+        $data['studentStatus'] = $user->student->status?->value ?? null;
 
         return Inertia::render('Academic/Kardex', $data);
+    }
+
+    /**
+     * Genera y descarga el Kardex completo del alumno en formato PDF.
+     *
+     * Incluye:
+     * - Calificaciones actuales de Grupos y Exámenes (via GetStudentKardexAction).
+     * - Calificaciones históricas (OG).
+     * - Promedio calculado sobre todas las calificaciones numéricas >= 70.
+     *
+     * @param  \App\Models\User  $user
+     * @param  \App\Actions\Students\GetStudentKardexAction  $getKardexAction
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function downloadKardexPdf(User $user, GetStudentKardexAction $getKardexAction)
+    {
+        abort_if(!$user->student, 404, 'El usuario no tiene un perfil de estudiante asociado.');
+
+        Gate::authorize('viewKardex', $user->student);
+
+        $user->loadMissing(['student.degree']);
+
+        $data = $getKardexAction->execute($user->student);
+
+        // Calificaciones históricas (OG)
+        $legacyQualifications = $user->student
+            ->legacyQualifications()
+            ->with('level')
+            ->orderBy('level_id')
+            ->orderBy('period')
+            ->get()
+            ->map(fn($lq) => [
+                'id'          => $lq->id,
+                'level_name'  => $lq->level?->level_tecnm ?? 'N/A',
+                'period'      => $lq->period,
+                'final_grade' => (int) $lq->final_grade,
+            ])->all();
+
+        // Calcular promedio global (calificaciones numéricas >= 70 de ambas secciones)
+        $todasLasCalificaciones = collect($data['kardexData'])
+            ->map(fn($r) => $r['calificacion'] ?? $r['grade'] ?? null)
+            ->merge(collect($legacyQualifications)->map(fn($lq) => $lq['final_grade']))
+            ->filter(fn($c) => is_numeric($c))
+            ->values();
+
+        $promedio = $todasLasCalificaciones->isNotEmpty()
+            ? round($todasLasCalificaciones->avg(), 2)
+            : null;
+
+        $pdfData = [
+            'studentInfo'          => $data['studentInfo'],
+            'kardexData'           => $data['kardexData'],
+            'legacyQualifications' => $legacyQualifications,
+            'promedio'             => $promedio,
+        ];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('kardex.pdf', $pdfData)
+            ->setPaper('letter', 'portrait');
+
+        $fileName = 'Kardex_' . $user->student->num_control . '.pdf';
+
+        return $pdf->download($fileName);
     }
 }
