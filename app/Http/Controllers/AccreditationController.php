@@ -405,23 +405,23 @@ class AccreditationController extends Controller
             'pronombre'    => 'required|in:el,ella,elle',
         ]);
 
-            // Actualizar los datos editados
-            $certificate->update([
-                'student_name_edited' => $validated['student_name'],
-                'carrera_edited'      => $validated['carrera'],
-                'promedio_edited'     => $validated['promedio'],
-                'nivel_edited'        => $validated['nivel'],
-                'pronombre'           => $validated['pronombre'],
-                'status'              => 'confirmed',
-            ]);
+        // Actualizar los datos editados
+        $certificate->update([
+            'student_name_edited' => $validated['student_name'],
+            'carrera_edited'      => $validated['carrera'],
+            'promedio_edited'     => $validated['promedio'],
+            'nivel_edited'        => $validated['nivel'],
+            'pronombre'           => $validated['pronombre'],
+            'status'              => 'confirmed',
+        ]);
 
-            // Generar la constancia en PDF con los datos confirmados
-            $this->generateFinalCertificate($certificate);
+        // Generar la constancia en PDF con los datos confirmados
+        $this->generateFinalCertificate($certificate);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Constancia confirmada y emitida correctamente.',
-            ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Constancia confirmada y emitida correctamente.',
+        ]);
     }
 
     /**
@@ -498,5 +498,5 @@ class AccreditationController extends Controller
 
         // Retornar para descargar
         return $pdf->stream('Constancia_' . $certificate->num_control . '.pdf');
-            }
+    }
 }
