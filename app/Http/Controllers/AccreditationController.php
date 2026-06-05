@@ -158,10 +158,6 @@ class AccreditationController extends Controller
             'nivel'            => $nivel ?: 'B1',
             'no_oficio'        => $noOficio,
             'pronombre'        => 'el',
-            'signer_one_name'  => 'FÁTIMA DEL ROCÍO BECERRA LÓPEZ',
-            'signer_one_title' => 'COORDINADORA DE LENGUAS EXTRANJERAS',
-            'signer_two_name'  => 'ROCÍO SILVIA VARGAS MONTES DE OCA',
-            'signer_two_title' => 'SUBDIRECTORA DE PLANEACIÓN Y VINCULACIÓN',
             'status'           => 'draft',
             'issued_at'        => now(),
         ]);
@@ -407,13 +403,8 @@ class AccreditationController extends Controller
             'promedio'     => 'nullable|numeric',
             'nivel'        => 'nullable|string|max:10',
             'pronombre'    => 'required|in:el,ella,elle',
-            'signer_one_name' => 'nullable|string|max:255',
-            'signer_one_title' => 'nullable|string|max:255',
-            'signer_two_name' => 'nullable|string|max:255',
-            'signer_two_title' => 'nullable|string|max:255',
         ]);
 
-        try {
             // Actualizar los datos editados
             $certificate->update([
                 'student_name_edited' => $validated['student_name'],
@@ -421,32 +412,22 @@ class AccreditationController extends Controller
                 'promedio_edited'     => $validated['promedio'],
                 'nivel_edited'        => $validated['nivel'],
                 'pronombre'           => $validated['pronombre'],
-                'signer_one_name'     => $validated['signer_one_name'] ?? $certificate->signer_one_name,
-                'signer_one_title'    => $validated['signer_one_title'] ?? $certificate->signer_one_title,
-                'signer_two_name'     => $validated['signer_two_name'] ?? $certificate->signer_two_name,
-                'signer_two_title'    => $validated['signer_two_title'] ?? $certificate->signer_two_title,
                 'status'              => 'confirmed',
             ]);
 
             // Generar la constancia en PDF con los datos confirmados
-            $pdfUrl = $this->generateFinalCertificate($certificate);
+            $this->generateFinalCertificate($certificate);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Constancia confirmada y emitida correctamente.',
-                'download_url' => $pdfUrl,
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error al generar la constancia: ' . $e->getMessage(),
-            ], 500);
-        }
     }
 
     /**
      * Genera el PDF final con los datos confirmados.
      */
-    private function generateFinalCertificate(CertificateRecord $certificate): string
+    private function generateFinalCertificate(CertificateRecord $certificate)
     {
         $student = $certificate->student;
         $student->load(['degree', 'level']);
@@ -467,10 +448,6 @@ class AccreditationController extends Controller
         $promedio    = $certificate->promedio_edited ?? $certificate->promedio;
         $nivel       = $certificate->nivel_edited ?: $certificate->nivel;
         $pronombre   = $certificate->pronombre ?? 'el';
-        $signerOneName = $certificate->signer_one_name ?? 'FÁTIMA DEL ROCÍO BECERRA LÓPEZ';
-        $signerOneTitle = $certificate->signer_one_title ?? 'COORDINADORA DE LENGUAS EXTRANJERAS';
-        $signerTwoName = $certificate->signer_two_name ?? 'ROCÍO SILVIA VARGAS MONTES DE OCA';
-        $signerTwoTitle = $certificate->signer_two_title ?? 'SUBDIRECTORA DE PLANEACIÓN Y VINCULACIÓN';
 
         // Generar pronunciación en formato "la C." o "el C."
         $estatusMap = [
@@ -508,10 +485,6 @@ class AccreditationController extends Controller
             'verify_url'     => $verifyUrl,
             'anio_letra'     => $anioLetra,
             'pronombre'      => $pronombre,
-            'signer_one_name' => $signerOneName,
-            'signer_one_title' => $signerOneTitle,
-            'signer_two_name' => $signerTwoName,
-            'signer_two_title' => $signerTwoTitle,
         ];
 
         $pdf = Pdf::loadView($view, $pdfData)->setPaper('letter', 'portrait');
@@ -519,12 +492,11 @@ class AccreditationController extends Controller
         // Marcar como emitido
         $certificate->update(['status' => 'issued']);
 
-        // Guardar el PDF en storage
+        // Guardar el PDF (opcional: guardar en storage)
         $fileName = 'Constancia_' . $certificate->num_control . '_' . now()->timestamp . '.pdf';
-        $filePath = 'certificates/' . $fileName;
-        Storage::disk('public')->put($filePath, $pdf->output());
+        Storage::disk('public')->put('certificates/' . $fileName, $pdf->output());
 
-        // Retornar la ruta del archivo para descargar
-        return Storage::disk('public')->url($filePath);
-    }
+        // Retornar para descargar
+        return $pdf->stream('Constancia_' . $certificate->num_control . '.pdf');
+            }
 }

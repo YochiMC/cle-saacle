@@ -227,6 +227,7 @@
         Route::middleware('role:admin|coordinator|student')->group(function () {
             Route::get('/pagos', [AdminViewsController::class, 'servicesView'])->name('pagos');
             Route::get('/kardex/{user}', [AdminViewsController::class, 'kardex'])->name('kardex');
+            Route::get('/kardex/{user}/pdf', [AdminViewsController::class, 'downloadKardexPdf'])->name('kardex.pdf');
         });
 
         // Autoinscripción de estudiante a grupos

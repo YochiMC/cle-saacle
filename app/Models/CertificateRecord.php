@@ -34,6 +34,7 @@ class CertificateRecord extends Model
         'signer_two_name',
         'signer_two_title',
         'status',
+
     ];
 
     protected $casts = [

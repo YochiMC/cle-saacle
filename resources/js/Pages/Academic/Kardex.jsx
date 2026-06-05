@@ -135,6 +135,26 @@ export default function Kardex({
                                 )}
                             </div>
                         )}
+
+                    {/* ── Botón Descargar Kardex PDF (siempre visible para admin/coordinator) ── */}
+                    {isAdmin && (
+                        <div className="px-6 pb-4 flex justify-end">
+                            <a
+                                href={route("kardex.pdf", userId)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <ThemeButton
+                                    theme="institutional"
+                                    icon={Download}
+                                    className="bg-[#17365D] hover:bg-[#0f2440]"
+                                >
+                                    Descargar Kardex PDF
+                                </ThemeButton>
+                            </a>
+                        </div>
+                    )}
+
                     <KardexTable kardexData={kardexData} />
                 </div>
 
