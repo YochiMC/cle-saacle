@@ -1,7 +1,13 @@
 import React, { useState } from "react";
 import { useForm } from "@inertiajs/react";
 import { Head } from "@inertiajs/react";
-import { PlusCircle, Pencil, Trash2, EllipsisVertical } from "lucide-react";
+import {
+    PlusCircle,
+    Pencil,
+    Trash2,
+    EllipsisVertical,
+    Download,
+} from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import StudentHeader from "@/Components/domain/Academic/StudentHeader";
 import KardexTable from "@/Components/domain/Academic/KardexTable";
@@ -21,10 +27,11 @@ import { usePermission } from "@/Utils/auth";
 // ── Constantes de estilo compartidas con KardexTable ─────────────────────────
 // Fuente de verdad: KardexTable.jsx → TableHeader className + TableHead className
 // Al modificar KardexTable, actualizar estos tokens para mantener consistencia.
-const TABLE_HEADER_BG  = "bg-gray-50/50";
-const TABLE_TH_BASE    = "text-xs uppercase tracking-wider text-gray-500 px-6 py-3";
-const TABLE_TH_LEFT    = `${TABLE_TH_BASE} text-left`;
-const TABLE_TH_CENTER  = `${TABLE_TH_BASE} text-center`;
+const TABLE_HEADER_BG = "bg-gray-50/50";
+const TABLE_TH_BASE =
+    "text-xs uppercase tracking-wider text-gray-500 px-6 py-3";
+const TABLE_TH_LEFT = `${TABLE_TH_BASE} text-left`;
+const TABLE_TH_CENTER = `${TABLE_TH_BASE} text-center`;
 
 export default function Kardex({
     auth,
@@ -33,10 +40,13 @@ export default function Kardex({
     legacyQualifications = [],
     levels = [],
     userId,
+    studentId,
+    studentStatus = null,
 }) {
     // ── Verificación de permisos ────────────────────────────────────────────
     const { hasRole } = usePermission();
     const isAdmin = hasRole("admin") || hasRole("coordinator");
+    const isStrictAdmin = hasRole("admin");
 
     // ── Estado modal CRUD ────────────────────────────────────────────────────
     const [modalOpen, setModalOpen] = useState(false);
@@ -65,7 +75,7 @@ export default function Kardex({
         if (!deleteTarget) return;
         destroy(
             route("legacy-qualifications.destroy", [userId, deleteTarget.id]),
-            { onSuccess: () => setDeleteTarget(null) }
+            { onSuccess: () => setDeleteTarget(null) },
         );
     };
 
@@ -81,10 +91,50 @@ export default function Kardex({
             <Head title="Kardex del Alumno" />
 
             <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-
                 {/* ── Reporte oficial (intacto) ── */}
                 <div className="bg-white shadow-sm sm:rounded-lg border border-gray-200">
                     <StudentHeader studentInfo={studentInfo} />
+                    {isAdmin &&
+                        String(studentStatus).toLowerCase() ===
+                            "accredited" && (
+                            <div className="px-6 py-4 flex justify-end items-center gap-2">
+                                <a
+                                    href={route(
+                                        "accreditations.preview",
+                                        studentId,
+                                    )}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <ThemeButton
+                                        theme="institutional"
+                                        icon={Download}
+                                        className="bg-yellow-500 hover:bg-yellow-600"
+                                    >
+                                        Previsualizar Constancia
+                                    </ThemeButton>
+                                </a>
+
+                                {isStrictAdmin && (
+                                    <a
+                                        href={route(
+                                            "accreditations.certificate",
+                                            studentId,
+                                        )}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <ThemeButton
+                                            theme="success"
+                                            icon={Download}
+                                            className="bg-green-600 hover:bg-green-700"
+                                        >
+                                            Descargar Constancia
+                                        </ThemeButton>
+                                    </a>
+                                )}
+                            </div>
+                        )}
                     <KardexTable kardexData={kardexData} />
                 </div>
 
@@ -108,7 +158,8 @@ export default function Kardex({
                     <div className="overflow-x-auto">
                         {legacyQualifications.length === 0 ? (
                             <p className="px-6 py-8 text-sm text-center text-slate-400">
-                                No hay calificaciones históricas registradas para este alumno.
+                                No hay calificaciones históricas registradas
+                                para este alumno.
                             </p>
                         ) : (
                             <table className="w-full text-sm text-left text-gray-700">
@@ -116,17 +167,34 @@ export default function Kardex({
                                     <tr>
                                         <th className={TABLE_TH_CENTER}>#</th>
                                         <th className={TABLE_TH_LEFT}>Nivel</th>
-                                        <th className={TABLE_TH_LEFT}>Periodo</th>
-                                        <th className={TABLE_TH_LEFT}>Calificación</th>
-                                        {isAdmin && <th className={TABLE_TH_CENTER}>Acciones</th>}
+                                        <th className={TABLE_TH_LEFT}>
+                                            Periodo
+                                        </th>
+                                        <th className={TABLE_TH_LEFT}>
+                                            Calificación
+                                        </th>
+                                        {isAdmin && (
+                                            <th className={TABLE_TH_CENTER}>
+                                                Acciones
+                                            </th>
+                                        )}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
                                     {legacyQualifications.map((lq, idx) => (
-                                        <tr key={lq.id} className="hover:bg-slate-50 transition-colors">
-                                            <td className="px-6 py-3 text-gray-400">{idx + 1}</td>
-                                            <td className="px-6 py-3 font-medium">{lq.level_name}</td>
-                                            <td className="px-6 py-3">{lq.period}</td>
+                                        <tr
+                                            key={lq.id}
+                                            className="hover:bg-slate-50 transition-colors"
+                                        >
+                                            <td className="px-6 py-3 text-gray-400">
+                                                {idx + 1}
+                                            </td>
+                                            <td className="px-6 py-3 font-medium">
+                                                {lq.level_name}
+                                            </td>
+                                            <td className="px-6 py-3">
+                                                {lq.period}
+                                            </td>
                                             <td className="px-6 py-3">
                                                 <span
                                                     className={`font-semibold ${
@@ -142,7 +210,9 @@ export default function Kardex({
                                                 <td className="px-6 py-3">
                                                     <div className="flex justify-center">
                                                         <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
+                                                            <DropdownMenuTrigger
+                                                                asChild
+                                                            >
                                                                 <button
                                                                     className="inline-flex items-center justify-center w-9 h-9 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-[#17365D] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#17365D]/10"
                                                                     title="Acciones"
@@ -156,18 +226,28 @@ export default function Kardex({
                                                                 className="w-48 p-1.5 bg-white rounded-xl shadow-xl border border-gray-100"
                                                             >
                                                                 <DropdownMenuItem
-                                                                    onClick={() => openEdit(lq)}
+                                                                    onClick={() =>
+                                                                        openEdit(
+                                                                            lq,
+                                                                        )
+                                                                    }
                                                                     className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-gray-50 focus:bg-gray-50 outline-none"
                                                                 >
                                                                     <Pencil className="w-4 h-4 text-slate-400" />
-                                                                    Editar registro
+                                                                    Editar
+                                                                    registro
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem
-                                                                    onClick={() => setDeleteTarget(lq)}
+                                                                    onClick={() =>
+                                                                        setDeleteTarget(
+                                                                            lq,
+                                                                        )
+                                                                    }
                                                                     className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 rounded-lg cursor-pointer transition-colors duration-150 hover:bg-red-50/50 focus:bg-red-50/50 outline-none"
                                                                 >
                                                                     <Trash2 className="w-4 h-4" />
-                                                                    Eliminar registro
+                                                                    Eliminar
+                                                                    registro
                                                                 </DropdownMenuItem>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
@@ -218,5 +298,3 @@ export default function Kardex({
         </AuthenticatedLayout>
     );
 }
-
-

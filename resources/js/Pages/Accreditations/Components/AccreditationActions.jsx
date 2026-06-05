@@ -1,34 +1,37 @@
 import React from "react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import ThemeButton from "@/Components/ui/ThemeButton";
-import { Edit, Eye, Trash2, X } from "lucide-react";
+import { Edit, Eye, Trash2, X, Download } from "lucide-react";
 
 /**
  * Componente: AccreditationActions
- * 
+ *
  * Renderiza los botones de acción para cada fila de la tabla de acreditaciones.
  */
-const AccreditationActions = ({ 
-    item, 
-    isEditingRow, 
-    handleEditRow, 
-    handleCancelRowEdit, 
-    requestSuspendRow 
+const AccreditationActions = ({
+    item,
+    isEditingRow,
+    handleEditRow,
+    handleCancelRowEdit,
+    requestSuspendRow,
 }) => {
+    const { auth } = usePage().props;
+    const isAdmin = auth?.user?.roles?.some((role) => role.name === "admin");
+    const isCoordinator = auth?.user?.roles?.some(
+        (role) => role.name === "coordinator",
+    );
     return (
         <div className="flex items-center justify-center gap-2">
             <ThemeButton
                 onClick={() =>
-                    isEditingRow
-                        ? handleCancelRowEdit()
-                        : handleEditRow(item)
+                    isEditingRow ? handleCancelRowEdit() : handleEditRow(item)
                 }
                 theme={isEditingRow ? "outline" : "warning"}
                 icon={isEditingRow ? X : Edit}
                 title={isEditingRow ? "Cancelar edición" : "Editar"}
                 className="flex items-center justify-center w-8 h-8 p-0 !px-0"
             />
-            
+
             <Link href={route("profiles", item.user_id)}>
                 <ThemeButton
                     theme="institutional"
@@ -45,6 +48,37 @@ const AccreditationActions = ({
                 title="Suspender Candidato"
                 className="flex items-center justify-center w-8 h-8 p-0 !px-0"
             />
+
+            {String(item.status).toLowerCase() === "accredited" &&
+                (isAdmin || isCoordinator) && (
+                    <a
+                        href={route("accreditations.preview", item.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <ThemeButton
+                            theme="institutional"
+                            icon={Eye}
+                            title="Previsualizar Constancia"
+                            className="flex items-center justify-center w-8 h-8 p-0 !px-0 bg-yellow-500 hover:bg-yellow-600"
+                        />
+                    </a>
+                )}
+
+            {String(item.status).toLowerCase() === "accredited" && isAdmin && (
+                <a
+                    href={route("accreditations.certificate", item.id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <ThemeButton
+                        theme="success"
+                        icon={Download}
+                        title="Descargar Constancia"
+                        className="flex items-center justify-center w-8 h-8 p-0 !px-0 bg-green-600 hover:bg-green-700"
+                    />
+                </a>
+            )}
         </div>
     );
 };
