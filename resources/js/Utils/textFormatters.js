@@ -54,7 +54,7 @@ export const abreviarEtiqueta = (texto) => {
 export const limpiarTextoBasico = (texto) => {
     if (!texto) return "";
     // Permitir también los dos puntos ':' además del guión medio
-    return String(texto).replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s:\-]/g, "");
+    return String(texto).replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s:\-;,]/g, "");
 };
 
 /**

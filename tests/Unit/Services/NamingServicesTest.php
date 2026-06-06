@@ -37,32 +37,83 @@ class NamingServicesTest extends TestCase
             ['09:00', 'B'],
             ['12:00', 'E'],
             ['20:00', 'M'],
-            
+
             // Non-exact hours in range (should truncate minutes)
             ['08:30', 'A'],
             ['08:59', 'A'],
             ['09:15', 'B'],
             ['12:45', 'E'],
             ['20:30', 'M'],
-            
+
             // Format variants (single digit hour)
             ['8:00', 'A'],
             ['8:30', 'A'],
-            
-            // Multiple hours in string (should take first match)
+
+            // Multiple hours in string (should collect only start times)
             ['10:30 - 12:00', 'C'],
             ['Lunes 14:15-16:15', 'G'],
-            
+            ['Lunes y Jueves 8:30-10:30 y Viernes 10:30-12:00', 'AC'],
+            ['Sábados de 09:00 a 14:00', 'B'],
+            ['Lunes 8:00-10:00 y Miércoles 8:00-10:00', 'A'],
+
             // Out of range hours
             ['07:59', 'Z'],
             ['07:00', 'Z'],
             ['21:00', 'Z'],
             ['21:30', 'Z'],
-            
+
             // Invalid / Empty
             ['not a time', 'Z'],
             ['', 'Z'],
         ];
+    }
+
+    public function test_group_naming_collects_unique_letters_for_mixed_schedule(): void
+    {
+        $service = new GroupNamingService();
+
+        $attributes = [
+            'type' => 'Programa Egresados',
+            'schedule' => 'Lunes y Jueves 8:30-10:30 y Viernes 10:30-12:00',
+            'period_id' => null,
+            'mode' => 'Presencial',
+        ];
+
+        $name = $service->generateName($attributes);
+
+        $this->assertSame('PE001AC_PERP', $name);
+    }
+
+    public function test_group_naming_returns_single_letter_for_simple_spanish_range(): void
+    {
+        $service = new GroupNamingService();
+
+        $attributes = [
+            'type' => 'Programa Egresados',
+            'schedule' => 'Sábados de 09:00 a 14:00',
+            'period_id' => null,
+            'mode' => 'Presencial',
+        ];
+
+        $name = $service->generateName($attributes);
+
+        $this->assertSame('PE001B_PERP', $name);
+    }
+
+    public function test_group_naming_deduplicates_and_sorts_letters(): void
+    {
+        $service = new GroupNamingService();
+
+        $attributes = [
+            'type' => 'Programa Egresados',
+            'schedule' => 'Lunes 8:00-10:00 y Miércoles 8:00-10:00',
+            'period_id' => null,
+            'mode' => 'Presencial',
+        ];
+
+        $name = $service->generateName($attributes);
+
+        $this->assertSame('PE001A_PERP', $name);
     }
 
     /**
@@ -91,28 +142,28 @@ class NamingServicesTest extends TestCase
             ['09:00', 'B'],
             ['12:00', 'E'],
             ['20:00', 'M'],
-            
+
             // Non-exact hours in range (should truncate minutes)
             ['08:30', 'A'],
             ['08:59', 'A'],
             ['09:15', 'B'],
             ['12:45', 'E'],
             ['20:30', 'M'],
-            
+
             // Seconds suffix (should truncate to hour)
             ['08:30:00', 'A'],
             ['20:00:00', 'M'],
-            
+
             // Format variants (single digit hour)
             ['8:00', 'A'],
             ['8:30', 'A'],
-            
+
             // Out of range hours
             ['07:59', 'Z'],
             ['07:00', 'Z'],
             ['21:00', 'Z'],
             ['21:30', 'Z'],
-            
+
             // Invalid / Empty
             ['not a time', 'Z'],
             ['', 'Z'],
@@ -139,8 +190,8 @@ class NamingServicesTest extends TestCase
 
         // Creamos el primer grupo para que persista en BD
         \App\Models\Group::create(array_merge($attributes1, [
-            'name' => $name1, 
-            'capacity' => 20, 
+            'name' => $name1,
+            'capacity' => 20,
             'status' => \App\Enums\AcademicStatus::ACTIVE,
             'level_id' => \App\Models\Level::factory()->create()->id,
             'teacher_id' => \App\Models\Teacher::factory()->create()->id,
@@ -157,8 +208,8 @@ class NamingServicesTest extends TestCase
 
         // Creamos el segundo grupo en BD
         \App\Models\Group::create(array_merge($attributes2, [
-            'name' => $name2, 
-            'capacity' => 20, 
+            'name' => $name2,
+            'capacity' => 20,
             'status' => \App\Enums\AcademicStatus::ACTIVE,
             'level_id' => \App\Models\Level::factory()->create()->id,
             'teacher_id' => \App\Models\Teacher::factory()->create()->id,
@@ -191,8 +242,8 @@ class NamingServicesTest extends TestCase
         $name1 = $service->generateName($attr1);
         $this->assertEquals("PE001A_{$this->getPeriodCodeStr($period1)}P", $name1);
         \App\Models\Group::create(array_merge($attr1, [
-            'name' => $name1, 
-            'capacity' => 20, 
+            'name' => $name1,
+            'capacity' => 20,
             'status' => \App\Enums\AcademicStatus::ACTIVE,
             'level_id' => \App\Models\Level::factory()->create()->id,
             'teacher_id' => \App\Models\Teacher::factory()->create()->id,

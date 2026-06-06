@@ -96,25 +96,12 @@ class GroupNamingService
      */
     private function getScheduleLetter(string $schedule): string
     {
-        // 1. Extraer la primera hora encontrada en formato HH:MM (ej. 08:30 o 8:00)
-        preg_match('/\b\d{1,2}:\d{2}\b/', $schedule, $matches);
+        $startTimes = $this->extractScheduleStartTimes($schedule);
 
-        if (empty($matches)) {
+        if (empty($startTimes)) {
             return 'Z';
         }
 
-        $startTime = $matches[0];
-
-        // Separar por ':' y castear el primer elemento (la hora) a entero
-        $parts = explode(':', $startTime);
-        $hour = (int) $parts[0];
-
-        // Cláusula de guardia: validar que la hora esté en el rango permitido (8 a 20)
-        if ($hour < 8 || $hour > 20) {
-            return 'Z';
-        }
-
-        // Diccionario basado en llaves enteras (de 8 a 20 mapeado a 'A' hasta 'M')
         $scheduleMap = [
             8  => 'A',
             9  => 'B',
@@ -131,7 +118,82 @@ class GroupNamingService
             20 => 'M',
         ];
 
-        return $scheduleMap[$hour] ?? 'Z';
+        $letters = [];
+
+        foreach ($startTimes as $startTime) {
+            $parts = explode(':', $startTime);
+            $hour = (int) $parts[0];
+
+            if ($hour < 8 || $hour > 20) {
+                continue;
+            }
+
+            $letter = $scheduleMap[$hour] ?? null;
+
+            if ($letter) {
+                $letters[$letter] = true;
+            }
+        }
+
+        if (empty($letters)) {
+            return 'Z';
+        }
+
+        $letters = array_keys($letters);
+        sort($letters, SORT_STRING);
+
+        return implode('', $letters);
+    }
+
+    /**
+     * Extrae las horas de inicio válidas de un horario en texto libre.
+     * Ignora las horas que actúan como fin de bloque, como las precedidas por
+     * un guion o por la preposición "a".
+     */
+    private function extractScheduleStartTimes(string $schedule): array
+    {
+        if (trim($schedule) === '') {
+            return [];
+        }
+
+        preg_match_all('/\b\d{1,2}:\d{2}\b/u', $schedule, $matches, PREG_OFFSET_CAPTURE);
+
+        if (empty($matches[0])) {
+            return [];
+        }
+
+        $startTimes = [];
+
+        foreach ($matches[0] as [$time, $offset]) {
+            if ($this->isEndTimeOfBlock($schedule, $offset)) {
+                continue;
+            }
+
+            $startTimes[] = $time;
+        }
+
+        return $startTimes;
+    }
+
+    /**
+     * Determina si una hora pertenece al cierre de un bloque y no debe usarse
+     * para la nomenclatura.
+     */
+    private function isEndTimeOfBlock(string $schedule, int $offset): bool
+    {
+        $leftContext = rtrim(substr($schedule, 0, $offset));
+
+        if ($leftContext === '') {
+            return false;
+        }
+
+        $lastChar = mb_substr($leftContext, -1, 1);
+
+        if (in_array($lastChar, ['-', '–', '—'], true)) {
+            return true;
+        }
+
+        return (bool) preg_match('/(?:^|[\s,;\/\(\[])a$/iu', $leftContext);
     }
 
     /**
