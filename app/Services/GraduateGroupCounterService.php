@@ -50,10 +50,6 @@ class GraduateGroupCounterService
         foreach ($names as $name) {
             if (preg_match('/^PE(\d{3})/i', $name, $matches)) {
                 $counterVal = (int) $matches[1];
-                // Ignorar el antiguo código de nivel fijo '400'
-                if ($counterVal === 400) {
-                    continue;
-                }
                 if ($counterVal > $maxCounter) {
                     $maxCounter = $counterVal;
                 }
