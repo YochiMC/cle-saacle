@@ -35,7 +35,7 @@ class GroupNamingService
         $modeStr = $this->getModeCode($attributes['mode'] ?? '');
 
         // Genera el código concatenado (Ej: RB100AENE26P o PECMAY25P)
-        return strtoupper("{$typeStr}{$levelStr}{$scheduleLetter}{$periodStr}{$modeStr}");
+        return strtoupper("{$typeStr}{$levelStr}{$scheduleLetter}_{$periodStr}{$modeStr}");
     }
 
     /**
@@ -92,7 +92,7 @@ class GroupNamingService
     {
         // 1. Extraer la primera hora encontrada en formato HH:MM (ej. 08:30 o 8:00)
         preg_match('/\b\d{1,2}:\d{2}\b/', $schedule, $matches);
-        
+
         if (empty($matches)) {
             return 'Z';
         }

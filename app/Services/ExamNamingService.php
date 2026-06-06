@@ -31,7 +31,7 @@ class ExamNamingService
         $modeStr = $this->getModeCode($attributes['mode'] ?? '');
 
         // Concatena sin espacios: CENENE26P
-        return strtoupper("{$typeStr}{$scheduleLetter}{$periodStr}{$modeStr}");
+        return strtoupper("{$typeStr}{$scheduleLetter}_{$periodStr}{$modeStr}");
     }
 
     /**
