@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccreditationController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\CatalogUIController;
 use App\Http\Controllers\CertificateVerificationController;
@@ -21,12 +22,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::middleware('guest')->group(function () {
-    Route::get('/', function () {
-        return Inertia::render('Auth/Login', [
-            'canResetPassword' => Route::has('password.request'),
-            'status' => session('status'),
-        ]);
-    });
+    Route::get('/', [AuthenticatedSessionController::class, 'create']);
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
