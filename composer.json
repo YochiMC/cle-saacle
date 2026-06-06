@@ -9,15 +9,11 @@
     ],
     "license": "MIT",
     "require": {
-<<<<<<< HEAD
         "php": "^8.3",
         "ext-bcmath": "*",
         "ext-gd": "*",
         "ext-zip": "*",
-=======
-        "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
->>>>>>> Cartas
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",

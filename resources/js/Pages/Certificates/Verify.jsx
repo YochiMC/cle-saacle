@@ -38,7 +38,7 @@ export default function Verify({ valid, record }) {
                 }
                 /* HEADER TEAL */
                 .constancia-header {
-                    background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%);
+                    background: linear-gradient(135deg, #17365D 0%, #1f4b7a 55%, #FF9800 100%);
                     padding: 40px 30px;
                     color: white;
                     display: flex;
@@ -82,7 +82,7 @@ export default function Verify({ valid, record }) {
                     font-size: 11px;
                     text-transform: uppercase;
                     letter-spacing: 1.5px;
-                    color: #1abc9c;
+                    color: #17365D;
                     font-weight: 700;
                     margin-bottom: 8px;
                     display: block;
@@ -126,17 +126,17 @@ export default function Verify({ valid, record }) {
                 }
                 .data-value.highlight {
                     font-size: 28px;
-                    color: #1abc9c;
+                    color: #FF9800;
                     font-family: 'Playfair Display', serif;
                 }
                 .divider-section {
                     height: 2px;
-                    background: linear-gradient(90deg, transparent, #1abc9c, transparent);
+                    background: linear-gradient(90deg, transparent, #17365D, #FF9800, transparent);
                     margin: 30px 0;
                 }
                 .validation-box {
-                    background: linear-gradient(135deg, rgba(26,188,156,0.08) 0%, rgba(22,160,133,0.08) 100%);
-                    border: 1px solid rgba(26,188,156,0.3);
+                    background: linear-gradient(135deg, rgba(23,54,93,0.08) 0%, rgba(255,152,0,0.08) 100%);
+                    border: 1px solid rgba(23,54,93,0.25);
                     border-radius: 8px;
                     padding: 16px;
                     margin-top: 20px;
@@ -144,7 +144,7 @@ export default function Verify({ valid, record }) {
                 .validation-label {
                     font-size: 9px;
                     text-transform: uppercase;
-                    color: #16a085;
+                    color: #17365D;
                     font-weight: 700;
                     letter-spacing: 1px;
                     margin-bottom: 8px;
@@ -159,7 +159,7 @@ export default function Verify({ valid, record }) {
                 }
                 /* SIDE PANEL */
                 .constancia-side {
-                    background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+                    background: linear-gradient(135deg, #17365D 0%, #FF9800 100%);
                     border-radius: 12px;
                     padding: 30px;
                     color: white;
@@ -245,18 +245,18 @@ export default function Verify({ valid, record }) {
                 .error-icon {
                     width: 80px;
                     height: 80px;
-                    background: #fee;
+                    background: #fff4e5;
                     border-radius: 50%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     margin: 0 auto 20px;
-                    border: 2px solid #f87171;
+                    border: 2px solid #FF9800;
                 }
                 .error-title {
                     font-size: 24px;
                     font-weight: 700;
-                    color: #ef4444;
+                    color: #17365D;
                     margin-bottom: 10px;
                     font-family: 'Playfair Display', serif;
                 }

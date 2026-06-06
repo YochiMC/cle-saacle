@@ -28,6 +28,7 @@
         .header-table {
             width: 100%;
             border-collapse: collapse;
+            border: 2px solid #17365D;
         }
 
         .header-table td {
@@ -89,7 +90,7 @@
         }
 
         .highlight {
-            background-color: #ffff00;
+            background-color: #FF9800;
             padding: 0 2px;
         }
 
@@ -336,12 +337,12 @@
     <table class="signatures-table">
         <tr>
             <td class="sig-left">
-                <div class="sig-name">FÁTIMA DEL ROCÍO BECERRA LÓPEZ</div>
-                <div class="sig-title">COORDINADORA DE LENGUAS<br>EXTRANJERAS</div>
+                <div class="sig-name">{{ $signer_one_name ?? 'FÁTIMA DEL ROCÍO BECERRA LÓPEZ' }}</div>
+                <div class="sig-title">{{ $signer_one_title ?? 'COORDINADORA DE LENGUAS<br>EXTRANJERAS' }}</div>
             </td>
             <td class="sig-right">
-                <div class="sig-name">ROCÍO SILVIA VARGAS MONTES DE OCA</div>
-                <div class="sig-title">SUBDIRECTORA DE PLANEACIÓN<br>Y VINCULACIÓN</div>
+                <div class="sig-name">{{ $signer_two_name ?? 'ROCÍO SILVIA VARGAS MONTES DE OCA' }}</div>
+                <div class="sig-title">{{ $signer_two_title ?? 'SUBDIRECTORA DE PLANEACIÓN<br>Y VINCULACIÓN' }}</div>
             </td>
         </tr>
     </table>

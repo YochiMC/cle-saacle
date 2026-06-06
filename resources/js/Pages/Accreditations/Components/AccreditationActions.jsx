@@ -60,12 +60,13 @@ const AccreditationActions = ({
                             theme="institutional"
                             icon={Eye}
                             title="Previsualizar Constancia"
-                            className="flex items-center justify-center w-8 h-8 p-0 !px-0 bg-yellow-500 hover:bg-yellow-600"
+                            className="flex items-center justify-center w-8 h-8 p-0 !px-0 bg-blueTec hover:bg-blueTec/90"
                         />
                     </a>
                 )}
 
-            {String(item.status).toLowerCase() === "accredited" && isAdmin && (
+            {String(item.status).toLowerCase() === "accredited" &&
+                (isAdmin || isCoordinator) && (
                 <a
                     href={route("accreditations.certificate", item.id)}
                     target="_blank"
@@ -75,7 +76,7 @@ const AccreditationActions = ({
                         theme="success"
                         icon={Download}
                         title="Descargar Constancia"
-                        className="flex items-center justify-center w-8 h-8 p-0 !px-0 bg-green-600 hover:bg-green-700"
+                        className="flex items-center justify-center w-8 h-8 p-0 !px-0 bg-orangeTec hover:bg-orangeTec/90"
                     />
                 </a>
             )}

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StudentStatus;
 use App\Actions\GetAccreditationCandidates;
 use App\Actions\GetAccreditationMetadata;
 use App\Actions\UpdateStudentAccreditationStatus;
@@ -13,6 +14,7 @@ use App\Models\CertificateRecord;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -37,6 +39,8 @@ class AccreditationController extends Controller
         GetAccreditationCandidates $candidatesAction,
         GetAccreditationMetadata $metadataAction
     ): Response {
+        Gate::authorize('viewAny', CertificateRecord::class);
+
         $candidates = $candidatesAction->execute(
             $request->query('status'),
             $request->query('period_id')
@@ -58,6 +62,8 @@ class AccreditationController extends Controller
         Student $student,
         UpdateStudentAccreditationStatus $action
     ): RedirectResponse {
+        Gate::authorize('manage', CertificateRecord::class);
+
         $action->execute($student, $request->validated('status'));
 
         return redirect()->back()->with('success', 'El estado del alumno se actualizó correctamente.');
@@ -70,6 +76,8 @@ class AccreditationController extends Controller
         BulkSuspendAccreditationRequest $request,
         BulkSuspendStudents $action
     ): RedirectResponse {
+        Gate::authorize('manage', CertificateRecord::class);
+
         $action->execute($request->validated('ids'));
 
         return redirect()->back()->with('success', 'Los alumnos seleccionados han sido actualizados al estado "Inhabilitado".');
@@ -80,7 +88,9 @@ class AccreditationController extends Controller
      */
     public function generateCertificate(Student $student): RedirectResponse
     {
-        if ($student->status->value !== 'accredited') {
+        Gate::authorize('create', CertificateRecord::class);
+
+        if ($student->status !== StudentStatus::ACCREDITED) {
             abort(403, 'El alumno no está acreditado.');
         }
 
@@ -150,6 +160,7 @@ class AccreditationController extends Controller
             'validation_code'  => $validationCode,
             'certificate_type' => $certType,
             'student_name'     => $student->full_name,
+            'pronombre'        => 'el',
             'num_control'      => $student->num_control,
             'carrera'          => $student->degree->name ?? '',
             'plan_estudios'    => $student->degree->study_plan ?? '',
@@ -157,7 +168,10 @@ class AccreditationController extends Controller
             'periodo'          => $obtainedAt,
             'nivel'            => $nivel ?: 'B1',
             'no_oficio'        => $noOficio,
-            'pronombre'        => 'el',
+            'signer_one_name'  => 'FÁTIMA DEL ROCÍO BECERRA LÓPEZ',
+            'signer_one_title'  => 'COORDINADORA DE LENGUAS EXTRANJERAS',
+            'signer_two_name'  => 'ROCÍO SILVIA VARGAS MONTES DE OCA',
+            'signer_two_title' => 'SUBDIRECTORA DE PLANEACIÓN Y VINCULACIÓN',
             'status'           => 'draft',
             'issued_at'        => now(),
         ]);
@@ -171,7 +185,9 @@ class AccreditationController extends Controller
      */
     public function previewCertificate(Student $student)
     {
-        if ($student->status->value !== 'ACCREDITED') {
+        Gate::authorize('preview', CertificateRecord::class);
+
+        if ($student->status !== StudentStatus::ACCREDITED) {
             abort(403, 'El alumno no está acreditado.');
         }
 
@@ -378,6 +394,8 @@ class AccreditationController extends Controller
      */
     public function customizeCertificate(CertificateRecord $certificate)
     {
+        Gate::authorize('view', $certificate);
+
         if ($certificate->status === 'issued') {
             return redirect()->back()->with('error', 'Esta constancia ya fue emitida y no puede ser modificada.');
         }
@@ -393,9 +411,7 @@ class AccreditationController extends Controller
      */
     public function confirmCustomization(Request $request, CertificateRecord $certificate)
     {
-        if ($certificate->status === 'issued') {
-            return response()->json(['error' => 'Constancia ya emitida.'], 403);
-        }
+        Gate::authorize('confirm', $certificate);
 
         $validated = $request->validate([
             'student_name' => 'required|string|max:255',
@@ -403,6 +419,10 @@ class AccreditationController extends Controller
             'promedio'     => 'nullable|numeric',
             'nivel'        => 'nullable|string|max:10',
             'pronombre'    => 'required|in:el,ella,elle',
+            'signer_one_name' => 'required|string|max:255',
+            'signer_one_title' => 'required|string|max:255',
+            'signer_two_name' => 'required|string|max:255',
+            'signer_two_title' => 'required|string|max:255',
         ]);
 
         // Actualizar los datos editados
@@ -412,11 +432,12 @@ class AccreditationController extends Controller
             'promedio_edited'     => $validated['promedio'],
             'nivel_edited'        => $validated['nivel'],
             'pronombre'           => $validated['pronombre'],
+            'signer_one_name'     => $validated['signer_one_name'],
+            'signer_one_title'    => $validated['signer_one_title'],
+            'signer_two_name'     => $validated['signer_two_name'],
+            'signer_two_title'    => $validated['signer_two_title'],
             'status'              => 'confirmed',
         ]);
-
-        // Generar la constancia en PDF con los datos confirmados
-        $this->generateFinalCertificate($certificate);
 
         return response()->json([
             'success' => true,
@@ -425,31 +446,45 @@ class AccreditationController extends Controller
     }
 
     /**
-     * Genera el PDF final con los datos confirmados.
+     * Descarga el PDF final con los datos confirmados.
      */
-    private function generateFinalCertificate(CertificateRecord $certificate)
+    public function downloadCertificate(CertificateRecord $certificate)
+    {
+        Gate::authorize('download', $certificate);
+
+        $pdf = $this->buildCertificatePdf($certificate);
+
+        $fileName = 'Constancia_' . $certificate->num_control . '_' . now()->timestamp . '.pdf';
+        Storage::disk('public')->put('certificates/' . $fileName, $pdf->output());
+
+        $certificate->update(['status' => 'issued']);
+
+        return $pdf->download('Constancia_' . $certificate->num_control . '.pdf');
+    }
+
+    /**
+     * Construye el PDF final de la constancia.
+     */
+    private function buildCertificatePdf(CertificateRecord $certificate)
     {
         $student = $certificate->student;
         $student->load(['degree', 'level']);
 
-        // Determinar el tipo de constancia
-        $certType = $certificate->certificate_type;
-        $viewMap  = [
-            'cursos'            => 'certificates.cursos',
+        $viewMap = [
+            'cursos'             => 'certificates.cursos',
             'cuatro-habilidades' => 'certificates.cuatro-habilidades',
             'examen-acreditacion' => 'certificates.examen-acreditacion',
             'otra-institucion'   => 'certificates.otra-institucion',
         ];
-        $view = $viewMap[$certType] ?? 'certificates.examen-acreditacion';
 
-        // Usar datos editados si existen
+        $view = $viewMap[$certificate->certificate_type] ?? 'certificates.examen-acreditacion';
+
         $studentName = $certificate->student_name_edited ?: $certificate->student_name;
-        $carrera     = $certificate->carrera_edited ?: $certificate->carrera;
-        $promedio    = $certificate->promedio_edited ?? $certificate->promedio;
-        $nivel       = $certificate->nivel_edited ?: $certificate->nivel;
-        $pronombre   = $certificate->pronombre ?? 'el';
+        $carrera = $certificate->carrera_edited ?: $certificate->carrera;
+        $promedio = $certificate->promedio_edited ?? $certificate->promedio;
+        $nivel = $certificate->nivel_edited ?: $certificate->nivel;
+        $pronombre = $certificate->pronombre ?? 'el';
 
-        // Generar pronunciación en formato "la C." o "el C."
         $estatusMap = [
             'ella' => 'la C.',
             'elle' => 'al C.',
@@ -457,46 +492,33 @@ class AccreditationController extends Controller
         ];
         $estatus = $estatusMap[$pronombre] ?? 'el C.';
 
-        $promedioLetra = $this->numeroALetras((int) $promedio);
-        $anioLetra     = $this->anioALetras((int) date('Y'));
-
-        // Generar QR
         $verifyUrl = route('certificates.verify', $certificate->validation_code);
-        $qrImage   = base64_encode(
-            QrCode::size(120)
-                ->margin(1)
-                ->generate($verifyUrl)
-        );
 
-        $pdfData = [
-            'estatus'        => $estatus,
-            'nombre'         => mb_strtoupper($studentName, 'UTF-8'),
-            'numero_control' => $certificate->num_control,
-            'carrera'        => mb_strtoupper($carrera, 'UTF-8'),
-            'plan_estudios'  => mb_strtoupper($certificate->plan_estudios ?? $carrera, 'UTF-8'),
-            'promedio'       => $promedio,
-            'promedio_letra' => $promedioLetra,
-            'periodo'        => $certificate->periodo,
-            'nivel'          => $nivel,
-            'nota'           => '2 Años',
-            'no_oficio'      => $certificate->no_oficio,
-            'qr_image'       => $qrImage,
-            'validation_code' => $certificate->validation_code,
-            'verify_url'     => $verifyUrl,
-            'anio_letra'     => $anioLetra,
-            'pronombre'      => $pronombre,
-        ];
-
-        $pdf = Pdf::loadView($view, $pdfData)->setPaper('letter', 'portrait');
-
-        // Marcar como emitido
-        $certificate->update(['status' => 'issued']);
-
-        // Guardar el PDF (opcional: guardar en storage)
-        $fileName = 'Constancia_' . $certificate->num_control . '_' . now()->timestamp . '.pdf';
-        Storage::disk('public')->put('certificates/' . $fileName, $pdf->output());
-
-        // Retornar para descargar
-        return $pdf->stream('Constancia_' . $certificate->num_control . '.pdf');
+        return Pdf::loadView($view, [
+            'estatus'          => $estatus,
+            'nombre'           => mb_strtoupper($studentName, 'UTF-8'),
+            'numero_control'   => $certificate->num_control,
+            'carrera'          => mb_strtoupper($carrera, 'UTF-8'),
+            'plan_estudios'    => mb_strtoupper($certificate->plan_estudios ?? $carrera, 'UTF-8'),
+            'promedio'         => $promedio,
+            'promedio_letra'   => $this->numeroALetras((int) $promedio),
+            'periodo'          => $certificate->periodo,
+            'nivel'            => $nivel,
+            'nota'             => '2 Años',
+            'no_oficio'        => $certificate->no_oficio,
+            'qr_image'         => base64_encode(
+                QrCode::size(120)
+                    ->margin(1)
+                    ->generate($verifyUrl)
+            ),
+            'validation_code'  => $certificate->validation_code,
+            'verify_url'       => $verifyUrl,
+            'anio_letra'       => $this->anioALetras((int) date('Y')),
+            'pronombre'        => $pronombre,
+            'signer_one_name'  => $certificate->signer_one_name,
+            'signer_one_title' => $certificate->signer_one_title,
+            'signer_two_name'  => $certificate->signer_two_name,
+            'signer_two_title' => $certificate->signer_two_title,
+        ])->setPaper('letter', 'portrait');
     }
 }

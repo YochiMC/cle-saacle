@@ -46,7 +46,7 @@ export default function Kardex({
     // ── Verificación de permisos ────────────────────────────────────────────
     const { hasRole } = usePermission();
     const isAdmin = hasRole("admin") || hasRole("coordinator");
-    const isStrictAdmin = hasRole("admin");
+    const canDownloadCertificate = hasRole("admin") || hasRole("coordinator");
 
     // ── Estado modal CRUD ────────────────────────────────────────────────────
     const [modalOpen, setModalOpen] = useState(false);
@@ -109,13 +109,13 @@ export default function Kardex({
                                     <ThemeButton
                                         theme="institutional"
                                         icon={Download}
-                                        className="bg-yellow-500 hover:bg-yellow-600"
+                                        className="bg-blueTec hover:bg-blueTec/90"
                                     >
                                         Previsualizar Constancia
                                     </ThemeButton>
                                 </a>
 
-                                {isStrictAdmin && (
+                                {canDownloadCertificate && (
                                     <a
                                         href={route(
                                             "accreditations.certificate",
@@ -127,7 +127,7 @@ export default function Kardex({
                                         <ThemeButton
                                             theme="success"
                                             icon={Download}
-                                            className="bg-green-600 hover:bg-green-700"
+                                            className="bg-orangeTec hover:bg-orangeTec/90"
                                         >
                                             Descargar Constancia
                                         </ThemeButton>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Head, usePage } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import { CheckCircle, Edit2, ArrowLeft, Save } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
@@ -23,7 +23,6 @@ export default function CustomizeCertificate({ certificate, student }) {
             "SUBDIRECTORA DE PLANEACIÓN Y VINCULACIÓN",
     });
 
-    const [previewMode, setPreviewMode] = useState(false);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
 
@@ -113,15 +112,15 @@ export default function CustomizeCertificate({ certificate, student }) {
             header={
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 w-full">
                     <h2 className="font-bold text-2xl text-gray-800 leading-tight flex items-center gap-2">
-                        <Edit2 className="w-7 h-7 text-blueTec" />
+                        <Edit2 className="w-7 h-7 text-orangeTec" />
                         Personalizar Constancia
                     </h2>
                     <span
                         className={`w-fit px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                            certificate.status === "confirmed"
-                                ? "bg-blue-50 text-blue-700 border-blue-200"
-                                : certificate.status === "issued"
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                                        certificate.status === "confirmed"
+                                                                ? "bg-blueTec/10 text-blueTec border-blueTec/20"
+                                                                : certificate.status === "issued"
+                                                                    ? "bg-orangeTec/10 text-orangeTec border-orangeTec/20"
                                   : "bg-amber-50 text-amber-700 border-amber-200"
                         }`}
                     >
@@ -399,7 +398,7 @@ export default function CustomizeCertificate({ certificate, student }) {
                                 Vista Previa
                             </h3>
                             <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-blueTec/10">
-                                <div className="bg-gradient-to-r from-emerald-600 to-teal-500 p-8 text-white relative">
+                                <div className="bg-gradient-to-r from-blueTec via-blueTec/95 to-orangeTec p-8 text-white relative">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
                                     <div className="bg-white/20 p-2.5 rounded-2xl w-fit mb-4 border border-white/20">
                                         <CheckCircle
@@ -408,7 +407,7 @@ export default function CustomizeCertificate({ certificate, student }) {
                                             strokeWidth={2}
                                         />
                                     </div>
-                                    <div className="text-xs uppercase tracking-widest text-emerald-100/90 font-bold mb-1">
+                                    <div className="text-xs uppercase tracking-widest text-white/90 font-bold mb-1">
                                         Constancia de Acreditación
                                     </div>
                                     <div className="text-2xl font-black tracking-tight drop-shadow-sm">
@@ -428,7 +427,7 @@ export default function CustomizeCertificate({ certificate, student }) {
                                         <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
                                             Puntaje
                                         </span>
-                                        <span className="text-xl font-bold text-emerald-600 font-playfair">
+                                            <span className="text-xl font-bold text-blueTec font-playfair">
                                             {formData.promedio}
                                         </span>
                                     </div>
@@ -437,7 +436,7 @@ export default function CustomizeCertificate({ certificate, student }) {
                                             <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
                                                 Nivel MCER
                                             </span>
-                                            <span className="text-xl font-bold text-emerald-600 font-playfair">
+                                            <span className="text-xl font-bold text-orangeTec font-playfair">
                                                 {formData.nivel}
                                             </span>
                                         </div>
@@ -460,7 +459,7 @@ export default function CustomizeCertificate({ certificate, student }) {
                                         <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
                                             Estado
                                         </span>
-                                        <span className="text-sm font-extrabold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                                        <span className="text-sm font-extrabold text-orangeTec bg-orangeTec/10 px-3 py-1 rounded-full border border-orangeTec/10">
                                             Confirmado
                                         </span>
                                     </div>
