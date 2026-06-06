@@ -115,7 +115,7 @@ const CardGroup = memo(
                 <div className="flex justify-between items-center">
                     <span className="text-gray-600 font-medium">Horario:</span>
                     <span
-                        className="text-gray-900 font-semibold text-right max-w-[65%] truncate"
+                        className="text-gray-900 font-semibold text-right max-w-[65%] inline-block"
                         title={grupo.schedule || "Por definir"}
                     >
                         {grupo.schedule || "Por definir"}
