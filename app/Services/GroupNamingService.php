@@ -16,6 +16,12 @@ use App\Models\Period;
  */
 class GroupNamingService
 {
+    private GraduateGroupCounterService $counterService;
+
+    public function __construct(?GraduateGroupCounterService $counterService = null)
+    {
+        $this->counterService = $counterService ?? app(GraduateGroupCounterService::class);
+    }
     /**
      * Genera el nombre de un grupo a partir de un arreglo de atributos.
      *
@@ -27,8 +33,8 @@ class GroupNamingService
         $type = $attributes['type'] ?? '';
         $typeStr = $this->getTypeCode($type);
 
-        // Pasamos el tipo para omitir el nivel si es Egresados
-        $levelStr = $this->getLevelCode($attributes['level_id'] ?? null, $type);
+        // Pasamos el tipo para omitir el nivel si es Egresados (pasamos $attributes completo)
+        $levelStr = $this->getLevelCode($attributes['level_id'] ?? null, $type, $attributes);
 
         $scheduleLetter = $this->getScheduleLetter($attributes['schedule'] ?? '');
         $periodStr = $this->getPeriodCode($attributes['period_id'] ?? null);
@@ -55,11 +61,11 @@ class GroupNamingService
     /**
      * Consulta el nivel y devuelve su código compuesto (ej. B100, A200).
      */
-    private function getLevelCode($levelId, string $type): string
+    private function getLevelCode($levelId, string $type, array $attributes = []): string
     {
-        // Excepción: Programa Egresados no lleva nivel
+        // Excepción: Programa Egresados no lleva nivel, lleva contador
         if (strtolower($type) === 'programa egresados') {
-            return '400';
+            return $this->getGraduateCounter($attributes);
         }
 
         if (!$levelId) return 'XXX';
@@ -166,5 +172,45 @@ class GroupNamingService
     private function getModeCode(string $mode): string
     {
         return empty($mode) ? 'M' : strtoupper(substr($mode, 0, 1));
+    }
+
+    /**
+     * Resuelve el contador secuencial para Programa Egresados (001 a 999).
+     */
+    private function getGraduateCounter(array $attributes): string
+    {
+        $periodId = $attributes['period_id'] ?? null;
+        $groupId = $attributes['id'] ?? null;
+
+        // Si es una actualización, verificar si el periodo no cambió para conservar el contador
+        if ($groupId) {
+            $existingGroup = \App\Models\Group::find($groupId);
+            if ($existingGroup && strtolower($existingGroup->type->value ?? '') === 'programa egresados') {
+                if ($periodId && (int)$existingGroup->period_id === (int)$periodId) {
+                    $counter = $this->extractCounterFromName($existingGroup->name);
+                    if ($counter !== null) {
+                        return $counter;
+                    }
+                }
+            }
+        }
+
+        // Si no hay periodo asignado (ej: pruebas unitarias sin persistencia), usar '001'
+        if (!$periodId) {
+            return '001';
+        }
+
+        return $this->counterService->getNextCounter((int) $periodId);
+    }
+
+    /**
+     * Extrae el contador de 3 dígitos del nombre del grupo.
+     */
+    private function extractCounterFromName(?string $name): ?string
+    {
+        if ($name && preg_match('/^PE(\d{3})/i', $name, $matches)) {
+            return $matches[1];
+        }
+        return null;
     }
 }
