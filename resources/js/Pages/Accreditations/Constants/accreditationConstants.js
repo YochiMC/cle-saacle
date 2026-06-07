@@ -32,4 +32,5 @@ export const HIDDEN_COLUMNS_DEFAULT = {
     id: false,
     user_id: false,
     status_label: false,
+    period_ids: false,
 };
