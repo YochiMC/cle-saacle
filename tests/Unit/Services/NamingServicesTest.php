@@ -18,7 +18,7 @@ class NamingServicesTest extends TestCase
     {
         $service = new GroupNamingService();
         $attributes = [
-            'type' => 'Programa Egresados',
+            'type' => 'Programa Especial',
             'schedule' => $schedule,
             'period_id' => null,
             'mode' => 'Presencial',
@@ -73,7 +73,7 @@ class NamingServicesTest extends TestCase
         $service = new GroupNamingService();
 
         $attributes = [
-            'type' => 'Programa Egresados',
+            'type' => 'Programa Especial',
             'schedule' => 'Lunes y Jueves 8:30-10:30 y Viernes 10:30-12:00',
             'period_id' => null,
             'mode' => 'Presencial',
@@ -89,7 +89,7 @@ class NamingServicesTest extends TestCase
         $service = new GroupNamingService();
 
         $attributes = [
-            'type' => 'Programa Egresados',
+            'type' => 'Programa Especial',
             'schedule' => 'Sábados de 09:00 a 14:00',
             'period_id' => null,
             'mode' => 'Presencial',
@@ -105,7 +105,7 @@ class NamingServicesTest extends TestCase
         $service = new GroupNamingService();
 
         $attributes = [
-            'type' => 'Programa Egresados',
+            'type' => 'Programa Especial',
             'schedule' => 'Lunes 8:00-10:00 y Miércoles 8:00-10:00',
             'period_id' => null,
             'mode' => 'Presencial',
@@ -180,7 +180,7 @@ class NamingServicesTest extends TestCase
 
         // 3. Generar nombres secuencialmente
         $attributes1 = [
-            'type' => 'Programa Egresados',
+            'type' => 'Programa Especial',
             'schedule' => '08:00',
             'period_id' => $period->id,
             'mode' => 'Presencial',
@@ -198,7 +198,7 @@ class NamingServicesTest extends TestCase
         ]));
 
         $attributes2 = [
-            'type' => 'Programa Egresados',
+            'type' => 'Programa Especial',
             'schedule' => '09:00',
             'period_id' => $period->id,
             'mode' => 'Virtual',
@@ -216,7 +216,7 @@ class NamingServicesTest extends TestCase
         ]));
 
         $attributes3 = [
-            'type' => 'Programa Egresados',
+            'type' => 'Programa Especial',
             'schedule' => '10:00',
             'period_id' => $period->id,
             'mode' => 'Híbrido',
@@ -234,7 +234,7 @@ class NamingServicesTest extends TestCase
 
         // Grupo 1 en Periodo 1
         $attr1 = [
-            'type' => 'Programa Egresados',
+            'type' => 'Programa Especial',
             'schedule' => '08:00',
             'period_id' => $period1->id,
             'mode' => 'Presencial',
@@ -251,7 +251,7 @@ class NamingServicesTest extends TestCase
 
         // Grupo 2 en Periodo 2 (debe reiniciar a 001)
         $attr2 = [
-            'type' => 'Programa Egresados',
+            'type' => 'Programa Especial',
             'schedule' => '08:00',
             'period_id' => $period2->id,
             'mode' => 'Presencial',
@@ -267,7 +267,7 @@ class NamingServicesTest extends TestCase
 
         // Crear primer grupo
         $attributes = [
-            'type' => 'Programa Egresados',
+            'type' => 'Programa Especial',
             'schedule' => '08:00',
             'period_id' => $period->id,
             'mode' => 'Presencial',

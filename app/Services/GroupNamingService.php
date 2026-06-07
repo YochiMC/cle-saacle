@@ -53,7 +53,7 @@ class GroupNamingService
             'regular' => 'R',
             'intensivo' => 'I',
             'semi intensivo' => 'S',
-            'programa egresados' => 'PE'
+            'programa especial' => 'PE'
         ];
         return $typeMap[strtolower($type)] ?? 'X';
     }
@@ -64,7 +64,7 @@ class GroupNamingService
     private function getLevelCode($levelId, string $type, array $attributes = []): string
     {
         // Excepción: Programa Egresados no lleva nivel, lleva contador
-        if (strtolower($type) === 'programa egresados') {
+        if (strtolower($type) === 'programa especial') {
             return $this->getGraduateCounter($attributes);
         }
 
@@ -247,7 +247,7 @@ class GroupNamingService
         // Si es una actualización, verificar si el periodo no cambió para conservar el contador
         if ($groupId) {
             $existingGroup = \App\Models\Group::find($groupId);
-            if ($existingGroup && strtolower($existingGroup->type->value ?? '') === 'programa egresados') {
+            if ($existingGroup && strtolower($existingGroup->type->value ?? '') === 'programa especial') {
                 if ($periodId && (int)$existingGroup->period_id === (int)$periodId) {
                     $counter = $this->extractCounterFromName($existingGroup->name);
                     if ($counter !== null) {

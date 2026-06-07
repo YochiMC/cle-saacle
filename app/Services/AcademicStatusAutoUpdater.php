@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Log;
  *
  * Regla de Aislamiento por Tipo de Grupo:
  * - REGULAR y SEMI_INTENSIVO → Siguen el calendario global de Settings.
- * - INTENSIVO y PROGRAMA_EGRESADOS → Excluidos. Tienen calendarios desfasados
+ * - INTENSIVO y PROGRAMA_ESPECIAL → Excluidos. Tienen calendarios desfasados
  *   y NO son afectados por este servicio.
  *
  * Regla Híbrida para Exámenes:
@@ -37,7 +37,7 @@ class AcademicStatusAutoUpdater
 {
     /**
      * Tipos de grupo que siguen el calendario global de Settings.
-     * Incluye a todos los tipos de grupos regulares, excluyendo a Programa de Egresados.
+     * Incluye a todos los tipos de grupos regulares, excluyendo a Programa Especial.
      *
      * @return array<string>
      */
@@ -45,7 +45,7 @@ class AcademicStatusAutoUpdater
     {
         return collect(GroupType::cases())
             ->map->value
-            ->reject(fn($v) => $v === GroupType::PROGRAMA_EGRESADOS->value)
+            ->reject(fn($v) => $v === GroupType::PROGRAMA_ESPECIAL->value)
             ->values()
             ->toArray();
     }
@@ -79,7 +79,7 @@ class AcademicStatusAutoUpdater
         $cursosEvaluacionInicio  = $this->parsearFecha($settings['courses_evaluation_start'] ?? null);
         $cursosEvaluacionFin     = $this->parsearFecha($settings['courses_evaluation_end']   ?? null);
 
-        // ── Parseo seguro: fechas Programa Egresados (PE) ─────────────────────
+        // ── Parseo seguro: fechas Programa Especial (PE) ──────────────────────
         $peInscripcionInicio     = $this->parsearFecha($settings['pe_enrollment_start']      ?? null);
         $peInscripcionFin        = $this->parsearFecha($settings['pe_enrollment_end']        ?? null);
         $peActivoInicio          = $this->parsearFecha($settings['pe_active_start']          ?? null);
@@ -119,7 +119,7 @@ class AcademicStatusAutoUpdater
             $cursosEvaluacionFin,
         );
 
-        $contadoresPE = $this->actualizarProgramaEgresados(
+        $contadoresPE = $this->actualizarProgramaEspecial(
             $hoy,
             $peInscripcionInicio,
             $peInscripcionFin,
@@ -214,16 +214,16 @@ class AcademicStatusAutoUpdater
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    // Grupos Especiales — Programa Egresados (Aislamiento por Tipo)
+    // Grupos Especiales — Programa Especial (Aislamiento por Tipo)
     // ──────────────────────────────────────────────────────────────────────────
 
     /**
      * Aplica la misma cascada cronológica continua pero de forma estrictamente
-     * aislada a los cursos de Programa de Egresados (PE).
+     * aislada a los cursos de Programa Especial (PE).
      *
      * @return array<string, mixed> Contadores de auditoría.
      */
-    private function actualizarProgramaEgresados(
+    private function actualizarProgramaEspecial(
         Carbon  $hoy,
         ?Carbon $inscripcionInicio,
         ?Carbon $inscripcionFin,
@@ -252,7 +252,7 @@ class AcademicStatusAutoUpdater
 
         // Delegamos a la Action dedicada
         $action = app(\App\Actions\System\UpdateGroupsStatusAction::class);
-        $metrics = $action->execute($estadoObjetivo, [GroupType::PROGRAMA_EGRESADOS->value]);
+        $metrics = $action->execute($estadoObjetivo, [GroupType::PROGRAMA_ESPECIAL->value]);
 
         return [
             'grupos_pe_estado_objetivo' => $metrics['targetStatus'],

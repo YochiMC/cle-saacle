@@ -13,7 +13,7 @@ class AutoQueueAccreditationCandidates
 {
     /**
      * Evalúa a los estudiantes de un grupo recién completado.
-     * Criterio: Solo para niveles "Intermedio 5" o "Programa Egresados", promedios >= 70, no dados de baja.
+     * Criterio: Solo para niveles "Intermedio 5" o "Programa Especial", promedios >= 70, no dados de baja.
      */
     public function executeForGroup(Group $group): void
     {
@@ -93,8 +93,8 @@ class AutoQueueAccreditationCandidates
             return 'Cursos regulares';
         }
 
-        if ($normalized === 'programa de egresados' || $normalized === 'programa egresados') {
-            return 'Programa de egresados';
+        if (in_array($normalized, ['programa especial', 'programa de egresados', 'programa egresados'])) {
+            return 'Programa especial';
         }
 
         return null;

@@ -32,7 +32,7 @@ class GetAccreditationMetadata
         // 2. Mezclar con opciones manuales de flujos internos
         $options = array_values(array_unique(array_merge(
             $examTypes,
-            ['Cursos regulares', 'Programa de egresados']
+            ['Cursos regulares', 'Programa especial']
         )));
 
         // 3. Ordenar alfabéticamente para mejorar la experiencia de usuario

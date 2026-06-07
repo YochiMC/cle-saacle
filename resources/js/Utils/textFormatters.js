@@ -17,7 +17,7 @@ export const abreviarEtiqueta = (texto) => {
 
     // 1. Diccionario estricto para casos conocidos
     const diccionario = {
-        "programa egresados": "PE",
+        "programa especial": "PE",
         "convalidación": "CONV",
         "convalidacion": "CONV",
         "planes anteriores": "PLANES ANT",

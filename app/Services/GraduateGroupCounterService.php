@@ -41,7 +41,7 @@ class GraduateGroupCounterService
     private function getMaxExistingCounter(int $periodId): int
     {
         $names = Group::withTrashed()
-            ->where('type', GroupType::PROGRAMA_EGRESADOS)
+            ->where('type', GroupType::PROGRAMA_ESPECIAL)
             ->where('period_id', $periodId)
             ->pluck('name');
 

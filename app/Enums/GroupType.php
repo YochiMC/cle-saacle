@@ -7,7 +7,8 @@ enum GroupType: string
     case REGULAR = 'Regular';
     case INTENSIVO = 'Intensivo';
     case SEMI_INTENSIVO = 'Semi intensivo';
-    case PROGRAMA_EGRESADOS = 'Programa Egresados';
+    case PROGRAMA_ESPECIAL = 'Programa Especial';
+    public const PROGRAMA_EGRESADOS = self::PROGRAMA_ESPECIAL;
 
     public static function getOptions(): array
     {
@@ -27,7 +28,7 @@ enum GroupType: string
     public function defaultUnitsBreakdown(int $unitsCount = 0): array
     {
         return match ($this) {
-            self::PROGRAMA_EGRESADOS => [
+            self::PROGRAMA_ESPECIAL => [
                 'hizo_certificacion' => false,
                 'grade_1'            => '0',
                 'grade_2'            => '0',
