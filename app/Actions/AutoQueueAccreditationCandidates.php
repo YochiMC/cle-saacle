@@ -93,7 +93,7 @@ class AutoQueueAccreditationCandidates
             return 'Cursos regulares';
         }
 
-        if (in_array($normalized, ['programa especial', 'programa de egresados', 'programa egresados'])) {
+        if (in_array($normalized, ['programa especial', 'programa de egresados', 'programa egresados', 'curso remedial'])) {
             return 'Programa especial';
         }
 

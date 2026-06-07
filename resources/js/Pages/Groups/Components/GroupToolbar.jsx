@@ -22,8 +22,8 @@ const GroupToolbar = ({
 
     return (
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
-            {/* 1. Selector de Esquema de Unidades (Egresados tiene esquema fijo) */}
-            {grupo?.type !== "Programa Egresados" && (
+            {/* 1. Selector de Esquema de Unidades (Especial tiene esquema fijo) */}
+            {grupo?.type !== "Programa Especial" && (
                     <Dropdown>
                     <Dropdown.Trigger>
                         <button className="flex w-full items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:ring-2 focus:ring-[#1B396A] sm:w-auto">

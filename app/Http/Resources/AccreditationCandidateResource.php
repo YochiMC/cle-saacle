@@ -115,12 +115,12 @@ class AccreditationCandidateResource extends JsonResource
 
         $normalized = Str::of($levelName)->lower()->ascii()->squish()->toString();
 
-        if ($normalized === 'intermedio 5') {
+        if (in_array($normalized, ['intermedio 5', 'curso remedial']) || str_contains($normalized, 'remedial')) {
             return 'Cursos regulares';
         }
 
-        if ($normalized === 'programa de egresados' || $normalized === 'programa egresados') {
-            return 'Programa de egresados';
+        if (in_array($normalized, ['programa especial', 'programa de egresados', 'programa egresados'])) {
+            return 'Programa especial';
         }
 
         return null;

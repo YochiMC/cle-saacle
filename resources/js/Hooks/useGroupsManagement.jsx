@@ -213,11 +213,11 @@ export const useGroupsManagement = (grupos = []) => {
             const currentType = formData.type;
 
             const isTypeChanged = itemEditando && currentType !== originalType;
-            const involvesEgresados = 
-                (originalType === "Programa Egresados" && currentType !== "Programa Egresados") ||
-                (originalType !== "Programa Egresados" && currentType === "Programa Egresados");
+            const involvesEspecial = 
+                (originalType === "Programa Especial" && currentType !== "Programa Especial") ||
+                (originalType !== "Programa Especial" && currentType === "Programa Especial");
 
-            if (isTypeChanged && involvesEgresados) {
+            if (isTypeChanged && involvesEspecial) {
                 setModales((prev) => ({ ...prev, confirmTypeChange: true }));
                 return;
             }

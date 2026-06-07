@@ -9,8 +9,8 @@ import { METADATA_KEYS } from "../Constants/groupConstants";
  * Determina las llaves de las unidades evaluables según el tipo de grupo.
  */
 export const getUnitKeys = (grupo) => {
-    // Regla estricta para Programa Egresados
-    if (grupo?.type === 'Programa Egresados') {
+    // Regla estricta para Programa Especial
+    if (grupo?.type === 'Programa Especial') {
         return ['hizo_certificacion', 'grade_1', 'grade_2', 'grade_3'];
     }
 

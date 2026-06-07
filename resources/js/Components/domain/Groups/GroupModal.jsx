@@ -56,8 +56,8 @@ export default function GroupModal({
     const levelOptions = levels
         .filter((l) => {
             const programType = l.program_type || "Regular";
-            return formData.type === "Programa Egresados"
-                ? programType === "Egresados"
+            return formData.type === "Programa Especial"
+                ? programType === "Especial"
                 : programType === "Regular";
         })
         .map((l) => ({ value: l.id.toString(), label: l.level_tecnm }));
@@ -78,28 +78,24 @@ export default function GroupModal({
         // Evitar sobrescribir el nivel inicial al abrir el modal de edición
         if (itemEditando && formData.type === itemEditando.type) return;
 
-        // Determinamos si el nivel actual es de tipo "Egresados" para saber si es compatible con el nuevo tipo
+        // Determinamos si el nivel actual es de tipo "Especial" para saber si es compatible con el nuevo tipo
         const currentLevel = levels.find(
             (l) => l.id.toString() === formData.level_id,
         );
-        const isCurrentLevelEgresados =
-            currentLevel?.program_type === "Egresados";
-        const isNewTypeEgresados = formData.type === "Programa Egresados";
+        const isCurrentLevelEspecial =
+            currentLevel?.program_type === "Especial";
+        const isNewTypeEspecial = formData.type === "Programa Especial";
 
-        if (isNewTypeEgresados) {
-            // Si cambiamos a Egresados y el nivel actual no lo es, forzamos el nivel único de egresados
-            if (!isCurrentLevelEgresados) {
-                const nivelEgresados = levels.find(
-                    (l) => l.program_type === "Egresados",
-                );
-                if (nivelEgresados)
-                    setFormData("level_id", nivelEgresados.id.toString());
+        if (isNewTypeEspecial) {
+            // Si cambiamos a Especial y el nivel actual no lo es, limpiamos el campo
+            if (!isCurrentLevelEspecial) {
+                setFormData("level_id", "");
             }
         } else {
-            // Si cambiamos a cualquier tipo Regular y el nivel actual es de Egresados,
+            // Si cambiamos a cualquier tipo Regular y el nivel actual es de Especial,
             // debemos limpiarlo porque ya no es válido para este tipo de grupo.
             // SI EL NIVEL YA ERA REGULAR, SE MANTIENE (Corrige bug de pérdida de nivel).
-            if (isCurrentLevelEgresados) {
+            if (isCurrentLevelEspecial) {
                 setFormData("level_id", "");
             }
         }
@@ -300,7 +296,6 @@ export default function GroupModal({
                             selectId="level_id"
                             placeholder="Selecciona un nivel"
                             value={formData.level_id}
-                            disabled={formData.type === "Programa Egresados"}
                             onValueChange={(v) => setFormData("level_id", v)}
                             required
                         />
