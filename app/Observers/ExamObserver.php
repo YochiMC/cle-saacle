@@ -7,6 +7,7 @@ use App\Enums\AcademicStatus;
 use App\Actions\Students\ResetStudentsStatusAction;
 use App\Actions\Students\AdvanceStudentsLevelAction;
 use App\Actions\Students\AssignPlacementLevelAction;
+use App\Actions\AutoQueueAccreditationCandidates;
 use App\Actions\Students\RevertStudentsLevelAction;
 
 class ExamObserver
@@ -15,6 +16,7 @@ class ExamObserver
         protected ResetStudentsStatusAction $resetStatusAction,
         protected AdvanceStudentsLevelAction $advanceLevelAction,
         protected AssignPlacementLevelAction $assignLevelAction,
+        protected AutoQueueAccreditationCandidates $autoQueueAccreditationCandidates,
         protected RevertStudentsLevelAction $revertLevelAction
     ) {}
 
@@ -43,6 +45,7 @@ class ExamObserver
         if ($exam->status === AcademicStatus::COMPLETED) {
             $this->advanceLevelAction->executeForExam($exam);
             $this->assignLevelAction->execute($exam);
+            $this->autoQueueAccreditationCandidates->executeForExam($exam);
         }
     }
 
