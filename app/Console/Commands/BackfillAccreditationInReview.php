@@ -171,31 +171,43 @@ class BackfillAccreditationInReview extends Command
     {
         $units = $this->extractUnitsBreakdown($pivot);
 
+        // 1. Caso: Convalidación (verifica nivel MCER en certified_level o nivel_certificado)
+        $level = data_get($units, 'certified_level') ?? data_get($units, 'nivel_certificado');
+        if ($level) {
+            $normalizedLevel = Str::upper(trim((string) $level));
+            if (in_array($normalizedLevel, ['B1', 'B2', 'C1', 'C2'], true)) {
+                return true;
+            }
+        }
+
+        // 2. Caso: Examen de 4 habilidades (verifica que las 4 áreas sean >= 70)
+        $hasFourSkills = array_key_exists('listening', $units)
+            && array_key_exists('reading', $units)
+            && array_key_exists('writing', $units)
+            && array_key_exists('speaking', $units);
+
+        if ($hasFourSkills) {
+            $skills = ['listening', 'reading', 'writing', 'speaking'];
+            foreach ($skills as $skill) {
+                $val = data_get($units, $skill);
+                if (!is_numeric($val) || (float) $val < 70) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // 3. Fallback: Promedios o calificaciones numéricas generales >= 70 (Planes anteriores, etc.)
         $numericCandidates = [
             $pivot->final_average ?? null,
             $pivot->calificacion ?? null,
             data_get($units, 'calificacion_final'),
             data_get($units, 'promedio'),
+            data_get($units, 'promedio_habilidades'),
         ];
 
         foreach ($numericCandidates as $candidate) {
             if (is_numeric($candidate) && (float) $candidate >= 70) {
-                return true;
-            }
-        }
-
-        $cefrCandidates = [
-            data_get($units, 'promedio_habilidades'),
-            data_get($units, 'nivel_certificado'),
-            data_get($units, 'speaking'),
-            data_get($units, 'listening'),
-            data_get($units, 'reading'),
-            data_get($units, 'writing'),
-        ];
-
-        foreach ($cefrCandidates as $candidate) {
-            $value = Str::upper(trim((string) $candidate));
-            if (in_array($value, ['B1', 'B2', 'C1', 'C2'], true)) {
                 return true;
             }
         }

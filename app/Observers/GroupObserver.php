@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Group;
 use App\Enums\AcademicStatus;
+use App\Actions\AutoQueueAccreditationCandidates;
 use App\Actions\Students\ResetStudentsStatusAction;
 use App\Actions\Students\AdvanceStudentsLevelAction;
 use App\Actions\Students\RevertStudentsLevelAction;
@@ -13,6 +14,7 @@ class GroupObserver
     public function __construct(
         protected ResetStudentsStatusAction $resetStatusAction,
         protected AdvanceStudentsLevelAction $advanceLevelAction,
+        protected AutoQueueAccreditationCandidates $autoQueueAccreditationCandidates,
         protected RevertStudentsLevelAction $revertLevelAction
     ) {}
 
@@ -40,6 +42,7 @@ class GroupObserver
         // Caso B: El grupo se Cierra (Automatización de Avance y Acreditación)
         if ($group->status === AcademicStatus::COMPLETED) {
             $this->advanceLevelAction->executeForGroup($group);
+            $this->autoQueueAccreditationCandidates->executeForGroup($group);
         }
     }
 
