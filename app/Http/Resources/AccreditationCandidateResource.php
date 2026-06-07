@@ -49,6 +49,10 @@ class AccreditationCandidateResource extends JsonResource
             'status_label'   => $this->status->label(),
             'achieved_by'    => $achievedBy,
             'obtained_at'    => $obtainedAt,
+            'period_ids'     => array_values(array_unique(array_merge(
+                $this->exams->pluck('period_id')->filter()->toArray(),
+                $this->qualifications->pluck('group.period_id')->filter()->toArray()
+            ))),
         ];
     }
 

@@ -20,41 +20,29 @@ export default function useAccreditationManager(candidates, initialFilters = {})
     const [periodFilter, setPeriodFilterState] = useState(initialFilters.period_id || "");
     const [typeFilter, setTypeFilter] = useState("");
 
-    // Sincronización con Backend vía Inertia
-    const updateFilters = useCallback((newFilters) => {
-        // Combinamos el estado actual con el nuevo cambio para la petición
-        const status = newFilters.hasOwnProperty('status') ? newFilters.status : statusFilter;
-        const periodId = newFilters.hasOwnProperty('period_id') ? newFilters.period_id : periodFilter;
-
-        const params = {};
-        if (status && status !== 'all') params.status = status;
-        if (periodId && periodId !== 'all') params.period_id = periodId;
-
-        router.get('/acreditaciones', params, {
-            preserveState: true,
-            preserveScroll: true,
-            replace: true
-        });
-    }, [statusFilter, periodFilter]);
-
     const setStatusFilter = (val) => {
         setStatusFilterState(val);
-        updateFilters({ status: val });
     };
 
     const setPeriodFilter = (val) => {
         setPeriodFilterState(val);
-        updateFilters({ period_id: val });
     };
 
-    // 3. Lógica de Filtrado Derivada (Tipo se mantiene local por ahora)
+    // 3. Lógica de Filtrado Derivada (Local)
     const filteredCandidates = useMemo(() => {
         return candidates.filter((item) => {
             const matchesType = typeFilter === "" ||
                 (item?.achieved_by && item.achieved_by.toLowerCase() === typeFilter.toLowerCase());
-            return matchesType;
+
+            const matchesStatus = statusFilter === "" || statusFilter === "all" ||
+                (item?.status === statusFilter);
+
+            const matchesPeriod = periodFilter === "" || periodFilter === "all" ||
+                (item?.period_ids && item.period_ids.map(String).includes(String(periodFilter)));
+
+            return matchesType && matchesStatus && matchesPeriod;
         });
-    }, [candidates, typeFilter]);
+    }, [candidates, typeFilter, statusFilter, periodFilter]);
 
     // 4. Handlers de Selección y Edición
     const handleEditRow = useCallback((item) => {

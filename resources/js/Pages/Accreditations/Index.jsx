@@ -6,11 +6,11 @@ import { Head } from "@inertiajs/react";
 import useAccreditationManager from "./Hooks/useAccreditationManager";
 
 // Constantes
-import { 
-    VIEW_OPTIONS, 
-    BULK_SUSPEND_MODAL_CONFIG, 
-    STATUS_SELECT_OPTIONS, 
-    HIDDEN_COLUMNS_DEFAULT 
+import {
+    VIEW_OPTIONS,
+    BULK_SUSPEND_MODAL_CONFIG,
+    STATUS_SELECT_OPTIONS,
+    HIDDEN_COLUMNS_DEFAULT
 } from "./Constants/accreditationConstants";
 
 // Componentes Fragmentados
@@ -24,18 +24,18 @@ import AccreditationModals from "./Components/AccreditationModals";
  * Orquestador de la vista de dictamen de acreditaciones.
  * Utiliza el patrón Headless Controller para separar la lógica de negocio de la UI.
  */
-export default function Index({ 
-    candidates, 
-    accreditationTypeOptions = [], 
-    periods = [], 
-    filters = {} 
+export default function Index({
+    candidates,
+    accreditationTypeOptions = [],
+    periods = [],
+    filters = {}
 }) {
     // 1. Invocación del Controlador Lógico (Custom Hook)
-    const { 
-        state, 
-        derived, 
-        handlers, 
-        flashModal 
+    const {
+        state,
+        derived,
+        handlers,
+        flashModal
     } = useAccreditationManager(candidates, filters);
 
     return (
@@ -52,23 +52,23 @@ export default function Index({
             <ResourceDashboard
                 title="Dictamen de Acreditaciones"
                 dataMap={{ candidatos: derived.filteredCandidates }}
-                baseDataMap={{ candidatos: candidates }}
+                baseDataMap={{ candidatos: derived.filteredCandidates }}
                 viewOptions={VIEW_OPTIONS}
-                
+
                 // Configuración de mutaciones
                 deleteRoute={route("accreditations.bulk-suspend")}
                 bulkDeleteModal={BULK_SUSPEND_MODAL_CONFIG}
-                
+
                 // Configuración de tabla editable
                 editableColumns={["status"]}
                 editAllRows={false}
                 editingRowId={state.editingRowId}
                 onCellChange={handlers.handleCellChange}
                 selectOptions={{ status: STATUS_SELECT_OPTIONS }}
-                
+
                 // Inyección de Componentes Fragmentados
                 buttonSpace={
-                    <AccreditationFilters 
+                    <AccreditationFilters
                         statusFilter={state.filters.status}
                         setStatusFilter={handlers.setStatusFilter}
                         periodFilter={state.filters.period_id}
@@ -80,7 +80,7 @@ export default function Index({
                     />
                 }
                 customRowActions={(item) => (
-                    <AccreditationActions 
+                    <AccreditationActions
                         item={item}
                         isEditingRow={state.editingRowId === item.id}
                         handleEditRow={handlers.handleEditRow}
@@ -94,7 +94,7 @@ export default function Index({
             />
 
             {/* Orquestación de Modales (Confirmaciones y Alertas) */}
-            <AccreditationModals 
+            <AccreditationModals
                 flashModal={flashModal}
                 closeFlashModal={handlers.closeFlashModal}
                 itemToSuspend={state.itemToSuspend}
