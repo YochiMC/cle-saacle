@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Exam;
 use App\Models\Period;
 
 /**
@@ -30,8 +31,22 @@ class ExamNamingService
         $periodStr = $this->getPeriodCode($attributes['period_id'] ?? null);
         $modeStr = $this->getModeCode($attributes['mode'] ?? '');
 
-        // Concatena sin espacios: CENENE26P
-        return strtoupper("{$typeStr}{$scheduleLetter}_{$periodStr}{$modeStr}");
+        $prefix = strtoupper($typeStr . $scheduleLetter);
+        $suffix = strtoupper('_' . $periodStr . $modeStr);
+        $baseName = $prefix . $suffix;
+
+        if (!Exam::where('name', $baseName)->where('id', '!=', $attributes['id'] ?? null)->exists()) {
+            return $baseName;
+        }
+
+        $i = 2;
+        while (true) {
+            $newName = $prefix . $i . $suffix;
+            if (!Exam::where('name', $newName)->where('id', '!=', $attributes['id'] ?? null)->exists()) {
+                return $newName;
+            }
+            $i++;
+        }
     }
 
     /**

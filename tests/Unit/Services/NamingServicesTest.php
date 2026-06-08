@@ -349,6 +349,64 @@ class NamingServicesTest extends TestCase
         $this->assertEquals($name2, $name2Updated);
     }
 
+    public function test_exam_naming_collision_resolution_starts_at_two(): void
+    {
+        $period = \App\Models\Period::factory()->create();
+        $teacher = \App\Models\Teacher::factory()->create();
+
+        $service = app(ExamNamingService::class);
+
+        $attributes = [
+            'exam_type' => 'Convalidación',
+            'application_time' => '08:00',
+            'period_id' => $period->id,
+            'mode' => 'Presencial',
+        ];
+
+        // Generamos el primer nombre (base)
+        $name1 = $service->generateName($attributes);
+        $expectedBase = "CA_{$this->getPeriodCodeStr($period)}P";
+        $this->assertEquals($expectedBase, $name1);
+
+        // Creamos el primer examen en BD
+        $exam1 = \App\Models\Exam::create(array_merge($attributes, [
+            'name' => $name1,
+            'capacity' => 20,
+            'status' => \App\Enums\AcademicStatus::ACTIVE,
+            'teacher_id' => $teacher->id,
+            'start_date' => '2026-06-08',
+            'end_date' => '2026-06-08',
+        ]));
+
+        // Generamos el segundo nombre con los mismos atributos
+        $name2 = $service->generateName($attributes);
+        $this->assertEquals("CA2_{$this->getPeriodCodeStr($period)}P", $name2);
+
+        // Creamos el segundo examen en BD
+        $exam2 = \App\Models\Exam::create(array_merge($attributes, [
+            'name' => $name2,
+            'capacity' => 20,
+            'status' => \App\Enums\AcademicStatus::ACTIVE,
+            'teacher_id' => $teacher->id,
+            'start_date' => '2026-06-08',
+            'end_date' => '2026-06-08',
+        ]));
+
+        // Generamos el tercer nombre
+        $name3 = $service->generateName($attributes);
+        $this->assertEquals("CA3_{$this->getPeriodCodeStr($period)}P", $name3);
+
+        // Verificamos que si actualizamos el primer examen conservando sus atributos (incluyendo su ID), no colisione
+        $updateAttrs1 = array_merge($attributes, ['id' => $exam1->id]);
+        $name1Updated = $service->generateName($updateAttrs1);
+        $this->assertEquals($name1, $name1Updated);
+
+        // Verificamos que si actualizamos el segundo examen, mantenga su número 2
+        $updateAttrs2 = array_merge($attributes, ['id' => $exam2->id]);
+        $name2Updated = $service->generateName($updateAttrs2);
+        $this->assertEquals($name2, $name2Updated);
+    }
+
     private function getPeriodCodeStr($period): string
     {
         $date = \Carbon\Carbon::parse($period->start);
