@@ -293,6 +293,62 @@ class NamingServicesTest extends TestCase
         $this->assertEquals("PE001B_{$this->getPeriodCodeStr($period)}P", $updatedName);
     }
 
+    public function test_group_naming_collision_resolution_starts_at_two(): void
+    {
+        $period = \App\Models\Period::factory()->create();
+        $level = \App\Models\Level::factory()->create(['level_tecnm' => 'Básico 1 - unique - ' . uniqid()]);
+        $teacher = \App\Models\Teacher::factory()->create();
+
+        $service = app(GroupNamingService::class);
+
+        $attributes1 = [
+            'type' => 'Regular',
+            'level_id' => $level->id,
+            'schedule' => '08:00',
+            'period_id' => $period->id,
+            'mode' => 'Presencial',
+        ];
+
+        // Generamos el primer nombre (base)
+        $name1 = $service->generateName($attributes1);
+        $expectedBase = "RB100A_{$this->getPeriodCodeStr($period)}P";
+        $this->assertEquals($expectedBase, $name1);
+
+        // Insertamos el primer grupo en la base de datos
+        $group1 = \App\Models\Group::create(array_merge($attributes1, [
+            'name' => $name1,
+            'capacity' => 20,
+            'status' => \App\Enums\AcademicStatus::ACTIVE,
+            'teacher_id' => $teacher->id,
+        ]));
+
+        // Ahora intentamos generar el nombre para un segundo grupo con los mismos atributos
+        $name2 = $service->generateName($attributes1);
+        $this->assertEquals("RB100A2_{$this->getPeriodCodeStr($period)}P", $name2);
+
+        // Creamos el segundo grupo en BD
+        $group2 = \App\Models\Group::create(array_merge($attributes1, [
+            'name' => $name2,
+            'capacity' => 20,
+            'status' => \App\Enums\AcademicStatus::ACTIVE,
+            'teacher_id' => $teacher->id,
+        ]));
+
+        // Ahora el tercer grupo
+        $name3 = $service->generateName($attributes1);
+        $this->assertEquals("RB100A3_{$this->getPeriodCodeStr($period)}P", $name3);
+
+        // Verificamos que si actualizamos el primer grupo conservando sus atributos (incluyendo su ID), no colisione
+        $updateAttrs1 = array_merge($attributes1, ['id' => $group1->id]);
+        $name1Updated = $service->generateName($updateAttrs1);
+        $this->assertEquals($name1, $name1Updated);
+
+        // Verificamos que si actualizamos el segundo grupo, mantenga su número 2
+        $updateAttrs2 = array_merge($attributes1, ['id' => $group2->id]);
+        $name2Updated = $service->generateName($updateAttrs2);
+        $this->assertEquals($name2, $name2Updated);
+    }
+
     private function getPeriodCodeStr($period): string
     {
         $date = \Carbon\Carbon::parse($period->start);

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Group;
 use App\Models\Level;
 use App\Models\Period;
 
@@ -40,8 +41,22 @@ class GroupNamingService
         $periodStr = $this->getPeriodCode($attributes['period_id'] ?? null);
         $modeStr = $this->getModeCode($attributes['mode'] ?? '');
 
-        // Genera el código concatenado (Ej: RB100AENE26P o PECMAY25P)
-        return strtoupper("{$typeStr}{$levelStr}{$scheduleLetter}_{$periodStr}{$modeStr}");
+        $prefix = strtoupper($typeStr . $levelStr . $scheduleLetter);
+        $suffix = strtoupper('_' . $periodStr . $modeStr);
+        $baseName = $prefix . $suffix;
+
+        if (!Group::where('name', $baseName)->where('id', '!=', $attributes['id'] ?? null)->exists()) {
+            return $baseName;
+        }
+
+        $i = 2;
+        while (true) {
+            $newName = $prefix . $i . $suffix;
+            if (!Group::where('name', $newName)->where('id', '!=', $attributes['id'] ?? null)->exists()) {
+                return $newName;
+            }
+            $i++;
+        }
     }
 
     /**
