@@ -128,9 +128,9 @@ class ExamController extends Controller
                 ->get();
         }
 
-        $levelsTecnm = \App\Models\Level::where('level_tecnm', '!=', 'Programa Egresados')
-            ->pluck('level_tecnm')
-            ->unique()
+        $levelsTecnm = \App\Models\Level::select('level_tecnm', 'program_type')
+            ->get()
+            ->unique('level_tecnm')
             ->values();
 
         return \Inertia\Inertia::render('Exams/View', [

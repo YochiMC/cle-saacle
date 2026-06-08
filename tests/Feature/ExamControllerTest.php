@@ -243,14 +243,14 @@ class ExamControllerTest extends TestCase
             );
     }
 
-    public function test_show_excludes_programa_egresados_from_levelsTecnm(): void
+    public function test_show_returns_levelsTecnm_with_program_type(): void
     {
         Level::firstOrCreate(
-            ['level_tecnm' => 'Programa Egresados'],
+            ['level_tecnm' => 'Programa Egresados - Test'],
             [
                 'level_mcer'   => 'PE',
                 'hours'        => 0,
-                'program_type' => 'egresados',
+                'program_type' => 'Especial',
             ]
         );
         $exam = Exam::factory()->create();
@@ -263,7 +263,7 @@ class ExamControllerTest extends TestCase
                     ->where(
                         'levelsTecnm',
                         fn($levels) =>
-                        ! collect($levels)->contains('Programa Egresados')
+                        collect($levels)->contains(fn($item) => $item['level_tecnm'] === 'Programa Egresados - Test' && $item['program_type'] === 'Especial')
                     )
             );
     }

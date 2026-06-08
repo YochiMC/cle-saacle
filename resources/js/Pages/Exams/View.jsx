@@ -42,6 +42,13 @@ export default function View({
         isStudentEnrolled,
     );
 
+    // Filtrar niveles basándonos estrictamente en la base de datos
+    const filteredLevels = useMemo(() => {
+        return levelsTecnm
+            .filter((level) => level?.program_type !== "Especial")
+            .map((level) => level?.level_tecnm || level);
+    }, [levelsTecnm]);
+
     // 2. Lógica Visual de Filas
     const getRowClassName = (row) => {
         return row.original.is_left
@@ -153,7 +160,7 @@ export default function View({
                     editableColumns={state.editableColumns}
                     restrictedColumns={state.restrictedColumns}
                     selectOptions={{
-                        nivel_asignado: levelsTecnm,
+                        nivel_asignado: filteredLevels,
                     }}
                     editAllRows={state.isEditingMode}
                     hiddenColumns={GRADES_HIDDEN_COLUMNS}
