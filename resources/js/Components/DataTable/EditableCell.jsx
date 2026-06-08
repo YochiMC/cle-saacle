@@ -14,7 +14,10 @@ import { limpiarTextoCalificacion } from "@/Utils/textFormatters";
 /** 
  * Devuelve el tipo de <input> adecuado basándose en el nombre del campo. 
  */
-const resolveInputType = (fieldKey) => {
+const resolveInputType = (fieldKey, selectOptions = {}) => {
+    // Si el padre inyectó opciones para esta llave, forzamos el renderizado del select
+    if (selectOptions[fieldKey]) return "select";
+
     const lower = fieldKey.toLowerCase();
     
     if (
@@ -49,8 +52,8 @@ const resolveInputType = (fieldKey) => {
 /**
  * Obtiene el valor inicial para el estado de edición.
  */
-const getInitialEditableValue = (fieldKey, initialValue) => {
-    const inputType = resolveInputType(fieldKey);
+const getInitialEditableValue = (fieldKey, initialValue, selectOptions = {}) => {
+    const inputType = resolveInputType(fieldKey, selectOptions);
     
     if (
         initialValue !== null &&
@@ -78,14 +81,15 @@ const EditableCell = memo(({
     selectOptions = {},
     row = {},
 }) => {
-    const inputType = resolveInputType(fieldKey);
+    // Pasar selectOptions a las funciones de resolución
+    const inputType = resolveInputType(fieldKey, selectOptions);
     const [value, setValue] = useState(
-        getInitialEditableValue(fieldKey, initialValue)
+        getInitialEditableValue(fieldKey, initialValue, selectOptions)
     );
 
     useEffect(() => {
-        setValue(getInitialEditableValue(fieldKey, initialValue));
-    }, [fieldKey, initialValue]);
+        setValue(getInitialEditableValue(fieldKey, initialValue, selectOptions));
+    }, [fieldKey, initialValue, selectOptions]);
 
     if (inputType === "checkbox") {
         return (

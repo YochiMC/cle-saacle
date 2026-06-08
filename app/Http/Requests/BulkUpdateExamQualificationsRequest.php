@@ -46,6 +46,9 @@ class BulkUpdateExamQualificationsRequest extends FormRequest
      */
     public function rules(): array
     {
+        $exam = $this->route('exam') ?? \App\Models\Exam::find($this->input('exam_id'));
+        $isConvalidacion = $exam && ($exam->exam_type === \App\Enums\ExamType::CONVALIDACION || $exam->exam_type?->value === \App\Enums\ExamType::CONVALIDACION->value);
+
         return [
             'qualifications'                             => 'required|array',
             'qualifications.*.student_id'                => 'required|exists:students,id',
@@ -54,7 +57,9 @@ class BulkUpdateExamQualificationsRequest extends FormRequest
             'qualifications.*.units_breakdown.listening' => 'sometimes|nullable|integer|min:0|max:100',
             'qualifications.*.units_breakdown.reading'   => 'sometimes|nullable|integer|min:0|max:100',
             'qualifications.*.units_breakdown.writing'   => 'sometimes|nullable|integer|min:0|max:100',
-            'qualifications.*.units_breakdown.speaking'  => 'sometimes|nullable|integer|min:0|max:100',
+            'qualifications.*.units_breakdown.speaking'  => $isConvalidacion
+                ? 'sometimes|nullable|string|in:-,A1,A2,B1,B2,C1,C2'
+                : 'sometimes|nullable|integer|min:0|max:100',
             'qualifications.*.final_average'             => 'nullable|numeric',
             'qualifications.*.is_left'                   => 'required|boolean',
             'qualifications.*.attempt'                   => ['required', Rule::enum(AttemptEnum::class)],

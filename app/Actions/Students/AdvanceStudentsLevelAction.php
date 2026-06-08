@@ -110,8 +110,8 @@ class AdvanceStudentsLevelAction
             $units = json_decode($units, true) ?? [];
         }
 
-        // 1. Caso: Convalidación (verifica nivel MCER en certified_level o nivel_certificado)
-        $level = data_get($units, 'certified_level') ?? data_get($units, 'nivel_certificado');
+        // 1. Caso: Convalidación (verifica nivel MCER priorizando la llave speaking)
+        $level = data_get($units, 'speaking') ?? data_get($units, 'certified_level') ?? data_get($units, 'nivel_certificado');
         if ($level) {
             $normalizedLevel = Str::upper(trim((string) $level));
             if (in_array($normalizedLevel, ['B1', 'B2', 'C1', 'C2'], true)) {
