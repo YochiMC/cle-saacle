@@ -1,7 +1,9 @@
 import React from "react";
 import { ExternalLink } from "lucide-react";
+import { usePermission } from "@/Utils/auth";
 import DataViewModal, { DataLabel } from "@/Components/DataTable/DataViewModal";
 import StatusBadge from "@/Components/ui/StatusBadge";
+import { formatUserName } from "@/Utils/userUtils";
 
 /**
  * GroupDetailsModal — Modal de detalles completos de un grupo académico.
@@ -16,7 +18,15 @@ import StatusBadge from "@/Components/ui/StatusBadge";
 export default function GroupDetailsModal({ grupo, onClose }) {
     if (!grupo) return null;
 
-    const nombreDocente = grupo.teacher_name ?? null;
+    const { hasRole } = usePermission();
+    const esStaff =
+        hasRole("admin") || hasRole("coordinator") || hasRole("teacher");
+    const hayDocente = Boolean(grupo.teacher_name || grupo.teacher);
+    const puedeVerDocente =
+        esStaff || !["enrolling", "pending"].includes(grupo.status);
+    const nombreDocente = hayDocente
+        ? formatUserName(grupo.teacher || { teacher_name: grupo.teacher_name })
+        : "Docente sin asignar";
 
     const TitleHeader = (
         <>
@@ -28,10 +38,14 @@ export default function GroupDetailsModal({ grupo, onClose }) {
             <h2 className="text-xl font-bold text-gray-900 leading-tight">
                 {grupo.name ?? `Grupo #${grupo.id}`}
             </h2>
-            {nombreDocente ? (
-                <p className="text-sm font-semibold text-[#1B396A]">{nombreDocente}</p>
-            ) : (
-                <p className="text-sm italic text-gray-400">Docente por asignar</p>
+            {puedeVerDocente ? (
+                <p className="text-sm font-semibold text-[#1B396A]">
+                    {nombreDocente}
+                </p>
+            ) : hayDocente ? null : (
+                <p className="text-sm italic text-gray-400">
+                    Docente sin asignar
+                </p>
             )}
         </>
     );
@@ -43,7 +57,10 @@ export default function GroupDetailsModal({ grupo, onClose }) {
                 <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">
                     Estado
                 </span>
-                <StatusBadge status={grupo.status} etiquetaCustom={grupo.status_label} />
+                <StatusBadge
+                    status={grupo.status}
+                    etiquetaCustom={grupo.status_label}
+                />
             </div>
 
             <DataLabel label="Tipo de curso" value={grupo.type} />

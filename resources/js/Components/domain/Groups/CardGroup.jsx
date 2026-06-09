@@ -14,24 +14,47 @@ import { formatUserName } from "@/Utils/userUtils";
  * calculando los permisos y el estado del cupo antes de renderizar.
  */
 const CardGroup = memo(
-    ({ grupo, seleccionado = false, onToggleSelect, onVerDetalles, onEditar }) => {
+    ({
+        grupo,
+        seleccionado = false,
+        onToggleSelect,
+        onVerDetalles,
+        onEditar,
+    }) => {
         const { hasRole } = usePermission();
         const esEstudiante = hasRole("student");
         const esAdminOCoord = hasRole("admin") || hasRole("coordinator");
-        const esStaff = hasRole("admin") || hasRole("coordinator") || hasRole("teacher");
-        const isGroupAccessible = !["enrolling", "pending"].includes(grupo.status);
+        const esDocente = hasRole("teacher");
+        const esStaff = esAdminOCoord || esDocente;
+        const isGroupAccessible = !["enrolling", "pending"].includes(
+            grupo.status,
+        );
 
         const badge = resolverEstado(grupo.status, grupo.status_label);
-        const nivelCompleto = (grupo.level?.level_tecnm || grupo.type || "NIVEL NO DEFINIDO").toString();
+        const nivelCompleto = (
+            grupo.level?.level_tecnm ||
+            grupo.type ||
+            "NIVEL NO DEFINIDO"
+        ).toString();
         const nivelAbreviado = abreviarEtiqueta(nivelCompleto);
-        const nombreDocente = formatUserName(grupo.teacher || { teacher_name: grupo.teacher_name });
+        const nombreDocente = formatUserName(
+            grupo.teacher || { teacher_name: grupo.teacher_name },
+        );
+        const hayDocente = Boolean(grupo.teacher_name || grupo.teacher);
+        const puedeVerDocente =
+            esStaff || !["enrolling", "pending"].includes(grupo.status);
+        const docenteVisible = puedeVerDocente && hayDocente;
+        const docenteLabel = hayDocente ? nombreDocente : "Docente sin asignar";
+        const mostrarDocente = docenteVisible || !hayDocente;
+
+        const mostrarConteoInscritos = esStaff;
 
         // Preparación de información de cupo para el componente base
         const quotaInfo = {
-            enrolled: grupo.enrolled_count,
+            enrolled: mostrarConteoInscritos ? grupo.enrolled_count : undefined,
             capacity: grupo.capacity,
             isFull: grupo.available_seats === 0,
-            label: grupo.available_seats === 0 ? "Grupo Lleno" : "Cupo"
+            label: grupo.available_seats === 0 ? "Grupo Lleno" : "Cupo",
         };
 
         // Renderizado condicional de acciones (Lógica de Negocio movida aquí)
@@ -87,15 +110,17 @@ const CardGroup = memo(
                 quotaInfo={quotaInfo}
                 footerActions={footerActions}
             >
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2 text-gray-600 font-medium">
-                        <UserCircle size={16} className="text-[#1B396A]" />
-                        <span>Docente:</span>
+                {mostrarDocente && (
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2 text-gray-600 font-medium">
+                            <UserCircle size={16} className="text-[#1B396A]" />
+                            <span>Docente:</span>
+                        </div>
+                        <span className="text-gray-900 font-semibold text-right max-w-[65%] truncate">
+                            {docenteLabel}
+                        </span>
                     </div>
-                    <span className="text-gray-900 font-semibold text-right max-w-[65%] truncate">
-                        {nombreDocente}
-                    </span>
-                </div>
+                )}
 
                 <div className="flex justify-between items-center">
                     <span className="text-gray-600 font-medium">Horario:</span>
@@ -105,7 +130,9 @@ const CardGroup = memo(
                 </div>
 
                 <div className="flex justify-between items-center">
-                    <span className="text-gray-600 font-medium">Modalidad:</span>
+                    <span className="text-gray-600 font-medium">
+                        Modalidad:
+                    </span>
                     <span className="text-[#1B396A] font-bold bg-blue-50 px-3 py-1 rounded-full text-xs">
                         {grupo.mode || "Por definir"}
                     </span>
@@ -117,4 +144,3 @@ const CardGroup = memo(
 
 CardGroup.displayName = "CardGroup";
 export default CardGroup;
-

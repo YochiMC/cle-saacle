@@ -4,7 +4,7 @@ import { Users } from "lucide-react";
 /**
  * CatalogCard — Tarjeta base puramente presentacional.
  *
- * Sigue el patrón de Componente Tonto (Dumb Component). 
+ * Sigue el patrón de Componente Tonto (Dumb Component).
  * No conoce roles, permisos ni lógica de negocio específica.
  * Recibe toda la información de estado y acciones desde sus padres.
  *
@@ -65,7 +65,7 @@ const CatalogCard = memo(
                                 />
                             </div>
                         )}
-                        <span 
+                        <span
                             className="text-sm font-extrabold tracking-wide text-[#1B396A] uppercase truncate mt-0.5 cursor-help"
                             title={categoryTitle || categoryLabel}
                         >
@@ -84,7 +84,9 @@ const CatalogCard = memo(
 
                 <div className="px-6 pb-6 flex flex-col flex-grow gap-4">
                     <div className="text-center">
-                        <h3 className="text-xl font-bold text-gray-900 leading-tight">{title}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 leading-tight">
+                            {title}
+                        </h3>
                     </div>
 
                     <div className="border-t border-gray-200" />
@@ -93,17 +95,35 @@ const CatalogCard = memo(
                         {children}
 
                         {quotaInfo && (
-                            <div className={`flex justify-between items-center mt-3 p-2.5 rounded-xl border shadow-sm ${cupoStyles.contenedor}`}>
-                                <div className={`flex items-center gap-2 font-semibold ${cupoStyles.icono}`}>
+                            <div
+                                className={`flex justify-between items-center mt-3 p-2.5 rounded-xl border shadow-sm ${cupoStyles.contenedor}`}
+                            >
+                                <div
+                                    className={`flex items-center gap-2 font-semibold ${cupoStyles.icono}`}
+                                >
                                     <Users size={16} strokeWidth={2.5} />
-                                    <span>{quotaInfo.label || (isFull ? "Grupo Lleno" : "Cupo")}</span>
+                                    <span>
+                                        {quotaInfo.label ||
+                                            (isFull ? "Grupo Lleno" : "Cupo")}
+                                    </span>
                                 </div>
-                                <div className={`bg-white px-3 py-1 rounded-lg shadow-sm border flex items-center justify-center ${cupoStyles.insignia}`}>
-                                    <span className={`text-base font-black ${cupoStyles.numero}`}>
-                                        {quotaInfo.enrolled ?? "0"}{" "}
-                                        <span className="text-sm font-semibold opacity-70">
-                                            / {quotaInfo.capacity ?? "—"}
-                                        </span>
+                                <div
+                                    className={`bg-white px-3 py-1 rounded-lg shadow-sm border flex items-center justify-center ${cupoStyles.insignia}`}
+                                >
+                                    <span
+                                        className={`text-base font-black ${cupoStyles.numero}`}
+                                    >
+                                        {quotaInfo.enrolled != null ? (
+                                            <>
+                                                {quotaInfo.enrolled}{" "}
+                                                <span className="text-sm font-semibold opacity-70">
+                                                    /{" "}
+                                                    {quotaInfo.capacity ?? "—"}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            (quotaInfo.capacity ?? "—")
+                                        )}
                                     </span>
                                 </div>
                             </div>
