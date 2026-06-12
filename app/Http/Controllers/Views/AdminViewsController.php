@@ -192,6 +192,7 @@ class AdminViewsController extends Controller
         $type_students = TypeStudent::getOptions();
         $groups = Group::all();
         $periods = Period::orderBy('id', 'desc')->get();
+        $certificates = \App\Models\CertificateRecord::all();
 
         return Inertia::render('Academic/Reports', [
             'students' => $students,
@@ -201,6 +202,7 @@ class AdminViewsController extends Controller
             'groups' => $groups,
             'typeStudents' => $type_students,
             'periods' => $periods,
+            'certificates' => $certificates,
         ]);
     }
 

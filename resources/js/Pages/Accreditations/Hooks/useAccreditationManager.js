@@ -83,7 +83,7 @@ export default function useAccreditationManager(candidates, initialFilters = {})
     }, [candidates]);
 
     // 5. Handlers de Persistencia (Inertia API)
-    const handleConfirmChange = useCallback(() => {
+    const handleConfirmChange = useCallback((password = null) => {
         if (!itemToChange) return;
 
         const { rowId, newValue } = itemToChange;
@@ -91,7 +91,7 @@ export default function useAccreditationManager(candidates, initialFilters = {})
 
         router.patch(
             route("accreditations.update-status", rowId),
-            { status: newValue },
+            { status: newValue, password: password },
             {
                 preserveScroll: true,
                 preserveState: true,
@@ -99,8 +99,12 @@ export default function useAccreditationManager(candidates, initialFilters = {})
                     showFlash("success", "El estatus de acreditación ha sido actualizado.");
                     setEditingRowId(null);
                 },
-                onError: () => {
-                    showFlash("error", "Ocurrió un error al intentar actualizar el estatus.");
+                onError: (errors) => {
+                    if (errors.password) {
+                        showFlash("error", errors.password);
+                    } else {
+                        showFlash("error", "Ocurrió un error al intentar actualizar el estatus.");
+                    }
                 },
             }
         );

@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
-export default function Reports({ degrees = [], students = [], levels = [], periods = [] }) {
+export default function Reports({ degrees = [], students = [], levels = [], periods = [], certificates = [], groups = [] }) {
     const [openModal, setOpenModal] = useState(false);
     
     // Lista dinámica de gráficas
@@ -89,6 +89,32 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
                     { name: "Acreditados", total: aprobados },
                     { name: "No Acreditados", total: filtered.length - aprobados },
                 ];
+            case "periodo":
+                return periods.map(p => ({
+                    name: p.name,
+                    total: filtered.filter(s => s.period_ids && s.period_ids.includes(p.id)).length
+                }));
+            case "constancias":
+                return periods.map(p => ({
+                    name: p.name,
+                    total: certificates.filter(c => c.periodo === p.name && c.certificate_type !== 'reposicion').length
+                }));
+            case "reposiciones":
+                return periods.map(p => ({
+                    name: p.name,
+                    total: certificates.filter(c => c.periodo === p.name && c.certificate_type === 'reposicion').length
+                }));
+            case "modalidad":
+                // Contar estudiantes basándose en si están activos. Si no hay data directa en student, mock o conteo simple de grupos:
+                const modalCounts = {};
+                groups.forEach(g => {
+                    const mod = g.mode || "Desconocida";
+                    modalCounts[mod] = (modalCounts[mod] || 0) + 1;
+                });
+                return Object.entries(modalCounts).map(([mode, total]) => ({
+                    name: `${mode} (Grupos)`,
+                    total
+                }));
             default:
                 return [];
         }
@@ -102,7 +128,11 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
             "semestre": "Por Semestre",
             "estatus": "Por Estatus",
             "tipo": "Por Tipo de Estudiante",
-            "aprobacion": "Índice de Aprobación"
+            "aprobacion": "Índice de Aprobación",
+            "periodo": "Por Periodo",
+            "constancias": "Constancias Generadas",
+            "reposiciones": "Reposiciones de Constancias",
+            "modalidad": "Cursos por Modalidad"
         }[config.type] || "Gráfica";
 
         const filtro = config.filterType === "egresados" ? " (Egresados)" : config.filterType === "estudiantes" ? " (Vigentes)" : " (Todos)";
@@ -160,13 +190,25 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
                                             onChange={(e) => updateChart(chartConfig.id, 'type', e.target.value)}
                                             className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                         >
-                                            <option value="genero">Sexo / Género</option>
-                                            <option value="carrera">Carrera</option>
-                                            <option value="nivel">Nivel de Inglés</option>
-                                            <option value="semestre">Semestre</option>
-                                            <option value="estatus">Estatus General</option>
-                                            <option value="tipo">Tipo (Actual vs Egresado)</option>
-                                            <option value="aprobacion">Índice de Aprobación</option>
+                                            <optgroup label="General">
+                                                <option value="genero">Sexo / Género</option>
+                                                <option value="carrera">Carrera</option>
+                                                <option value="nivel">Nivel de Inglés</option>
+                                                <option value="semestre">Semestre</option>
+                                            </optgroup>
+                                            <optgroup label="Demografía y Campañas">
+                                                <option value="estatus">Estatus General</option>
+                                                <option value="tipo">Tipo (Actual vs Egresado)</option>
+                                            </optgroup>
+                                            <optgroup label="Rendimiento Académico">
+                                                <option value="aprobacion">Índice de Aprobación</option>
+                                                <option value="modalidad">Cursos por Modalidad</option>
+                                            </optgroup>
+                                            <optgroup label="Administrativo y Tiempos">
+                                                <option value="periodo">Alumnos por Periodo</option>
+                                                <option value="constancias">Constancias Generadas</option>
+                                                <option value="reposiciones">Reposiciones</option>
+                                            </optgroup>
                                         </select>
                                     </div>
                                     <div className="flex-1 min-w-[200px]">

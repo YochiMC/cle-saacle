@@ -64,6 +64,12 @@ class AccreditationController extends Controller
     ): RedirectResponse {
         Gate::authorize('manage', CertificateRecord::class);
 
+        if ($request->status === \App\Enums\StudentStatus::ACCREDITED->value) {
+            if (!\Illuminate\Support\Facades\Hash::check($request->password, auth()->user()->password)) {
+                return back()->withErrors(['password' => 'La contraseña de administrador es incorrecta.']);
+            }
+        }
+
         $action->execute($student, $request->validated('status'));
 
         return redirect()->back()->with('success', 'El estado del alumno se actualizó correctamente.');
