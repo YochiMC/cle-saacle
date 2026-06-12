@@ -161,6 +161,7 @@ class AccreditationController extends Controller
             'certificate_type' => $certType,
             'student_name'     => $student->full_name,
             'pronombre'        => 'el',
+            'student_type'     => 'egresado',  // default; se puede cambiar en personalización
             'num_control'      => $student->num_control,
             'carrera'          => $student->degree->name ?? '',
             'plan_estudios'    => $student->degree->study_plan ?? '',
@@ -255,15 +256,14 @@ class AccreditationController extends Controller
         // Código de validación temporal (no se guarda en BD)
         $validationCode = Str::uuid()->toString();
 
-        $qrImage   = base64_encode(
-            QrCode::size(120)
+        $qrImage   = 'data:image/svg+xml;base64,' . base64_encode(
+            QrCode::format('svg')->size(120)
                 ->margin(1)
                 ->generate(route('certificates.verify', $validationCode))
         );
 
-        $estatus = (Str::lower($student->gender ?? '') === 'f' || Str::lower($student->gender ?? '') === 'femenino')
-            ? 'la C.'
-            : 'el C.';
+        $isFemale = (Str::lower($student->gender ?? '') === 'f' || Str::lower($student->gender ?? '') === 'femenino');
+        $estatus = $isFemale ? 'la egresada' : 'el egresado';
 
         $anioLetra = $this->anioALetras((int) date('Y'));
 
@@ -277,9 +277,11 @@ class AccreditationController extends Controller
             'promedio_letra' => $promedioLetra,
             'periodo'        => $obtainedAt,
             'nivel'          => $nivel ?: 'B1',
-            'nota'           => '2 Años',
+            'nota'           => '2 años',
+            'student_type'   => 'egresado',  // preview siempre muestra 'egresado' por defecto
             'no_oficio'      => $noOficio,
             'qr_image'       => $qrImage,
+            'is_pdf'         => false,
             'validation_code' => $validationCode,
             'verify_url'     => route('certificates.verify', $validationCode),
             'anio_letra'     => $anioLetra,
@@ -418,7 +420,8 @@ class AccreditationController extends Controller
             'carrera'      => 'required|string|max:255',
             'promedio'     => 'nullable|numeric',
             'nivel'        => 'nullable|string|max:10',
-            'pronombre'    => 'required|in:el,ella,elle',
+            'pronombre'    => 'required|in:el,la,elle',
+            'student_type' => 'required|in:egresado,actual',
             'signer_one_name' => 'required|string|max:255',
             'signer_one_title' => 'required|string|max:255',
             'signer_two_name' => 'required|string|max:255',
@@ -432,6 +435,7 @@ class AccreditationController extends Controller
             'promedio_edited'     => $validated['promedio'],
             'nivel_edited'        => $validated['nivel'],
             'pronombre'           => $validated['pronombre'],
+            'student_type'        => $validated['student_type'],
             'signer_one_name'     => $validated['signer_one_name'],
             'signer_one_title'    => $validated['signer_one_title'],
             'signer_two_name'     => $validated['signer_two_name'],
@@ -485,11 +489,21 @@ class AccreditationController extends Controller
         $nivel = $certificate->nivel_edited ?: $certificate->nivel;
         $pronombre = $certificate->pronombre ?? 'el';
 
-        $estatusMap = [
-            'ella' => 'la C.',
-            'elle' => 'al C.',
-            'el'   => 'el C.',
-        ];
+        $studentType = $certificate->student_type ?? 'egresado';
+        
+        if ($studentType === 'egresado') {
+            $estatusMap = [
+                'la'   => 'la egresada',
+                'elle' => 'al C.',
+                'el'   => 'el egresado',
+            ];
+        } else {
+            $estatusMap = [
+                'la'   => 'la estudiante',
+                'elle' => 'al C.',
+                'el'   => 'el estudiante',
+            ];
+        }
         $estatus = $estatusMap[$pronombre] ?? 'el C.';
 
         $verifyUrl = route('certificates.verify', $certificate->validation_code);
@@ -504,13 +518,15 @@ class AccreditationController extends Controller
             'promedio_letra'   => $this->numeroALetras((int) $promedio),
             'periodo'          => $certificate->periodo,
             'nivel'            => $nivel,
-            'nota'             => '2 Años',
+            'nota'             => '2 años',  // legacy, no se usa en blade (se usa student_type)
+            'student_type'     => $certificate->student_type ?? 'egresado',
             'no_oficio'        => $certificate->no_oficio,
-            'qr_image'         => base64_encode(
-                QrCode::size(120)
+            'qr_image'         => 'data:image/svg+xml;base64,' . base64_encode(
+                QrCode::format('svg')->size(120)
                     ->margin(1)
                     ->generate($verifyUrl)
             ),
+            'is_pdf'           => true,
             'validation_code'  => $certificate->validation_code,
             'verify_url'       => $verifyUrl,
             'anio_letra'       => $this->anioALetras((int) date('Y')),

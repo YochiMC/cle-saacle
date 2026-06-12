@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Head } from "@inertiajs/react";
-import { CheckCircle, Edit2, ArrowLeft, Save } from "lucide-react";
+import { CheckCircle, Edit2, ArrowLeft, Save, GraduationCap, Clock } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
 export default function CustomizeCertificate({ certificate, student }) {
@@ -11,6 +11,7 @@ export default function CustomizeCertificate({ certificate, student }) {
         promedio: certificate.promedio_edited || certificate.promedio,
         nivel: certificate.nivel_edited || certificate.nivel,
         pronombre: certificate.pronombre || "el",
+        student_type: certificate.student_type || "egresado",
         signer_one_name:
             certificate.signer_one_name || "FÁTIMA DEL ROCÍO BECERRA LÓPEZ",
         signer_one_title:
@@ -27,9 +28,26 @@ export default function CustomizeCertificate({ certificate, student }) {
     const [loading, setLoading] = useState(false);
 
     const pronounOptions = [
-        { value: "el", label: "él", example: "Acredita al C. José" },
-        { value: "ella", label: "ella", example: "Acredita a la C. María" },
-        { value: "elle", label: "elle", example: "Acredita al C. Alex" },
+        { value: "el", label: "El", example: "Aparecerá en la carta como: el C." },
+        { value: "la", label: "La", example: "Aparecerá en la carta como: la C." },
+        { value: "elle", label: "Elle", example: "Aparecerá en la carta como: al C." },
+    ];
+
+    const studentTypeOptions = [
+        {
+            value: "egresado",
+            label: "Ya Egresado",
+            icon: GraduationCap,
+            description: "Vigencia de 2 años a partir de ser emitida",
+            vigencia: "2 años a partir de ser emitida",
+        },
+        {
+            value: "actual",
+            label: "Alumno Actual",
+            icon: Clock,
+            description: "Vigencia de 2 años a partir de que se egresa",
+            vigencia: "2 años a partir de que se egresa",
+        },
     ];
 
     const handleInputChange = (e) => {
@@ -107,6 +125,10 @@ export default function CustomizeCertificate({ certificate, student }) {
         }
     };
 
+    const selectedStudentType = studentTypeOptions.find(
+        (o) => o.value === formData.student_type
+    );
+
     return (
         <AuthenticatedLayout
             header={
@@ -121,7 +143,7 @@ export default function CustomizeCertificate({ certificate, student }) {
                                                                 ? "bg-blueTec/10 text-blueTec border-blueTec/20"
                                                                 : certificate.status === "issued"
                                                                     ? "bg-orangeTec/10 text-orangeTec border-orangeTec/20"
-                                  : "bg-amber-50 text-amber-700 border-amber-200"
+                              : "bg-amber-50 text-amber-700 border-amber-200"
                         }`}
                     >
                         {certificate.status === "confirmed"
@@ -276,6 +298,58 @@ export default function CustomizeCertificate({ certificate, student }) {
                                                 </div>
                                             </div>
                                         ))}
+                                    </div>
+                                </div>
+
+                                {/* ── VIGENCIA / TIPO DE ESTUDIANTE ── */}
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
+                                        Vigencia de la Constancia
+                                    </label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {studentTypeOptions.map((option) => {
+                                            const Icon = option.icon;
+                                            const selected = formData.student_type === option.value;
+                                            return (
+                                                <div
+                                                    key={option.value}
+                                                    className={`flex flex-col gap-2 p-4 border rounded-2xl cursor-pointer transition-all duration-200 ${
+                                                        selected
+                                                            ? "border-2 border-orangeTec bg-orangeTec/5"
+                                                            : "border-gray-200 hover:border-orangeTec/50"
+                                                    }`}
+                                                    onClick={() =>
+                                                        handleInputChange({
+                                                            target: {
+                                                                name: "student_type",
+                                                                value: option.value,
+                                                            },
+                                                        })
+                                                    }
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <Icon
+                                                            size={16}
+                                                            className={selected ? "text-orangeTec" : "text-gray-400"}
+                                                        />
+                                                        <span className={`font-bold text-sm ${selected ? "text-orangeTec" : "text-gray-700"}`}>
+                                                            {option.label}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[11px] text-gray-500 leading-relaxed">
+                                                        {option.description}
+                                                    </p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    {/* Preview del texto de vigencia */}
+                                    <div className="mt-3 p-3 rounded-xl bg-gray-50 border border-dashed border-gray-200">
+                                        <p className="text-xs text-gray-500 font-medium mb-1">Texto en la constancia:</p>
+                                        <p className="text-xs text-gray-700 italic">
+                                            "La presente constancia tendrá una vigencia de{" "}
+                                            <strong>{selectedStudentType?.vigencia}</strong>."
+                                        </p>
                                     </div>
                                 </div>
 
@@ -453,6 +527,14 @@ export default function CustomizeCertificate({ certificate, student }) {
                                                         formData.pronombre,
                                                 )?.label
                                             }
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-start border-b border-gray-100 pb-3">
+                                        <span className="text-xs font-bold uppercase tracking-wider text-gray-400 shrink-0">
+                                            Vigencia
+                                        </span>
+                                        <span className="text-xs font-semibold text-gray-700 text-right max-w-[65%]">
+                                            {selectedStudentType?.vigencia}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center">

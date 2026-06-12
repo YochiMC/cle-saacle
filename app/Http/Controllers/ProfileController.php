@@ -27,7 +27,7 @@ use Inertia\Response;
 class ProfileController extends Controller
 {
     /**
-    * Devuelve los tipos de documento permitidos según el rol del usuario.
+     * Devuelve los tipos de documento permitidos según el rol del usuario.
      *
      * @param User $user
      * @return array<int, array{value: string, label: string}>

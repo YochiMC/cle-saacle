@@ -159,12 +159,39 @@ class AdminViewsController extends Controller
 
     public function reportsView(Request $request)
     {
-        $students = StudentResource::collection(Student::with(['degree', 'level'])->get())->resolve();
+        // Eager load relations needed for period calculation
+        $studentsRaw = Student::with(['degree', 'level', 'qualifications.group', 'exams'])->get();
+        
+        $students = $studentsRaw->map(function ($student) {
+            $periodIds = collect();
+            
+            // Extract periods from qualifications (groups)
+            foreach ($student->qualifications as $q) {
+                if ($q->group && $q->group->period_id) {
+                    $periodIds->push($q->group->period_id);
+                }
+            }
+            
+            // Extract periods from exams
+            foreach ($student->exams as $exam) {
+                if ($exam->period_id) {
+                    $periodIds->push($exam->period_id);
+                }
+            }
+            
+            // Use StudentResource for base data and append period_ids
+            $resource = \App\Http\Resources\StudentResource::make($student)->resolve();
+            $resource['period_ids'] = $periodIds->unique()->values()->all();
+            
+            return $resource;
+        })->all();
+
         $teachers = TeacherResource::collection(Teacher::all())->resolve();
         $degrees = Degree::all();
         $levels = Level::all();
         $type_students = TypeStudent::getOptions();
         $groups = Group::all();
+        $periods = Period::orderBy('id', 'desc')->get();
 
         return Inertia::render('Academic/Reports', [
             'students' => $students,
@@ -173,6 +200,7 @@ class AdminViewsController extends Controller
             'levels' => $levels,
             'groups' => $groups,
             'typeStudents' => $type_students,
+            'periods' => $periods,
         ]);
     }
 

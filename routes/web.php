@@ -19,22 +19,25 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\Views\AdminViewsController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthenticatedSessionController::class, 'create']);
 });
 
+// Ruta PÚBLICA para verificar constancias via QR (sin autenticación)
+Route::get('/verificar-constancia/{code}', [CertificateVerificationController::class, 'verify'])
+    ->name('certificates.verify');
+
 Route::middleware(['auth', 'verified'])->group(function () {
+
+    // Perfil propio (cualquier usuario autenticado y verificado)
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
     });
 
-    Route::get('/verificar-constancia/{code}', [CertificateVerificationController::class, 'verify'])
-        ->name('certificates.verify');
-
+    // Documentos personales (el controlador resuelve permisos finos por propietario/rol)
     Route::prefix('documents')->group(function () {
         Route::post('/', [DocumentController::class, 'store'])->name('documents.store');
         Route::get('/{document}/preview', [DocumentController::class, 'preview'])->name('documents.preview');
@@ -42,10 +45,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     });
 
+    // Actualización de revisión de documentos (admin/coordinator)
     Route::prefix('documents')->middleware('role:admin|coordinator')->group(function () {
         Route::put('/{document}', [DocumentController::class, 'update'])->name('documents.update');
     });
 
+    // Pagos/Servicios personales (estudiante/admin/coordinator)
     Route::prefix('services')->group(function () {
         Route::post('/', [\App\Http\Controllers\ServiceController::class, 'store'])->name('services.store');
         Route::get('/{service}/preview', [\App\Http\Controllers\ServiceController::class, 'preview'])->name('services.preview');
@@ -53,34 +58,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/{service}', [\App\Http\Controllers\ServiceController::class, 'destroy'])->name('services.destroy');
     });
 
+    // Actualización de revisión de pagos (admin/coordinator)
     Route::prefix('services')->middleware('role:admin|coordinator')->group(function () {
         Route::put('/{service}', [\App\Http\Controllers\ServiceController::class, 'update'])->name('services.update');
     });
 
+    // Vistas y operaciones compartidas por roles base del sistema (menú principal)
     Route::middleware('role:admin|coordinator|teacher|student')->group(function () {
-        Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
-            $data = [
-                'students' => [],
-                'teachers' => [],
-                'degrees' => [],
-                'levels' => [],
-                'groups' => [],
-                'typeStudents' => [],
-                'exams' => [],
-            ];
-
-            if ($request->user()->hasRole(['admin', 'coordinator'])) {
-                $data['students'] = \App\Http\Resources\StudentResource::collection(\App\Models\Student::with(['degree', 'level'])->get())->resolve();
-                $data['teachers'] = \App\Http\Resources\TeacherResource::collection(\App\Models\Teacher::all())->resolve();
-                $data['degrees'] = \App\Models\Degree::all();
-                $data['levels'] = \App\Models\Level::all();
-                $data['groups'] = \App\Models\Group::with('students')->get();
-                $data['typeStudents'] = \App\Enums\TypeStudent::getOptions();
-                $data['exams'] = \App\Models\Exam::with('students')->get();
-            }
-
-            return Inertia::render('Dashboard', $data);
-        })->name('dashboard');
+        Route::get('/dashboard', [AdminViewsController::class, 'dashboardView'])->name('dashboard');
 
         Route::get('/groups', [AdminViewsController::class, 'groupsView'])->name('groups');
 
@@ -102,6 +87,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             });
         });
 
+        // Alias legacy para mantener compatibilidad temporal con endpoints en español.
         Route::prefix('grupos')->group(function () {
             Route::middleware('role:admin|coordinator|teacher')->group(function () {
                 Route::get('/{group}/detalles', [GroupController::class, 'show']);
@@ -117,26 +103,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
+    // Vistas y operaciones para admin + coordinator (Reportes)
     Route::middleware('role:admin|coordinator')->group(function () {
         Route::get('/reports', [AdminViewsController::class, 'reportsView'])->name('reports');
     });
 
+    // Vistas y operaciones para admin + teacher + coordinator
     Route::middleware('role:admin|teacher|coordinator')->group(function () {
+
         Route::prefix('acreditaciones')->group(function () {
-            Route::middleware('role:admin|coordinator')->group(function () {
+            Route::middleware('role:admin')->group(function () {
                 Route::get('/', [AccreditationController::class, 'index'])->name('accreditations');
                 Route::post('/bulk-suspend', [AccreditationController::class, 'bulkSuspend'])->name('accreditations.bulk-suspend');
                 Route::patch('/{student}/status', [AccreditationController::class, 'updateStatus'])->name('accreditations.update-status');
             });
-
             Route::get('/{student}/constancia/preview', [AccreditationController::class, 'previewCertificate'])
                 ->middleware('role:admin|coordinator')
                 ->name('accreditations.preview');
 
             Route::get('/{student}/constancia', [AccreditationController::class, 'generateCertificate'])
-                ->middleware('role:admin|coordinator')
+                ->middleware('role:admin')
                 ->name('accreditations.certificate');
 
+            // Personalización de constancias (nuevo)
             Route::get('/customize/{certificate}', [AccreditationController::class, 'customizeCertificate'])
                 ->middleware('role:admin|coordinator')
                 ->name('certificates.customize');
@@ -159,10 +148,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::patch('/{group}/update-units', [GroupController::class, 'updateUnits'])->name('groups.update-units');
             Route::patch('/{group}/complete', [GroupController::class, 'complete'])->name('groups.complete');
 
+            // Calificaciones (Nested)
             Route::patch('/{group}/qualifications/bulk', [\App\Http\Controllers\QualificationController::class, 'bulkUpdate'])->name('groups.qualifications.bulk-update');
             Route::patch('/{group}/qualifications/{qualification}', [\App\Http\Controllers\QualificationController::class, 'update'])->name('groups.qualifications.update');
         });
 
+        // Alias legacy para endpoints de operación masiva en español.
         Route::prefix('grupos')->group(function () {
             Route::put('/bulk-status', [GroupController::class, 'bulkUpdateStatus']);
             Route::delete('/bulk-delete', [GroupController::class, 'bulkDestroy']);
@@ -175,11 +166,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::patch('/{exam}/qualifications/bulk', [\App\Http\Controllers\ExamController::class, 'bulkUpdatePivot'])->name('exams.qualifications.bulk-update');
             Route::patch('/{exam}/qualifications/{student}', [\App\Http\Controllers\ExamController::class, 'updatePivot'])->name('exams.qualifications.update');
             Route::patch('/{exam}/complete', [\App\Http\Controllers\ExamController::class, 'complete'])->name('exams.complete');
-            Route::put('/{exam}', [App\Http\Controllers\ExamController::class, 'update'])->name('exams.update');
-            Route::delete('/{exam}', [App\Http\Controllers\ExamController::class, 'destroy'])->name('exams.destroy');
+            Route::put('/{exam}', [\App\Http\Controllers\ExamController::class, 'update'])->name('exams.update');
+            Route::delete('/{exam}', [\App\Http\Controllers\ExamController::class, 'destroy'])->name('exams.destroy');
         });
     });
 
+    // Operaciones de grupos para admin + coordinator
     Route::middleware('role:admin|coordinator')->group(function () {
         Route::prefix('groups')->group(function () {
             Route::post('/', [GroupController::class, 'store'])->name('groups.store');
@@ -189,12 +181,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/bulk-delete', [GroupController::class, 'bulkDestroy'])->name('groups.bulk-delete');
         });
 
+        // Alias legacy para endpoints de operación masiva en español.
         Route::prefix('grupos')->group(function () {
             Route::put('/bulk-status', [GroupController::class, 'bulkUpdateStatus']);
             Route::delete('/bulk-delete', [GroupController::class, 'bulkDestroy']);
         });
     });
 
+    // Operaciones de grupos para admin + coordinator + teacher
     Route::middleware('role:admin|coordinator|teacher')->group(function () {
         Route::prefix('groups')->group(function () {
             Route::patch('/{group}/update-units', [GroupController::class, 'updateUnits'])->name('groups.update-units');
@@ -202,17 +196,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
+    // Vistas para admin + coordinator + student (según menú principal)
     Route::middleware('role:admin|coordinator|student')->group(function () {
         Route::get('/pagos', [AdminViewsController::class, 'servicesView'])->name('pagos');
         Route::get('/kardex/{user}', [AdminViewsController::class, 'kardex'])->name('kardex');
         Route::get('/kardex/{user}/pdf', [AdminViewsController::class, 'downloadKardexPdf'])->name('kardex.pdf');
     });
 
+    // Autoinscripción de estudiante a grupos
     Route::middleware('role:student')->group(function () {
         Route::get('/inscripcion', [AdminViewsController::class, 'studentEnrollmentView'])->name('student.enrollment');
         Route::post('/grupos/{group}/auto-inscribir', [SelfEnrollmentController::class, 'enroll'])->name('self-enroll');
     });
 
+    // Operaciones administrativas exclusivas de admin
     Route::middleware('role:admin')->group(function () {
         Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
 
@@ -234,6 +231,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{user}', [ProfileController::class, 'show'])->name('profiles');
             Route::delete('/{user}', [ProfileController::class, 'delete'])->name('profiles.delete');
 
+            // CRUD de Calificaciones Históricas (OG) — anidadas bajo el contexto del usuario
             Route::post('/{user}/legacy-qualifications', [LegacyQualificationController::class, 'store'])
                 ->name('legacy-qualifications.store');
             Route::put('/{user}/legacy-qualifications/{legacy}', [LegacyQualificationController::class, 'update'])
@@ -257,7 +255,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
+    // Operaciones de configuración y catálogo para admin + coordinator
     Route::middleware('role:admin|coordinator')->group(function () {
+        // ── Configuraciones del Sistema (Administrador y Coordinador) ───────────
         if (! app()->isProduction()) {
             Route::prefix('settings')->name('settings.')->group(function () {
                 Route::get('/', [SettingController::class, 'index'])->name('index');
@@ -266,6 +266,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         }
 
         Route::prefix('settings')->name('settings.')->group(function () {
+            // UI Centralizada de Catálogos
             Route::get('/catalogs', [CatalogUIController::class, 'index'])->name('catalogs');
         });
 

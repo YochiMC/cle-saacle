@@ -19,7 +19,12 @@ class CertificateVerificationController extends Controller
             ->with(['student.degree', 'generatedBy'])
             ->first();
 
-        if (! $record) {
+        $invalidStatuses = [
+            \App\Enums\StudentStatus::IN_REVIEW,
+            \App\Enums\StudentStatus::DISABLED,
+        ];
+
+        if (! $record || in_array($record->student->status, $invalidStatuses)) {
             return Inertia::render('Certificates/Verify', [
                 'valid'  => false,
                 'record' => null,

@@ -35,10 +35,11 @@ export default function Graficas({
                         onChange={(e) => setChartType(e.target.value)}
                         className="block w-full md:w-64 pl-3 pr-10 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm bg-gray-50 text-gray-700"
 >
-                        <optgroup label="General">                                                    >
+                        <optgroup label="General">
                             <option value="genero">Por Género</option>
                             <option value="carrera">Por Carrera</option>
                             <option value="semestre">Por Semestre</option>
+                            <option value="level">Por Nivel</option>
                         </optgroup>
                         <optgroup label="Demografía y Campañas">                            
                             <option value="estatus_alumno">Egresados vs Vigentes</option>

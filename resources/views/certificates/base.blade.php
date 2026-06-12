@@ -256,24 +256,65 @@
     <table class="header-table">
         <tr>
             <td class="logo-sep">
-                @if(file_exists(public_path('images/logo_sep.png')))
-                <img src="{{ public_path('images/logo_sep.png') }}" alt="SEP">
-                @elseif(file_exists(public_path('images/logo_sep.jpg')))
-                <img src="{{ public_path('images/logo_sep.jpg') }}" alt="SEP">
+                @php $isPdf = $is_pdf ?? false; @endphp
+                @if(file_exists(public_path('images/logo_sep.png')) || file_exists(public_path('images/logo_sep.jpg')))
+                @php
+                if ($isPdf) {
+                if (file_exists(public_path('images/logo_sep.png'))) {
+                $logoSepSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_sep.png'));
+                } else {
+                $logoSepSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_sep.jpg'));
+                }
+                } else {
+                if (file_exists(public_path('images/logo_sep.png'))) {
+                $logoSepSrc = asset('images/logo_sep.png');
+                } else {
+                $logoSepSrc = asset('images/logo_sep.jpg');
+                }
+                }
+                @endphp
+                <img src="{{ $logoSepSrc }}" alt="SEP">
                 @endif
             </td>
             <td class="logo-tecnm">
-                @if(file_exists(public_path('images/logo_tecnm.png')))
-                <img src="{{ public_path('images/logo_tecnm.png') }}" alt="TecNM">
-                @elseif(file_exists(public_path('images/logo_tecnm.jpg')))
-                <img src="{{ public_path('images/logo_tecnm.jpg') }}" alt="TecNM">
+                @if(file_exists(public_path('images/logo_tecnm.png')) ||
+                file_exists(public_path('images/logo_tecnm.jpg')))
+                @php
+                if ($isPdf) {
+                if (file_exists(public_path('images/logo_tecnm.png'))) {
+                $logoTecnmSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_tecnm.png'));
+                } else {
+                $logoTecnmSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_tecnm.jpg'));
+                }
+                } else {
+                if (file_exists(public_path('images/logo_tecnm.png'))) {
+                $logoTecnmSrc = asset('images/logo_tecnm.png');
+                } else {
+                $logoTecnmSrc = asset('images/logo_tecnm.jpg');
+                }
+                }
+                @endphp
+                <img src="{{ $logoTecnmSrc }}" alt="TecNM">
                 @endif
             </td>
             <td class="logo-itl">
-                @if(file_exists(public_path('images/logo_itl.png')))
-                <img src="{{ public_path('images/logo_itl.png') }}" alt="ITL">
-                @elseif(file_exists(public_path('images/logo_itl.jpg')))
-                <img src="{{ public_path('images/logo_itl.jpg') }}" alt="ITL">
+                @if(file_exists(public_path('images/logo_itl.png')) || file_exists(public_path('images/logo_itl.jpg')))
+                @php
+                if ($isPdf) {
+                if (file_exists(public_path('images/logo_itl.png'))) {
+                $logoItlSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_itl.png'));
+                } else {
+                $logoItlSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_itl.jpg'));
+                }
+                } else {
+                if (file_exists(public_path('images/logo_itl.png'))) {
+                $logoItlSrc = asset('images/logo_itl.png');
+                } else {
+                $logoItlSrc = asset('images/logo_itl.jpg');
+                }
+                }
+                @endphp
+                <img src="{{ $logoItlSrc }}" alt="ITL">
                 @endif
             </td>
         </tr>
@@ -286,7 +327,8 @@
 
     {{-- ── META OFICIO ─────────────────────────────────────── --}}
     <div class="meta-info">
-        León, Guanajuato, <span class="highlight">{{ \Carbon\Carbon::now()->format('d') . '/' . strtoupper(\Carbon\Carbon::now()->isoFormat('MMMM')) . '/' . date('Y') }}</span><br>
+        León, Guanajuato, <span
+            class="highlight">{{ \Carbon\Carbon::now()->format('d') . '/' . strtoupper(\Carbon\Carbon::now()->isoFormat('MMMM')) . '/' . date('Y') }}</span><br>
         @yield('oficio_line')<br>
         Asunto: Constancia de Inglés
     </div>
@@ -299,7 +341,8 @@
 
     {{-- ── PÁRRAFOS COMUNES ─────────────────────────────────── --}}
     <div class="body-text">
-        Por lo anterior, se hace constar que <b>{{ $estatus }} {{ $nombre }}</b> ACREDITÓ, el requisito de una lengua extranjera para efectos de titulación en una Licenciatura del Tecnológico Nacional de México.
+        Por lo anterior, se hace constar que <b>{{ $estatus }} {{ $nombre }}</b> ACREDITÓ, el requisito de una lengua
+        extranjera para efectos de titulación en una Licenciatura del Tecnológico Nacional de México.
     </div>
 
     <div class="body-text">
@@ -308,15 +351,23 @@
     </div>
 
     <div class="body-text">
-        El cual fue expedido por el TecNM y acredita a la Coordinación de Lenguas Extranjeras (CLE) del Instituto Tecnológico de León como institución formadora y para acreditar el segundo idioma como requisito de titulación.
+        El cual fue expedido por el TecNM y acredita a la Coordinación de Lenguas Extranjeras (CLE) del Instituto
+        Tecnológico de León como institución formadora y para acreditar el segundo idioma como requisito de titulación.
     </div>
 
     <div class="body-text">
-        La presente constancia tendrá una vigencia de <b>{{ $nota }}</b>
+        @if(isset($student_type) && $student_type === 'actual')
+        La presente constancia tendrá una vigencia de <b>2 años</b> contados apartir de la fecha de emisión.
+        @else
+        La presente constancia tendrá una vigencia de <b>2 años</b> contados a partir de la fecha de egreso del
+        estudiante.
+        @endif
     </div>
 
     <div class="body-text">
-        Se extiende la presente en la ciudad de León Guanajuato, a los {{ \Carbon\Carbon::now()->format('d') }} días del mes de {{ strtolower(\Carbon\Carbon::now()->isoFormat('MMMM')) }} del año {{ strtolower($anio_letra) }}, para los fines legales que convengan al interesado.
+        Se extiende la presente en la ciudad de León Guanajuato, a los {{ \Carbon\Carbon::now()->format('d') }} días del
+        mes de {{ strtolower(\Carbon\Carbon::now()->isoFormat('MMMM')) }} del año {{ strtolower($anio_letra) }}, para
+        los fines legales que convengan al interesado.
     </div>
 
     {{-- ── ATENTAMENTE ───────────────────────────────────────── --}}
@@ -325,11 +376,17 @@
         <div class="lema">Excelencia en Educación Tecnológica®<br>Ciencia, Tecnología y Libertad.</div>
     </div>
 
-    {{-- ── VOBO ──────────────────────────────────────────────── --}}
-    <table style="width:100%; margin-top:16px; margin-bottom:16px;">
+    {{-- ── QR EN LUGAR DE VOBO ─────────────────────────────────── --}}
+    <table style="width:100%; margin-top:18px; margin-bottom:14px;">
         <tr>
             <td>&nbsp;</td>
-            <td style="text-align:right; font-weight:bold; padding-right:60px;">Vo.Bo.</td>
+            <td style="text-align:right; padding-right:44px;">
+                @if(!empty($qr_image))
+                <img src="{{ $qr_image }}" style="width:82px; height:82px; display:block; margin-left:auto;"
+                    alt="QR Verificación">
+                <div style="font-size:7px; color:#555; text-align:center; margin-top:2px; width:82px;"></div>
+                @endif
+            </td>
         </tr>
     </table>
 
@@ -362,10 +419,24 @@
         <table class="footer-bottom-table">
             <tr>
                 <td class="footer-logo-left">
-                    @if(file_exists(public_path('images/logo_margarita.png')))
-                    <img src="{{ public_path('images/logo_margarita.png') }}" alt="2026">
-                    @elseif(file_exists(public_path('images/logo_margarita.jpg')))
-                    <img src="{{ public_path('images/logo_margarita.jpg') }}" alt="2026">
+                    @if(file_exists(public_path('images/logo_margarita.png')) ||
+                    file_exists(public_path('images/logo_margarita.jpg')))
+                    @php
+                    if ($isPdf) {
+                    if (file_exists(public_path('images/logo_margarita.png'))) {
+                    $logoMargaritaSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_margarita.png'));
+                    } else {
+                    $logoMargaritaSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_margarita.jpg'));
+                    }
+                    } else {
+                    if (file_exists(public_path('images/logo_margarita.png'))) {
+                    $logoMargaritaSrc = asset('images/logo_margarita.png');
+                    } else {
+                    $logoMargaritaSrc = asset('images/logo_margarita.jpg');
+                    }
+                    }
+                    @endphp
+                    <img src="{{ $logoMargaritaSrc }}" alt="2026">
                     @endif
                 </td>
                 <td class="footer-address-cell">
@@ -373,19 +444,26 @@
                     C.P. 37290 León, Gto. Tel. 477 7105200<br>
                     e-mail: tecleon@leon.tecnm.mx &nbsp;|&nbsp; www.leon.tecnm.mx
                 </td>
-                <td style="width:120px; vertical-align:bottom; text-align:right;">
-                    <div class="qr-area">
-                        @if(!empty($qr_image))
-                        <img src="data:image/svg+xml;base64,{{ $qr_image }}" alt="QR Verificación">
-                        <div class="qr-code-label">Escanea para verificar</div>
-                        @endif
-                    </div>
-                </td>
+                <td style="width:10px;">&nbsp;</td>
                 <td class="footer-logo-right">
-                    @if(file_exists(public_path('images/logo_seals.png')))
-                    <img src="{{ public_path('images/logo_seals.png') }}" alt="">
-                    @elseif(file_exists(public_path('images/logo_seals.jpg')))
-                    <img src="{{ public_path('images/logo_seals.jpg') }}" alt="">
+                    @if(file_exists(public_path('images/logo_seals.png')) ||
+                    file_exists(public_path('images/logo_seals.jpg')))
+                    @php
+                    if ($isPdf) {
+                    if (file_exists(public_path('images/logo_seals.png'))) {
+                    $logoSealsSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_seals.png'));
+                    } else {
+                    $logoSealsSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_seals.jpg'));
+                    }
+                    } else {
+                    if (file_exists(public_path('images/logo_seals.png'))) {
+                    $logoSealsSrc = asset('images/logo_seals.png');
+                    } else {
+                    $logoSealsSrc = asset('images/logo_seals.jpg');
+                    }
+                    }
+                    @endphp
+                    <img src="{{ $logoSealsSrc }}" alt="">
                     @endif
                 </td>
             </tr>

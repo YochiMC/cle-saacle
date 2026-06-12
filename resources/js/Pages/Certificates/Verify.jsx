@@ -455,7 +455,7 @@ export default function Verify({ valid, record }) {
                                     Instituto Tecnológico de León
                                 </div>
                                 <div className="footer-text" style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.2)" }}>
-                                    📧 tecleon@leon.tecnm.mx
+                                    📧 academicoidiomas@leon.tecnm.mx
                                 </div>
                             </div>
                         </div>
@@ -474,8 +474,8 @@ export default function Verify({ valid, record }) {
                             <div style={{ fontWeight: 600, marginBottom: "10px" }}>
                                 Si crees que esto es un error, contacta:
                             </div>
-                            <div>📧 tecleon@leon.tecnm.mx</div>
-                            <div>📞 477 7105200</div>
+                            <div>📧 academicoidiomas@leon.tecnm.mx</div>
+                            <div>📞 479 221 1300</div>
                             <div style={{ marginTop: "10px", fontSize: "11px", opacity: 0.8 }}>
                                 Coordinación de Lenguas Extranjeras — ITL
                             </div>
