@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import ConfirmModal from "@/Components/ui/ConfirmModal";
 
@@ -17,6 +17,15 @@ const AccreditationModals = ({
     setItemToChange,
     handleConfirmChange,
 }) => {
+    const [password, setPassword] = useState("");
+
+    // Limpiar contraseña al cerrar o cambiar el modal
+    useEffect(() => {
+        if (!itemToChange) {
+            setPassword("");
+        }
+    }, [itemToChange]);
+
     return (
         <>
             {/* Modal de Alerta / Feedback de Operación */}
@@ -43,12 +52,27 @@ const AccreditationModals = ({
             <ConfirmModal
                 isOpen={itemToChange != null}
                 onClose={() => setItemToChange(null)}
-                onConfirm={handleConfirmChange}
+                onConfirm={() => handleConfirmChange(password)}
                 title="Confirmar actualización"
                 message={`¿Estás seguro de que deseas cambiar el estatus de ${itemToChange?.targetName} a "${itemToChange?.newLabel}"? Esto alterará su registro académico.`}
                 confirmText="Sí, actualizar estatus"
                 variant="warning"
-            />
+            >
+                {itemToChange?.newValue === "accredited" && (
+                    <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Contraseña de Administrador requerida
+                        </label>
+                        <input
+                            type="password"
+                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            placeholder="Ingresa tu contraseña para autorizar"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
+                )}
+            </ConfirmModal>
         </>
     );
 };

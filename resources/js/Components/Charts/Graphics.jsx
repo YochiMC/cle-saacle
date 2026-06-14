@@ -6,7 +6,8 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    Cell
+    Cell,
+    LabelList
 } from "recharts";
 
 export default function Graficas({ 
@@ -33,11 +34,14 @@ export default function Graficas({
                         value={chartType}
                         onChange={(e) => setChartType(e.target.value)}
                         className="block w-full md:w-64 pl-3 pr-10 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm bg-gray-50 text-gray-700"
-                    >
-                        <optgroup label="Demografía y Campañas">
+>
+                        <optgroup label="General">
                             <option value="genero">Por Género</option>
                             <option value="carrera">Por Carrera</option>
                             <option value="semestre">Por Semestre</option>
+                            <option value="level">Por Nivel</option>
+                        </optgroup>
+                        <optgroup label="Demografía y Campañas">                            
                             <option value="estatus_alumno">Egresados vs Vigentes</option>
                         </optgroup>
                         
@@ -93,6 +97,13 @@ export default function Graficas({
                                 }}
                             />                       
                             <Bar dataKey="total" radius={[4, 4, 0, 0]}>
+                                <LabelList 
+                                    dataKey="total" 
+                                    position="center" 
+                                    fill="#ffffff" 
+                                    fontSize={14} 
+                                    fontWeight="bold" 
+                                />
                                 {chartData.map((entry, index) => (
                                     <Cell 
                                         key={`cell-${index}`} 

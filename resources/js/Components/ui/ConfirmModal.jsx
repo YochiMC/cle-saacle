@@ -10,7 +10,8 @@ export default function ConfirmModal({
     message = '¿Estás seguro de que deseas continuar?',
     confirmText = 'Confirmar',
     confirmColor,
-    variant = 'danger'
+    variant = 'danger',
+    children
 }) {
     const variantStyles = {
         danger: {
@@ -74,6 +75,7 @@ export default function ConfirmModal({
                                         <p className="text-sm text-gray-500">
                                             {message}
                                         </p>
+                                        {children && <div className="mt-4 text-left">{children}</div>}
                                     </div>
                                 </div>
 

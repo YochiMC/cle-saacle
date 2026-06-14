@@ -40,6 +40,11 @@ class UpdateAccreditationStatusRequest extends FormRequest
                 new Enum(StudentStatus::class),
                 Rule::in($allowedStatuses),
             ],
+            'password' => [
+                Rule::requiredIf(fn () => $this->status === StudentStatus::ACCREDITED->value),
+                'nullable',
+                'string'
+            ],
         ];
     }
 

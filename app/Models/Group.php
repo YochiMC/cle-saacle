@@ -132,7 +132,7 @@ class Group extends Model
                             $regularType = GroupType::REGULAR->value;
                             $otherCourseTypes = array_values(array_filter(
                                 $approvedCourseTypes,
-                                fn (string $typeValue) => $typeValue !== $regularType
+                                fn(string $typeValue) => $typeValue !== $regularType
                             ));
 
                             if (in_array($regularType, $approvedCourseTypes, true)) {
@@ -152,7 +152,7 @@ class Group extends Model
                         });
                 })
 
-                // B) Grupos HISTÓRICOS: Donde ya está inscrito (sin importar el nivel o estado actual)
+                    // B) Grupos HISTÓRICOS: Donde ya está inscrito (sin importar el nivel o estado actual)
                     ->orWhereHas('qualifications', function ($enrolledQuery) use ($student) {
                         $enrolledQuery->where('student_id', $student?->id);
                     });

@@ -1,9 +1,10 @@
-    <?php
+<?php
 
-    use App\Http\Controllers\AccreditationController;
+use App\Http\Controllers\AccreditationController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\CatalogUIController;
+use App\Http\Controllers\CertificateVerificationController;
 use App\Http\Controllers\DegreeController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GroupController;
@@ -22,6 +23,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthenticatedSessionController::class, 'create']);
 });
+
+// Ruta PÚBLICA para verificar constancias via QR (sin autenticación)
+Route::get('/verificar-constancia/{code}', [CertificateVerificationController::class, 'verify'])
+    ->name('certificates.verify');
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
@@ -106,12 +111,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Vistas y operaciones para admin + teacher + coordinator
     Route::middleware('role:admin|teacher|coordinator')->group(function () {
 
-        Route::middleware('role:admin|coordinator')->group(function () {
-            Route::prefix('acreditaciones')->group(function () {
+        Route::prefix('acreditaciones')->group(function () {
+            Route::middleware('role:admin')->group(function () {
                 Route::get('/', [AccreditationController::class, 'index'])->name('accreditations');
                 Route::post('/bulk-suspend', [AccreditationController::class, 'bulkSuspend'])->name('accreditations.bulk-suspend');
                 Route::patch('/{student}/status', [AccreditationController::class, 'updateStatus'])->name('accreditations.update-status');
             });
+            Route::get('/{student}/constancia/preview', [AccreditationController::class, 'previewCertificate'])
+                ->middleware('role:admin|coordinator')
+                ->name('accreditations.preview');
+
+            Route::get('/{student}/constancia', [AccreditationController::class, 'generateCertificate'])
+                ->middleware('role:admin')
+                ->name('accreditations.certificate');
+
+            // Personalización de constancias (nuevo)
+            Route::get('/customize/{certificate}', [AccreditationController::class, 'customizeCertificate'])
+                ->middleware('role:admin|coordinator')
+                ->name('certificates.customize');
+
+            Route::post('/customize/{certificate}/confirm', [AccreditationController::class, 'confirmCustomization'])
+                ->middleware('role:admin|coordinator')
+                ->name('certificates.confirm-customization');
+
+            Route::get('/customize/{certificate}/download', [AccreditationController::class, 'downloadCertificate'])
+                ->middleware('role:admin|coordinator')
+                ->name('certificates.download');
         });
 
         Route::prefix('groups')->group(function () {
@@ -141,8 +166,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::patch('/{exam}/qualifications/bulk', [\App\Http\Controllers\ExamController::class, 'bulkUpdatePivot'])->name('exams.qualifications.bulk-update');
             Route::patch('/{exam}/qualifications/{student}', [\App\Http\Controllers\ExamController::class, 'updatePivot'])->name('exams.qualifications.update');
             Route::patch('/{exam}/complete', [\App\Http\Controllers\ExamController::class, 'complete'])->name('exams.complete');
-            Route::put('/{exam}', [App\Http\Controllers\ExamController::class, 'update'])->name('exams.update');
-            Route::delete('/{exam}', [App\Http\Controllers\ExamController::class, 'destroy'])->name('exams.destroy');
+            Route::put('/{exam}', [\App\Http\Controllers\ExamController::class, 'update'])->name('exams.update');
+            Route::delete('/{exam}', [\App\Http\Controllers\ExamController::class, 'destroy'])->name('exams.destroy');
         });
     });
 
@@ -175,6 +200,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:admin|coordinator|student')->group(function () {
         Route::get('/pagos', [AdminViewsController::class, 'servicesView'])->name('pagos');
         Route::get('/kardex/{user}', [AdminViewsController::class, 'kardex'])->name('kardex');
+        Route::get('/kardex/{user}/pdf', [AdminViewsController::class, 'downloadKardexPdf'])->name('kardex.pdf');
     });
 
     // Autoinscripción de estudiante a grupos
@@ -186,6 +212,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Operaciones administrativas exclusivas de admin
     Route::middleware('role:admin')->group(function () {
         Route::get('/users', [AdminViewsController::class, 'usersView'])->name('users');
+
         Route::prefix('students')->group(function () {
             Route::post('/', [StudentController::class, 'createStudent'])->name('students');
             Route::delete('/bulk-delete', [StudentController::class, 'bulkDeleteStudents'])->name('students.bulk-delete');
@@ -253,4 +280,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
