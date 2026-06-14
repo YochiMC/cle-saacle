@@ -73,4 +73,4 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
 RUN cp /usr/local/bin/frankenphp /tmp/fphp && mv /tmp/fphp /usr/local/bin/frankenphp
 
 # ENTRYPOINT: Generamos un Caddyfile explícito para Render y escuchamos en el puerto expuesto
-ENTRYPOINT ["sh", "-lc", "set -eu; PORT_VALUE=${PORT:-80}; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache && php artisan migrate && { printf '%s\n' '{' '  auto_https off' '}'; printf '%s\n' \":$PORT_VALUE {\"; printf '%s\n' '  root * /app/public' '  encode zstd br gzip' '  php_server' '}'; } > /tmp/Caddyfile && exec frankenphp run --config /tmp/Caddyfile"]
+ENTRYPOINT ["sh", "-lc", "set -eu; PORT_VALUE=${PORT:-80}; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache && { printf '%s\n' '{' '  auto_https off' '}'; printf '%s\n' \":$PORT_VALUE {\"; printf '%s\n' '  root * /app/public' '  encode zstd br gzip' '  php_server' '}'; } > /tmp/Caddyfile && exec frankenphp run --config /tmp/Caddyfile"]
