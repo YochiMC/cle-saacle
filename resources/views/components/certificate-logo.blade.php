@@ -1,6 +1,7 @@
-@props(['name', 'isPdf' => false, 'alt' => ''])
+@props(['name', 'isPdf' => false, 'is_pdf' => false, 'alt' => ''])
 
 @php
+    $isPdfResolved = $isPdf || $is_pdf;
     $extension = null;
     if (file_exists(public_path("images/{$name}.png"))) {
         $extension = 'png';
@@ -12,7 +13,7 @@
 @if($extension)
     @php
         $path = "images/{$name}.{$extension}";
-        if ($isPdf) {
+        if ($isPdfResolved) {
             $src = 'file:///' . str_replace('\\', '/', public_path($path));
         } else {
             $src = asset($path);

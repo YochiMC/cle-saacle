@@ -256,13 +256,13 @@
     <table class="header-table">
         <tr>
             <td class="logo-sep">
-                <x-certificate-logo name="logo_sep" :isPdf="$is_pdf ?? false" alt="SEP" />
+                <x-certificate-logo name="logo_sep" :is-pdf="$is_pdf ?? false" alt="SEP" />
             </td>
             <td class="logo-tecnm">
-                <x-certificate-logo name="logo_tecnm" :isPdf="$is_pdf ?? false" alt="TecNM" />
+                <x-certificate-logo name="logo_tecnm" :is-pdf="$is_pdf ?? false" alt="TecNM" />
             </td>
             <td class="logo-itl">
-                <x-certificate-logo name="logo_itl" :isPdf="$is_pdf ?? false" alt="ITL" />
+                <x-certificate-logo name="logo_itl" :is-pdf="$is_pdf ?? false" alt="ITL" />
             </td>
         </tr>
     </table>
@@ -366,7 +366,7 @@
         <table class="footer-bottom-table">
             <tr>
                 <td class="footer-logo-left">
-                    <x-certificate-logo name="logo_margarita" :isPdf="$is_pdf ?? false" alt="2026" />
+                    <x-certificate-logo name="logo_margarita" :is-pdf="$is_pdf ?? false" alt="2026" />
                 </td>
                 <td class="footer-address-cell">
                     Av. Tecnológico s/n, Fraccionamiento Industrial Julián de Obregón<br>
@@ -375,7 +375,7 @@
                 </td>
                 <td style="width:10px;">&nbsp;</td>
                 <td class="footer-logo-right">
-                    <x-certificate-logo name="logo_seals" :isPdf="$is_pdf ?? false" alt="" />
+                    <x-certificate-logo name="logo_seals" :is-pdf="$is_pdf ?? false" alt="" />
                 </td>
             </tr>
         </table>
