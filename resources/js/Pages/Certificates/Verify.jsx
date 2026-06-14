@@ -351,10 +351,6 @@ export default function Verify({ valid, record }) {
                                 <div className="two-columns">
                                     <div>
                                         <div className="data-item">
-                                            <div className="data-label">% Avance</div>
-                                            <div className="data-value highlight">{record.progress || 0}%</div>
-                                        </div>
-                                        <div className="data-item">
                                             <div className="data-label">Número de Control</div>
                                             <div className="data-value">{record.num_control}</div>
                                         </div>
@@ -389,12 +385,6 @@ export default function Verify({ valid, record }) {
                                             <div className="data-label">Fecha de Emisión</div>
                                             <div className="data-value">{record.issued_at}</div>
                                         </div>
-                                        {record.enrollment_date && (
-                                            <div className="data-item">
-                                                <div className="data-label">Fecha y hora de inscripción</div>
-                                                <div className="data-value" style={{ fontSize: "13px" }}>{record.enrollment_date}</div>
-                                            </div>
-                                        )}
                                         <div className="data-item">
                                             <div className="data-label">Oficio No.</div>
                                             <div className="data-value">{record.no_oficio || '—'}</div>
@@ -421,12 +411,6 @@ export default function Verify({ valid, record }) {
                             </div>
 
                             <div className="key-info">
-                                <div className="key-item">
-                                    <div className="key-label">% Avance</div>
-                                    <div className="key-value">
-                                        {record.progress}%
-                                    </div>
-                                </div>
                                 <div className="key-item">
                                     <div className="key-label">Puntaje / Nivel</div>
                                     <div className="key-value">

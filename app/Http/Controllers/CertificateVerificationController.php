@@ -16,42 +16,15 @@ class CertificateVerificationController extends Controller
     public function verify(string $code): Response
     {
         $record = CertificateRecord::where('validation_code', $code)
-            ->with(['student.degree', 'generatedBy'])
+            ->where('status', 'issued')
             ->first();
 
-        $invalidStatuses = [
-            \App\Enums\StudentStatus::IN_REVIEW,
-            \App\Enums\StudentStatus::DISABLED,
-        ];
-
-        if (! $record || in_array($record->student->status, $invalidStatuses)) {
+        if (! $record) {
             return Inertia::render('Certificates/Verify', [
                 'valid'  => false,
                 'record' => null,
             ]);
         }
-
-        // Obtener datos adicionales del estudiante para la constancia
-        $student = $record->student;
-        $student->load([
-            'qualifications.group.period',
-            'exams.period',
-            'degree',
-            'level'
-        ]);
-
-        // Calcular el avance del estudiante
-        $totalQualifications = $student->qualifications()->count() ?? 0;
-        $approvedQualifications = $student->qualifications()
-            ->where('final_average', '>=', 70)
-            ->where('is_left', false)
-            ->count() ?? 0;
-        $progressPercentage = $totalQualifications > 0
-            ? round(($approvedQualifications / $totalQualifications) * 100)
-            : 0;
-
-        // Obtener información de inscripción
-        $enrollmentDate = $student->created_at;
 
         return Inertia::render('Certificates/Verify', [
             'valid'  => true,
@@ -66,9 +39,6 @@ class CertificateVerificationController extends Controller
                 'issued_at'         => $record->issued_at?->format('d/m/Y'),
                 'no_oficio'         => $record->no_oficio,
                 'validation_code'   => $record->validation_code,
-                'progress'          => $progressPercentage,
-                'enrollment_date'   => $enrollmentDate?->format('d M. Y - h:i A'),
-                'qualification_count' => $approvedQualifications,
             ],
         ]);
     }

@@ -23,10 +23,6 @@ return new class extends Migration
             $table->string('periodo')->nullable();
             $table->string('nivel', 20)->nullable();   // B1, B2, etc.
             $table->string('no_oficio', 50)->nullable();
-            $table->text('student_name_edited')->nullable();
-            $table->string('carrera_edited')->nullable();
-            $table->float('promedio_edited')->nullable();
-            $table->string('nivel_edited')->nullable();
             $table->string('signer_one_name')->nullable();
             $table->string('signer_one_title')->nullable();
             $table->string('signer_two_name')->nullable();

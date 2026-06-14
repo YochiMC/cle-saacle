@@ -256,66 +256,13 @@
     <table class="header-table">
         <tr>
             <td class="logo-sep">
-                @php $isPdf = $is_pdf ?? false; @endphp
-                @if(file_exists(public_path('images/logo_sep.png')) || file_exists(public_path('images/logo_sep.jpg')))
-                @php
-                if ($isPdf) {
-                if (file_exists(public_path('images/logo_sep.png'))) {
-                $logoSepSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_sep.png'));
-                } else {
-                $logoSepSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_sep.jpg'));
-                }
-                } else {
-                if (file_exists(public_path('images/logo_sep.png'))) {
-                $logoSepSrc = asset('images/logo_sep.png');
-                } else {
-                $logoSepSrc = asset('images/logo_sep.jpg');
-                }
-                }
-                @endphp
-                <img src="{{ $logoSepSrc }}" alt="SEP">
-                @endif
+                <x-certificate-logo name="logo_sep" :isPdf="$is_pdf ?? false" alt="SEP" />
             </td>
             <td class="logo-tecnm">
-                @if(file_exists(public_path('images/logo_tecnm.png')) ||
-                file_exists(public_path('images/logo_tecnm.jpg')))
-                @php
-                if ($isPdf) {
-                if (file_exists(public_path('images/logo_tecnm.png'))) {
-                $logoTecnmSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_tecnm.png'));
-                } else {
-                $logoTecnmSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_tecnm.jpg'));
-                }
-                } else {
-                if (file_exists(public_path('images/logo_tecnm.png'))) {
-                $logoTecnmSrc = asset('images/logo_tecnm.png');
-                } else {
-                $logoTecnmSrc = asset('images/logo_tecnm.jpg');
-                }
-                }
-                @endphp
-                <img src="{{ $logoTecnmSrc }}" alt="TecNM">
-                @endif
+                <x-certificate-logo name="logo_tecnm" :isPdf="$is_pdf ?? false" alt="TecNM" />
             </td>
             <td class="logo-itl">
-                @if(file_exists(public_path('images/logo_itl.png')) || file_exists(public_path('images/logo_itl.jpg')))
-                @php
-                if ($isPdf) {
-                if (file_exists(public_path('images/logo_itl.png'))) {
-                $logoItlSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_itl.png'));
-                } else {
-                $logoItlSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_itl.jpg'));
-                }
-                } else {
-                if (file_exists(public_path('images/logo_itl.png'))) {
-                $logoItlSrc = asset('images/logo_itl.png');
-                } else {
-                $logoItlSrc = asset('images/logo_itl.jpg');
-                }
-                }
-                @endphp
-                <img src="{{ $logoItlSrc }}" alt="ITL">
-                @endif
+                <x-certificate-logo name="logo_itl" :isPdf="$is_pdf ?? false" alt="ITL" />
             </td>
         </tr>
     </table>
@@ -419,25 +366,7 @@
         <table class="footer-bottom-table">
             <tr>
                 <td class="footer-logo-left">
-                    @if(file_exists(public_path('images/logo_margarita.png')) ||
-                    file_exists(public_path('images/logo_margarita.jpg')))
-                    @php
-                    if ($isPdf) {
-                    if (file_exists(public_path('images/logo_margarita.png'))) {
-                    $logoMargaritaSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_margarita.png'));
-                    } else {
-                    $logoMargaritaSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_margarita.jpg'));
-                    }
-                    } else {
-                    if (file_exists(public_path('images/logo_margarita.png'))) {
-                    $logoMargaritaSrc = asset('images/logo_margarita.png');
-                    } else {
-                    $logoMargaritaSrc = asset('images/logo_margarita.jpg');
-                    }
-                    }
-                    @endphp
-                    <img src="{{ $logoMargaritaSrc }}" alt="2026">
-                    @endif
+                    <x-certificate-logo name="logo_margarita" :isPdf="$is_pdf ?? false" alt="2026" />
                 </td>
                 <td class="footer-address-cell">
                     Av. Tecnológico s/n, Fraccionamiento Industrial Julián de Obregón<br>
@@ -446,25 +375,7 @@
                 </td>
                 <td style="width:10px;">&nbsp;</td>
                 <td class="footer-logo-right">
-                    @if(file_exists(public_path('images/logo_seals.png')) ||
-                    file_exists(public_path('images/logo_seals.jpg')))
-                    @php
-                    if ($isPdf) {
-                    if (file_exists(public_path('images/logo_seals.png'))) {
-                    $logoSealsSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_seals.png'));
-                    } else {
-                    $logoSealsSrc = 'file:///' . str_replace('\\', '/', public_path('images/logo_seals.jpg'));
-                    }
-                    } else {
-                    if (file_exists(public_path('images/logo_seals.png'))) {
-                    $logoSealsSrc = asset('images/logo_seals.png');
-                    } else {
-                    $logoSealsSrc = asset('images/logo_seals.jpg');
-                    }
-                    }
-                    @endphp
-                    <img src="{{ $logoSealsSrc }}" alt="">
-                    @endif
+                    <x-certificate-logo name="logo_seals" :isPdf="$is_pdf ?? false" alt="" />
                 </td>
             </tr>
         </table>

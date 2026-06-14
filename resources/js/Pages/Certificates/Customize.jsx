@@ -5,11 +5,10 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
 export default function CustomizeCertificate({ certificate, student }) {
     const [formData, setFormData] = useState({
-        student_name:
-            certificate.student_name_edited || certificate.student_name,
-        carrera: certificate.carrera_edited || certificate.carrera,
-        promedio: certificate.promedio_edited || certificate.promedio,
-        nivel: certificate.nivel_edited || certificate.nivel,
+        student_name: certificate.student_name,
+        carrera: certificate.carrera,
+        promedio: certificate.promedio,
+        nivel: certificate.nivel,
         pronombre: certificate.pronombre || "el",
         student_type: certificate.student_type || "egresado",
         signer_one_name:

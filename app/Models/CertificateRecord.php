@@ -25,10 +25,6 @@ class CertificateRecord extends Model
         'nivel',
         'no_oficio',
         'issued_at',
-        'student_name_edited',
-        'carrera_edited',
-        'promedio_edited',
-        'nivel_edited',
         'signer_one_name',
         'signer_one_title',
         'signer_two_name',
@@ -41,6 +37,15 @@ class CertificateRecord extends Model
         'issued_at' => 'datetime',
         'promedio'  => 'float',
     ];
+
+    /**
+     * Scope para obtener el borrador o registro emitido más reciente.
+     */
+    public function scopeLatestActive($query)
+    {
+        return $query->whereIn('status', ['draft', 'issued'])
+            ->orderBy('created_at', 'desc');
+    }
 
     public function student(): BelongsTo
     {
