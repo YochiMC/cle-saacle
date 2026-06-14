@@ -35,6 +35,12 @@ class AutoQueueAccreditationCandidates
                 continue;
             }
 
+            \Illuminate\Support\Facades\Log::info('Evaluando alumno en Railway', [
+    'student_id' => $student->id,
+    'final_average' => $qualification->final_average,
+    'is_numeric' => is_numeric($qualification->final_average)
+]);
+
             if (is_numeric($qualification->final_average) && $qualification->final_average >= 70) {
                 $this->queueStudent($student, $source, $date);
             }
