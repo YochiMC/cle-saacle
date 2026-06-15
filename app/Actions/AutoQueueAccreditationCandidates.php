@@ -40,7 +40,7 @@ class AutoQueueAccreditationCandidates
             } else {
                 if ($student->status === StudentStatus::IN_REVIEW) {
                     $student->update([
-                        'status' => StudentStatus::ACTIVE, 
+                        'status' => StudentStatus::CURRENT, 
                         'accreditation_source' => null,
                         'accreditation_date' => null,
                     ]);
