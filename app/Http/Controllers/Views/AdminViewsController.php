@@ -43,23 +43,56 @@ class AdminViewsController extends Controller
     public function dashboardView(Request $request)
     {
         $data = [
-            'students' => [],
-            'teachers' => [],
-            'degrees' => [],
-            'levels' => [],
-            'groups' => [],
+            'students'     => [],
+            'teachers'     => [],
+            'degrees'      => [],
+            'levels'       => [],
+            'groups'       => [],
             'typeStudents' => [],
-            'exams' => [],
+            'exams'        => [],
+            'periods'      => [],
+            'certificates' => [],
         ];
 
         if ($request->user()->hasRole(['admin', 'coordinator'])) {
-            $data['students'] = StudentResource::collection(Student::with(['degree', 'level'])->get())->resolve();
-            $data['teachers'] = TeacherResource::collection(Teacher::all())->resolve();
-            $data['degrees'] = Degree::all();
-            $data['levels'] = Level::all();
-            $data['groups'] = Group::with('students')->get();
+            $data['students']     = StudentResource::collection(Student::with(['degree', 'level'])->get())->resolve();
+            $data['teachers']     = TeacherResource::collection(Teacher::all())->resolve();
+            $data['degrees']      = Degree::all();
+            $data['levels']       = Level::all();
             $data['typeStudents'] = TypeStudent::getOptions();
-            $data['exams'] = Exam::with('students')->get();
+            $data['periods']      = Period::orderBy('id', 'desc')->get(['id', 'name']);
+            $data['certificates'] = \App\Models\CertificateRecord::select(['id', 'certificate_type', 'nivel', 'student_type', 'created_at'])->get();
+
+            // Grupos con alumnos inscritos, calificaciones y periodo para las gráficas
+            $data['groups'] = Group::with(['students', 'qualifications', 'period'])
+                ->get()
+                ->map(function ($g) {
+                    return [
+                        'id'             => $g->id,
+                        'type'           => $g->getRawOriginal('type'),
+                        'period_id'      => $g->period_id,
+                        'period_name'    => $g->period?->name,
+                        'students'       => $g->students->map(fn($s) => ['id' => $s->id])->values()->all(),
+                        'qualifications' => $g->qualifications->map(fn($q) => [
+                            'final_average' => $q->final_average,
+                            'is_left'       => (bool) $q->is_left,
+                            'student_id'    => $q->student_id,
+                        ])->values()->all(),
+                    ];
+                })->values()->all();
+
+            // Exámenes con alumnos inscritos y periodo
+            $data['exams'] = Exam::with(['students', 'period'])
+                ->get()
+                ->map(function ($e) {
+                    return [
+                        'id'          => $e->id,
+                        'exam_type'   => $e->getRawOriginal('exam_type'),
+                        'period_id'   => $e->period_id,
+                        'period_name' => $e->period?->name,
+                        'students'    => $e->students->map(fn($s) => ['id' => $s->id])->values()->all(),
+                    ];
+                })->values()->all();
         }
 
         return Inertia::render('Dashboard', $data);
@@ -192,7 +225,36 @@ class AdminViewsController extends Controller
         $type_students = TypeStudent::getOptions();
         $groups = Group::all();
         $periods = Period::orderBy('id', 'desc')->get();
-        $certificates = \App\Models\CertificateRecord::all();
+        $certificates = \App\Models\CertificateRecord::select([
+                'id', 'student_id', 'certificate_type', 'nivel',
+                'student_type', 'periodo', 'created_at',
+            ])
+            ->orderBy('student_id')
+            ->orderBy('created_at')
+            ->get();
+
+        // Pass Base64 Logos for formal report
+        $logos = [];
+        $logoNames = ['logo_sep', 'logo_tecnm', 'logo_itl'];
+        foreach ($logoNames as $name) {
+            $path = null;
+            $ext = null;
+            if (file_exists(resource_path("images/{$name}.png"))) {
+                $path = resource_path("images/{$name}.png");
+                $ext = 'png';
+            } elseif (file_exists(resource_path("images/{$name}.jpg"))) {
+                $path = resource_path("images/{$name}.jpg");
+                $ext = 'jpg';
+            } elseif (file_exists(resource_path("images/{$name}.jpeg"))) {
+                $path = resource_path("images/{$name}.jpeg");
+                $ext = 'jpeg';
+            }
+            if ($path) {
+                $logos[$name] = 'data:image/' . $ext . ';base64,' . base64_encode(file_get_contents($path));
+            } else {
+                $logos[$name] = null;
+            }
+        }
 
         return Inertia::render('Academic/Reports', [
             'students' => $students,
@@ -203,6 +265,7 @@ class AdminViewsController extends Controller
             'typeStudents' => $type_students,
             'periods' => $periods,
             'certificates' => $certificates,
+            'logos' => $logos,
         ]);
     }
 

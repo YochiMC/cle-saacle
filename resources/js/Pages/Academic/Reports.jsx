@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import ModalAlert from "@/Components/ui/ModalAlert";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
-export default function Reports({ degrees = [], students = [], levels = [], periods = [], certificates = [], groups = [] }) {
+export default function Reports({ degrees = [], students = [], levels = [], periods = [], certificates = [], groups = [], logos = {} }) {
     const [openModal, setOpenModal] = useState(false);
     const [pageTitle, setPageTitle] = useState("Reporte de Estadísticas");
     
@@ -38,11 +38,11 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
         if (chartConfig.filterType === "egresados") {
             filtered = filtered.filter(s => s.type_student === "egresado" || s.type_student?.value === "egresado");
         } else if (chartConfig.filterType === "estudiantes") {
-            filtered = filtered.filter(s => s.type_student === "actual" || s.type_student?.value === "actual");
+            filtered = filtered.filter(s => s.type_student === "vigente" || s.type_student?.value === "vigente");
         }
 
         if (chartConfig.filterPeriod !== "") {
-            filtered = filtered.filter(s => s.period_ids && s.period_ids.includes(parseInt(chartConfig.filterPeriod)));
+            filtered = filtered.filter(s => s.period_ids && s.period_ids.some(id => String(id) === String(chartConfig.filterPeriod)));
         }
 
         // 2. Agrupar según el tipo de métrica
@@ -67,20 +67,10 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
                     name: `Semestre ${sem}`,
                     total: filtered.filter(s => s.semester === sem).length
                 }));
-            case "estatus":
-                // Contar por estatus
-                const statusCounts = {};
-                filtered.forEach(s => {
-                    const status = typeof s.status === 'object' ? s.status.value : (s.status || 'Desconocido');
-                    statusCounts[status] = (statusCounts[status] || 0) + 1;
-                });
-                return Object.entries(statusCounts).map(([status, total]) => ({
-                    name: status,
-                    total
-                }));
+
             case "tipo":
                 return [
-                    { name: "Actuales", total: filtered.filter(s => s.type_student === "actual" || s.type_student?.value === "actual").length },
+                    { name: "Vigentes", total: filtered.filter(s => s.type_student === "vigente" || s.type_student?.value === "vigente").length },
                     { name: "Egresados", total: filtered.filter(s => s.type_student === "egresado" || s.type_student?.value === "egresado").length },
                 ];
             case "aprobacion":
@@ -93,18 +83,56 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
             case "periodo":
                 return periods.map(p => ({
                     name: p.name,
-                    total: filtered.filter(s => s.period_ids && s.period_ids.includes(p.id)).length
+                    total: filtered.filter(s => s.period_ids && s.period_ids.some(id => String(id) === String(p.id))).length
                 }));
-            case "constancias":
-                return periods.map(p => ({
-                    name: p.name,
-                    total: certificates.filter(c => c.periodo === p.name && c.certificate_type !== 'reposicion').length
-                }));
-            case "reposiciones":
-                return periods.map(p => ({
-                    name: p.name,
-                    total: certificates.filter(c => c.periodo === p.name && c.certificate_type === 'reposicion').length
-                }));
+            case "constancias": {
+                // Pre-procesar: marcar cuál es la primera constancia por alumno
+                // (ordenadas por created_at desde el backend)
+                const seenStudents = new Set();
+                const tagged = certificates.map((c) => {
+                    const isFirst = !seenStudents.has(c.student_id);
+                    if (c.student_id) seenStudents.add(c.student_id);
+                    return { ...c, isReposicion: !isFirst };
+                });
+                const allPeriodNames = Array.from(new Set([
+                    ...periods.map(p => p.name),
+                    ...certificates.map(c => c.periodo).filter(Boolean)
+                ]));
+                return allPeriodNames.map(pName => {
+                    const matchedPeriod = periods.find(p => p.name === pName);
+                    const pIdStr = matchedPeriod ? String(matchedPeriod.id) : null;
+                    return {
+                        name: pName,
+                        total: tagged.filter(c =>
+                            !c.isReposicion &&
+                            (c.periodo === pName || (pIdStr && String(c.periodo) === pIdStr))
+                        ).length
+                    };
+                });
+            }
+            case "reposiciones": {
+                const seenStudentsR = new Set();
+                const taggedR = certificates.map((c) => {
+                    const isFirst = !seenStudentsR.has(c.student_id);
+                    if (c.student_id) seenStudentsR.add(c.student_id);
+                    return { ...c, isReposicion: !isFirst };
+                });
+                const allPeriodNamesR = Array.from(new Set([
+                    ...periods.map(p => p.name),
+                    ...certificates.map(c => c.periodo).filter(Boolean)
+                ]));
+                return allPeriodNamesR.map(pName => {
+                    const matchedPeriod = periods.find(p => p.name === pName);
+                    const pIdStr = matchedPeriod ? String(matchedPeriod.id) : null;
+                    return {
+                        name: pName,
+                        total: taggedR.filter(c =>
+                            c.isReposicion &&
+                            (c.periodo === pName || (pIdStr && String(c.periodo) === pIdStr))
+                        ).length
+                    };
+                });
+            }
             case "modalidad":
                 // Contar estudiantes basándose en si están activos. Si no hay data directa en student, mock o conteo simple de grupos:
                 const modalCounts = {};
@@ -127,7 +155,6 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
             "carrera": "Por Carrera",
             "nivel": "Por Nivel",
             "semestre": "Por Semestre",
-            "estatus": "Por Estatus",
             "tipo": "Por Tipo de Estudiante",
             "aprobacion": "Índice de Aprobación",
             "periodo": "Por Periodo",
@@ -156,10 +183,59 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
                         message="Ocurrió un problema."
                     />
 
-                    {/* BARRA DE HERRAMIENTAS (No visible al imprimir) */}
+                    {/* ── HEADER CON LOGOS ── Visible en pantalla y al imprimir */}
+                    {(logos?.logo_sep || logos?.logo_tecnm || logos?.logo_itl) && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 px-8 py-5 print:shadow-none print:border-0 print:mb-4 print:px-0">
+                            <div className="flex items-center justify-between gap-6">
+                                {/* Logo izquierda: SEP */}
+                                <div className="flex items-center justify-start flex-1">
+                                    {logos.logo_sep ? (
+                                        <img
+                                            src={logos.logo_sep}
+                                            alt="Secretaría de Educación Pública"
+                                            className="h-14 object-contain"
+                                        />
+                                    ) : (
+                                        <div className="h-14 w-24 bg-gray-100 rounded animate-pulse" />
+                                    )}
+                                </div>
+
+                                {/* Logo centro: TecNM */}
+                                <div className="flex flex-col items-center text-center">
+                                    {logos.logo_tecnm ? (
+                                        <img
+                                            src={logos.logo_tecnm}
+                                            alt="Tecnológico Nacional de México"
+                                            className="h-16 object-contain mb-1"
+                                        />
+                                    ) : (
+                                        <div className="h-16 w-28 bg-gray-100 rounded animate-pulse" />
+                                    )}
+                                    <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide hidden print:block">
+                                        Tecnológico Nacional de México
+                                    </p>
+                                </div>
+
+                                {/* Logo derecha: ITL */}
+                                <div className="flex items-center justify-end flex-1">
+                                    {logos.logo_itl ? (
+                                        <img
+                                            src={logos.logo_itl}
+                                            alt="Instituto Tecnológico de Lázaro Cárdenas"
+                                            className="h-14 object-contain"
+                                        />
+                                    ) : (
+                                        <div className="h-14 w-24 bg-gray-100 rounded animate-pulse" />
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── BARRA DE HERRAMIENTAS (No visible al imprimir) ── */}
                     <div className="flex flex-col sm:flex-row justify-between items-center mb-6 bg-white p-4 rounded-lg shadow space-y-4 sm:space-y-0 print:hidden">
                         <div className="flex items-center space-x-4 flex-1 mr-4">
-                            <input 
+                            <input
                                 type="text"
                                 value={pageTitle}
                                 onChange={(e) => setPageTitle(e.target.value)}
@@ -185,8 +261,8 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
                     </div>
 
                     {/* TÍTULO VISIBLE SOLO AL IMPRIMIR */}
-                    <div className="hidden print:block mb-8 text-center">
-                        <h1 className="text-3xl font-bold text-gray-900">{pageTitle}</h1>
+                    <div className="hidden print:block mb-6 text-center border-b border-gray-300 pb-4">
+                        <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
                     </div>
 
                     {/* CONTENEDOR DE GRÁFICAS */}
@@ -210,7 +286,6 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
                                                 <option value="semestre">Semestre</option>
                                             </optgroup>
                                             <optgroup label="Demografía y Campañas">
-                                                <option value="estatus">Estatus General</option>
                                                 <option value="tipo">Tipo (Actual vs Egresado)</option>
                                             </optgroup>
                                             <optgroup label="Rendimiento Académico">

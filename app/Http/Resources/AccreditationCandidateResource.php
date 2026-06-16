@@ -56,7 +56,7 @@ class AccreditationCandidateResource extends JsonResource
         ];
     }
 
-    private function latestEligibleExam(): mixed
+    public function latestEligibleExam(): mixed
     {
         return $this->exams
             ->filter(function ($exam) {
@@ -78,7 +78,7 @@ class AccreditationCandidateResource extends JsonResource
             ->first();
     }
 
-    private function latestEligibleGroupQualification(): mixed
+    public function latestEligibleGroupQualification(): mixed
     {
         return $this->qualifications
             ->filter(function ($qualification) {

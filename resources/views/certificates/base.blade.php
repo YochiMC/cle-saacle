@@ -20,7 +20,7 @@
             font-family: Arial, Helvetica, sans-serif;
             font-size: 12.5px;
             color: #000;
-            padding: 28px 48px 160px 48px;
+            padding: 0.42cm 1.5cm 6.2cm 2.5cm;
             line-height: 1.4;
         }
 
@@ -38,26 +38,32 @@
             padding: 0;
         }
 
-        .logo-sep {
+        .logo-sep-tecnm {
             text-align: left;
-            width: 35%;
+            width: 60%;
+            white-space: nowrap;
+            padding-top: 10px;
         }
 
-        .logo-sep img {
-            height: 110px;
+        .img-sep {
+            height: 60px;
             width: auto;
+            vertical-align: middle;
         }
 
-        .logo-tecnm {
-            text-align: left;
-            width: 25%;
-            padding-left: 15px;
-            border-left: 1px solid #b79c8e;
-        }
-
-        .logo-tecnm img {
-            height: 110px;
+        .img-tecnm {
+            height: 70px;
+            /* Ligeramente más alto para compensar el margen interno de la imagen */
             width: auto;
+            vertical-align: middle;
+        }
+
+        .golden-separator {
+            display: inline-block;
+            vertical-align: middle;
+            border-left: 2px solid #cba25d;
+            height: 40px;
+            margin: 0 15px;
         }
 
         .logo-itl {
@@ -67,7 +73,8 @@
         }
 
         .logo-itl img {
-            height: 110px;
+            height: 70px;
+            /* Reducido para hacer juego con los de la izquierda */
             width: auto;
         }
 
@@ -177,11 +184,12 @@
         /* ── PIE DE PÁGINA ────────────────────────────────── */
         .footer {
             position: fixed;
-            bottom: 15px;
+            bottom: 2cm;
             left: 0;
             right: 0;
             height: 145px;
-            padding: 0 48px;
+            padding-left: 2.5cm;
+            padding-right: 1.5cm;
         }
 
         .ccp {
@@ -206,22 +214,29 @@
         }
 
         .footer-logo-left {
-            width: 140px;
+            width: 165px;
             vertical-align: bottom;
+            position: relative;
+            top: -12px;
         }
 
         .footer-logo-left img {
-            max-height: 70px;
+            max-height: 90px;
         }
 
         .footer-address-cell {
             vertical-align: bottom;
             font-size: 8.5px;
-            color: #999;
+            color: #8e2b3b;
             padding-left: 12px;
             padding-bottom: 5px;
-            border-top: 3px solid #8e2b3b; /* Color guinda del membrete */
             font-weight: bold;
+        }
+
+        .address-container {
+            border-top: 3px solid #8e2b3b;
+            /* Color guinda del membrete */
+            padding-top: 4px;
         }
 
         .footer-logo-right {
@@ -249,7 +264,6 @@
             width: 72px;
             margin-top: 2px;
         }
-
     </style>
 </head>
 
@@ -258,11 +272,14 @@
     {{-- ── CABECERA CON LOGOS ──────────────────────────────── --}}
     <table class="header-table">
         <tr>
-            <td class="logo-sep">
-                <x-certificate-logo name="logo_sep" :is-pdf="$is_pdf ?? false" alt="SEP" />
-            </td>
-            <td class="logo-tecnm">
-                <x-certificate-logo name="logo_tecnm" :is-pdf="$is_pdf ?? false" alt="TecNM" />
+            <td class="logo-sep-tecnm">
+                <span style="display: inline-block; vertical-align: middle;">
+                    <x-certificate-logo name="logo_sep" class="img-sep" :is-pdf="$is_pdf ?? false" alt="SEP" />
+                </span>
+                <span class="golden-separator"></span>
+                <span style="display: inline-block; vertical-align: middle;">
+                    <x-certificate-logo name="logo_tecnm" class="img-tecnm" :is-pdf="$is_pdf ?? false" alt="TecNM" />
+                </span>
             </td>
             <td class="logo-itl">
                 <x-certificate-logo name="logo_itl" :is-pdf="$is_pdf ?? false" alt="ITL / Membrete" />
@@ -277,7 +294,8 @@
 
     {{-- ── META OFICIO ─────────────────────────────────────── --}}
     <div class="meta-info">
-        León, Guanajuato, <span class="highlight">{{ \Carbon\Carbon::now()->format('d') . '/' . strtoupper(\Carbon\Carbon::now()->isoFormat('MMMM')) . '/' . date('Y') }}</span><br>
+        León, Guanajuato, <span
+            class="highlight">{{ \Carbon\Carbon::now()->format('d') . '/' . strtoupper(\Carbon\Carbon::now()->isoFormat('MMMM')) . '/' . date('Y') }}</span><br>
         @yield('oficio_line')<br>
         Asunto: Constancia de Inglés
     </div>
@@ -337,8 +355,10 @@
                         </td>
                         <td style="vertical-align: bottom;">
                             @if(!empty($qr_image))
-                            <img src="{{ $qr_image }}" style="width:82px; height:82px; display:block; margin-left:auto;" alt="QR Verificación">
-                            <div style="font-size:7px; color:#555; text-align:center; margin-top:2px; width:82px;"></div>
+                            <img src="{{ $qr_image }}" style="width:82px; height:82px; display:block; margin-left:auto;"
+                                alt="QR Verificación">
+                            <div style="font-size:7px; color:#555; text-align:center; margin-top:2px; width:82px;">
+                            </div>
                             @endif
                         </td>
                     </tr>
@@ -375,7 +395,8 @@
         <div style="clear:both; margin-top: 6px;"></div>
 
         <div style="text-align: right; padding-right: 0px; margin-bottom: 4px;">
-            <x-certificate-logo name="logo_seals" :is-pdf="$is_pdf ?? false" alt="" style="max-height: 45px; display: inline-block;" />
+            <x-certificate-logo name="logo_seals" :is-pdf="$is_pdf ?? false" alt=""
+                style="max-height: 45px; display: inline-block;" />
         </div>
 
         <table class="footer-bottom-table">
@@ -384,9 +405,11 @@
                     <x-certificate-logo name="logo_margarita" :is-pdf="$is_pdf ?? false" alt="2026" />
                 </td>
                 <td class="footer-address-cell">
-                    Av. Tecnológico s/n, Fraccionamiento Industrial Julián de Obregón<br>
-                    C.P. 37290 León, Gto. Tel. 477 7105200<br>
-                    e-mail: tecleon@leon.tecnm.mx &nbsp;|&nbsp; www.leon.tecnm.mx
+                    <div class="address-container">
+                        Av. Tecnológico s/n, Fraccionamiento Industrial Julián de Obregón<br>
+                        C.P. 37290 León, Gto. Tel. 477 7105200<br>
+                        e-mail: tecleon@leon.tecnm.mx &nbsp;|&nbsp; www.leon.tecnm.mx
+                    </div>
                 </td>
             </tr>
         </table>

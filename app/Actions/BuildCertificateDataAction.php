@@ -37,10 +37,12 @@ class BuildCertificateDataAction
         $obtainedAt = $resourceData['obtained_at'] ?? '';
         $achievedByLower = Str::lower(Str::ascii($achievedBy));
 
-        if (Str::contains($achievedByLower, ['cursos regulares', 'programa de egresados'])) {
+        if (Str::contains($achievedByLower, ['cursos regulares', 'programa de egresados', 'programa especial'])) {
             $certType = 'cursos';
         } elseif (Str::contains($achievedByLower, ['4 habilidades', 'cuatro habilidades'])) {
             $certType = 'cuatro-habilidades';
+        } elseif (Str::contains($achievedByLower, ['convalidacion', 'otra institucion'])) {
+            $certType = 'otra-institucion';
         } else {
             $certType = 'examen-acreditacion';
         }
@@ -49,36 +51,55 @@ class BuildCertificateDataAction
         $promedio = 0;
         $nivel = '';
 
-        $latestExam = $student->exams->filter(function ($e) {
-            $avg = $e->pivot->final_average;
-            $breakdown = $e->pivot->units_breakdown;
-            if (is_string($breakdown)) {
-                $breakdown = json_decode($breakdown, true) ?? [];
+        $latestExam = $resource->latestEligibleExam();
+        $latestGroupQualification = $resource->latestEligibleGroupQualification();
+
+        $examPeriodEnd = null;
+        if ($latestExam && $latestExam->period && $latestExam->period->end) {
+            $examPeriodEnd = \Illuminate\Support\Carbon::parse($latestExam->period->end);
+        }
+
+        $groupPeriodEnd = null;
+        if ($latestGroupQualification && $latestGroupQualification->group && $latestGroupQualification->group->period && $latestGroupQualification->group->period->end) {
+            $groupPeriodEnd = \Illuminate\Support\Carbon::parse($latestGroupQualification->group->period->end);
+        }
+
+        $winningRecord = null;
+        $winningType = null;
+
+        if ($examPeriodEnd && $groupPeriodEnd) {
+            if ($examPeriodEnd->greaterThanOrEqualTo($groupPeriodEnd)) {
+                $winningRecord = $latestExam;
+                $winningType = 'exam';
+            } else {
+                $winningRecord = $latestGroupQualification;
+                $winningType = 'group';
             }
-            return ($avg >= 70) ||
-                in_array(Str::upper(trim((string) ($breakdown['nivel_certificado'] ?? ''))), ['B1', 'B2', 'C1', 'C2'], true) ||
-                in_array(Str::upper(trim((string) ($breakdown['promedio_habilidades'] ?? ''))), ['B1', 'B2', 'C1', 'C2'], true);
-        })->sortByDesc(fn($e) => $e->pivot->created_at)->first();
+        } elseif ($examPeriodEnd) {
+            $winningRecord = $latestExam;
+            $winningType = 'exam';
+        } elseif ($groupPeriodEnd) {
+            $winningRecord = $latestGroupQualification;
+            $winningType = 'group';
+        }
 
-        $latestGroup = $student->qualifications->filter(fn($q) => $q->final_average >= 70 && !$q->is_left)
-            ->sortByDesc('created_at')
-            ->first();
-
-        if ($latestExam) {
-            $promedio = $latestExam->pivot->final_average ?? 0;
-            if (!$promedio) {
-                $units = $latestExam->pivot->units_breakdown;
-                if (is_string($units)) {
-                    $units = json_decode($units, true) ?? [];
+        if ($winningType === 'exam' && $winningRecord) {
+            $promedio = $winningRecord->pivot->final_average ?? $winningRecord->pivot->calificacion ?? 0;
+            $units = $winningRecord->pivot->units_breakdown;
+            if (is_string($units)) {
+                $units = json_decode($units, true) ?? [];
+            }
+            if (is_array($units)) {
+                if (!$promedio) {
+                    $promedio = $units['promedio'] ?? $units['calificacion_final'] ?? 0;
                 }
-                $nivel = $units['nivel_certificado'] ?? ($units['promedio_habilidades'] ?? 'B1');
+                $nivel = $units['speaking'] ?? $units['certified_level'] ?? $units['nivel_certificado'] ?? $units['promedio_habilidades'] ?? '';
             }
+        } elseif ($winningType === 'group' && $winningRecord) {
+            $promedio = $winningRecord->final_average ?? 0;
         }
 
-        if (!$promedio && $latestGroup) {
-            $promedio = $latestGroup->final_average;
-        }
-
+        // Fallback si no hay promedio numérico
         if (!$promedio) {
             $promedio = 100;
         }

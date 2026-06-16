@@ -57,6 +57,7 @@ export const LABEL_MAP = {
     description: "Description",
     select: "Select",
     actions: "Actions",
+    achieved_by: "Tipo de Acreditación",
 };
 
 /**
