@@ -6,11 +6,12 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
 export default function Reports({ degrees = [], students = [], levels = [], periods = [], certificates = [], groups = [] }) {
     const [openModal, setOpenModal] = useState(false);
+    const [pageTitle, setPageTitle] = useState("Reporte de Estadísticas");
     
     // Lista dinámica de gráficas
     const [charts, setCharts] = useState([
-        { id: 1, type: "genero", filterType: "todos", filterPeriod: "" },
-        { id: 2, type: "carrera", filterType: "todos", filterPeriod: "" },
+        { id: 1, type: "genero", filterType: "todos", filterPeriod: "", customTitle: "" },
+        { id: 2, type: "carrera", filterType: "todos", filterPeriod: "", customTitle: "" },
     ]);
 
     const handlePrint = () => {
@@ -18,7 +19,7 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
     };
 
     const addChart = () => {
-        setCharts([...charts, { id: Date.now(), type: "genero", filterType: "todos", filterPeriod: "" }]);
+        setCharts([...charts, { id: Date.now(), type: "genero", filterType: "todos", filterPeriod: "", customTitle: "" }]);
     };
 
     const removeChart = (id) => {
@@ -157,8 +158,15 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
 
                     {/* BARRA DE HERRAMIENTAS (No visible al imprimir) */}
                     <div className="flex flex-col sm:flex-row justify-between items-center mb-6 bg-white p-4 rounded-lg shadow space-y-4 sm:space-y-0 print:hidden">
-                        <div className="flex items-center space-x-4">
-                            <h2 className="text-xl font-bold text-gray-800">Generador de Reportes</h2>
+                        <div className="flex items-center space-x-4 flex-1 mr-4">
+                            <input 
+                                type="text"
+                                value={pageTitle}
+                                onChange={(e) => setPageTitle(e.target.value)}
+                                className="text-xl font-bold text-gray-800 border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:ring-0 bg-transparent w-full p-1 transition-colors"
+                                placeholder="Título del Reporte"
+                                title="Haz clic para editar el título del reporte"
+                            />
                         </div>
                         <div className="flex space-x-2">
                             <button
@@ -176,8 +184,13 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
                         </div>
                     </div>
 
+                    {/* TÍTULO VISIBLE SOLO AL IMPRIMIR */}
+                    <div className="hidden print:block mb-8 text-center">
+                        <h1 className="text-3xl font-bold text-gray-900">{pageTitle}</h1>
+                    </div>
+
                     {/* CONTENEDOR DE GRÁFICAS */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 print:grid-cols-1 gap-6">
                         {charts.map((chartConfig) => (
                             <div key={chartConfig.id} className="bg-white rounded-lg shadow flex flex-col print:shadow-none print:break-inside-avoid">
                                 
@@ -236,6 +249,16 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
                                             ))}
                                         </select>
                                     </div>
+                                    <div className="flex-1 min-w-[200px]">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Título Personalizado</label>
+                                        <input
+                                            type="text"
+                                            value={chartConfig.customTitle}
+                                            onChange={(e) => updateChart(chartConfig.id, 'customTitle', e.target.value)}
+                                            placeholder={getChartTitle(chartConfig)}
+                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        />
+                                    </div>
                                     <div>
                                         <button 
                                             onClick={() => removeChart(chartConfig.id)}
@@ -249,7 +272,7 @@ export default function Reports({ degrees = [], students = [], levels = [], peri
                                 {/* ÁREA DE LA GRÁFICA */}
                                 <div className="p-6 flex-1 flex flex-col justify-center">
                                     <Graficas
-                                        title={getChartTitle(chartConfig)}
+                                        title={chartConfig.customTitle || getChartTitle(chartConfig)}
                                         chartData={getChartData(chartConfig)}
                                         showSelector={false} // Desactivamos el selector interno
                                     />

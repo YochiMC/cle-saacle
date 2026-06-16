@@ -20,7 +20,7 @@
             font-family: Arial, Helvetica, sans-serif;
             font-size: 12.5px;
             color: #000;
-            padding: 28px 48px 100px 48px;
+            padding: 28px 48px 160px 48px;
             line-height: 1.4;
         }
 
@@ -40,41 +40,34 @@
 
         .logo-sep {
             text-align: left;
-            width: 50%;
-            /* Le damos la mitad de la tabla al logo de la SEP */
+            width: 35%;
         }
 
         .logo-sep img {
-            height: 150px;
-            /* Altura uniforme */
+            height: 110px;
             width: auto;
-            /* Mantiene la proporción original del logo */
         }
 
         .logo-tecnm {
-            text-align: right;
+            text-align: left;
             width: 25%;
-            /* Un cuarto de la tabla */
-            padding-right: 15px;
-            /* Pequeño margen para separarlo del logo del ITL */
+            padding-left: 15px;
+            border-left: 1px solid #b79c8e;
         }
 
         .logo-tecnm img {
-            height: 150px;
-            /* Misma altura para mantener el balance visual */
+            height: 110px;
             width: auto;
         }
 
         .logo-itl {
             text-align: right;
-            width: 25%;
-            /* El último cuarto de la tabla */
+            width: 40%;
             padding-right: 0;
         }
 
         .logo-itl img {
-            height: 60px;
-            /* Misma altura */
+            height: 110px;
             width: auto;
         }
 
@@ -115,7 +108,7 @@
 
         .body-text {
             text-align: justify;
-            margin-bottom: 18px;
+            margin-bottom: 12px;
             font-size: 12.5px;
         }
 
@@ -156,7 +149,7 @@
         .signatures-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 44px;
+            margin-top: 15px;
         }
 
         .sig-left {
@@ -184,10 +177,10 @@
         /* ── PIE DE PÁGINA ────────────────────────────────── */
         .footer {
             position: fixed;
-            bottom: 0;
+            bottom: 15px;
             left: 0;
             right: 0;
-            height: 130px;
+            height: 145px;
             padding: 0 48px;
         }
 
@@ -224,18 +217,15 @@
         .footer-address-cell {
             vertical-align: bottom;
             font-size: 8.5px;
-            color: #666;
-            padding-left: 8px;
+            color: #999;
+            padding-left: 12px;
+            padding-bottom: 5px;
+            border-top: 3px solid #8e2b3b; /* Color guinda del membrete */
+            font-weight: bold;
         }
 
         .footer-logo-right {
-            width: 130px;
-            vertical-align: bottom;
-            text-align: right;
-        }
-
-        .footer-logo-right img {
-            max-height: 50px;
+            display: none;
         }
 
         /* ── QR ───────────────────────────────────────────── */
@@ -275,7 +265,7 @@
                 <x-certificate-logo name="logo_tecnm" :is-pdf="$is_pdf ?? false" alt="TecNM" />
             </td>
             <td class="logo-itl">
-                <x-certificate-logo name="logo_itl" :is-pdf="$is_pdf ?? false" alt="ITL" />
+                <x-certificate-logo name="logo_itl" :is-pdf="$is_pdf ?? false" alt="ITL / Membrete" />
             </td>
         </tr>
     </table>
@@ -335,15 +325,25 @@
         <div class="lema">Excelencia en Educación Tecnológica®<br>Ciencia, Tecnología y Libertad.</div>
     </div>
 
-    {{-- ── QR EN LUGAR DE VOBO ─────────────────────────────────── --}}
+    {{-- ── VOBO Y QR ─────────────────────────────────── --}}
     <table style="width:100%; margin-top:18px; margin-bottom:14px;">
         <tr>
             <td>&nbsp;</td>
-            <td style="text-align:right; padding-right:44px;">
-                @if(!empty($qr_image))
-                <img src="{{ $qr_image }}" style="width:82px; height:82px; display:block; margin-left:auto;" alt="QR Verificación">
-                <div style="font-size:7px; color:#555; text-align:center; margin-top:2px; width:82px;"></div>
-                @endif
+            <td style="text-align:right; padding-right:44px; vertical-align: bottom;">
+                <table style="float: right; text-align: center;">
+                    <tr>
+                        <td style="padding-right: 15px; vertical-align: bottom; padding-bottom: 5px;">
+                            <div style="font-weight:bold; font-size:14px;">Vo.Bo.</div>
+                        </td>
+                        <td style="vertical-align: bottom;">
+                            @if(!empty($qr_image))
+                            <img src="{{ $qr_image }}" style="width:82px; height:82px; display:block; margin-left:auto;" alt="QR Verificación">
+                            <div style="font-size:7px; color:#555; text-align:center; margin-top:2px; width:82px;"></div>
+                            @endif
+                        </td>
+                    </tr>
+                </table>
+                <div style="clear: both;"></div>
             </td>
         </tr>
     </table>
@@ -374,6 +374,10 @@
 
         <div style="clear:both; margin-top: 6px;"></div>
 
+        <div style="text-align: right; padding-right: 0px; margin-bottom: 4px;">
+            <x-certificate-logo name="logo_seals" :is-pdf="$is_pdf ?? false" alt="" style="max-height: 45px; display: inline-block;" />
+        </div>
+
         <table class="footer-bottom-table">
             <tr>
                 <td class="footer-logo-left">
@@ -381,12 +385,8 @@
                 </td>
                 <td class="footer-address-cell">
                     Av. Tecnológico s/n, Fraccionamiento Industrial Julián de Obregón<br>
-                    C.P. 37290 León, Gto. Tel. 477 7105200 Ext.1503<br>
+                    C.P. 37290 León, Gto. Tel. 477 7105200<br>
                     e-mail: tecleon@leon.tecnm.mx &nbsp;|&nbsp; www.leon.tecnm.mx
-                </td>
-                <td style="width:10px;">&nbsp;</td>
-                <td class="footer-logo-right">
-                    <x-certificate-logo name="logo_seals" :is-pdf="$is_pdf ?? false" alt="" />
                 </td>
             </tr>
         </table>
