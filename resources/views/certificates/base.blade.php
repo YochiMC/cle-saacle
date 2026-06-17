@@ -6,264 +6,264 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Constancia de Inglés</title>
     <style>
-        @page {
-            margin: 0;
-        }
+    @page {
+        margin: 0;
+    }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
 
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 12.5px;
-            color: #000;
-            padding: 0.42cm 1.5cm 6.2cm 2.5cm;
-            line-height: 1.4;
-        }
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12.5px;
+        color: #000;
+        padding: 0.42cm 1.5cm 6.2cm 2.5cm;
+        line-height: 1.4;
+    }
 
-        /* ── CABECERA ─────────────────────────────────────── */
-        .header-table {
-            width: 100%;
-            border-collapse: collapse;
-            border: none;
-            /* ¡Aquí eliminamos el borde! */
-        }
+    /* ── CABECERA ─────────────────────────────────────── */
+    .header-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: none;
+        /* ¡Aquí eliminamos el borde! */
+    }
 
-        .header-table td {
-            vertical-align: middle;
-            /* Centra los logos verticalmente */
-            padding: 0;
-        }
+    .header-table td {
+        vertical-align: middle;
+        /* Centra los logos verticalmente */
+        padding: 0;
+    }
 
-        .logo-sep-tecnm {
-            text-align: left;
-            width: 60%;
-            white-space: nowrap;
-            padding-top: 10px;
-        }
+    .logo-sep-tecnm {
+        text-align: left;
+        width: 60%;
+        white-space: nowrap;
+        padding-top: 10px;
+    }
 
-        .img-sep {
-            height: 60px;
-            width: auto;
-            vertical-align: middle;
-        }
+    .img-sep {
+        height: 60px;
+        width: auto;
+        vertical-align: middle;
+    }
 
-        .img-tecnm {
-            height: 70px;
-            /* Ligeramente más alto para compensar el margen interno de la imagen */
-            width: auto;
-            vertical-align: middle;
-        }
+    .img-tecnm {
+        height: 70px;
+        /* Ligeramente más alto para compensar el margen interno de la imagen */
+        width: auto;
+        vertical-align: middle;
+    }
 
-        .golden-separator {
-            display: inline-block;
-            vertical-align: middle;
-            border-left: 2px solid #cba25d;
-            height: 40px;
-            margin: 0 15px;
-        }
+    .golden-separator {
+        display: inline-block;
+        vertical-align: middle;
+        border-left: 2px solid #cba25d;
+        height: 40px;
+        margin: 0 15px;
+    }
 
-        .logo-itl {
-            text-align: right;
-            width: 40%;
-            padding-right: 0;
-        }
+    .logo-itl {
+        text-align: right;
+        width: 40%;
+        padding-right: 0;
+    }
 
-        .logo-itl img {
-            height: 70px;
-            /* Reducido para hacer juego con los de la izquierda */
-            width: auto;
-        }
+    .logo-itl img {
+        height: 70px;
+        /* Reducido para hacer juego con los de la izquierda */
+        width: auto;
+    }
 
-        /* ── INFO INSTITUTO ───────────────────────────────── */
-        .institute-info {
-            text-align: right;
-            font-size: 11px;
-            font-weight: bold;
-            margin-top: 6px;
-            line-height: 1.5;
-        }
+    /* ── INFO INSTITUTO ───────────────────────────────── */
+    .institute-info {
+        text-align: right;
+        font-size: 11px;
+        font-weight: bold;
+        margin-top: 6px;
+        line-height: 1.5;
+    }
 
-        .institute-info span {
-            font-weight: normal;
-            font-size: 10px;
-        }
+    .institute-info span {
+        font-weight: normal;
+        font-size: 10px;
+    }
 
-        /* ── META OFICIO ──────────────────────────────────── */
-        .meta-info {
-            text-align: right;
-            margin-top: 22px;
-            margin-bottom: 28px;
-            line-height: 1.7;
-            font-size: 12.5px;
-        }
+    /* ── META OFICIO ──────────────────────────────────── */
+    .meta-info {
+        text-align: right;
+        margin-top: 22px;
+        margin-bottom: 28px;
+        line-height: 1.7;
+        font-size: 12.5px;
+    }
 
-        .highlight {
-            background-color: #FF9800;
-            padding: 0 2px;
-        }
+    .highlight {
+        background-color: #FF9800;
+        padding: 0 2px;
+    }
 
-        /* ── CUERPO ───────────────────────────────────────── */
-        .saludo {
-            font-weight: bold;
-            font-size: 13px;
-            margin-bottom: 18px;
-        }
+    /* ── CUERPO ───────────────────────────────────────── */
+    .saludo {
+        font-weight: bold;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
 
-        .body-text {
-            text-align: justify;
-            margin-bottom: 12px;
-            font-size: 12.5px;
-        }
+    .body-text {
+        text-align: justify;
+        margin-bottom: 12px;
+        font-size: 12.5px;
+    }
 
-        .body-text b {
-            font-weight: bold;
-        }
+    .body-text b {
+        font-weight: bold;
+    }
 
-        /* ── ATENTAMENTE ──────────────────────────────────── */
-        .atentamente {
-            font-weight: bold;
-            font-size: 12.5px;
-            letter-spacing: 2px;
-            margin-top: 28px;
-            margin-bottom: 2px;
-        }
+    /* ── ATENTAMENTE ──────────────────────────────────── */
+    .atentamente {
+        font-weight: bold;
+        font-size: 12.5px;
+        letter-spacing: 2px;
+        margin-top: 28px;
+        margin-bottom: 2px;
+    }
 
-        .lema {
-            font-style: italic;
-            font-size: 10px;
-            font-weight: normal;
-            letter-spacing: 0;
-        }
+    .lema {
+        font-style: italic;
+        font-size: 10px;
+        font-weight: normal;
+        letter-spacing: 0;
+    }
 
-        /* ── VOBO ─────────────────────────────────────────── */
-        .vobo-row {
-            width: 100%;
-            margin-top: 16px;
-            margin-bottom: 16px;
-        }
+    /* ── VOBO ─────────────────────────────────────────── */
+    .vobo-row {
+        width: 100%;
+        margin-top: 16px;
+        margin-bottom: 16px;
+    }
 
-        .vobo-cell {
-            text-align: right;
-            font-weight: bold;
-            padding-right: 60px;
-        }
+    .vobo-cell {
+        text-align: right;
+        font-weight: bold;
+        padding-right: 60px;
+    }
 
-        /* ── FIRMAS ───────────────────────────────────────── */
-        .signatures-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
+    /* ── FIRMAS ───────────────────────────────────────── */
+    .signatures-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
 
-        .sig-left {
-            width: 50%;
-            vertical-align: top;
-            text-align: left;
-            font-size: 12px;
-        }
+    .sig-left {
+        width: 50%;
+        vertical-align: top;
+        text-align: left;
+        font-size: 12px;
+    }
 
-        .sig-right {
-            width: 50%;
-            vertical-align: top;
-            text-align: right;
-            font-size: 12px;
-        }
+    .sig-right {
+        width: 50%;
+        vertical-align: top;
+        text-align: right;
+        font-size: 12px;
+    }
 
-        .sig-name {
-            font-weight: bold;
-        }
+    .sig-name {
+        font-weight: bold;
+    }
 
-        .sig-title {
-            font-weight: bold;
-        }
+    .sig-title {
+        font-weight: bold;
+    }
 
-        /* ── PIE DE PÁGINA ────────────────────────────────── */
-        .footer {
-            position: fixed;
-            bottom: 2cm;
-            left: 0;
-            right: 0;
-            height: 145px;
-            padding-left: 2.5cm;
-            padding-right: 1.5cm;
-        }
+    /* ── PIE DE PÁGINA ────────────────────────────────── */
+    .footer {
+        position: fixed;
+        bottom: 2cm;
+        left: 0;
+        right: 0;
+        height: 145px;
+        padding-left: 2.5cm;
+        padding-right: 1.5cm;
+    }
 
-        .ccp {
-            font-size: 9px;
-            color: #333;
-            margin-bottom: 4px;
-        }
+    .ccp {
+        font-size: 9px;
+        color: #333;
+        margin-bottom: 4px;
+    }
 
-        .cadena-box {
-            border: 1px dotted #555;
-            display: inline-block;
-            padding: 1px 8px;
-            font-size: 8.5px;
-            float: right;
-            margin-top: 4px;
-        }
+    .cadena-box {
+        border: 1px dotted #555;
+        display: inline-block;
+        padding: 1px 8px;
+        font-size: 8.5px;
+        float: right;
+        margin-top: 4px;
+    }
 
-        .footer-bottom-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 6px;
-        }
+    .footer-bottom-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 6px;
+    }
 
-        .footer-logo-left {
-            width: 165px;
-            vertical-align: bottom;
-            position: relative;
-            top: -12px;
-        }
+    .footer-logo-left {
+        width: 165px;
+        vertical-align: bottom;
+        position: relative;
+        top: -12px;
+    }
 
-        .footer-logo-left img {
-            max-height: 90px;
-        }
+    .footer-logo-left img {
+        max-height: 90px;
+    }
 
-        .footer-address-cell {
-            vertical-align: bottom;
-            font-size: 8.5px;
-            color: #8e2b3b;
-            padding-left: 12px;
-            padding-bottom: 5px;
-            font-weight: bold;
-        }
+    .footer-address-cell {
+        vertical-align: bottom;
+        font-size: 8.5px;
+        color: #8e2b3b;
+        padding-left: 12px;
+        padding-bottom: 5px;
+        font-weight: bold;
+    }
 
-        .address-container {
-            border-top: 3px solid #8e2b3b;
-            /* Color guinda del membrete */
-            padding-top: 4px;
-        }
+    .address-container {
+        border-top: 3px solid #8e2b3b;
+        /* Color guinda del membrete */
+        padding-top: 4px;
+    }
 
-        .footer-logo-right {
-            display: none;
-        }
+    .footer-logo-right {
+        display: none;
+    }
 
-        /* ── QR ───────────────────────────────────────────── */
-        .qr-area {
-            margin-top: 0;
-            position: relative;
-            top: -10px;
-        }
+    /* ── QR ───────────────────────────────────────────── */
+    .qr-area {
+        margin-top: 0;
+        position: relative;
+        top: -10px;
+    }
 
-        .qr-area img {
-            width: 72px;
-            height: 72px;
-            display: block;
-            margin: 0 auto;
-        }
+    .qr-area img {
+        width: 72px;
+        height: 72px;
+        display: block;
+        margin: 0 auto;
+    }
 
-        .qr-code-label {
-            font-size: 7px;
-            color: #666;
-            text-align: center;
-            width: 72px;
-            margin-top: 2px;
-        }
+    .qr-code-label {
+        font-size: 7px;
+        color: #666;
+        text-align: center;
+        width: 72px;
+        margin-top: 2px;
+    }
     </style>
 </head>
 

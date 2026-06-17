@@ -79,6 +79,7 @@ class GenerateCertificatePdfAction
             ),
             'is_pdf'           => true,
             'validation_code'  => $certificate->validation_code,
+            'constancy_number' => $certificate->constancy_number,
             'verify_url'       => $verifyUrl,
             'anio_letra'       => $this->anioALetras((int) date('Y')),
             'pronombre'        => $pronombre,

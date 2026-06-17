@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Head } from "@inertiajs/react";
-import { CheckCircle, Edit2, ArrowLeft, Save, GraduationCap, Clock } from "lucide-react";
+import {
+    CheckCircle,
+    Edit2,
+    ArrowLeft,
+    Save,
+    GraduationCap,
+    Clock,
+} from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
 export default function CustomizeCertificate({ certificate, student }) {
@@ -9,6 +16,9 @@ export default function CustomizeCertificate({ certificate, student }) {
         carrera: certificate.carrera,
         promedio: certificate.promedio,
         nivel: certificate.nivel,
+        constancy_number:
+            certificate.constancy_number ||
+            String(certificate.id).padStart(3, "0"),
         pronombre: certificate.pronombre || "el",
         student_type: certificate.student_type || "egresado",
         signer_one_name:
@@ -27,9 +37,21 @@ export default function CustomizeCertificate({ certificate, student }) {
     const [loading, setLoading] = useState(false);
 
     const pronounOptions = [
-        { value: "el", label: "El", example: "Aparecerá en la carta como: el C." },
-        { value: "la", label: "La", example: "Aparecerá en la carta como: la C." },
-        { value: "elle", label: "Elle", example: "Aparecerá en la carta como: al C." },
+        {
+            value: "el",
+            label: "El",
+            example: "Aparecerá en la carta como: el C.",
+        },
+        {
+            value: "la",
+            label: "La",
+            example: "Aparecerá en la carta como: la C.",
+        },
+        {
+            value: "elle",
+            label: "Elle",
+            example: "Aparecerá en la carta como: al C.",
+        },
     ];
 
     const studentTypeOptions = [
@@ -84,18 +106,28 @@ export default function CustomizeCertificate({ certificate, student }) {
             try {
                 data = await response.json();
             } catch {
-                setErrors({ general: `Error del servidor (${response.status}): ${response.statusText}` });
+                setErrors({
+                    general: `Error del servidor (${response.status}): ${response.statusText}`,
+                });
                 setLoading(false);
                 return;
             }
 
             if (!response.ok) {
                 // Si ya fue emitida, descargar directamente sin re-confirmar
-                if (response.status === 403 && data.error?.includes('ya emitida')) {
+                if (
+                    response.status === 403 &&
+                    data.error?.includes("ya emitida")
+                ) {
                     window.location.href = `/acreditaciones/customize/${certificate.id}/download`;
                     return;
                 }
-                setErrors({ general: data.error || data.message || `Error ${response.status} al confirmar la constancia.` });
+                setErrors({
+                    general:
+                        data.error ||
+                        data.message ||
+                        `Error ${response.status} al confirmar la constancia.`,
+                });
                 setLoading(false);
                 return;
             }
@@ -115,7 +147,10 @@ export default function CustomizeCertificate({ certificate, student }) {
                     window.location.href = "/acreditaciones";
                 }, 1500);
             } else {
-                setErrors({ general: data.message || "No se pudo generar la constancia." });
+                setErrors({
+                    general:
+                        data.message || "No se pudo generar la constancia.",
+                });
                 setLoading(false);
             }
         } catch (error) {
@@ -125,7 +160,7 @@ export default function CustomizeCertificate({ certificate, student }) {
     };
 
     const selectedStudentType = studentTypeOptions.find(
-        (o) => o.value === formData.student_type
+        (o) => o.value === formData.student_type,
     );
 
     return (
@@ -138,11 +173,11 @@ export default function CustomizeCertificate({ certificate, student }) {
                     </h2>
                     <span
                         className={`w-fit px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                                                        certificate.status === "confirmed"
-                                                                ? "bg-blueTec/10 text-blueTec border-blueTec/20"
-                                                                : certificate.status === "issued"
-                                                                    ? "bg-orangeTec/10 text-orangeTec border-orangeTec/20"
-                              : "bg-amber-50 text-amber-700 border-amber-200"
+                            certificate.status === "confirmed"
+                                ? "bg-blueTec/10 text-blueTec border-blueTec/20"
+                                : certificate.status === "issued"
+                                  ? "bg-orangeTec/10 text-orangeTec border-orangeTec/20"
+                                  : "bg-amber-50 text-amber-700 border-amber-200"
                         }`}
                     >
                         {certificate.status === "confirmed"
@@ -266,6 +301,32 @@ export default function CustomizeCertificate({ certificate, student }) {
                                     </div>
                                 </div>
 
+                                {/* ── NÚMERO DE CONSTANCIA ── */}
+                                <div className="flex items-end gap-3">
+                                    <div className="flex-1">
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                                            Número de Constancia
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="constancy_number"
+                                            value={formData.constancy_number}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-blueTec focus:ring-1 focus:ring-blueTec transition-all"
+                                            placeholder="001"
+                                            maxLength="10"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleInputChange({ target: { name: "constancy_number", value: "000" } })}
+                                        className="px-4 py-3 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold uppercase rounded-xl hover:bg-amber-100 transition-all"
+                                        title="Resetear número de constancia a 000"
+                                    >
+                                        Reset
+                                    </button>
+                                </div>
+
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
                                         Pronombre
@@ -308,7 +369,9 @@ export default function CustomizeCertificate({ certificate, student }) {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         {studentTypeOptions.map((option) => {
                                             const Icon = option.icon;
-                                            const selected = formData.student_type === option.value;
+                                            const selected =
+                                                formData.student_type ===
+                                                option.value;
                                             return (
                                                 <div
                                                     key={option.value}
@@ -329,9 +392,15 @@ export default function CustomizeCertificate({ certificate, student }) {
                                                     <div className="flex items-center gap-2">
                                                         <Icon
                                                             size={16}
-                                                            className={selected ? "text-orangeTec" : "text-gray-400"}
+                                                            className={
+                                                                selected
+                                                                    ? "text-orangeTec"
+                                                                    : "text-gray-400"
+                                                            }
                                                         />
-                                                        <span className={`font-bold text-sm ${selected ? "text-orangeTec" : "text-gray-700"}`}>
+                                                        <span
+                                                            className={`font-bold text-sm ${selected ? "text-orangeTec" : "text-gray-700"}`}
+                                                        >
                                                             {option.label}
                                                         </span>
                                                     </div>
@@ -344,10 +413,16 @@ export default function CustomizeCertificate({ certificate, student }) {
                                     </div>
                                     {/* Preview del texto de vigencia */}
                                     <div className="mt-3 p-3 rounded-xl bg-gray-50 border border-dashed border-gray-200">
-                                        <p className="text-xs text-gray-500 font-medium mb-1">Texto en la constancia:</p>
+                                        <p className="text-xs text-gray-500 font-medium mb-1">
+                                            Texto en la constancia:
+                                        </p>
                                         <p className="text-xs text-gray-700 italic">
-                                            "La presente constancia tendrá una vigencia de{" "}
-                                            <strong>{selectedStudentType?.vigencia}</strong>."
+                                            "La presente constancia tendrá una
+                                            vigencia de{" "}
+                                            <strong>
+                                                {selectedStudentType?.vigencia}
+                                            </strong>
+                                            ."
                                         </p>
                                     </div>
                                 </div>
@@ -368,7 +443,9 @@ export default function CustomizeCertificate({ certificate, student }) {
                                         value={formData.signer_one_name}
                                         onChange={handleInputChange}
                                         className={`w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-blueTec focus:ring-1 focus:ring-blueTec transition-all ${
-                                            errors.signer_one_name ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+                                            errors.signer_one_name
+                                                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                                                : ""
                                         }`}
                                         placeholder="Nombre completo"
                                     />
@@ -389,7 +466,9 @@ export default function CustomizeCertificate({ certificate, student }) {
                                         value={formData.signer_one_title}
                                         onChange={handleInputChange}
                                         className={`w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-blueTec focus:ring-1 focus:ring-blueTec transition-all ${
-                                            errors.signer_one_title ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+                                            errors.signer_one_title
+                                                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                                                : ""
                                         }`}
                                         placeholder="Cargo o puesto"
                                     />
@@ -410,7 +489,9 @@ export default function CustomizeCertificate({ certificate, student }) {
                                         value={formData.signer_two_name}
                                         onChange={handleInputChange}
                                         className={`w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-blueTec focus:ring-1 focus:ring-blueTec transition-all ${
-                                            errors.signer_two_name ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+                                            errors.signer_two_name
+                                                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                                                : ""
                                         }`}
                                         placeholder="Nombre completo"
                                     />
@@ -431,7 +512,9 @@ export default function CustomizeCertificate({ certificate, student }) {
                                         value={formData.signer_two_title}
                                         onChange={handleInputChange}
                                         className={`w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-blueTec focus:ring-1 focus:ring-blueTec transition-all ${
-                                            errors.signer_two_title ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+                                            errors.signer_two_title
+                                                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                                                : ""
                                         }`}
                                         placeholder="Cargo o puesto"
                                     />
@@ -441,8 +524,8 @@ export default function CustomizeCertificate({ certificate, student }) {
                                         </div>
                                     )}
                                 </div>
-
-                            </div>{/* end space-y-6 */}
+                            </div>
+                            {/* end space-y-6 */}
 
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-gray-100">
                                 <a
@@ -500,7 +583,7 @@ export default function CustomizeCertificate({ certificate, student }) {
                                         <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
                                             Puntaje
                                         </span>
-                                            <span className="text-xl font-bold text-blueTec font-playfair">
+                                        <span className="text-xl font-bold text-blueTec font-playfair">
                                             {formData.promedio}
                                         </span>
                                     </div>
