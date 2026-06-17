@@ -324,10 +324,10 @@
 
     <div class="body-text">
         @if(isset($student_type) && $student_type === 'actual')
-        La presente constancia tendrá una vigencia de <b>2 años</b> contados apartir de la fecha de emisión.
+        La presente constancia tendrá una vigencia de <b>dos años contados apartir de la fecha de emisión.</b>
         @else
-        La presente constancia tendrá una vigencia de <b>2 años</b> contados a partir de la fecha de egreso del
-        estudiante.
+        La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de egreso del
+            estudiante.</b>
         @endif
     </div>
 
@@ -339,7 +339,7 @@
 
     {{-- ── ATENTAMENTE ───────────────────────────────────────── --}}
     <div class="atentamente">
-        A T E N T A M E N T E<br>
+        ATENTAMENTE<br>
         <div class="lema">Excelencia en Educación Tecnológica®<br>Ciencia, Tecnología y Libertad.</div>
     </div>
 

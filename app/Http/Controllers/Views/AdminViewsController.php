@@ -197,11 +197,14 @@ class AdminViewsController extends Controller
         
         $students = $studentsRaw->map(function ($student) {
             $periodIds = collect();
+            $coursePeriodIds = collect();
+            $examPeriodIds = collect();
             
             // Extract periods from qualifications (groups)
             foreach ($student->qualifications as $q) {
                 if ($q->group && $q->group->period_id) {
                     $periodIds->push($q->group->period_id);
+                    $coursePeriodIds->push($q->group->period_id);
                 }
             }
             
@@ -209,12 +212,15 @@ class AdminViewsController extends Controller
             foreach ($student->exams as $exam) {
                 if ($exam->period_id) {
                     $periodIds->push($exam->period_id);
+                    $examPeriodIds->push($exam->period_id);
                 }
             }
             
             // Use StudentResource for base data and append period_ids
             $resource = \App\Http\Resources\StudentResource::make($student)->resolve();
             $resource['period_ids'] = $periodIds->unique()->values()->all();
+            $resource['course_period_ids'] = $coursePeriodIds->unique()->values()->all();
+            $resource['exam_period_ids'] = $examPeriodIds->unique()->values()->all();
             
             return $resource;
         })->all();
@@ -223,7 +229,8 @@ class AdminViewsController extends Controller
         $degrees = Degree::all();
         $levels = Level::all();
         $type_students = TypeStudent::getOptions();
-        $groups = Group::all();
+        $groups = Group::with('qualifications')->get();
+        $exams = Exam::with('students')->get();
         $periods = Period::orderBy('id', 'desc')->get();
         $certificates = \App\Models\CertificateRecord::select([
                 'id', 'student_id', 'certificate_type', 'nivel',
@@ -262,6 +269,7 @@ class AdminViewsController extends Controller
             'degrees' => $degrees,
             'levels' => $levels,
             'groups' => $groups,
+            'exams' => $exams,
             'typeStudents' => $type_students,
             'periods' => $periods,
             'certificates' => $certificates,
