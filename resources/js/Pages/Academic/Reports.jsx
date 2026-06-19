@@ -36,7 +36,7 @@ export default function Reports({
     logos = {},
 }) {
     const [openModal, setOpenModal] = useState(false);
-    const [pageTitle, setPageTitle] = useState("Coordinación de Lenguas Extranjeras");
+    const [pageTitle, setPageTitle] = useState("Reporte de Estadísticas");
 
     const [charts, setCharts] = useState([
         {
@@ -563,7 +563,6 @@ export default function Reports({
             egresados: " — Egresados",
         };
         return (
-            "Coordinación de Lenguas Extranjeras — " +
             (metricas[cfg.type] || "Gráfica") +
             (poblacion[cfg.filterType] || "")
         );
@@ -590,42 +589,42 @@ export default function Reports({
                     {(logos?.logo_sep ||
                         logos?.logo_tecnm ||
                         logos?.logo_itl) && (
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 px-8 py-4 print:shadow-none print:border-0 print:mb-4 print:px-0">
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center justify-start w-1/4">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 px-8 py-5 print:shadow-none print:border-0 print:mb-4 print:px-0">
+                            <div className="flex items-center justify-between gap-6">
+                                <div className="flex items-center justify-start flex-1">
                                     {logos.logo_sep ? (
                                         <img
                                             src={logos.logo_sep}
                                             alt="Secretaría de Educación Pública"
-                                            className="h-12 object-contain"
-                                        />
-                                    ) : (
-                                        <div className="h-12 w-20 bg-gray-100 rounded animate-pulse" />
-                                    )}
-                                </div>
-                                <div className="flex flex-col items-center text-center flex-1">
-                                    {logos.logo_tecnm ? (
-                                        <img
-                                            src={logos.logo_tecnm}
-                                            alt="Tecnológico Nacional de México"
                                             className="h-14 object-contain"
                                         />
                                     ) : (
                                         <div className="h-14 w-24 bg-gray-100 rounded animate-pulse" />
                                     )}
-                                    <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide hidden print:block mt-1">
+                                </div>
+                                <div className="flex flex-col items-center text-center">
+                                    {logos.logo_tecnm ? (
+                                        <img
+                                            src={logos.logo_tecnm}
+                                            alt="Tecnológico Nacional de México"
+                                            className="h-16 object-contain mb-1"
+                                        />
+                                    ) : (
+                                        <div className="h-16 w-28 bg-gray-100 rounded animate-pulse" />
+                                    )}
+                                    <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide hidden print:block">
                                         Tecnológico Nacional de México
                                     </p>
                                 </div>
-                                <div className="flex items-center justify-end w-1/4">
+                                <div className="flex items-center justify-end flex-1">
                                     {logos.logo_itl ? (
                                         <img
                                             src={logos.logo_itl}
                                             alt="Instituto Tecnológico de Lázaro Cárdenas"
-                                            className="h-12 object-contain"
+                                            className="h-14 object-contain"
                                         />
                                     ) : (
-                                        <div className="h-12 w-20 bg-gray-100 rounded animate-pulse" />
+                                        <div className="h-14 w-24 bg-gray-100 rounded animate-pulse" />
                                     )}
                                 </div>
                             </div>

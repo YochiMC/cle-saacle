@@ -5,9 +5,11 @@
     <meta charset="UTF-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Constancia de Inglés</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
     <style>
     @page {
-        margin: 0;
+        margin: 2;
     }
 
     * {
@@ -17,9 +19,15 @@
     }
 
     body {
-        font-family: Arial, Helvetica, sans-serif;
+        /* Se usa Helvetica/Arial como fuente sans-serif segura para DOMPDF */
+        font-family: Helvetica, Arial, sans-serif;
         font-size: 12.5px;
         color: #000;
+        /* 
+               MÁRGENES DE LA HOJA: (Arriba, Derecha, Abajo, Izquierda)
+               - Si quieres MÁS espacio arriba, aumenta el "0.42cm" (ej. a "1.5cm" o "2cm").
+               - Si quieres MÁS espacio para el pie de página, aumenta el "6.2cm".
+            */
         padding: 0.42cm 1.5cm 6.2cm 2.5cm;
         line-height: 1.4;
     }
@@ -43,6 +51,8 @@
         width: 60%;
         white-space: nowrap;
         padding-top: 10px;
+        /* Membrete: logos ya impresos en la hoja */
+        visibility: hidden;
     }
 
     .img-sep {
@@ -64,12 +74,16 @@
         border-left: 2px solid #cba25d;
         height: 40px;
         margin: 0 15px;
+        /* Membrete: separador ya impreso en la hoja */
+        visibility: hidden;
     }
 
     .logo-itl {
         text-align: right;
         width: 40%;
         padding-right: 0;
+        /* Membrete: logo ya impreso en la hoja */
+        visibility: hidden;
     }
 
     .logo-itl img {
@@ -95,14 +109,14 @@
     /* ── META OFICIO ──────────────────────────────────── */
     .meta-info {
         text-align: right;
-        margin-top: 22px;
-        margin-bottom: 28px;
+        margin-top: 2cm; /* Ajustado para alcanzar ~5.5cm desde el borde superior */
+        margin-bottom: 15px;
         line-height: 1.7;
         font-size: 12.5px;
     }
 
     .highlight {
-        background-color: #FF9800;
+        background-color: #999999;
         padding: 0 2px;
     }
 
@@ -110,12 +124,14 @@
     .saludo {
         font-weight: bold;
         font-size: 13px;
-        margin-bottom: 18px;
+        margin-top: 1cm; /* Ajustado para alcanzar ~7cm desde el borde superior */
+        margin-bottom: 10px;
     }
 
     .body-text {
         text-align: justify;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
+        /* Reducido (antes 12px) */
         font-size: 12.5px;
     }
 
@@ -126,16 +142,18 @@
     /* ── ATENTAMENTE ──────────────────────────────────── */
     .atentamente {
         font-weight: bold;
-        font-size: 12.5px;
+        font-size: 10pt;
         letter-spacing: 2px;
-        margin-top: 28px;
+        margin-top: 15px;
         margin-bottom: 2px;
     }
 
     .lema {
         font-style: italic;
-        font-size: 10px;
-        font-weight: normal;
+        font-weight: bold;
+        /* Añadida negrita según el documento */
+        font-size: 8pt;
+        /* Ajustado a 8 pts según el documento */
         letter-spacing: 0;
     }
 
@@ -156,21 +174,23 @@
     .signatures-table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 15px;
+        margin-top: 45px;
     }
 
     .sig-left {
         width: 50%;
         vertical-align: top;
         text-align: left;
-        font-size: 12px;
+        font-size: 10pt;
+        /* Ajustado a 10 pts según el documento */
     }
 
     .sig-right {
         width: 50%;
         vertical-align: top;
         text-align: right;
-        font-size: 12px;
+        font-size: 10pt;
+        /* Ajustado a 10 pts según el documento */
     }
 
     .sig-name {
@@ -184,16 +204,16 @@
     /* ── PIE DE PÁGINA ────────────────────────────────── */
     .footer {
         position: fixed;
-        bottom: 2cm;
+        bottom: 0;
         left: 0;
         right: 0;
-        height: 145px;
+        height: 5.2cm; /* Ajustado para que el texto FDBL inicie a ~4.9cm del borde inferior */
         padding-left: 2.5cm;
         padding-right: 1.5cm;
     }
 
     .ccp {
-        font-size: 9px;
+        font-size: 8pt;
         color: #333;
         margin-bottom: 4px;
     }
@@ -218,6 +238,8 @@
         vertical-align: bottom;
         position: relative;
         top: -12px;
+        left: -20px;
+        /* <--- Agrega esta línea para empujar el logo a la izquierda */
     }
 
     .footer-logo-left img {
@@ -270,16 +292,20 @@
 <body>
 
     {{-- ── CABECERA CON LOGOS ──────────────────────────────── --}}
+    {{-- ── CABECERA CON LOGOS ──────────────────────────────── --}}
     <table class="header-table">
         <tr>
             <td class="logo-sep-tecnm">
-                <span style="display: inline-block; vertical-align: middle;">
-                    <x-certificate-logo name="logo_sep" class="img-sep" :is-pdf="$is_pdf ?? false" alt="SEP" />
-                </span>
-                <span class="golden-separator"></span>
-                <span style="display: inline-block; vertical-align: middle;">
-                    <x-certificate-logo name="logo_tecnm" class="img-tecnm" :is-pdf="$is_pdf ?? false" alt="TecNM" />
-                </span>
+                <div style="padding-top: 50 px;">
+                    <span style="display: inline-block; vertical-align: middle;">
+                        <x-certificate-logo name="logo_sep" class="img-sep" :is-pdf="$is_pdf ?? false" alt="SEP" />
+                    </span>
+                    <span class="golden-separator"></span>
+                    <span style="display: inline-block; vertical-align: middle;">
+                        <x-certificate-logo name="logo_tecnm" class="img-tecnm" :is-pdf="$is_pdf ?? false"
+                            alt="TecNM" />
+                    </span>
+                </div>
             </td>
             <td class="logo-itl">
                 <x-certificate-logo name="logo_itl" :is-pdf="$is_pdf ?? false" alt="ITL / Membrete" />
@@ -287,10 +313,6 @@
         </tr>
     </table>
 
-    <div class="institute-info">
-        Instituto Tecnológico de León<br>
-        <span>Subdirección de Planeación y Vinculación</span>
-    </div>
 
     {{-- ── META OFICIO ─────────────────────────────────────── --}}
     <div class="meta-info">
@@ -308,7 +330,7 @@
 
     {{-- ── PÁRRAFOS COMUNES ─────────────────────────────────── --}}
     <div class="body-text">
-        Por lo anterior, se hace constar que <b>{{ $estatus }} {{ $nombre }}</b> ACREDITÓ, el requisito de una lengua
+        Por lo anterior, se hace constar que <b>{{ $estatus }}</b> ACREDITÓ, el requisito de una lengua
         extranjera para efectos de titulación en una Licenciatura del Tecnológico Nacional de México.
     </div>
 
@@ -339,12 +361,12 @@
 
     {{-- ── ATENTAMENTE ───────────────────────────────────────── --}}
     <div class="atentamente">
-        ATENTAMENTE<br>
+        A T E N T A M E N T E<br>
         <div class="lema">Excelencia en Educación Tecnológica®<br>Ciencia, Tecnología y Libertad.</div>
     </div>
 
     {{-- ── VOBO Y QR ─────────────────────────────────── --}}
-    <table style="width:100%; margin-top:18px; margin-bottom:14px;">
+    <table style="width:100%; margin-top:8px; margin-bottom:14px;">
         <tr>
             <td>&nbsp;</td>
             <td style="text-align:right; padding-right:44px; vertical-align: bottom;">
@@ -373,11 +395,13 @@
         <tr>
             <td class="sig-left">
                 <div class="sig-name">{{ $signer_one_name ?? 'FÁTIMA DEL ROCÍO BECERRA LÓPEZ' }}</div>
-                <div class="sig-title">{{ $signer_one_title ?? 'COORDINADORA DE LENGUAS<br>EXTRANJERAS' }}</div>
+                <div class="sig-title">{!! str_replace(' LENGUAS EXTRANJERAS', ' LENGUAS<br>EXTRANJERAS',
+                    $signer_one_title ?? 'COORDINADORA DE LENGUAS EXTRANJERAS') !!}</div>
             </td>
             <td class="sig-right">
                 <div class="sig-name">{{ $signer_two_name ?? 'ROCÍO SILVIA VARGAS MONTES DE OCA' }}</div>
-                <div class="sig-title">{{ $signer_two_title ?? 'SUBDIRECTORA DE PLANEACIÓN<br>Y VINCULACIÓN' }}</div>
+                <div class="sig-title">{!! str_replace(' PLANEACIÓN Y VINCULACIÓN', ' PLANEACIÓN<br>Y VINCULACIÓN',
+                    $signer_two_title ?? 'SUBDIRECTORA DE PLANEACIÓN Y VINCULACIÓN') !!}</div>
             </td>
         </tr>
     </table>
@@ -394,12 +418,14 @@
 
         <div style="clear:both; margin-top: 6px;"></div>
 
-        <div style="text-align: right; padding-right: 0px; margin-bottom: 4px;">
+        {{-- Logos de sellos: ya impresos en el membrete --}}
+        <div style="text-align: right; padding-right: 0px; margin-bottom: 4px; visibility: hidden;">
             <x-certificate-logo name="logo_seals" :is-pdf="$is_pdf ?? false" alt=""
                 style="max-height: 45px; display: inline-block;" />
         </div>
 
-        <table class="footer-bottom-table">
+        {{-- Logo margarita y dirección: ya impresos en el membrete --}}
+        <table class="footer-bottom-table" style="visibility: hidden;">
             <tr>
                 <td class="footer-logo-left">
                     <x-certificate-logo name="logo_margarita" :is-pdf="$is_pdf ?? false" alt="2026" />

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <title>Hoja membretada ITL</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>
+            @page {
+                size: letter; /* 8.5in x 11in */
+                margin: 2.8cm 2.2cm 2.8cm; /* top right bottom left (impresión) */
+            }
+
+            :root {
+                --vino: #7a1e3a; /* acento institucional aproximado */
+                --sep: #7b1f3a; /* texto "Educación" */
+                --azul: #0e3a68; /* TecNM */
+                --gris: #555;
+                --negro: #111;
+            }
+
+            html,
+            body {
+                height: 100%;
+                background: #f6f6f8;
+            }
+
+            body {
+                margin: 0;
+                font-family:
+                    "Inter", "Segoe UI", Roboto, Arial, Helvetica, sans-serif;
+                color: var(--negro);
+            }
+
+            .page {
+                width: 21.59cm; /* carta: 8.5in */
+                min-height: 27.94cm; /* carta: 11in */
+                margin: 0 auto;
+                background: #fff;
+                position: relative;
+                box-shadow: 0 0 0.8rem rgba(0, 0, 0, 0.08);
+            }
+
+            /* Banda superior con logotipos */
+            .header {
+                position: relative;
+                padding: 16mm 18mm 8mm 18mm; /* espacio interno */
+                border-bottom: 2.5px solid var(--vino);
+            }
+
+            .logos {
+                display: flex;
+                align-items: center;
+                gap: 14mm;
+            }
+
+            .logos img {
+                display: block;
+            }
+
+            .logo-sep {
+                height: 18mm;
+            }
+            .logo-tecnm {
+                height: 16mm;
+            }
+            .logo-itl {
+                height: 22mm;
+                margin-left: auto;
+            }
+
+            /* Sello o motivo patrio en esquina superior derecha (opcional) */
+            .marca-patria {
+                position: absolute;
+                right: 12mm;
+                top: 10mm;
+                height: 24mm;
+                opacity: 0.2; /* tenue */
+                pointer-events: none;
+            }
+
+            /* Datos de contacto bajo encabezado */
+            .contacto {
+                padding: 6mm 18mm 0 18mm;
+                font-size: 10.5pt;
+                color: var(--gris);
+                display: grid;
+                grid-template-columns: 1fr;
+                line-height: 1.4;
+            }
+            .contacto b {
+                color: var(--negro);
+            }
+
+            /* Contenido de la carta */
+            .content {
+                padding: 10mm 18mm 24mm 18mm;
+                font-size: 11pt;
+                line-height: 1.6;
+                min-height: 170mm; /* asegura espacio útil antes del pie */
+            }
+
+            /* Pie de página con lema y sellos */
+            .footer {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                padding: 6mm 18mm 10mm 18mm;
+                border-top: 3px solid var(--vino);
+                display: flex;
+                align-items: center;
+                gap: 10mm;
+            }
+
+            .anio-motto {
+                display: flex;
+                align-items: center;
+                gap: 6mm;
+                color: var(--vino);
+                font-weight: 700;
+                font-size: 11pt;
+                white-space: nowrap;
+            }
+            .anio-motto img {
+                height: 14mm;
+            }
+
+            .sellos {
+                margin-left: auto;
+                display: flex;
+                align-items: center;
+                gap: 8mm;
+            }
+            .sello {
+                height: 16mm;
+            }
+
+            /* Estilos de impresión */
+            @media print {
+                html,
+                body {
+                    background: #fff;
+                }
+                .page {
+                    box-shadow: none;
+                }
+                a::after {
+                    content: "";
+                } /* no mostrar URLs */
+            }
+        </style>
+    </head>
+    <body>
+        <div class="page">
+            <!-- Encabezado -->
+            <header class="header">
+                <img class="marca-patria" src="img/motivo-patria.png" alt="" />
+                <div class="logos">
+                    <img
+                        class="logo-sep"
+                        src="img/logo-sep-educacion.png"
+                        alt="Educación - SEP"
+                    />
+                    <img
+                        class="logo-tecnm"
+                        src="img/logo-tecnm.png"
+                        alt="TecNM"
+                    />
+                    <img
+                        class="logo-itl"
+                        src="img/logo-itl.png"
+                        alt="Instituto Tecnológico de León"
+                    />
+                </div>
+            </header>
+
+            <!-- Datos de contacto / área -->
+            <section class="contacto">
+                <div><b>Instituto Tecnológico de León</b> — Área</div>
+                <div>
+                    Av. Tecnológico s/n, Fracc. Industrial Julián de Obregón,
+                    C.P. 37290, León, Gto.
+                </div>
+                <div>
+                    Tel. 477 710 5200 | e-mail: tecleon@leon.tecnm.mx |
+                    www.leon.tecnm.mx
+                </div>
+            </section>
+
+            <!-- Contenido -->
+            <main class="content" contenteditable="true">
+                <p>Lugar y fecha</p>
+                <p><b>Asunto:</b> …</p>
+                <p>
+                    Nombre del(a) destinatario(a)<br />
+                    Cargo<br />
+                    Dependencia
+                </p>
+
+                <p>
+                    Texto de la comunicación. Este espacio es editable. Mantén
+                    márgenes para que no invada el pie de página al imprimir.
+                </p>
+
+                <p>Atentamente,</p>
+                <p>
+                    <b>Nombre</b><br />
+                    Puesto<br />
+                    Área
+                </p>
+            </main>
+
+            <!-- Pie -->
+            <footer class="footer">
+                <div class="anio-motto">
+                    <img src="img/margarita-maza.png" alt="" />
+                    <span>2026 · Año de Margarita Maza</span>
+                </div>
+                <div class="sellos">
+                    <img
+                        class="sello"
+                        src="img/norma-igualdad.png"
+                        alt="NMX Igualdad Laboral y No Discriminación"
+                    />
+                    <img
+                        class="sello"
+                        src="img/espacio-libre-plastico.png"
+                        alt="Espacio 100% Libre de Plástico"
+                    />
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>

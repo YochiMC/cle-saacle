@@ -106,7 +106,14 @@ class BuildCertificateDataAction
 
         // --- Número de oficio correlativo ---
         $year = date('Y');
-        $consecutive = CertificateRecord::whereYear('issued_at', $year)->count() + 1;
+        // Si existe una configuración administrativa que indique el próximo número de oficio,
+        // úsese como valor inicial. Esto permite que el "menu de cambios" controle el correlativo.
+        $nextSetting = \App\Models\Setting::where('key', 'certificate_next_oficio')->value('value');
+        if ($nextSetting !== null && is_numeric($nextSetting)) {
+            $consecutive = intval($nextSetting);
+        } else {
+            $consecutive = CertificateRecord::whereYear('issued_at', $year)->count() + 1;
+        }
         $noOficio = str_pad($consecutive, 4, '0', STR_PAD_LEFT);
 
         return [

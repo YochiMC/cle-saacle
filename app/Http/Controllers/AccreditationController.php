@@ -150,6 +150,15 @@ class AccreditationController extends Controller
                 'status'           => 'draft',
                 'issued_at'        => now(),
             ]);
+
+            // Si existe la configuración 'certificate_next_oficio' en el menú de ajustes,
+            // incrementarla para que el siguiente oficio continue desde aquí.
+            $nextSetting = \App\Models\Setting::where('key', 'certificate_next_oficio')->first();
+            if ($nextSetting && is_numeric($nextSetting->value)) {
+                $nextSetting->value = (string) (intval($nextSetting->value) + 1);
+                $nextSetting->save();
+            }
+
         }
 
         // Redirigir a la vista de personalización
@@ -207,7 +216,7 @@ class AccreditationController extends Controller
             'student_type'   => 'egresado',
             'no_oficio'      => $data['no_oficio'],
             'qr_image'       => $qrImage,
-            'is_pdf'         => false,
+            'is_pdf'         => true,
             'validation_code' => $validationCode,
             'verify_url'     => route('certificates.verify', $validationCode),
             'anio_letra'     => $anioLetra,
