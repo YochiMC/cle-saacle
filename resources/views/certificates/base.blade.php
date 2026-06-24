@@ -5,8 +5,6 @@
     <meta charset="UTF-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Constancia de Inglés</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap"
-        rel="stylesheet">
     <style>
     @page {
         margin: 2;
@@ -25,10 +23,9 @@
         color: #000;
         /* 
                MÁRGENES DE LA HOJA: (Arriba, Derecha, Abajo, Izquierda)
-               - Si quieres MÁS espacio arriba, aumenta el "0.42cm" (ej. a "1.5cm" o "2cm").
-               - Si quieres MÁS espacio para el pie de página, aumenta el "6.2cm".
+               - Reducido el margen inferior a 3cm para evitar saltos de página con las firmas.
             */
-        padding: 0.42cm 1.5cm 6.2cm 2.5cm;
+        padding: 0.42cm 1.5cm 3cm 2.5cm;
         line-height: 1.4;
     }
 
@@ -109,7 +106,7 @@
     /* ── META OFICIO ──────────────────────────────────── */
     .meta-info {
         text-align: right;
-        margin-top: 2cm; /* Ajustado para alcanzar ~5.5cm desde el borde superior */
+        margin-top: 2.5cm; /* Bajado ligeramente sin exagerar para no romper el salto de página */
         margin-bottom: 15px;
         line-height: 1.7;
         font-size: 12.5px;
@@ -144,7 +141,7 @@
         font-weight: bold;
         font-size: 10pt;
         letter-spacing: 2px;
-        margin-top: 15px;
+        margin-top: 0.9cm; /* Distancia solicitada de 0.9cm respecto al texto de arriba */
         margin-bottom: 2px;
     }
 
@@ -174,13 +171,13 @@
     .signatures-table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 45px;
+        margin-top: 25px; /* Reducido para ahorrar espacio vertical */
     }
 
     .sig-left {
         width: 50%;
         vertical-align: top;
-        text-align: left;
+        text-align: center;
         font-size: 10pt;
         /* Ajustado a 10 pts según el documento */
     }
@@ -188,7 +185,7 @@
     .sig-right {
         width: 50%;
         vertical-align: top;
-        text-align: right;
+        text-align: center;
         font-size: 10pt;
         /* Ajustado a 10 pts según el documento */
     }
@@ -330,31 +327,31 @@
 
     {{-- ── PÁRRAFOS COMUNES ─────────────────────────────────── --}}
     <div class="body-text">
-        Por lo anterior, se hace constar que <b>{{ $estatus }}</b> ACREDITÓ, el requisito de una lengua
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Por lo anterior, se hace constar que {{ strtolower($estatus) }} <b>ACREDITÓ</b>, el requisito de una lengua
         extranjera para efectos de titulación en una Licenciatura del Tecnológico Nacional de México.
     </div>
 
     <div class="body-text">
-        La presente se expide con la facultad que otorga el registro: &nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;La presente se expide con la facultad que otorga el registro: &nbsp;&nbsp;&nbsp;
         <b>TecNM-SEyV-DVIA-CNLE-ACT-09/24-ITLEÓN-05</b>
     </div>
 
     <div class="body-text">
-        El cual fue expedido por el TecNM y acredita a la Coordinación de Lenguas Extranjeras (CLE) del Instituto
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;El cual fue expedido por el TecNM y acredita a la Coordinación de Lenguas Extranjeras (CLE) del Instituto
         Tecnológico de León como institución formadora y para acreditar el segundo idioma como requisito de titulación.
     </div>
 
     <div class="body-text">
         @if(isset($student_type) && $student_type === 'actual')
-        La presente constancia tendrá una vigencia de <b>dos años contados apartir de la fecha de emisión.</b>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;La presente constancia tendrá una vigencia de <b>dos años contados apartir de la fecha de emisión.</b>
         @else
-        La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de egreso del
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de egreso del
             estudiante.</b>
         @endif
     </div>
 
     <div class="body-text">
-        Se extiende la presente en la ciudad de León Guanajuato, a los {{ \Carbon\Carbon::now()->format('d') }} días del
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Se extiende la presente en la ciudad de León Guanajuato, a los {{ \Carbon\Carbon::now()->format('d') }} días del
         mes de {{ strtolower(\Carbon\Carbon::now()->isoFormat('MMMM')) }} del año {{ strtolower($anio_letra) }}, para
         los fines legales que convengan al interesado.
     </div>
@@ -372,16 +369,12 @@
             <td style="text-align:right; padding-right:44px; vertical-align: bottom;">
                 <table style="float: right; text-align: center;">
                     <tr>
-                        <td style="padding-right: 15px; vertical-align: bottom; padding-bottom: 5px;">
-                            <div style="font-weight:bold; font-size:14px;">Vo.Bo.</div>
-                        </td>
-                        <td style="vertical-align: bottom;">
+                        <td style="vertical-align: bottom; text-align: center; position: relative; top: -30px;">
                             @if(!empty($qr_image))
-                            <img src="{{ $qr_image }}" style="width:82px; height:82px; display:block; margin-left:auto;"
+                            <img src="{{ $qr_image }}" style="width:82px; height:82px; display:block; margin: 0 auto;"
                                 alt="QR Verificación">
-                            <div style="font-size:7px; color:#555; text-align:center; margin-top:2px; width:82px;">
-                            </div>
                             @endif
+                            <div style="font-weight:bold; font-size:14px; margin-top: 5px;">Vo.Bo.</div>
                         </td>
                     </tr>
                 </table>
@@ -406,16 +399,31 @@
         </tr>
     </table>
 
+    {{-- ── CCP Y CADENA ÚNICA ──────────────────────────────────────── --}}
+    <table style="width: 100%; margin-top: 15px;">
+        <tr>
+            <td style="vertical-align: bottom;">
+                <div class="ccp" style="float: left; text-align: left;">
+                    ccp. Archivo<br>
+                    FDBL/
+                </div>
+            </td>
+            <td style="vertical-align: bottom; text-align: right;">
+                @if(!empty($validation_code))
+                <span class="cadena-box" style="float: right;">
+                    Cadena Única de Caracteres &nbsp; | &nbsp; {{ $validation_code }}
+                </span>
+                @else
+                <div style="font-size: 8.5px; color: #999; font-weight: bold; float: right;">
+                    [SE GENERARÁ AL EMITIR LA CONSTANCIA]
+                </div>
+                @endif
+            </td>
+        </tr>
+    </table>
+
     {{-- ── PIE DE PÁGINA (FIJO) ─────────────────────────────── --}}
     <div class="footer">
-        <div class="ccp">
-            ccp. Archivo<br>
-            FDBL/
-            <span class="cadena-box">
-                Cadena Única de Caracteres &nbsp; | &nbsp; {{ $validation_code }}
-            </span>
-        </div>
-
         <div style="clear:both; margin-top: 6px;"></div>
 
         {{-- Logos de sellos: ya impresos en el membrete --}}

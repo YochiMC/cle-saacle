@@ -71,7 +71,7 @@ class GenerateCertificatePdfAction
             'nivel'            => $nivel,
             'nota'             => '2 años',
             'student_type'     => $studentType,
-            'no_oficio'        => $certificate->no_oficio,
+            'no_oficio'        => str_pad($certificate->no_oficio, 3, '0', STR_PAD_LEFT),
             'qr_image'         => 'data:image/svg+xml;base64,' . base64_encode(
                 QrCode::format('svg')->size(120)
                     ->margin(1)

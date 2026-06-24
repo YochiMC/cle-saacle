@@ -137,6 +137,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/customize/{certificate}/download', [AccreditationController::class, 'downloadCertificate'])
                 ->middleware('role:admin|coordinator')
                 ->name('certificates.download');
+
+            Route::get('/customize/{certificate}/download-word', [AccreditationController::class, 'downloadWordCertificate'])
+                ->middleware('role:admin|coordinator')
+                ->name('certificates.download-word');
+
+            Route::get('/customize/{certificate}/download-word-all', [AccreditationController::class, 'downloadWordAllTypes'])
+                ->middleware('role:admin|coordinator')
+                ->name('certificates.download-word-all');
+
+            Route::post('/customize/{certificate}/preview-live', [AccreditationController::class, 'previewLive'])
+                ->middleware('role:admin|coordinator')
+                ->name('certificates.preview-live');
         });
 
         Route::prefix('groups')->group(function () {

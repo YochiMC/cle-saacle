@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Head } from "@inertiajs/react";
 import {
     CheckCircle,
@@ -7,6 +7,7 @@ import {
     Save,
     GraduationCap,
     Clock,
+    FileText,
 } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
@@ -35,6 +36,42 @@ export default function CustomizeCertificate({ certificate, student }) {
 
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
+    const [previewHtml, setPreviewHtml] = useState("");
+
+    useEffect(() => {
+        const fetchPreview = async () => {
+            try {
+                const csrfToken =
+                    document.querySelector('meta[name="csrf-token"]')?.content ||
+                    document.cookie
+                        .split("; ")
+                        .find((r) => r.startsWith("XSRF-TOKEN="))
+                        ?.split("=")[1];
+
+                const response = await fetch(
+                    `/acreditaciones/customize/${certificate.id}/preview-live`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": csrfToken,
+                        },
+                        body: JSON.stringify(formData),
+                    }
+                );
+                
+                if (response.ok) {
+                    const text = await response.text();
+                    setPreviewHtml(text);
+                }
+            } catch (error) {
+                console.error("Error al obtener vista previa", error);
+            }
+        };
+
+        const timeoutId = setTimeout(fetchPreview, 500);
+        return () => clearTimeout(timeoutId);
+    }, [formData, certificate.id]);
 
     const pronounOptions = [
         {
@@ -79,7 +116,7 @@ export default function CustomizeCertificate({ certificate, student }) {
         }
     };
 
-    const handleConfirm = async () => {
+    const handleConfirm = async (format = 'pdf') => {
         setLoading(true);
         setErrors({});
         try {
@@ -134,10 +171,20 @@ export default function CustomizeCertificate({ certificate, student }) {
 
             if (data.success) {
                 // Descargar via ruta del servidor (evita problemas de storage symlink)
-                const downloadRoute = `/acreditaciones/customize/${certificate.id}/download`;
+                let downloadRoute = `/acreditaciones/customize/${certificate.id}/download`;
+                let fileName = `Constancia_${certificate.num_control}.pdf`;
+
+                if (format === 'word') {
+                    downloadRoute = `/acreditaciones/customize/${certificate.id}/download-word`;
+                    fileName = `Constancia_${certificate.num_control}.docx`;
+                } else if (format === 'word-all') {
+                    downloadRoute = `/acreditaciones/customize/${certificate.id}/download-word-all`;
+                    fileName = `Constancias_Muestra_${certificate.num_control}.zip`;
+                }
+
                 const link = document.createElement("a");
                 link.href = downloadRoute;
-                link.download = `Constancia_${certificate.num_control}.pdf`;
+                link.download = fileName;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -535,99 +582,53 @@ export default function CustomizeCertificate({ certificate, student }) {
                                     <ArrowLeft size={16} />
                                     Cancelar
                                 </a>
-                                <button
-                                    onClick={handleConfirm}
-                                    disabled={loading}
-                                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white bg-blueTec hover:bg-blueTec/90 active:bg-blueTec/95 transition-all shadow-md shadow-blueTec/10 disabled:opacity-60 disabled:cursor-not-allowed"
-                                >
-                                    <Save size={16} />
-                                    {loading
-                                        ? "Guardando..."
-                                        : "Confirmar y Acreditar"}
-                                </button>
+                                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                                    <button
+                                        onClick={() => handleConfirm('pdf')}
+                                        disabled={loading}
+                                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white bg-blueTec hover:bg-blueTec/90 active:bg-blueTec/95 transition-all shadow-md shadow-blueTec/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >
+                                        <Save size={16} />
+                                        {loading ? "Guardando..." : "Descargar PDF"}
+                                    </button>
+                                    <button
+                                        onClick={() => handleConfirm('word')}
+                                        disabled={loading}
+                                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transition-all shadow-md shadow-indigo-600/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >
+                                        <FileText size={16} />
+                                        {loading ? "Guardando..." : "Descargar Word"}
+                                    </button>
+                                    <button
+                                        onClick={() => handleConfirm('word-all')}
+                                        disabled={loading}
+                                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 border border-indigo-200 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                                        title="Descarga un archivo ZIP con los 4 tipos de constancias en Word para probar los textos"
+                                    >
+                                        <FileText size={16} />
+                                        Descargar las 4 en Word (ZIP)
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         {/* PREVIEW */}
                         <div className="lg:sticky lg:top-8">
                             <h3 className="text-xl font-bold text-gray-900 mb-6">
-                                Vista Previa
+                                Vista Previa del Documento
                             </h3>
-                            <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-blueTec/10">
-                                <div className="bg-gradient-to-r from-blueTec via-blueTec/95 to-orangeTec p-8 text-white relative">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
-                                    <div className="bg-white/20 p-2.5 rounded-2xl w-fit mb-4 border border-white/20">
-                                        <CheckCircle
-                                            size={28}
-                                            className="text-white"
-                                            strokeWidth={2}
-                                        />
+                            <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-blueTec/10 h-[800px] relative">
+                                {previewHtml ? (
+                                    <iframe 
+                                        srcDoc={previewHtml}
+                                        className="w-full h-full border-0"
+                                        title="Vista Previa Constancia"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                                        <div className="text-gray-400 font-medium animate-pulse">Cargando vista previa...</div>
                                     </div>
-                                    <div className="text-xs uppercase tracking-widest text-white/90 font-bold mb-1">
-                                        Constancia de Acreditación
-                                    </div>
-                                    <div className="text-2xl font-black tracking-tight drop-shadow-sm">
-                                        {formData.student_name}
-                                    </div>
-                                </div>
-                                <div className="p-8 space-y-4">
-                                    <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-                                        <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                                            Carrera
-                                        </span>
-                                        <span className="text-sm font-semibold text-gray-800 text-right max-w-[70%] truncate">
-                                            {formData.carrera}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-                                        <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                                            Puntaje
-                                        </span>
-                                        <span className="text-xl font-bold text-blueTec font-playfair">
-                                            {formData.promedio}
-                                        </span>
-                                    </div>
-                                    {formData.nivel && (
-                                        <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-                                            <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                                                Nivel MCER
-                                            </span>
-                                            <span className="text-xl font-bold text-orangeTec font-playfair">
-                                                {formData.nivel}
-                                            </span>
-                                        </div>
-                                    )}
-                                    <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-                                        <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                                            Pronombre
-                                        </span>
-                                        <span className="text-sm font-semibold text-gray-700 capitalize">
-                                            {
-                                                pronounOptions.find(
-                                                    (p) =>
-                                                        p.value ===
-                                                        formData.pronombre,
-                                                )?.label
-                                            }
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-start border-b border-gray-100 pb-3">
-                                        <span className="text-xs font-bold uppercase tracking-wider text-gray-400 shrink-0">
-                                            Vigencia
-                                        </span>
-                                        <span className="text-xs font-semibold text-gray-700 text-right max-w-[65%]">
-                                            {selectedStudentType?.vigencia}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                                            Estado
-                                        </span>
-                                        <span className="text-sm font-extrabold text-orangeTec bg-orangeTec/10 px-3 py-1 rounded-full border border-orangeTec/10">
-                                            Confirmado
-                                        </span>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>

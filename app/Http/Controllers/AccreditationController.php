@@ -24,6 +24,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Actions\BuildCertificateDataAction;
 use App\Actions\GenerateCertificatePdfAction;
+use App\Actions\GenerateCertificateWordAction;
+use PhpOffice\PhpWord\IOFactory;
 
 /**
  * Controlador para la Gestión y Flujo de Acreditación de Alumnos.
@@ -287,6 +289,80 @@ class AccreditationController extends Controller
     }
 
     /**
+     * Devuelve la vista HTML de la constancia para previsualización en vivo.
+     */
+    public function previewLive(Request $request, CertificateRecord $certificate, GenerateCertificatePdfAction $pdfAction)
+    {
+        Gate::authorize('preview', CertificateRecord::class);
+
+        $validated = $request->validate([
+            'student_name' => 'required|string|max:255',
+            'carrera'      => 'required|string|max:255',
+            'promedio'     => 'nullable|numeric',
+            'nivel'        => 'nullable|string|max:10',
+            'constancy_number' => 'nullable|string|max:10',
+            'pronombre'    => 'required|in:el,la,elle',
+            'student_type' => 'required|in:egresado,actual',
+            'signer_one_name' => 'required|string|max:255',
+            'signer_one_title' => 'required|string|max:255',
+            'signer_two_name' => 'required|string|max:255',
+            'signer_two_title' => 'required|string|max:255',
+        ]);
+
+        $promedioLetra = $pdfAction->numeroALetras((int) $validated['promedio']);
+        $anioLetra = $pdfAction->anioALetras((int) date('Y'));
+        
+        $validationCode = $certificate->validation_code;
+
+        $qrImage   = 'data:image/svg+xml;base64,' . base64_encode(
+            QrCode::format('svg')->size(120)
+                ->margin(1)
+                ->generate(route('certificates.verify', $validationCode))
+        );
+
+        $estatusMap = $validated['student_type'] === 'egresado' 
+            ? ['la' => 'la egresada', 'elle' => 'al C.', 'el' => 'el egresado']
+            : ['la' => 'la estudiante', 'elle' => 'al C.', 'el' => 'el estudiante'];
+        $estatus = $estatusMap[$validated['pronombre']] ?? 'el C.';
+
+        $viewMap = [
+            'cursos'             => 'certificates.cursos',
+            'cuatro-habilidades' => 'certificates.cuatro-habilidades',
+            'examen-acreditacion' => 'certificates.examen-acreditacion',
+            'otra-institucion'   => 'certificates.otra-institucion',
+        ];
+
+        $view = $viewMap[$certificate->certificate_type] ?? 'certificates.examen-acreditacion';
+
+        $pdfData = [
+            'estatus'        => $estatus,
+            'nombre'         => mb_strtoupper($validated['student_name'], 'UTF-8'),
+            'numero_control' => $certificate->num_control,
+            'carrera'        => mb_strtoupper($validated['carrera'], 'UTF-8'),
+            'plan_estudios'  => mb_strtoupper($certificate->plan_estudios ?? $validated['carrera'], 'UTF-8'),
+            'promedio'       => $validated['promedio'],
+            'promedio_letra' => $promedioLetra,
+            'periodo'        => $certificate->periodo,
+            'nivel'          => $validated['nivel'],
+            'nota'           => '2 años',
+            'student_type'   => $validated['student_type'],
+            'no_oficio'      => str_pad($certificate->no_oficio, 3, '0', STR_PAD_LEFT),
+            'qr_image'       => null, // Ocultar en vista previa
+            'is_pdf'         => false, // Para mostrar los separadores HTML si los hay
+            'validation_code' => null, // Ocultar en vista previa
+            'verify_url'     => route('certificates.verify', $validationCode),
+            'anio_letra'     => $anioLetra,
+            'pronombre'        => $validated['pronombre'],
+            'signer_one_name'  => $validated['signer_one_name'],
+            'signer_one_title' => $validated['signer_one_title'],
+            'signer_two_name'  => $validated['signer_two_name'],
+            'signer_two_title' => $validated['signer_two_title'],
+        ];
+
+        return view($view, $pdfData);
+    }
+
+    /**
      * Descarga el PDF final con los datos confirmados.
      */
     public function downloadCertificate(CertificateRecord $certificate, GenerateCertificatePdfAction $pdfAction)
@@ -307,5 +383,68 @@ class AccreditationController extends Controller
         $certificate->update(['status' => 'issued']);
 
         return $pdf->download('Constancia_' . $certificate->num_control . '.pdf');
+    }
+
+    /**
+     * Descarga el Word final con los datos confirmados.
+     */
+    public function downloadWordCertificate(CertificateRecord $certificate, GenerateCertificateWordAction $wordAction)
+    {
+        Gate::authorize('download', $certificate);
+
+        $phpWord = $wordAction->execute($certificate);
+
+        $fileName = 'Constancia_' . $certificate->num_control . '_' . now()->timestamp . '.docx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord');
+        $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
+        $objWriter->save($tempFile);
+
+        Storage::disk('public')->put('certificates/' . $fileName, file_get_contents($tempFile));
+
+        // Marcar constancias emitidas previas del mismo estudiante como reemplazadas
+        CertificateRecord::where('student_id', $certificate->student_id)
+            ->where('id', '!=', $certificate->id)
+            ->where('status', 'issued')
+            ->update(['status' => 'superseded']);
+
+        $certificate->update(['status' => 'issued']);
+
+        return response()->download($tempFile, 'Constancia_' . $certificate->num_control . '.docx')->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Descarga un archivo ZIP con los 4 tipos de constancias en formato Word para prueba.
+     */
+    public function downloadWordAllTypes(CertificateRecord $certificate, GenerateCertificateWordAction $wordAction)
+    {
+        Gate::authorize('download', $certificate);
+
+        $types = ['cursos', 'cuatro-habilidades', 'examen-acreditacion', 'otra-institucion'];
+        $zip = new \ZipArchive();
+        $zipFileName = 'Constancias_Muestra_' . $certificate->num_control . '_' . now()->timestamp . '.zip';
+        $zipPath = sys_get_temp_dir() . '/' . $zipFileName;
+
+        if ($zip->open($zipPath, \ZipArchive::CREATE) === TRUE) {
+            $tempFiles = [];
+            foreach ($types as $type) {
+                $certificate->certificate_type = $type;
+                $phpWord = $wordAction->execute($certificate);
+                
+                $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord_' . $type);
+                $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
+                $objWriter->save($tempFile);
+                
+                $zip->addFile($tempFile, "Constancia_{$type}.docx");
+                $tempFiles[] = $tempFile;
+            }
+            $zip->close();
+            
+            // Clean up temp files
+            foreach ($tempFiles as $tf) {
+                @unlink($tf);
+            }
+        }
+
+        return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
     }
 }

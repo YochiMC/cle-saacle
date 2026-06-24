@@ -114,7 +114,7 @@ class BuildCertificateDataAction
         } else {
             $consecutive = CertificateRecord::whereYear('issued_at', $year)->count() + 1;
         }
-        $noOficio = str_pad($consecutive, 4, '0', STR_PAD_LEFT);
+        $noOficio = str_pad($consecutive, 3, '0', STR_PAD_LEFT);
 
         return [
             'certificate_type' => $certType,

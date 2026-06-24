@@ -1,8 +1,8 @@
 {
     "noto sans": {
-        "normal": "C:\\Users\\Victor\\Documents\\CLE_SISTEMA\\Chido\\cle-saacle\\storage\\fonts\/noto_sans_normal_0fb575942bf04be372407c203f9eee30",
-        "bold": "noto_sans_bold_0b87810f61ca78acb70c41195f78acd6",
-        "italic": "C:\\Users\\Victor\\Documents\\CLE_SISTEMA\\Chido\\cle-saacle\\storage\\fonts\/noto_sans_italic_54816eb8e4e2988d2966c42de21fc0b3",
-        "bold_italic": "C:\\Users\\Victor\\Documents\\CLE_SISTEMA\\Chido\\cle-saacle\\storage\\fonts\/noto_sans_bold_italic_fbfb5fde901db975259b67fba758bd8a"
+        "normal": "noto_sans_normal_0f8c3ab2efa0ef877955ab4d45b0394c",
+        "bold": "noto_sans_bold_fc51fa1017918f5902105334bf5d2acb",
+        "italic": "noto_sans_italic_54816eb8e4e2988d2966c42de21fc0b3",
+        "bold_italic": "noto_sans_bold_italic_fbfb5fde901db975259b67fba758bd8a"
     }
 }
