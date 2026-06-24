@@ -167,16 +167,8 @@ export default function CustomizeCertificate({ certificate, student }) {
             }
 
             if (data.success) {
-                const link = document.createElement("a");
-                link.href = `/acreditaciones/customize/${certificate.id}/download`;
-                link.download = `Constancia_${certificate.num_control}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                setTimeout(() => {
-                    window.location.href = "/acreditaciones";
-                }, 1500);
+                window.location.href = `/acreditaciones/customize/${certificate.id}/download`;
+                setTimeout(() => setLoading(false), 2000);
             } else {
                 setErrors({
                     general:

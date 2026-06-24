@@ -7,7 +7,7 @@
     <title>Constancia de Inglés</title>
     <style>
     @page {
-        margin: 2;
+        margin: 0;
     }
 
     * {

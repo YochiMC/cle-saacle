@@ -296,7 +296,8 @@ class AccreditationController extends Controller
 
         $certificate->update(['status' => 'issued']);
 
-        return $pdf->download('Constancia_' . $certificate->num_control . '.pdf');
+        $path = Storage::disk('public')->path('certificates/' . $fileName);
+        return response()->download($path, 'Constancia_' . $certificate->num_control . '.pdf');
     }
 
     /**
