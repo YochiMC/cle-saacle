@@ -15,25 +15,32 @@ use Illuminate\Support\Str;
  */
 class GenerateCertificatePdfAction
 {
+    public const VIEW_MAP = [
+        'cursos'             => 'certificates.cursos',
+        'cuatro-habilidades' => 'certificates.cuatro-habilidades',
+        'examen-acreditacion' => 'certificates.examen-acreditacion',
+        'otra-institucion'   => 'certificates.otra-institucion',
+    ];
+
     /**
      * Genera la instancia de PDF a partir de un registro de constancia.
-     *
-     * @param CertificateRecord $certificate
-     * @return DomPdfInstance
      */
     public function execute(CertificateRecord $certificate): DomPdfInstance
     {
+        $data = $this->buildViewData($certificate);
+        $view = self::VIEW_MAP[$certificate->certificate_type] ?? 'certificates.examen-acreditacion';
+
+        return Pdf::loadView($view, $data)->setPaper('letter', 'portrait');
+    }
+
+    /**
+     * Construye el array de datos para la vista de la constancia.
+     * Reutilizable por previewLive() y generateCertificateWordAction.
+     */
+    public function buildViewData(CertificateRecord $certificate): array
+    {
         $student = $certificate->student;
         $student->loadMissing(['degree', 'level']);
-
-        $viewMap = [
-            'cursos'             => 'certificates.cursos',
-            'cuatro-habilidades' => 'certificates.cuatro-habilidades',
-            'examen-acreditacion' => 'certificates.examen-acreditacion',
-            'otra-institucion'   => 'certificates.otra-institucion',
-        ];
-
-        $view = $viewMap[$certificate->certificate_type] ?? 'certificates.examen-acreditacion';
 
         $studentName = $certificate->student_name;
         $carrera = $certificate->carrera;
@@ -59,7 +66,7 @@ class GenerateCertificatePdfAction
 
         $verifyUrl = route('certificates.verify', $certificate->validation_code);
 
-        return Pdf::loadView($view, [
+        return [
             'estatus'          => $estatus,
             'nombre'           => mb_strtoupper($studentName, 'UTF-8'),
             'numero_control'   => $certificate->num_control,
@@ -69,7 +76,6 @@ class GenerateCertificatePdfAction
             'promedio_letra'   => $this->numeroALetras((int) $promedio),
             'periodo'          => $certificate->periodo,
             'nivel'            => $nivel,
-            'nota'             => '2 años',
             'student_type'     => $studentType,
             'no_oficio'        => str_pad($certificate->no_oficio, 3, '0', STR_PAD_LEFT),
             'qr_image'         => 'data:image/svg+xml;base64,' . base64_encode(
@@ -87,7 +93,7 @@ class GenerateCertificatePdfAction
             'signer_one_title' => $certificate->signer_one_title,
             'signer_two_name'  => $certificate->signer_two_name,
             'signer_two_title' => $certificate->signer_two_title,
-        ])->setPaper('letter', 'portrait');
+        ];
     }
 
     /**
@@ -103,41 +109,49 @@ class GenerateCertificatePdfAction
             return mb_strtoupper($formatter->format($numero), 'UTF-8');
         }
 
-        $numeros = [
-            70 => 'SETENTA',
-            71 => 'SETENTA Y UNO',
-            72 => 'SETENTA Y DOS',
-            73 => 'SETENTA Y TRES',
-            74 => 'SETENTA Y CUATRO',
-            75 => 'SETENTA Y CINCO',
-            76 => 'SETENTA Y SEIS',
-            77 => 'SETENTA Y SIETE',
-            78 => 'SETENTA Y OCHO',
-            79 => 'SETENTA Y NUEVE',
-            80 => 'OCHENTA',
-            81 => 'OCHENTA Y UNO',
-            82 => 'OCHENTA Y DOS',
-            83 => 'OCHENTA Y TRES',
-            84 => 'OCHENTA Y CUATRO',
-            85 => 'OCHENTA Y CINCO',
-            86 => 'OCHENTA Y SEIS',
-            87 => 'OCHENTA Y SIETE',
-            88 => 'OCHENTA Y OCHO',
-            89 => 'OCHENTA Y NUEVE',
-            90 => 'NOVENTA',
-            91 => 'NOVENTA Y UNO',
-            92 => 'NOVENTA Y DOS',
-            93 => 'NOVENTA Y TRES',
-            94 => 'NOVENTA Y CUATRO',
-            95 => 'NOVENTA Y CINCO',
-            96 => 'NOVENTA Y SEIS',
-            97 => 'NOVENTA Y SIETE',
-            98 => 'NOVENTA Y OCHO',
-            99 => 'NOVENTA Y NUEVE',
-            100 => 'CIEN',
+        return mb_strtoupper($this->numeroALetrasFallback($numero), 'UTF-8');
+    }
+
+    /**
+     * Convierte un entero del 0 al 100 a letras en español (fallback sin extensión intl).
+     */
+    private function numeroALetrasFallback(int $numero): string
+    {
+        if ($numero === 0) return 'cero';
+        if ($numero === 100) return 'cien';
+
+        $unidades = [
+            1 => 'uno', 2 => 'dos', 3 => 'tres', 4 => 'cuatro',
+            5 => 'cinco', 6 => 'seis', 7 => 'siete', 8 => 'ocho', 9 => 'nueve',
         ];
 
-        return $numeros[$numero] ?? 'CIEN';
+        $especiales = [
+            10 => 'diez', 11 => 'once', 12 => 'doce', 13 => 'trece',
+            14 => 'catorce', 15 => 'quince', 16 => 'dieciséis',
+            17 => 'diecisiete', 18 => 'dieciocho', 19 => 'diecinueve',
+        ];
+
+        $decenasMap = [
+            2 => 'veinte', 3 => 'treinta', 4 => 'cuarenta', 5 => 'cincuenta',
+            6 => 'sesenta', 7 => 'setenta', 8 => 'ochenta', 9 => 'noventa',
+        ];
+
+        if (isset($especiales[$numero])) {
+            return $especiales[$numero];
+        }
+
+        if ($numero < 10) {
+            return $unidades[$numero];
+        }
+
+        $dec = intdiv($numero, 10);
+        $uni = $numero % 10;
+
+        if ($uni === 0) {
+            return $decenasMap[$dec];
+        }
+
+        return $decenasMap[$dec] . ' y ' . $unidades[$uni];
     }
 
     /**

@@ -17,8 +17,8 @@
     }
 
     body {
-        /* Se usa Helvetica/Arial como fuente sans-serif segura para DOMPDF */
-        font-family: Helvetica, Arial, sans-serif;
+        /* Se usa Noto Sans como fuente principal (registrada en DomPDF via storage/fonts/) */
+        font-family: 'Noto Sans', sans-serif;
         font-size: 12.5px;
         color: #000;
         /* 
@@ -343,7 +343,7 @@
 
     <div class="body-text">
         @if(isset($student_type) && $student_type === 'actual')
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;La presente constancia tendrá una vigencia de <b>dos años contados apartir de la fecha de emisión.</b>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de emisión.</b>
         @else
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de egreso del
             estudiante.</b>

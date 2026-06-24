@@ -31,6 +31,7 @@ class CertificateRecord extends Model
         'signer_two_title',
         'status',
         'student_type',  // egresado | actual
+        'constancy_number',
     ];
 
     protected $casts = [

@@ -17,11 +17,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Barryvdh\DomPDF\Facade\Pdf;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Actions\BuildCertificateDataAction;
 use App\Actions\GenerateCertificatePdfAction;
 use App\Actions\GenerateCertificateWordAction;
@@ -168,67 +166,6 @@ class AccreditationController extends Controller
     }
 
     /**
-     * Devuelve la vista HTML de la constancia para previsualización sin crear registros.
-     */
-    public function previewCertificate(Student $student, BuildCertificateDataAction $buildData, GenerateCertificatePdfAction $pdfAction)
-    {
-        Gate::authorize('preview', CertificateRecord::class);
-
-        if ($student->status !== StudentStatus::ACCREDITED) {
-            abort(403, 'El alumno no está acreditado.');
-        }
-
-        $data = $buildData->execute($student);
-
-        $promedioLetra = $pdfAction->numeroALetras((int) $data['promedio']);
-        $anioLetra = $pdfAction->anioALetras((int) date('Y'));
-
-        // Código de validación temporal (no se guarda en BD)
-        $validationCode = Str::uuid()->toString();
-
-        $qrImage   = 'data:image/svg+xml;base64,' . base64_encode(
-            QrCode::format('svg')->size(120)
-                ->margin(1)
-                ->generate(route('certificates.verify', $validationCode))
-        );
-
-        $isFemale = (Str::lower($student->gender ?? '') === 'f' || Str::lower($student->gender ?? '') === 'femenino');
-        $estatus = $isFemale ? 'la egresada' : 'el egresado';
-
-        $viewMap = [
-            'cursos'             => 'certificates.cursos',
-            'cuatro-habilidades' => 'certificates.cuatro-habilidades',
-            'examen-acreditacion' => 'certificates.examen-acreditacion',
-            'otra-institucion'   => 'certificates.otra-institucion',
-        ];
-
-        $view = $viewMap[$data['certificate_type']] ?? 'certificates.examen-acreditacion';
-
-        $pdfData = [
-            'estatus'        => $estatus,
-            'nombre'         => mb_strtoupper($student->full_name, 'UTF-8'),
-            'numero_control' => $student->num_control,
-            'carrera'        => mb_strtoupper($student->degree->name ?? '', 'UTF-8'),
-            'plan_estudios'  => mb_strtoupper($student->degree->study_plan ?? $student->degree->name ?? '', 'UTF-8'),
-            'promedio'       => $data['promedio'],
-            'promedio_letra' => $promedioLetra,
-            'periodo'        => $data['periodo'],
-            'nivel'          => $data['nivel'],
-            'nota'           => '2 años',
-            'student_type'   => 'egresado',
-            'no_oficio'      => $data['no_oficio'],
-            'qr_image'       => $qrImage,
-            'is_pdf'         => true,
-            'validation_code' => $validationCode,
-            'verify_url'     => route('certificates.verify', $validationCode),
-            'anio_letra'     => $anioLetra,
-        ];
-
-        // Renderizar la vista HTML de la constancia para previsualización (sin crear registro)
-        return view($view, $pdfData);
-    }
-
-    /**
      * Muestra la vista de personalización de una constancia.
      */
     public function customizeCertificate(CertificateRecord $certificate)
@@ -290,6 +227,7 @@ class AccreditationController extends Controller
 
     /**
      * Devuelve la vista HTML de la constancia para previsualización en vivo.
+     * Reutiliza buildViewData() del Action para garantizar consistencia con el PDF final.
      */
     public function previewLive(Request $request, CertificateRecord $certificate, GenerateCertificatePdfAction $pdfAction)
     {
@@ -309,57 +247,37 @@ class AccreditationController extends Controller
             'signer_two_title' => 'required|string|max:255',
         ]);
 
-        $promedioLetra = $pdfAction->numeroALetras((int) $validated['promedio']);
-        $anioLetra = $pdfAction->anioALetras((int) date('Y'));
-        
-        $validationCode = $certificate->validation_code;
+        // Obtener datos base desde el Action (misma fuente que el PDF)
+        $data = $pdfAction->buildViewData($certificate);
 
-        $qrImage   = 'data:image/svg+xml;base64,' . base64_encode(
-            QrCode::format('svg')->size(120)
-                ->margin(1)
-                ->generate(route('certificates.verify', $validationCode))
-        );
+        // Sobreescribir con los valores editados por el usuario
+        $data['nombre']         = mb_strtoupper($validated['student_name'], 'UTF-8');
+        $data['carrera']        = mb_strtoupper($validated['carrera'], 'UTF-8');
+        $data['plan_estudios']  = mb_strtoupper($certificate->plan_estudios ?? $validated['carrera'], 'UTF-8');
+        $data['promedio']       = $validated['promedio'];
+        $data['promedio_letra'] = $pdfAction->numeroALetras((int) $validated['promedio']);
+        $data['nivel']          = $validated['nivel'];
+        $data['student_type']   = $validated['student_type'];
+        $data['pronombre']      = $validated['pronombre'];
+        $data['signer_one_name']  = $validated['signer_one_name'];
+        $data['signer_one_title'] = $validated['signer_one_title'];
+        $data['signer_two_name']  = $validated['signer_two_name'];
+        $data['signer_two_title'] = $validated['signer_two_title'];
 
-        $estatusMap = $validated['student_type'] === 'egresado' 
+        // Configuración específica del preview
+        $data['qr_image']        = null;
+        $data['is_pdf']          = false;
+        $data['validation_code'] = null;
+
+        // Recalcular estatus con los valores del formulario
+        $estatusMap = $validated['student_type'] === 'egresado'
             ? ['la' => 'la egresada', 'elle' => 'al C.', 'el' => 'el egresado']
             : ['la' => 'la estudiante', 'elle' => 'al C.', 'el' => 'el estudiante'];
-        $estatus = $estatusMap[$validated['pronombre']] ?? 'el C.';
+        $data['estatus'] = $estatusMap[$validated['pronombre']] ?? 'el C.';
 
-        $viewMap = [
-            'cursos'             => 'certificates.cursos',
-            'cuatro-habilidades' => 'certificates.cuatro-habilidades',
-            'examen-acreditacion' => 'certificates.examen-acreditacion',
-            'otra-institucion'   => 'certificates.otra-institucion',
-        ];
+        $view = GenerateCertificatePdfAction::VIEW_MAP[$certificate->certificate_type] ?? 'certificates.examen-acreditacion';
 
-        $view = $viewMap[$certificate->certificate_type] ?? 'certificates.examen-acreditacion';
-
-        $pdfData = [
-            'estatus'        => $estatus,
-            'nombre'         => mb_strtoupper($validated['student_name'], 'UTF-8'),
-            'numero_control' => $certificate->num_control,
-            'carrera'        => mb_strtoupper($validated['carrera'], 'UTF-8'),
-            'plan_estudios'  => mb_strtoupper($certificate->plan_estudios ?? $validated['carrera'], 'UTF-8'),
-            'promedio'       => $validated['promedio'],
-            'promedio_letra' => $promedioLetra,
-            'periodo'        => $certificate->periodo,
-            'nivel'          => $validated['nivel'],
-            'nota'           => '2 años',
-            'student_type'   => $validated['student_type'],
-            'no_oficio'      => str_pad($certificate->no_oficio, 3, '0', STR_PAD_LEFT),
-            'qr_image'       => null, // Ocultar en vista previa
-            'is_pdf'         => false, // Para mostrar los separadores HTML si los hay
-            'validation_code' => null, // Ocultar en vista previa
-            'verify_url'     => route('certificates.verify', $validationCode),
-            'anio_letra'     => $anioLetra,
-            'pronombre'        => $validated['pronombre'],
-            'signer_one_name'  => $validated['signer_one_name'],
-            'signer_one_title' => $validated['signer_one_title'],
-            'signer_two_name'  => $validated['signer_two_name'],
-            'signer_two_title' => $validated['signer_two_title'],
-        ];
-
-        return view($view, $pdfData);
+        return view($view, $data);
     }
 
     /**
@@ -374,11 +292,7 @@ class AccreditationController extends Controller
         $fileName = 'Constancia_' . $certificate->num_control . '_' . now()->timestamp . '.pdf';
         Storage::disk('public')->put('certificates/' . $fileName, $pdf->output());
 
-        // Marcar constancias emitidas previas del mismo estudiante como reemplazadas
-        CertificateRecord::where('student_id', $certificate->student_id)
-            ->where('id', '!=', $certificate->id)
-            ->where('status', 'issued')
-            ->update(['status' => 'superseded']);
+        $this->markPreviousCertificatesAsSuperseded($certificate);
 
         $certificate->update(['status' => 'issued']);
 
@@ -401,11 +315,7 @@ class AccreditationController extends Controller
 
         Storage::disk('public')->put('certificates/' . $fileName, file_get_contents($tempFile));
 
-        // Marcar constancias emitidas previas del mismo estudiante como reemplazadas
-        CertificateRecord::where('student_id', $certificate->student_id)
-            ->where('id', '!=', $certificate->id)
-            ->where('status', 'issued')
-            ->update(['status' => 'superseded']);
+        $this->markPreviousCertificatesAsSuperseded($certificate);
 
         $certificate->update(['status' => 'issued']);
 
@@ -446,5 +356,16 @@ class AccreditationController extends Controller
         }
 
         return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Marca las constancias emitidas previas del mismo estudiante como reemplazadas.
+     */
+    private function markPreviousCertificatesAsSuperseded(CertificateRecord $certificate): void
+    {
+        CertificateRecord::where('student_id', $certificate->student_id)
+            ->where('id', '!=', $certificate->id)
+            ->where('status', 'issued')
+            ->update(['status' => 'superseded']);
     }
 }

@@ -98,38 +98,19 @@ export default function Kardex({
                         String(studentStatus).toLowerCase() ===
                             "accredited" && (
                             <div className="px-6 py-4 flex justify-end items-center gap-2">
-                                <a
-                                    href={route(
-                                        "accreditations.preview",
-                                        studentId,
-                                    )}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <ThemeButton
-                                        theme="institutional"
-                                        icon={Download}
-                                        className="bg-blueTec hover:bg-blueTec/90"
-                                    >
-                                        Previsualizar Constancia
-                                    </ThemeButton>
-                                </a>
-
                                 {canDownloadCertificate && (
                                     <a
                                         href={route(
                                             "accreditations.certificate",
                                             studentId,
                                         )}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
                                     >
                                         <ThemeButton
                                             theme="success"
                                             icon={Download}
                                             className="bg-orangeTec hover:bg-orangeTec/90"
                                         >
-                                            Descargar Constancia
+                                            Personalizar Constancia
                                         </ThemeButton>
                                     </a>
                                 )}

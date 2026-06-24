@@ -133,7 +133,7 @@ class GenerateCertificateWordAction
         // Párrafo 5
         $textRun5 = $section->addTextRun($bodyParStyle);
         $vigenciaTexto = $studentType === 'actual' 
-            ? 'dos años contados apartir de la fecha de emisión.' 
+            ? 'dos años contados a partir de la fecha de emisión.' 
             : 'dos años contados a partir de la fecha de egreso del estudiante.';
         $textRun5->addText('La presente constancia tendrá una vigencia de ', $bodyFontStyle);
         $textRun5->addText($vigenciaTexto, ['bold' => true, 'size' => 9]);
@@ -146,7 +146,7 @@ class GenerateCertificateWordAction
 
         // ── ATENTAMENTE, VOBO, QR Y FIRMAS ───────────────────────────────────
         $verifyUrl = route('certificates.verify', $certificate->validation_code);
-        $qrCodeData = @file_get_contents('https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($verifyUrl));
+        $qrTempPath = null;
 
         $sigTable = $section->addTable('HeaderTable');
         
@@ -157,17 +157,21 @@ class GenerateCertificateWordAction
         $atentamenteCell->addText('A T E N T A M E N T E', ['bold' => true, 'size' => 10, 'spacing' => 2], ['spaceAfter' => 0]);
         $atentamenteCell->addText('Excelencia en Educación Tecnológica®', ['italic' => true, 'bold' => true, 'size' => 8], ['spaceAfter' => 0]);
         $atentamenteCell->addText('Ciencia, Tecnología y Libertad.', ['italic' => true, 'bold' => true, 'size' => 8], ['spaceAfter' => 0]);
-        $atentamenteCell->addTextBreak(2); // Espacio entre atentamente y las firmas
+        $atentamenteCell->addTextBreak(2);
 
         $qrCell = $sigTable->addCell(5000, ['valign' => 'bottom']);
-        
-        if ($qrCodeData !== false && strlen($qrCodeData) > 0) {
+
+        try {
+            $qrPng = QrCode::format('png')->size(150)->margin(1)->generate($verifyUrl);
             $qrTempPath = tempnam(sys_get_temp_dir(), 'qr_') . '.png';
-            file_put_contents($qrTempPath, $qrCodeData);
+            file_put_contents($qrTempPath, $qrPng);
             $qrCell->addImage($qrTempPath, ['width' => 60, 'height' => 60, 'alignment' => Jc::CENTER]);
+        } catch (\Throwable $e) {
+            // Si falla la generación del QR, se omite silenciosamente
         }
+
         $qrCell->addText('Vo.Bo.', ['bold' => true, 'size' => 10], ['alignment' => Jc::CENTER, 'spaceAfter' => 0, 'spaceBefore' => 0]);
-        $qrCell->addTextBreak(1); // Espacio entre QR y nombre de Rocio
+        $qrCell->addTextBreak(1);
 
         $sigTable->addRow();
         
@@ -196,6 +200,11 @@ class GenerateCertificateWordAction
         $cadenaCell = $footerTable->addCell(6000, ['valign' => 'bottom']);
         if (!empty($certificate->validation_code)) {
             $cadenaCell->addText("Cadena Única de Caracteres  |  {$certificate->validation_code}", ['size' => 8], ['alignment' => Jc::RIGHT, 'spaceAfter' => 0]);
+        }
+
+        // ── LIMPIEZA DE ARCHIVOS TEMPORALES ─────────────────────────
+        if ($qrTempPath && file_exists($qrTempPath)) {
+            @unlink($qrTempPath);
         }
 
         return $phpWord;

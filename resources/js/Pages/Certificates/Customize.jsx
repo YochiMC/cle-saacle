@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import { Head } from "@inertiajs/react";
 import {
-    CheckCircle,
     Edit2,
     ArrowLeft,
     Save,
     GraduationCap,
     Clock,
-    FileText,
 } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
@@ -116,7 +114,7 @@ export default function CustomizeCertificate({ certificate, student }) {
         }
     };
 
-    const handleConfirm = async (format = 'pdf') => {
+    const handleConfirm = async () => {
         setLoading(true);
         setErrors({});
         try {
@@ -151,7 +149,6 @@ export default function CustomizeCertificate({ certificate, student }) {
             }
 
             if (!response.ok) {
-                // Si ya fue emitida, descargar directamente sin re-confirmar
                 if (
                     response.status === 403 &&
                     data.error?.includes("ya emitida")
@@ -170,26 +167,13 @@ export default function CustomizeCertificate({ certificate, student }) {
             }
 
             if (data.success) {
-                // Descargar via ruta del servidor (evita problemas de storage symlink)
-                let downloadRoute = `/acreditaciones/customize/${certificate.id}/download`;
-                let fileName = `Constancia_${certificate.num_control}.pdf`;
-
-                if (format === 'word') {
-                    downloadRoute = `/acreditaciones/customize/${certificate.id}/download-word`;
-                    fileName = `Constancia_${certificate.num_control}.docx`;
-                } else if (format === 'word-all') {
-                    downloadRoute = `/acreditaciones/customize/${certificate.id}/download-word-all`;
-                    fileName = `Constancias_Muestra_${certificate.num_control}.zip`;
-                }
-
                 const link = document.createElement("a");
-                link.href = downloadRoute;
-                link.download = fileName;
+                link.href = `/acreditaciones/customize/${certificate.id}/download`;
+                link.download = `Constancia_${certificate.num_control}.pdf`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
 
-                // Redirigir después de 1.5 segundos
                 setTimeout(() => {
                     window.location.href = "/acreditaciones";
                 }, 1500);
@@ -584,29 +568,12 @@ export default function CustomizeCertificate({ certificate, student }) {
                                 </a>
                                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                                     <button
-                                        onClick={() => handleConfirm('pdf')}
+                                        onClick={handleConfirm}
                                         disabled={loading}
                                         className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white bg-blueTec hover:bg-blueTec/90 active:bg-blueTec/95 transition-all shadow-md shadow-blueTec/10 disabled:opacity-60 disabled:cursor-not-allowed"
                                     >
                                         <Save size={16} />
                                         {loading ? "Guardando..." : "Descargar PDF"}
-                                    </button>
-                                    <button
-                                        onClick={() => handleConfirm('word')}
-                                        disabled={loading}
-                                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transition-all shadow-md shadow-indigo-600/10 disabled:opacity-60 disabled:cursor-not-allowed"
-                                    >
-                                        <FileText size={16} />
-                                        {loading ? "Guardando..." : "Descargar Word"}
-                                    </button>
-                                    <button
-                                        onClick={() => handleConfirm('word-all')}
-                                        disabled={loading}
-                                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 border border-indigo-200 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                                        title="Descarga un archivo ZIP con los 4 tipos de constancias en Word para probar los textos"
-                                    >
-                                        <FileText size={16} />
-                                        Descargar las 4 en Word (ZIP)
                                     </button>
                                 </div>
                             </div>

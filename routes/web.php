@@ -117,9 +117,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('/bulk-suspend', [AccreditationController::class, 'bulkSuspend'])->name('accreditations.bulk-suspend');
                 Route::patch('/{student}/status', [AccreditationController::class, 'updateStatus'])->name('accreditations.update-status');
             });
-            Route::get('/{student}/constancia/preview', [AccreditationController::class, 'previewCertificate'])
-                ->middleware('role:admin|coordinator')
-                ->name('accreditations.preview');
 
             Route::get('/{student}/constancia', [AccreditationController::class, 'generateCertificate'])
                 ->middleware('role:admin')

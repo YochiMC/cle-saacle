@@ -51,31 +51,13 @@ const AccreditationActions = ({
 
             {String(item.status).toLowerCase() === "accredited" &&
                 (isAdmin || isCoordinator) && (
-                    <a
-                        href={route("accreditations.preview", item.id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <ThemeButton
-                            theme="institutional"
-                            icon={Eye}
-                            title="Previsualizar Constancia"
-                            className="flex items-center justify-center w-8 h-8 p-0 !px-0 bg-blueTec hover:bg-blueTec/90"
-                        />
-                    </a>
-                )}
-
-            {String(item.status).toLowerCase() === "accredited" &&
-                (isAdmin || isCoordinator) && (
                 <a
                     href={route("accreditations.certificate", item.id)}
-                    target="_blank"
-                    rel="noopener noreferrer"
                 >
                     <ThemeButton
                         theme="success"
                         icon={Download}
-                        title="Descargar Constancia"
+                        title="Personalizar y Descargar Constancia"
                         className="flex items-center justify-center w-8 h-8 p-0 !px-0 bg-orangeTec hover:bg-orangeTec/90"
                     />
                 </a>
