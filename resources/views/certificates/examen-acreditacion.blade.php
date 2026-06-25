@@ -1,7 +1,7 @@
 @extends('certificates.base')
 
 @section('oficio_line')
-Oficio No. CLE-PA-<span class="highlight">{{ $no_oficio }}</span>/{{ date('Y') }}
+Oficio No. CLE-PA-{{ $no_oficio }}</span>/{{ date('Y') }}
 @endsection
 
 @section('body_content')

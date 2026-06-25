@@ -78,6 +78,7 @@ class GenerateCertificatePdfAction
             'nivel'            => $nivel,
             'student_type'     => $studentType,
             'no_oficio'        => str_pad($certificate->no_oficio, 3, '0', STR_PAD_LEFT),
+            'fecha_emision'    => $student->accreditation_date ?? now(),
             'qr_image'         => 'data:image/svg+xml;base64,' . base64_encode(
                 QrCode::format('svg')->size(120)
                     ->margin(1)
@@ -87,7 +88,7 @@ class GenerateCertificatePdfAction
             'validation_code'  => $certificate->validation_code,
             'constancy_number' => $certificate->constancy_number,
             'verify_url'       => $verifyUrl,
-            'anio_letra'       => $this->anioALetras((int) date('Y')),
+            'anio_letra'       => $this->anioALetras((int) ($student->accreditation_date ?? now())->format('Y')),
             'pronombre'        => $pronombre,
             'signer_one_name'  => $certificate->signer_one_name,
             'signer_one_title' => $certificate->signer_one_title,

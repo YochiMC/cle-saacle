@@ -19,14 +19,10 @@
         body {
             /* Se usa Noto Sans como fuente principal (registrada en DomPDF via storage/fonts/) */
             font-family: 'Noto Sans', sans-serif;
-            font-size: 12.5px;
+            font-size: 9pt;
             color: #000;
-            /*
-               MÁRGENES DE LA HOJA: (Arriba, Derecha, Abajo, Izquierda)
-               - Reducido el margen inferior a 3cm para evitar saltos de página con las firmas.
-            */
-            padding: 0.42cm 1.5cm 3cm 2.5cm;
-            line-height: 1.4;
+            padding: 5.5cm 1.6cm 4.9cm 2.5cm;
+            line-height: 1.15;
         }
 
         /* ── CABECERA ─────────────────────────────────────── */
@@ -34,7 +30,7 @@
             width: 100%;
             border-collapse: collapse;
             border: none;
-            /* ¡Aquí eliminamos el borde! */
+            display: none;
         }
 
         .header-table td {
@@ -92,9 +88,6 @@
         /* ── META OFICIO ──────────────────────────────────── */
         .meta-info {
             text-align: right;
-            margin-top: 2.5cm;
-            /* Bajado ligeramente sin exagerar para no romper el salto de página */
-            margin-bottom: 3px;
             line-height: 1.0;
             font-size: 9pt;
         }
@@ -107,8 +100,8 @@
         /* ── CUERPO ───────────────────────────────────────── */
         .saludo {
             font-weight: bold;
-            font-size: 13px;
-            margin-bottom: 10px;
+            font-size: 10pt;
+            margin-bottom: 10pt;
         }
 
         .body-text {
@@ -116,7 +109,7 @@
             margin-bottom: 9.15pt;
             /* Reducido (antes 12px) */
             font-size: 9pt;
-            line-height: 1.15;
+            line-height: 1;
         }
 
         .body-text b {
@@ -144,10 +137,12 @@
         }
 
         /* ── ATENTAMENTE ──────────────────────────────────── */
-        .atentamente {
+        .titulo-atentamente {
             font-weight: bold;
             font-size: 10pt;
-            line-height: 0.9;
+            line-height: 1;
+            margin-bottom: 0;
+            padding-bottom: 0;
         }
 
         .lema {
@@ -155,6 +150,8 @@
             font-weight: bold;
             font-size: 8pt;
             line-height: 0.9;
+            margin-top: 0.5px;
+            padding-top: 0;
         }
 
         .iconito-r {
@@ -168,7 +165,7 @@
         .signatures-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 90px;
+            margin-top: 55px;
             line-height: 0.9;
             /* Mantenemos el interlineado tipo Word */
         }
@@ -213,7 +210,6 @@
 
         .ccp {
             font-size: 8pt;
-            margin-bottom: 4px;
             line-height: 0.9;
         }
 
@@ -263,31 +259,9 @@
 </head>
 
 <body>
-
-    {{-- ── CABECERA CON LOGOS ──────────────────────────────── --}}
-    <table class="header-table">
-        <tr>
-            <td class="logo-sep-tecnm">
-                <div style="padding-top: 50 px;">
-                    <span style="display: inline-block; vertical-align: middle;">
-                        <x-certificate-logo name="logo_sep" class="img-sep" :is-pdf="$is_pdf ?? false" alt="SEP" />
-                    </span>
-                    <span class="golden-separator"></span>
-                    <span style="display: inline-block; vertical-align: middle;">
-                        <x-certificate-logo name="logo_tecnm" class="img-tecnm" :is-pdf="$is_pdf ?? false" alt="TecNM" />
-                    </span>
-                </div>
-            </td>
-            <td class="logo-itl">
-                <x-certificate-logo name="logo_itl" :is-pdf="$is_pdf ?? false" alt="ITL / Membrete" />
-            </td>
-        </tr>
-    </table>
-
-
     {{-- ── META OFICIO ─────────────────────────────────────── --}}
     <div class="meta-info">
-        León, Guanajuato, <span class="highlight">{{ \Carbon\Carbon::now()->format('d') . '/' . strtoupper(\Carbon\Carbon::now()->isoFormat('MMMM')) . '/' . date('Y') }}</span><br>
+        León, Guanajuato, <span class="highlight">{{ $fecha_emision->format('d') . '/' . strtoupper($fecha_emision->isoFormat('MMMM')) . '/' . $fecha_emision->format('Y') }}</span><br>
         @yield('oficio_line')<br>
         Asunto: Constancia de Inglés
     </div>
@@ -321,8 +295,8 @@
             @endif
         </p>
         <p>
-            Se extiende la presente en la ciudad de León Guanajuato, a los {{ \Carbon\Carbon::now()->format('d') }} días del
-            mes de {{ strtolower(\Carbon\Carbon::now()->isoFormat('MMMM')) }} del año {{ strtolower($anio_letra) }}, para
+            Se extiende la presente en la ciudad de León Guanajuato, a los {{ $fecha_emision->format('d') }} días del
+            mes de {{ strtolower($fecha_emision->isoFormat('MMMM')) }} del año {{ strtolower($anio_letra) }}, para
             los fines legales que convengan al interesado.
         </p>
     </div>
@@ -331,19 +305,19 @@
     <table style="width:100%; margin-top:0.5cm; margin-bottom:14px;">
         <tr>
             <td style="vertical-align: top; width:60%;">
-                <div class="atentamente">
-                    A T E N T A M E N T E<br>
-                    <span class="lema">
+                <div>
+                    <div class="titulo-atentamente">A T E N T A M E N T E</div>
+                    <div class="lema">
                         Excelencia en Educación Tecnológica<span class="iconito-r">®</span><br>
                         Ciencia, Tecnología y Libertad.
-                    </span>
+                    </div>
                 </div>
             </td>
             <td style="vertical-align: top; text-align: center; width:40%;">
                 @if(!empty($qr_image))
-                <img src="{{ $qr_image }}" style="width:60px; height:60px; display:block; margin:0 auto;" alt="QR Verificación">
+                <img src="{{ $qr_image }}" style="width:45px; height:45px; display:block; margin:0 auto;" alt="QR Verificación">
                 @endif
-                <div style="font-weight:bold; font-size:14px; margin-top:5px;">Vo.Bo.</div>
+                <div style="font-weight:bold; font-size:10pt; margin-top:2px;">Vo.Bo.</div>
             </td>
         </tr>
     </table>
@@ -365,7 +339,7 @@
     </table>
 
     {{-- ── CCP Y CADENA ÚNICA ──────────────────────────────────────── --}}
-    <table style="width: 100%; margin-top: 28px;">
+    <table style="width: 100%; margin-top: 15px;">
         <tr>
             <td style="vertical-align: bottom;">
                 <div class="ccp" style="text-align: left;">
@@ -386,32 +360,6 @@
             </td>
         </tr>
     </table>
-
-    {{-- ── PIE DE PÁGINA (FIJO) ─────────────────────────────── --}}
-    <div class="footer">
-        <div style="clear:both; margin-top: 6px;"></div>
-
-        {{-- Logos de sellos: ya impresos en el membrete --}}
-        <div style="text-align: right; padding-right: 0px; margin-bottom: 4px; visibility: hidden;">
-            <x-certificate-logo name="logo_seals" :is-pdf="$is_pdf ?? false" alt="" style="max-height: 45px; display: inline-block;" />
-        </div>
-
-        {{-- Logo margarita y dirección: ya impresos en el membrete --}}
-        <table class="footer-bottom-table" style="visibility: hidden;">
-            <tr>
-                <td class="footer-logo-left">
-                    <x-certificate-logo name="logo_margarita" :is-pdf="$is_pdf ?? false" alt="2026" />
-                </td>
-                <td class="footer-address-cell">
-                    <div class="address-container">
-                        Av. Tecnológico s/n, Fraccionamiento Industrial Julián de Obregón<br>
-                        C.P. 37290 León, Gto. Tel. 477 7105200<br>
-                        e-mail: tecleon@leon.tecnm.mx &nbsp;|&nbsp; www.leon.tecnm.mx
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
 
 </body>
 
