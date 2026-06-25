@@ -107,9 +107,9 @@
     .meta-info {
         text-align: right;
         margin-top: 2.5cm; /* Bajado ligeramente sin exagerar para no romper el salto de página */
-        margin-bottom: 15px;
-        line-height: 1.7;
-        font-size: 12.5px;
+        margin-bottom: 3px;
+        line-height: 1.0;
+        font-size: 9pt;
     }
 
     .highlight {
@@ -121,18 +121,37 @@
     .saludo {
         font-weight: bold;
         font-size: 13px;
-        margin-top: 1cm; /* Ajustado para alcanzar ~7cm desde el borde superior */
         margin-bottom: 10px;
     }
 
     .body-text {
         text-align: justify;
-        margin-bottom: 8px;
+        margin-bottom: 8pt;
         /* Reducido (antes 12px) */
-        font-size: 12.5px;
+        font-size: 9pt;
+        line-height: 1.15;
     }
 
     .body-text b {
+        font-weight: bold;
+    }
+
+    /* Contenedor del cuerpo de la carta */
+    .carta-cuerpo {
+        margin-top: 8pt; /* Espacio respecto al texto superior (si lo hay) */
+        width: 100%;
+    }
+
+    /* Estilo directo a los párrafos dentro del contenedor */
+    .carta-cuerpo p {
+        text-align: justify;
+        margin-top: 0; 
+        margin-bottom: 8pt; /* Distancia exacta entre párrafos para replicar la imagen */
+        font-size: 9pt;
+        line-height: 1.15;
+    }
+
+    .carta-cuerpo b {
         font-weight: bold;
     }
 
@@ -140,9 +159,6 @@
     .atentamente {
         font-weight: bold;
         font-size: 10pt;
-        letter-spacing: 2px;
-        margin-top: 0.9cm; /* Distancia solicitada de 0.9cm respecto al texto de arriba */
-        margin-bottom: 2px;
     }
 
     .lema {
@@ -151,13 +167,12 @@
         /* Añadida negrita según el documento */
         font-size: 8pt;
         /* Ajustado a 8 pts según el documento */
-        letter-spacing: 0;
+        line-height: 0.9;
     }
 
     /* ── VOBO ─────────────────────────────────────────── */
     .vobo-row {
         width: 100%;
-        margin-top: 16px;
         margin-bottom: 16px;
     }
 
@@ -171,31 +186,32 @@
     .signatures-table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 25px; /* Reducido para ahorrar espacio vertical */
+        margin-top: 90px;
+        line-height: 0.9; /* Mantenemos el interlineado tipo Word */
     }
 
     .sig-left {
         width: 50%;
-        vertical-align: top;
-        text-align: center;
+        vertical-align: bottom; 
+        text-align: left; /* CORRECCIÓN: Pegado al margen izquierdo */
         font-size: 10pt;
-        /* Ajustado a 10 pts según el documento */
     }
 
     .sig-right {
         width: 50%;
-        vertical-align: top;
-        text-align: center;
+        vertical-align: bottom; 
+        text-align: right; /* CORRECCIÓN: Pegado al margen derecho */
         font-size: 10pt;
-        /* Ajustado a 10 pts según el documento */
     }
 
     .sig-name {
         font-weight: bold;
+        text-transform: uppercase;
     }
 
     .sig-title {
         font-weight: bold;
+        text-transform: uppercase;
     }
 
     /* ── PIE DE PÁGINA ────────────────────────────────── */
@@ -211,7 +227,6 @@
 
     .ccp {
         font-size: 8pt;
-        color: #333;
         margin-bottom: 4px;
     }
 
@@ -220,7 +235,6 @@
         display: inline-block;
         padding: 1px 8px;
         font-size: 8.5px;
-        float: right;
         margin-top: 4px;
     }
 
@@ -264,7 +278,6 @@
 
     /* ── QR ───────────────────────────────────────────── */
     .qr-area {
-        margin-top: 0;
         position: relative;
         top: -10px;
     }
@@ -288,7 +301,6 @@
 
 <body>
 
-    {{-- ── CABECERA CON LOGOS ──────────────────────────────── --}}
     {{-- ── CABECERA CON LOGOS ──────────────────────────────── --}}
     <table class="header-table">
         <tr>
@@ -326,59 +338,49 @@
     @yield('body_content')
 
     {{-- ── PÁRRAFOS COMUNES ─────────────────────────────────── --}}
-    <div class="body-text">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Por lo anterior, se hace constar que {{ strtolower($estatus) }} <b>ACREDITÓ</b>, el requisito de una lengua
-        extranjera para efectos de titulación en una Licenciatura del Tecnológico Nacional de México.
+    <div class="carta-cuerpo">
+        <p>
+            Por lo anterior, se hace constar que {{ strtolower($estatus) }} <b>ACREDITÓ</b>, el requisito de una lengua
+            extranjera para efectos de titulación en una Licenciatura del Tecnológico Nacional de México.
+        </p>
+        <p>
+            La presente se expide con la facultad que otorga el registro: &nbsp;&nbsp;&nbsp;
+            <b>TecNM-SEyV-DVIA-CNLE-ACT-09/24-ITLEÓN-05</b>
+        </p>
+        <p>
+            El cual fue expedido por el TecNM y acredita a la Coordinación de Lenguas Extranjeras (CLE) del Instituto
+            Tecnológico de León como institución formadora y para acreditar el segundo idioma como requisito de titulación.
+        </p>
+        <p>
+            @if(isset($student_type) && $student_type === 'actual')
+                La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de emisión.</b>
+            @else
+                La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de egreso del
+                estudiante.</b>
+            @endif
+        </p>
+        <p>
+            Se extiende la presente en la ciudad de León Guanajuato, a los {{ \Carbon\Carbon::now()->format('d') }} días del
+            mes de {{ strtolower(\Carbon\Carbon::now()->isoFormat('MMMM')) }} del año {{ strtolower($anio_letra) }}, para
+            los fines legales que convengan al interesado.
+        </p>
     </div>
 
-    <div class="body-text">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;La presente se expide con la facultad que otorga el registro: &nbsp;&nbsp;&nbsp;
-        <b>TecNM-SEyV-DVIA-CNLE-ACT-09/24-ITLEÓN-05</b>
-    </div>
-
-    <div class="body-text">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;El cual fue expedido por el TecNM y acredita a la Coordinación de Lenguas Extranjeras (CLE) del Instituto
-        Tecnológico de León como institución formadora y para acreditar el segundo idioma como requisito de titulación.
-    </div>
-
-    <div class="body-text">
-        @if(isset($student_type) && $student_type === 'actual')
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de emisión.</b>
-        @else
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de egreso del
-            estudiante.</b>
-        @endif
-    </div>
-
-    <div class="body-text">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Se extiende la presente en la ciudad de León Guanajuato, a los {{ \Carbon\Carbon::now()->format('d') }} días del
-        mes de {{ strtolower(\Carbon\Carbon::now()->isoFormat('MMMM')) }} del año {{ strtolower($anio_letra) }}, para
-        los fines legales que convengan al interesado.
-    </div>
-
-    {{-- ── ATENTAMENTE ───────────────────────────────────────── --}}
-    <div class="atentamente">
-        A T E N T A M E N T E<br>
-        <div class="lema">Excelencia en Educación Tecnológica®<br>Ciencia, Tecnología y Libertad.</div>
-    </div>
-
-    {{-- ── VOBO Y QR ─────────────────────────────────── --}}
-    <table style="width:100%; margin-top:8px; margin-bottom:14px;">
+    {{-- ── ATENTAMENTE + VOBO/QR ────────────────────────────── --}}
+    <table style="width:100%; margin-top:0.5cm; margin-bottom:14px;">
         <tr>
-            <td>&nbsp;</td>
-            <td style="text-align:right; padding-right:44px; vertical-align: bottom;">
-                <table style="float: right; text-align: center;">
-                    <tr>
-                        <td style="vertical-align: bottom; text-align: center; position: relative; top: -30px;">
-                            @if(!empty($qr_image))
-                            <img src="{{ $qr_image }}" style="width:82px; height:82px; display:block; margin: 0 auto;"
-                                alt="QR Verificación">
-                            @endif
-                            <div style="font-weight:bold; font-size:14px; margin-top: 5px;">Vo.Bo.</div>
-                        </td>
-                    </tr>
-                </table>
-                <div style="clear: both;"></div>
+            <td style="vertical-align: top; width:60%;">
+                <div class="atentamente">
+                    A T E N T A M E N T E<br>
+                    <div class="lema">Excelencia en Educación Tecnológica®<br>Ciencia, Tecnología y Libertad.</div>
+                </div>
+            </td>
+            <td style="vertical-align: top; text-align: center; width:40%;">
+                @if(!empty($qr_image))
+                <img src="{{ $qr_image }}" style="width:60px; height:60px; display:block; margin:0 auto;"
+                    alt="QR Verificación">
+                @endif
+                <div style="font-weight:bold; font-size:14px; margin-top:5px;">Vo.Bo.</div>
             </td>
         </tr>
     </table>
@@ -403,18 +405,18 @@
     <table style="width: 100%; margin-top: 15px;">
         <tr>
             <td style="vertical-align: bottom;">
-                <div class="ccp" style="float: left; text-align: left;">
+                <div class="ccp" style="text-align: left;">
                     ccp. Archivo<br>
                     FDBL/
                 </div>
             </td>
             <td style="vertical-align: bottom; text-align: right;">
                 @if(!empty($validation_code))
-                <span class="cadena-box" style="float: right;">
+                <span class="cadena-box">
                     Cadena Única de Caracteres &nbsp; | &nbsp; {{ $validation_code }}
                 </span>
                 @else
-                <div style="font-size: 8.5px; color: #999; font-weight: bold; float: right;">
+                <div style="font-size: 8.5px; color: #999; font-weight: bold;">
                     [SE GENERARÁ AL EMITIR LA CONSTANCIA]
                 </div>
                 @endif

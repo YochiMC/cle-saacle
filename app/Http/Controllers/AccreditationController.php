@@ -24,6 +24,7 @@ use App\Actions\BuildCertificateDataAction;
 use App\Actions\GenerateCertificatePdfAction;
 use App\Actions\GenerateCertificateWordAction;
 use PhpOffice\PhpWord\IOFactory;
+use Illuminate\Support\Str;
 
 /**
  * Controlador para la Gestión y Flujo de Acreditación de Alumnos.

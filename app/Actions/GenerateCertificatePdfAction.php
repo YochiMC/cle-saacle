@@ -106,10 +106,10 @@ class GenerateCertificatePdfAction
     {
         if (extension_loaded('intl')) {
             $formatter = new \NumberFormatter('es', \NumberFormatter::SPELLOUT);
-            return mb_strtoupper($formatter->format($numero), 'UTF-8');
+            return $formatter->format($numero);
         }
 
-        return mb_strtoupper($this->numeroALetrasFallback($numero), 'UTF-8');
+        return $this->numeroALetrasFallback($numero);
     }
 
     /**
