@@ -6,296 +6,259 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Constancia de Inglés</title>
     <style>
-    @page {
-        margin: 0;
-    }
+        @page {
+            margin: 0;
+        }
 
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    body {
-        /* Se usa Noto Sans como fuente principal (registrada en DomPDF via storage/fonts/) */
-        font-family: 'Noto Sans', sans-serif;
-        font-size: 12.5px;
-        color: #000;
-        /* 
+        body {
+            /* Se usa Noto Sans como fuente principal (registrada en DomPDF via storage/fonts/) */
+            font-family: 'Noto Sans', sans-serif;
+            font-size: 12.5px;
+            color: #000;
+            /*
                MÁRGENES DE LA HOJA: (Arriba, Derecha, Abajo, Izquierda)
                - Reducido el margen inferior a 3cm para evitar saltos de página con las firmas.
             */
-        padding: 0.42cm 1.5cm 3cm 2.5cm;
-        line-height: 1.4;
-    }
+            padding: 0.42cm 1.5cm 3cm 2.5cm;
+            line-height: 1.4;
+        }
 
-    /* ── CABECERA ─────────────────────────────────────── */
-    .header-table {
-        width: 100%;
-        border-collapse: collapse;
-        border: none;
-        /* ¡Aquí eliminamos el borde! */
-    }
+        /* ── CABECERA ─────────────────────────────────────── */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none;
+            /* ¡Aquí eliminamos el borde! */
+        }
 
-    .header-table td {
-        vertical-align: middle;
-        /* Centra los logos verticalmente */
-        padding: 0;
-    }
+        .header-table td {
+            vertical-align: middle;
+            /* Centra los logos verticalmente */
+            padding: 0;
+        }
 
-    .logo-sep-tecnm {
-        text-align: left;
-        width: 60%;
-        white-space: nowrap;
-        padding-top: 10px;
-        /* Membrete: logos ya impresos en la hoja */
-        visibility: hidden;
-    }
+        .logo-sep-tecnm {
+            text-align: left;
+            width: 60%;
+            white-space: nowrap;
+            padding-top: 10px;
+            /* Membrete: logos ya impresos en la hoja */
+            visibility: hidden;
+        }
 
-    .img-sep {
-        height: 60px;
-        width: auto;
-        vertical-align: middle;
-    }
+        .img-sep {
+            height: 60px;
+            width: auto;
+            vertical-align: middle;
+        }
 
-    .img-tecnm {
-        height: 70px;
-        /* Ligeramente más alto para compensar el margen interno de la imagen */
-        width: auto;
-        vertical-align: middle;
-    }
+        .img-tecnm {
+            height: 70px;
+            /* Ligeramente más alto para compensar el margen interno de la imagen */
+            width: auto;
+            vertical-align: middle;
+        }
 
-    .golden-separator {
-        display: inline-block;
-        vertical-align: middle;
-        border-left: 2px solid #cba25d;
-        height: 40px;
-        margin: 0 15px;
-        /* Membrete: separador ya impreso en la hoja */
-        visibility: hidden;
-    }
+        .golden-separator {
+            display: inline-block;
+            vertical-align: middle;
+            border-left: 2px solid #cba25d;
+            height: 40px;
+            margin: 0 15px;
+            /* Membrete: separador ya impreso en la hoja */
+            visibility: hidden;
+        }
 
-    .logo-itl {
-        text-align: right;
-        width: 40%;
-        padding-right: 0;
-        /* Membrete: logo ya impreso en la hoja */
-        visibility: hidden;
-    }
+        .logo-itl {
+            text-align: right;
+            width: 40%;
+            padding-right: 0;
+            /* Membrete: logo ya impreso en la hoja */
+            visibility: hidden;
+        }
 
-    .logo-itl img {
-        height: 70px;
-        /* Reducido para hacer juego con los de la izquierda */
-        width: auto;
-    }
+        .logo-itl img {
+            height: 70px;
+            /* Reducido para hacer juego con los de la izquierda */
+            width: auto;
+        }
 
-    /* ── INFO INSTITUTO ───────────────────────────────── */
-    .institute-info {
-        text-align: right;
-        font-size: 11px;
-        font-weight: bold;
-        margin-top: 6px;
-        line-height: 1.5;
-    }
+        /* ── META OFICIO ──────────────────────────────────── */
+        .meta-info {
+            text-align: right;
+            margin-top: 2.5cm;
+            /* Bajado ligeramente sin exagerar para no romper el salto de página */
+            margin-bottom: 3px;
+            line-height: 1.0;
+            font-size: 9pt;
+        }
 
-    .institute-info span {
-        font-weight: normal;
-        font-size: 10px;
-    }
+        .highlight {
+            background-color: #999999;
+            padding: 0 2px;
+        }
 
-    /* ── META OFICIO ──────────────────────────────────── */
-    .meta-info {
-        text-align: right;
-        margin-top: 2.5cm; /* Bajado ligeramente sin exagerar para no romper el salto de página */
-        margin-bottom: 3px;
-        line-height: 1.0;
-        font-size: 9pt;
-    }
+        /* ── CUERPO ───────────────────────────────────────── */
+        .saludo {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
 
-    .highlight {
-        background-color: #999999;
-        padding: 0 2px;
-    }
+        .body-text {
+            text-align: justify;
+            margin-bottom: 9.15pt;
+            /* Reducido (antes 12px) */
+            font-size: 9pt;
+            line-height: 1.15;
+        }
 
-    /* ── CUERPO ───────────────────────────────────────── */
-    .saludo {
-        font-weight: bold;
-        font-size: 13px;
-        margin-bottom: 10px;
-    }
+        .body-text b {
+            font-weight: bold;
+        }
 
-    .body-text {
-        text-align: justify;
-        margin-bottom: 8pt;
-        /* Reducido (antes 12px) */
-        font-size: 9pt;
-        line-height: 1.15;
-    }
+        /* Contenedor del cuerpo de la carta */
+        .carta-cuerpo {
+            margin-top: 10.15pt;
+            /* Espacio respecto al texto superior (si lo hay) */
+            width: 100%;
+        }
 
-    .body-text b {
-        font-weight: bold;
-    }
+        /* Estilo directo a los párrafos dentro del contenedor */
+        .carta-cuerpo p {
+            text-align: justify;
+            margin-bottom: 10.15pt;
+            /* Distancia exacta entre párrafos para replicar la imagen */
+            font-size: 9pt;
+            line-height: 1.15;
+        }
 
-    /* Contenedor del cuerpo de la carta */
-    .carta-cuerpo {
-        margin-top: 8pt; /* Espacio respecto al texto superior (si lo hay) */
-        width: 100%;
-    }
+        .carta-cuerpo b {
+            font-weight: bold;
+        }
 
-    /* Estilo directo a los párrafos dentro del contenedor */
-    .carta-cuerpo p {
-        text-align: justify;
-        margin-top: 0; 
-        margin-bottom: 8pt; /* Distancia exacta entre párrafos para replicar la imagen */
-        font-size: 9pt;
-        line-height: 1.15;
-    }
+        /* ── ATENTAMENTE ──────────────────────────────────── */
+        .atentamente {
+            font-weight: bold;
+            font-size: 10pt;
+            line-height: 0.9;
+        }
 
-    .carta-cuerpo b {
-        font-weight: bold;
-    }
+        .lema {
+            font-style: italic;
+            font-weight: bold;
+            font-size: 8pt;
+            line-height: 0.9;
+        }
 
-    /* ── ATENTAMENTE ──────────────────────────────────── */
-    .atentamente {
-        font-weight: bold;
-        font-size: 10pt;
-    }
+        .iconito-r {
+            font-size: 4pt;
+            vertical-align: baseline;
+            position: relative;
+            top: -1px;
+        }
 
-    .lema {
-        font-style: italic;
-        font-weight: bold;
-        /* Añadida negrita según el documento */
-        font-size: 8pt;
-        /* Ajustado a 8 pts según el documento */
-        line-height: 0.9;
-    }
+        /* ── FIRMAS ───────────────────────────────────────── */
+        .signatures-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 90px;
+            line-height: 0.9;
+            /* Mantenemos el interlineado tipo Word */
+        }
 
-    /* ── VOBO ─────────────────────────────────────────── */
-    .vobo-row {
-        width: 100%;
-        margin-bottom: 16px;
-    }
+        .sig-left {
+            width: 50%;
+            vertical-align: bottom;
+            text-align: left;
+            /* CORRECCIÓN: Pegado al margen izquierdo */
+            font-size: 10pt;
+        }
 
-    .vobo-cell {
-        text-align: right;
-        font-weight: bold;
-        padding-right: 60px;
-    }
+        .sig-right {
+            width: 50%;
+            vertical-align: bottom;
+            text-align: right;
+            /* CORRECCIÓN: Pegado al margen derecho */
+            font-size: 10pt;
+        }
 
-    /* ── FIRMAS ───────────────────────────────────────── */
-    .signatures-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 90px;
-        line-height: 0.9; /* Mantenemos el interlineado tipo Word */
-    }
+        .sig-name {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
 
-    .sig-left {
-        width: 50%;
-        vertical-align: bottom; 
-        text-align: left; /* CORRECCIÓN: Pegado al margen izquierdo */
-        font-size: 10pt;
-    }
+        .sig-title {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
 
-    .sig-right {
-        width: 50%;
-        vertical-align: bottom; 
-        text-align: right; /* CORRECCIÓN: Pegado al margen derecho */
-        font-size: 10pt;
-    }
+        /* ── PIE DE PÁGINA ────────────────────────────────── */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 5.2cm;
+            /* Ajustado para que el texto FDBL inicie a ~4.9cm del borde inferior */
+            padding-left: 2.5cm;
+            padding-right: 1.5cm;
+        }
 
-    .sig-name {
-        font-weight: bold;
-        text-transform: uppercase;
-    }
+        .ccp {
+            font-size: 8pt;
+            margin-bottom: 4px;
+            line-height: 0.9;
+        }
 
-    .sig-title {
-        font-weight: bold;
-        text-transform: uppercase;
-    }
+        .cadena-box {
+            border: 1px dotted #555;
+            display: inline-block;
+            padding: 1px 8px;
+            font-size: 8.5px;
+            margin-top: 4px;
+        }
 
-    /* ── PIE DE PÁGINA ────────────────────────────────── */
-    .footer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 5.2cm; /* Ajustado para que el texto FDBL inicie a ~4.9cm del borde inferior */
-        padding-left: 2.5cm;
-        padding-right: 1.5cm;
-    }
+        .footer-bottom-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+        }
 
-    .ccp {
-        font-size: 8pt;
-        margin-bottom: 4px;
-    }
+        .footer-logo-left {
+            width: 165px;
+            vertical-align: bottom;
+            position: relative;
+            top: -12px;
+            left: -20px;
+            /* <--- Agrega esta línea para empujar el logo a la izquierda */
+        }
 
-    .cadena-box {
-        border: 1px dotted #555;
-        display: inline-block;
-        padding: 1px 8px;
-        font-size: 8.5px;
-        margin-top: 4px;
-    }
+        .footer-logo-left img {
+            max-height: 90px;
+        }
 
-    .footer-bottom-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 6px;
-    }
+        .footer-address-cell {
+            vertical-align: bottom;
+            font-size: 8.5px;
+            color: #8e2b3b;
+            padding-left: 12px;
+            padding-bottom: 5px;
+            font-weight: bold;
+        }
 
-    .footer-logo-left {
-        width: 165px;
-        vertical-align: bottom;
-        position: relative;
-        top: -12px;
-        left: -20px;
-        /* <--- Agrega esta línea para empujar el logo a la izquierda */
-    }
+        .address-container {
+            border-top: 3px solid #8e2b3b;
+            /* Color guinda del membrete */
+            padding-top: 4px;
+        }
 
-    .footer-logo-left img {
-        max-height: 90px;
-    }
-
-    .footer-address-cell {
-        vertical-align: bottom;
-        font-size: 8.5px;
-        color: #8e2b3b;
-        padding-left: 12px;
-        padding-bottom: 5px;
-        font-weight: bold;
-    }
-
-    .address-container {
-        border-top: 3px solid #8e2b3b;
-        /* Color guinda del membrete */
-        padding-top: 4px;
-    }
-
-    .footer-logo-right {
-        display: none;
-    }
-
-    /* ── QR ───────────────────────────────────────────── */
-    .qr-area {
-        position: relative;
-        top: -10px;
-    }
-
-    .qr-area img {
-        width: 72px;
-        height: 72px;
-        display: block;
-        margin: 0 auto;
-    }
-
-    .qr-code-label {
-        font-size: 7px;
-        color: #666;
-        text-align: center;
-        width: 72px;
-        margin-top: 2px;
-    }
     </style>
 </head>
 
@@ -311,8 +274,7 @@
                     </span>
                     <span class="golden-separator"></span>
                     <span style="display: inline-block; vertical-align: middle;">
-                        <x-certificate-logo name="logo_tecnm" class="img-tecnm" :is-pdf="$is_pdf ?? false"
-                            alt="TecNM" />
+                        <x-certificate-logo name="logo_tecnm" class="img-tecnm" :is-pdf="$is_pdf ?? false" alt="TecNM" />
                     </span>
                 </div>
             </td>
@@ -325,8 +287,7 @@
 
     {{-- ── META OFICIO ─────────────────────────────────────── --}}
     <div class="meta-info">
-        León, Guanajuato, <span
-            class="highlight">{{ \Carbon\Carbon::now()->format('d') . '/' . strtoupper(\Carbon\Carbon::now()->isoFormat('MMMM')) . '/' . date('Y') }}</span><br>
+        León, Guanajuato, <span class="highlight">{{ \Carbon\Carbon::now()->format('d') . '/' . strtoupper(\Carbon\Carbon::now()->isoFormat('MMMM')) . '/' . date('Y') }}</span><br>
         @yield('oficio_line')<br>
         Asunto: Constancia de Inglés
     </div>
@@ -353,9 +314,9 @@
         </p>
         <p>
             @if(isset($student_type) && $student_type === 'actual')
-                La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de emisión.</b>
+            La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de emisión.</b>
             @else
-                La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de egreso del
+            La presente constancia tendrá una vigencia de <b>dos años contados a partir de la fecha de egreso del
                 estudiante.</b>
             @endif
         </p>
@@ -372,13 +333,15 @@
             <td style="vertical-align: top; width:60%;">
                 <div class="atentamente">
                     A T E N T A M E N T E<br>
-                    <div class="lema">Excelencia en Educación Tecnológica®<br>Ciencia, Tecnología y Libertad.</div>
+                    <span class="lema">
+                        Excelencia en Educación Tecnológica<span class="iconito-r">®</span><br>
+                        Ciencia, Tecnología y Libertad.
+                    </span>
                 </div>
             </td>
             <td style="vertical-align: top; text-align: center; width:40%;">
                 @if(!empty($qr_image))
-                <img src="{{ $qr_image }}" style="width:60px; height:60px; display:block; margin:0 auto;"
-                    alt="QR Verificación">
+                <img src="{{ $qr_image }}" style="width:60px; height:60px; display:block; margin:0 auto;" alt="QR Verificación">
                 @endif
                 <div style="font-weight:bold; font-size:14px; margin-top:5px;">Vo.Bo.</div>
             </td>
@@ -390,19 +353,19 @@
         <tr>
             <td class="sig-left">
                 <div class="sig-name">{{ $signer_one_name ?? 'FÁTIMA DEL ROCÍO BECERRA LÓPEZ' }}</div>
-                <div class="sig-title">{!! str_replace(' LENGUAS EXTRANJERAS', ' LENGUAS<br>EXTRANJERAS',
+                <div class="sig-title">{!! str_replace(' LENGUAS EXTRANJERAS', ' LENGUAS <br>EXTRANJERAS',
                     $signer_one_title ?? 'COORDINADORA DE LENGUAS EXTRANJERAS') !!}</div>
             </td>
             <td class="sig-right">
                 <div class="sig-name">{{ $signer_two_name ?? 'ROCÍO SILVIA VARGAS MONTES DE OCA' }}</div>
-                <div class="sig-title">{!! str_replace(' PLANEACIÓN Y VINCULACIÓN', ' PLANEACIÓN<br>Y VINCULACIÓN',
+                <div class="sig-title">{!! str_replace(' PLANEACIÓN Y VINCULACIÓN', ' PLANEACIÓN <br> Y VINCULACIÓN',
                     $signer_two_title ?? 'SUBDIRECTORA DE PLANEACIÓN Y VINCULACIÓN') !!}</div>
             </td>
         </tr>
     </table>
 
     {{-- ── CCP Y CADENA ÚNICA ──────────────────────────────────────── --}}
-    <table style="width: 100%; margin-top: 15px;">
+    <table style="width: 100%; margin-top: 28px;">
         <tr>
             <td style="vertical-align: bottom;">
                 <div class="ccp" style="text-align: left;">
@@ -430,8 +393,7 @@
 
         {{-- Logos de sellos: ya impresos en el membrete --}}
         <div style="text-align: right; padding-right: 0px; margin-bottom: 4px; visibility: hidden;">
-            <x-certificate-logo name="logo_seals" :is-pdf="$is_pdf ?? false" alt=""
-                style="max-height: 45px; display: inline-block;" />
+            <x-certificate-logo name="logo_seals" :is-pdf="$is_pdf ?? false" alt="" style="max-height: 45px; display: inline-block;" />
         </div>
 
         {{-- Logo margarita y dirección: ya impresos en el membrete --}}
