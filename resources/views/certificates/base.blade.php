@@ -17,7 +17,6 @@
         }
 
         body {
-            /* Se usa Noto Sans como fuente principal (registrada en DomPDF via storage/fonts/) */
             font-family: 'Noto Sans', sans-serif;
             font-size: 9pt;
             color: #000;
@@ -25,67 +24,6 @@
             line-height: 1.15;
         }
 
-        /* ── CABECERA ─────────────────────────────────────── */
-        .header-table {
-            width: 100%;
-            border-collapse: collapse;
-            border: none;
-            display: none;
-        }
-
-        .header-table td {
-            vertical-align: middle;
-            /* Centra los logos verticalmente */
-            padding: 0;
-        }
-
-        .logo-sep-tecnm {
-            text-align: left;
-            width: 60%;
-            white-space: nowrap;
-            padding-top: 10px;
-            /* Membrete: logos ya impresos en la hoja */
-            visibility: hidden;
-        }
-
-        .img-sep {
-            height: 60px;
-            width: auto;
-            vertical-align: middle;
-        }
-
-        .img-tecnm {
-            height: 70px;
-            /* Ligeramente más alto para compensar el margen interno de la imagen */
-            width: auto;
-            vertical-align: middle;
-        }
-
-        .golden-separator {
-            display: inline-block;
-            vertical-align: middle;
-            border-left: 2px solid #cba25d;
-            height: 40px;
-            margin: 0 15px;
-            /* Membrete: separador ya impreso en la hoja */
-            visibility: hidden;
-        }
-
-        .logo-itl {
-            text-align: right;
-            width: 40%;
-            padding-right: 0;
-            /* Membrete: logo ya impreso en la hoja */
-            visibility: hidden;
-        }
-
-        .logo-itl img {
-            height: 70px;
-            /* Reducido para hacer juego con los de la izquierda */
-            width: auto;
-        }
-
-        /* ── META OFICIO ──────────────────────────────────── */
         .meta-info {
             text-align: right;
             line-height: 1.0;
@@ -97,7 +35,6 @@
             padding: 0 2px;
         }
 
-        /* ── CUERPO ───────────────────────────────────────── */
         .saludo {
             font-weight: bold;
             font-size: 10pt;
@@ -107,36 +44,30 @@
         .body-text {
             text-align: justify;
             margin-bottom: 9.15pt;
-            /* Reducido (antes 12px) */
             font-size: 9pt;
-            line-height: 1;
+            line-height: 0.9;
         }
 
         .body-text b {
             font-weight: bold;
         }
 
-        /* Contenedor del cuerpo de la carta */
         .carta-cuerpo {
             margin-top: 10.15pt;
-            /* Espacio respecto al texto superior (si lo hay) */
             width: 100%;
         }
 
-        /* Estilo directo a los párrafos dentro del contenedor */
         .carta-cuerpo p {
             text-align: justify;
             margin-bottom: 10.15pt;
-            /* Distancia exacta entre párrafos para replicar la imagen */
             font-size: 9pt;
-            line-height: 1.15;
+            line-height: 1.10;
         }
 
         .carta-cuerpo b {
             font-weight: bold;
         }
 
-        /* ── ATENTAMENTE ──────────────────────────────────── */
         .titulo-atentamente {
             font-weight: bold;
             font-size: 10pt;
@@ -161,20 +92,17 @@
             top: -1px;
         }
 
-        /* ── FIRMAS ───────────────────────────────────────── */
         .signatures-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 55px;
             line-height: 0.9;
-            /* Mantenemos el interlineado tipo Word */
         }
 
         .sig-left {
             width: 50%;
             vertical-align: bottom;
             text-align: left;
-            /* CORRECCIÓN: Pegado al margen izquierdo */
             font-size: 10pt;
         }
 
@@ -182,7 +110,6 @@
             width: 50%;
             vertical-align: bottom;
             text-align: right;
-            /* CORRECCIÓN: Pegado al margen derecho */
             font-size: 10pt;
         }
 
@@ -194,18 +121,6 @@
         .sig-title {
             font-weight: bold;
             text-transform: uppercase;
-        }
-
-        /* ── PIE DE PÁGINA ────────────────────────────────── */
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 5.2cm;
-            /* Ajustado para que el texto FDBL inicie a ~4.9cm del borde inferior */
-            padding-left: 2.5cm;
-            padding-right: 1.5cm;
         }
 
         .ccp {
@@ -220,41 +135,6 @@
             font-size: 8.5px;
             margin-top: 4px;
         }
-
-        .footer-bottom-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 6px;
-        }
-
-        .footer-logo-left {
-            width: 165px;
-            vertical-align: bottom;
-            position: relative;
-            top: -12px;
-            left: -20px;
-            /* <--- Agrega esta línea para empujar el logo a la izquierda */
-        }
-
-        .footer-logo-left img {
-            max-height: 90px;
-        }
-
-        .footer-address-cell {
-            vertical-align: bottom;
-            font-size: 8.5px;
-            color: #8e2b3b;
-            padding-left: 12px;
-            padding-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .address-container {
-            border-top: 3px solid #8e2b3b;
-            /* Color guinda del membrete */
-            padding-top: 4px;
-        }
-
     </style>
 </head>
 

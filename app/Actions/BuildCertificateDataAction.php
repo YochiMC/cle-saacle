@@ -94,6 +94,9 @@ class BuildCertificateDataAction
                     $promedio = $units['promedio'] ?? $units['calificacion_final'] ?? 0;
                 }
                 $nivel = $units['speaking'] ?? $units['certified_level'] ?? $units['nivel_certificado'] ?? $units['promedio_habilidades'] ?? '';
+                if ($certType === 'otra-institucion' && !empty($units['score'])) {
+                    $nivel = $nivel . ' (' . $units['score'] . ')';
+                }
             }
         } elseif ($winningType === 'group' && $winningRecord) {
             $promedio = $winningRecord->final_average ?? 0;

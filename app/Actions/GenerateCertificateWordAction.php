@@ -48,6 +48,8 @@ class GenerateCertificateWordAction
         $section->addText("León, Guanajuato, $diaActual/$mesActual/$anioActual", ['size' => 10], $metaStyle);
         
         $type = $certificate->certificate_type ?? 'examen-acreditacion';
+        $nivel = $certificate->nivel;
+
         $oficioPrefixMap = [
             'cursos' => 'CLE-CR-',
             'cuatro-habilidades' => 'CLE-4H-',
@@ -101,12 +103,12 @@ class GenerateCertificateWordAction
             $textRun1->addText(', acorde a la documentación existente en los archivos de este departamento.', $bodyFontStyle);
         } elseif ($type === 'cuatro-habilidades') {
             $textRun1->addText(', acreditó el examen de 4 habilidades, obteniendo un nivel ', $bodyFontStyle);
-            $textRun1->addText($certificate->nivel, ['bold' => true, 'size' => 9]);
+            $textRun1->addText($nivel, ['bold' => true, 'size' => 9]);
             $textRun1->addText(' con base al Marco Común Europeo de Referencia (MCER), acorde a la documentación existente en los archivos de este departamento.', $bodyFontStyle);
         } elseif ($type === 'otra-institucion') {
-            $textRun1->addText(', presentó la documentación de acreditación emitida por otra institución, acreditando el equivalente al nivel (', $bodyFontStyle);
-            $textRun1->addText($certificate->nivel, ['bold' => true, 'size' => 9]);
-            $textRun1->addText(') con base al Marco Común Europeo de Referencia (MCER), acorde a la documentación existente en los archivos de este departamento.', $bodyFontStyle);
+            $textRun1->addText(', presentó la documentación de acreditación emitida por otra institución, acreditando el equivalente al nivel ', $bodyFontStyle);
+            $textRun1->addText($nivel, ['bold' => true, 'size' => 9]);
+            $textRun1->addText(' con base al Marco Común Europeo de Referencia (MCER), acorde a la documentación existente en los archivos de este departamento.', $bodyFontStyle);
         } else {
             // examen-acreditacion
             $textRun1->addText(', presentó examen de acreditación obteniendo una calificación promedio de ', $bodyFontStyle);
